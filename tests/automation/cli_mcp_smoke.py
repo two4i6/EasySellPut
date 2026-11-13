@@ -12,8 +12,9 @@ def run(command, data, *args, code=0):
 
 
 class Mcp:
-    def __init__(self, command, data, writes=False):
+    def __init__(self, command, data, writes=False, response_timeout=15):
         self.process = subprocess.Popen([*command, 'mcp', 'serve', '--data-dir', data, *(['--allow-writes'] if writes else [])], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1)
+        self.response_timeout = response_timeout
         self.messages = queue.Queue()
         self.errors = []
         self.next_id = 0
@@ -43,7 +44,7 @@ class Mcp:
         self.send({'jsonrpc': '2.0', 'id': ident, 'method': method, 'params': params or {}})
         while True:
             try:
-                message = self.messages.get(timeout=15)
+                message = self.messages.get(timeout=self.response_timeout)
             except queue.Empty:
                 raise AssertionError(('MCP response timed out', method, self.process.poll(), ''.join(self.errors)))
             if isinstance(message, Exception):

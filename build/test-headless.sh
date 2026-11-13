@@ -18,7 +18,7 @@ for name in Core Data Analytics Shared Mac Automation; do
   fi
 done
 if dotnet build tests/Meili.Automation.Host/Meili.Automation.Host.csproj -c Release -m:3 -v minimal > "$results/cli-build.log" 2>&1; then
-  if ! python3 -m unittest discover -s tests/automation -p test_capability_guard.py -v > "$results/coverage-guard.log" 2>&1; then failed=1; fi
+  if ! python3 -m unittest discover -s tests/automation -p "test_*.py" -v > "$results/coverage-guard.log" 2>&1; then failed=1; fi
   cat "$results/coverage-guard.log"
   if ! python3 tests/automation/check_capability_coverage.py --report "$results/capability-coverage.json" > "$results/capability-coverage.log" 2>&1; then failed=1; fi
   cat "$results/capability-coverage.log"

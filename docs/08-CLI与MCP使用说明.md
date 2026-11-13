@@ -144,3 +144,14 @@ python3 tests/automation/cli_mcp_smoke.py --executable build/out/cli/EasySellPut
 ```
 
 回归脚本运行 Core/Data/Analytics/Shared/Mac/Automation 六组离线测试及真实 CLI/MCP 进程测试，保留真实退出状态，输出目录包含当前运行的 TRX、日志及无窗口 UI 截图。实时行情测试不包含在离线验证里；需要真实网络、行情源及相应地区访问条件。Windows WPF/macOS 原生桌面、通知和签名仍需在对应系统验收。
+
+### 手动真实行情验收（不会加入普通 PR 的离线测试）
+
+```bash
+source tools/env.sh
+MEILI_LIVE=1 python3 tests/automation/live_cli_mcp_smoke.py
+# 或测试实际发行可执行程序：
+MEILI_LIVE=1 python3 tests/automation/live_cli_mcp_smoke.py --executable /path/to/easysellput
+```
+
+必须显式设置 MEILI_LIVE=1。脚本分别使用生产 CLI 和 MCP 请求报价、历史K线（含末页最新交易日）、到期日、期权链、基本面、财报、新闻和搜索，校验来源、抓取时间、行情时间、缺失标的及缓存状态。报告默认在 build/out/live-readiness/acceptance。失败时返回非零，不把第三方限流或离线缓存当作成功。网络请求超时默认 60 秒，可通过 --timeout 调整。
