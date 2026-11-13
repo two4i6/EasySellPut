@@ -5,6 +5,7 @@
     <RootNamespace>Meili.Shared</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="../Meili.Application/Meili.Application.csproj" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="ScottPlot" />

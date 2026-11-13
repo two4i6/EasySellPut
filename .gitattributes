@@ -5,3 +5,4 @@
 *.gz binary
 tests/**/Fixtures/** -text
 *.sh text eol=lf
+*.py text eol=lf

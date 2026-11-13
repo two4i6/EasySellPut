@@ -1,0 +1,132 @@
+name: CLI and MCP CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+  DOTNET_NOLOGO: '1'
+  DOTNET_CLI_UI_LANGUAGE: en
+  NUGET_PACKAGES: ${{ github.workspace }}/tools/nuget-packages
+
+jobs:
+  automation:
+    name: CLI and MCP (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-latest, macos-15]
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build the real CLI and deterministic protocol host
+        run: |
+          dotnet build tests/Meili.Automation.Host/Meili.Automation.Host.csproj -c Release -m:3 -v minimal
+          if ($LASTEXITCODE -ne 0) { throw 'CLI / protocol host build failed' }
+      - name: Shared business and automation tests
+        run: |
+          $failed = $false
+          foreach ($name in @('Core', 'Data', 'Analytics', 'Shared', 'Automation')) {
+            dotnet test "tests/Meili.$name.Tests/Meili.$name.Tests.csproj" -c Release -m:3 --filter 'Category!=Live' --logger "trx;LogFileName=$name.trx" --results-directory build/out/ci/tests -v minimal -- RunConfiguration.TreatNoTestsAsError=true
+            if ($LASTEXITCODE -ne 0) { $failed = $true }
+          }
+          if ($failed) { throw 'Shared or automation tests failed' }
+      - name: Coverage guard regression tests
+        run: |
+          python -m unittest discover -s tests/automation -p test_capability_guard.py -v
+          if ($LASTEXITCODE -ne 0) { throw 'Capability coverage guard tests failed' }
+      - name: Every operation must execute through CLI and MCP
+        run: |
+          python tests/automation/check_capability_coverage.py
+          if ($LASTEXITCODE -ne 0) { throw 'CLI / MCP capability coverage or parity failed' }
+      - name: Production CLI and stdio MCP process checks
+        run: |
+          python tests/automation/cli_mcp_smoke.py --dll src/Meili.Cli/bin/Release/net10.0/easysellput.dll
+          if ($LASTEXITCODE -ne 0) { throw 'Production CLI / MCP process checks failed' }
+      - name: Publish and test the native self-contained executable
+        run: |
+          $os = if ($IsWindows) { 'win' } elseif ($IsMacOS) { 'osx' } else { 'linux' }
+          $arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant()
+          dotnet publish src/Meili.Cli/Meili.Cli.csproj -c Release -r "$os-$arch" --self-contained true -m:3 -p:PackAsTool=false -p:PublishTrimmed=false -o build/out/ci/publish -v minimal
+          if ($LASTEXITCODE -ne 0) { throw 'Native CLI publish failed' }
+          $executable = if ($IsWindows) { 'build/out/ci/publish/easysellput.exe' } else { 'build/out/ci/publish/easysellput' }
+          python tests/automation/cli_mcp_smoke.py --executable $executable
+          if ($LASTEXITCODE -ne 0) { throw 'Published executable process checks failed' }
+      - name: Retain test evidence even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: automation-${{ matrix.os }}
+          path: |
+            build/out/ci/tests/**/*.trx
+            build/out/ci/capability-coverage.json
+          if-no-files-found: warn
+          retention-days: 14
+
+  desktop:
+    name: Desktop headless regression
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Install fonts for real Skia headless rendering
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fontconfig fonts-dejavu-core fonts-noto-core fonts-noto-cjk
+      - name: Run existing desktop headless tests
+        env:
+          FONTCONFIG_FILE: ${{ github.workspace }}/build/ci-fonts.conf
+          MEILI_RENDER_DIR: ${{ github.workspace }}/build/out/ci/render
+        run: |
+          mkdir -p "$MEILI_RENDER_DIR"
+          dotnet test tests/Meili.Mac.Tests/Meili.Mac.Tests.csproj -c Release -m:3 --filter 'Category!=Live' --logger 'trx;LogFileName=Mac.trx' --results-directory build/out/ci/tests -v minimal -- RunConfiguration.TreatNoTestsAsError=true
+      - name: Retain desktop results and rendered pages
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-headless
+          path: |
+            build/out/ci/tests/**/*.trx
+            build/out/ci/render/**/*.png
+          if-no-files-found: warn
+          retention-days: 14
+
+  required:
+    name: CLI and MCP required
+    if: always()
+    needs: [automation, desktop]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: All platform and desktop checks must pass
+        env:
+          AUTOMATION_RESULT: ${{ needs.automation.result }}
+          DESKTOP_RESULT: ${{ needs.desktop.result }}
+        run: |
+          test "$AUTOMATION_RESULT" = success
+          test "$DESKTOP_RESULT" = success

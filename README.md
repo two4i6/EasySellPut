@@ -4,7 +4,7 @@ An ultra-lightweight market data terminal for Windows and macOS, with support fo
 
 一款可在 Windows 和 macOS 上运行的超轻量级行情终端，支持美股及期权策略。
 
-Current version: **0.5.0**
+Current version: **0.6.0**
 
 ## Features
 
@@ -30,6 +30,24 @@ powershell -ExecutionPolicy Bypass -File build\run-dev.ps1
 ```
 
 Release packs (installers and portable zips) are produced by `build/pack.ps1` and `build/pack-mac.sh`. Those artifacts are not stored in this repository; publish them with GitHub Releases if needed.
+
+## CLI and MCP
+
+Version 0.6.0 adds a cross-platform local CLI and stdio MCP server, sharing the desktop market-data adapters and analytics. No GUI or Web server is required.
+
+```bash
+easysellput quote AAPL MSFT --json
+easysellput strategy analyze --input analysis.json --json
+easysellput mcp serve --data-dir /path/to/EasySellPut-data
+```
+
+MCP is read-only by default; `--allow-writes` enables registered local mutations. See [CLI / MCP usage and client configuration](docs/08-CLI与MCP使用说明.md) and [implementation tasks](docs/07-CLI与MCP改造任务.md).
+
+On Unix, `bash build/test-headless.sh` runs shared libraries, headless UI and CLI/MCP process checks. `bash build/pack-cli.sh <rid>` creates a self-contained CLI/MCP archive under `build/out/cli`.
+
+## Continuous integration
+
+[GitHub Actions CI](.github/workflows/ci.yml) validates Linux/Windows/macOS CLI + MCP, every registered operation through both transports, and desktop headless regression. New operations without executable coverage fail CI. See [coverage and required-check setup](docs/09-CI与能力覆盖.md).
 
 ## Data location
 

@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Meili.Analytics;
 using Meili.Core.Diagnostics;
+using Meili.Core.Settings;
 
 namespace Meili.Shared.Services;
 
@@ -31,6 +32,7 @@ public sealed class StrategyStore
         Converters = { new JsonStringEnumConverter() },
     };
 
+    private readonly SnapshotFile _snapshot;
     private List<SavedStrategy> _items = [];
     public string FilePath { get; }
     public IReadOnlyList<SavedStrategy> All => _items;
@@ -39,10 +41,11 @@ public sealed class StrategyStore
     {
         Directory.CreateDirectory(dataDirectory);
         FilePath = Path.Combine(dataDirectory, "strategies.json");
+        _snapshot = new SnapshotFile(FilePath);
         if (!File.Exists(FilePath)) return;
         try
         {
-            _items = JsonSerializer.Deserialize<List<SavedStrategy>>(File.ReadAllText(FilePath), Json) ?? [];
+            _items = JsonSerializer.Deserialize<List<SavedStrategy>>(_snapshot.Read()!, Json) ?? [];
         }
         catch (Exception ex) when (ex is JsonException or IOException)
         {
@@ -64,8 +67,6 @@ public sealed class StrategyStore
 
     private void Write()
     {
-        var tmp = FilePath + ".tmp";
-        File.WriteAllText(tmp, JsonSerializer.Serialize(_items, Json));
-        File.Move(tmp, FilePath, overwrite: true);
+        _snapshot.Write(JsonSerializer.Serialize(_items, Json));
     }
 }
