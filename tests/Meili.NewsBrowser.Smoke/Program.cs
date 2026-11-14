@@ -104,6 +104,11 @@ internal static class Program
         {
             Console.Error.WriteLine(ex);
             Console.Error.WriteLine($"Title={window.Title}; HTTP fixture requests={server.Count}");
+            Console.Error.WriteLine("UI status: " + string.Join(" | ", ((DockPanel)window.Content!).Children.OfType<TextBlock>().Select(t => t.Text)));
+#if !WINDOWS_READER
+            var failedWeb = ((DockPanel)window.Content!).Children.OfType<NewsWebView>().Single();
+            Console.Error.WriteLine($"WK title={failedWeb.DocumentTitle}; address={failedWeb.Address}; status={failedWeb.StatusKey}; bounds={failedWeb.Bounds}");
+#endif
             foreach (var file in Directory.EnumerateFiles(Path.Combine(directory, "logs"), "*.log"))
                 Console.Error.WriteLine(await File.ReadAllTextAsync(file));
         }

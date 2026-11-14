@@ -49,6 +49,7 @@ public sealed class NewsWebView : NativeControlHost
             _delegate = Native.Send(Native.DelegateClass, "new");
             if (_delegate == IntPtr.Zero) throw new InvalidOperationException("WKWebView delegate allocation failed");
             Native.Owners[_delegate] = this;
+            AppLog.Info("news-reader", "WKWebView initialized");
             Native.Send(_view, "setNavigationDelegate:", _delegate);
             Native.Send(_view, "setUIDelegate:", _delegate);
             if (_pending is not null) Navigate(_pending);
@@ -70,6 +71,7 @@ public sealed class NewsWebView : NativeControlHost
     private void ReleaseNative()
     {
         if (_view == IntPtr.Zero) return;
+        AppLog.Info("news-reader", "WKWebView disposed");
         Native.Send(_view, "stopLoading");
         Native.Send(_view, "setNavigationDelegate:", IntPtr.Zero);
         Native.Send(_view, "setUIDelegate:", IntPtr.Zero);
@@ -152,6 +154,7 @@ public sealed class NewsWebView : NativeControlHost
                 if (!Owners.TryGetValue(self, out var owner)) return;
                 var url = Text(Send(Send(Send(action, "request"), "URL"), "absoluteString"));
                 allow = NewsReaderPolicy.IsAllowed(url);
+                AppLog.Info("news-reader", "Navigation policy: " + (allow ? "allow" : "block"));
                 if (!allow) { owner.StatusKey = "Reader_Blocked"; owner.Changed?.Invoke(); }
                 else if (Send(action, "targetFrame") == IntPtr.Zero) { allow = false; owner.Navigate(url); }
             }
@@ -169,6 +172,7 @@ public sealed class NewsWebView : NativeControlHost
                     if (Owners.TryGetValue(self, out var blocked)) blocked.Update("Reader_Blocked");
                     return;
                 }
+                AppLog.Info("news-reader", "Navigation response received");
                 var http = Send(response, "response");
                 if (BoolMessage(http, Selector("isKindOfClass:"), Class("NSHTTPURLResponse")) != 0 && Send(http, "statusCode").ToInt64() >= 400)
                 { allow = false; if (Owners.TryGetValue(self, out var owner)) owner.Update("Reader_Failed"); }
@@ -177,9 +181,15 @@ public sealed class NewsWebView : NativeControlHost
             finally { Complete(block, allow); }
         }
         private static readonly Finished StartRoot = (self, _, _, _) => Notify(self, "Reader_Loading");
-        private static void Finish(IntPtr self, IntPtr cmd, IntPtr view, IntPtr navigation) => Notify(self, "");
+        private static void Finish(IntPtr self, IntPtr cmd, IntPtr view, IntPtr navigation)
+        { AppLog.Info("news-reader", "Navigation finished"); Notify(self, ""); }
         private static void Fail(IntPtr self, IntPtr cmd, IntPtr view, IntPtr navigation, IntPtr error)
-        { if (Send(error, "code").ToInt64() != -999) Notify(self, "Reader_Failed"); }
+        {
+            var code = Send(error, "code").ToInt64();
+            if (code == -999) return;
+            AppLog.Warn("news-reader", "WebKit load failed: " + Text(Send(error, "domain")) + " " + code);
+            Notify(self, "Reader_Failed");
+        }
         private static void Notify(IntPtr self, string status)
         {
             try { if (Owners.TryGetValue(self, out var owner)) owner.Update(status); }
