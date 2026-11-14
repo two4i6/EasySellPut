@@ -54,12 +54,12 @@
       const confirmation=zh ? {estimated:'预计',source_confirmed:'来源已确认',unverified:'未核实'} : {estimated:'Estimated',source_confirmed:'Source confirmed',unverified:'Unverified'};
       const meta=[e.publisher||e.source,e.type!=='news'?confirmation[e.confirmation]:null].filter(Boolean);
       if(meta.length)append(row,'div',meta.join(' · '),'tooltip-meta');
-      const alignment=zh ? {next_bar:'标记对齐后续 K 线，以上为原始事件时间',same_day:'标记按同日 K 线对齐，以上为原始事件时间',period_bucket:'标记按周期汇总，以上为原始事件时间'}
-        : {next_bar:'Marker aligned to next bar; original event time shown above',same_day:'Marker aligned to same-day bar; original event time shown above',period_bucket:'Marker grouped by chart period; original event time shown above'};
+      const alignment=zh ? {next_bar:'后续 K 线对齐 · 原始事件时间',same_day:'同日 K 线 · 原始事件时间',period_bucket:'周期汇总 · 原始事件时间'}
+        : {next_bar:'Next-bar marker · Original time above',same_day:'Same-day marker · Original time above',period_bucket:'Period marker · Original time above'};
       if(alignment[item.alignment])append(row,'div',alignment[item.alignment],'tooltip-meta');
     }
     append(box,'div',items.length>limit ? (zh?`另有 ${items.length-limit} 项 · 点击图表查看详情`:`${items.length-limit} more · Click chart for details`)
-      : (zh?'点击图表查看详情':'Click chart for details'),'tooltip-meta');
+      : (zh?'点击展开 ↗︎':'Click to expand ↗︎'),'tooltip-meta');
     box.hidden=false;
     const width=box.offsetWidth, height=box.offsetHeight;
     box.style.left=Math.max(8,Math.min(param.point.x+16,root.clientWidth-width-8))+'px';
@@ -113,7 +113,8 @@
       {estimated:'Estimated',source_confirmed:'Source confirmed',unverified:'Unverified',reported_published:'Reported publication',timestamp:'Timestamp',date:'Date only',date_range:'Date range',unknown:'Time unknown',outside_chart:'Outside chart',next_bar:'Aligned to next bar',same_day:'Same day bar',period_bucket:'Period bucket',exact:'Exact',available:'Available',empty:'No recent news',not_reported:'Not reported',unavailable:'Unavailable'};
     const text = (tag,value,css) => {const node=document.createElement(tag);node.textContent=value;if(css)node.className=css;return node;};
     const date = (e,compact=false) => e.published ? new Intl.DateTimeFormat(state.language,{timeZone:'America/New_York',dateStyle:compact?'short':'medium',timeStyle:'short'}).format(new Date(e.published))+' ET' : e.date ? e.date+(e.endDate ? ' – '+e.endDate : '') : labels.unknown;
-    document.getElementById('event-heading').textContent = zh ? '事件时间线' : 'Event timeline';
+    document.getElementById('event-heading').textContent = zh ? '动态' : 'Activity';
+    document.getElementById('event-heading').setAttribute('aria-label',zh?'事件与新闻':'Events and news');
     const box = document.getElementById('event-filters');
     if (box.dataset.language !== state.language) {
       box.dataset.language=state.language;box.replaceChildren();
@@ -122,11 +123,11 @@
         input.addEventListener('change',()=>{input.checked?filters.add(type):filters.delete(type);renderEvents();});label.append(input);const glyph=text('span',eventStyle(type).symbol);glyph.style.color=eventStyle(type).color;glyph.setAttribute('aria-hidden','true');label.append(glyph,document.createTextNode(names[type]));box.append(label);
       }
     }
-    for(const label of box.querySelectorAll('label'))label.querySelector('span').style.color=eventStyle(label.querySelector('input').dataset.type).color;
+    for(const label of box.querySelectorAll('label')) {const input=label.querySelector('input');label.classList.toggle('active',input.checked);label.querySelector('span').style.color=eventStyle(input.dataset.type).color;}
     const status=document.getElementById('event-status');
     status.textContent=state.timelineStatus==='loading' ? (zh?'加载中…':'Loading…') : (state.coverage||[]).filter(c=>c.status==='unavailable').map(c=>names[c.type]+': '+labels.unavailable).join(' · ');
     status.hidden=!status.textContent;
-    document.getElementById('event-info-heading').textContent=zh?'数据范围':'Data coverage';
+    document.getElementById('event-info-heading').textContent=zh?'数据范围':'Coverage';
     document.getElementById('event-coverage').textContent=(state.coverage||[]).map(c=>names[c.type]+': '+(labels[c.status]||c.status)).join(' · ');
     document.getElementById('event-scope').textContent=zh?'最近新闻与当前日历快照，不含完整历史。':'Recent news and current calendar snapshot; historical coverage is limited.';
     const visible=(state.events||[]).filter(e=>filters.has(e.event.type));
@@ -142,7 +143,9 @@
     const list=document.getElementById('event-list');list.replaceChildren();
     for(const item of visible) {
       const e=item.event,b=text('button','');b.type='button';b.dataset.eventId=e.id;b.setAttribute('aria-pressed',String(e.id===selectedEvent));b.setAttribute('aria-controls','event-detail');
+      const icon=text('span',eventStyle(e.type).symbol,'event-type-icon');icon.style.color=eventStyle(e.type).color;icon.setAttribute('aria-hidden','true');b.append(icon);
       b.append(text('span',e.type==='news'?e.title:names[e.type],'event-title'));
+      b.setAttribute('aria-label',[names[e.type],e.title,date(e)].filter(Boolean).join(' · '));
       const meta=text('span','','event-row-meta');meta.append(text('span',date(e,true)));
       if(e.type!=='news')meta.append(text('span',labels[e.confirmation],'event-badge'));
       if(item.alignment==='outside_chart' && e.date)meta.append(text('span',labels.outside_chart,'event-badge'));
@@ -155,13 +158,13 @@
     document.getElementById('event-content').classList.toggle('has-selection',!!selectedEvent);
     const item=visible.find(e=>e.event.id===selectedEvent);if(!item)return;
     const e=item.event;
-    const close=text('button',zh?'收起详情':'Close details','event-close');close.type='button';close.id='event-close';close.addEventListener('click',()=>{const id=selectedEvent;selectedEvent=null;renderEvents();list.querySelector('[data-event-id="'+id+'"]')?.focus({preventScroll:true});});
+    const close=text('button','×','event-close');close.setAttribute('aria-label',zh?'收起详情':'Close details');close.title=zh?'收起详情':'Close details';close.type='button';close.id='event-close';close.addEventListener('click',()=>{const id=selectedEvent;selectedEvent=null;renderEvents();list.querySelector('[data-event-id="'+id+'"]')?.focus({preventScroll:true});});
     detail.append(close,text('p',e.type==='news'?e.title:names[e.type],'event-detail-title'),text('p',date(e)+(e.type!=='news'?' · '+labels[e.confirmation]:''),'event-caption'));
     if(e.publisher||e.source)detail.append(text('p',e.publisher||e.source,'event-caption'));
     if(e.summary)detail.append(text('p',e.summary,'event-summary'));
-    if(e.type==='news' && e.url){const b=text('button',zh?'阅读原文':'Read original','event-read');b.type='button';b.id='event-read';b.addEventListener('click',()=>post({kind:'open-event',key:state.key,id:e.id}).catch(error));detail.append(b);}
+    if(e.type==='news' && e.url){const b=text('button',zh?'原文 ↗︎':'Original ↗︎','event-read');b.type='button';b.id='event-read';b.addEventListener('click',()=>post({kind:'open-event',key:state.key,id:e.id}).catch(error));detail.append(b);}
     const metadata=document.createElement('details');metadata.className='event-metadata';metadata.open=!!keepMetadataOpen;
-    metadata.append(text('summary',zh?'数据详情':'Data details'),text('p',labels[e.precision]+' · '+labels[e.confirmation]),text('p',(zh?'来源：':'Source: ')+(e.publisher?e.publisher+' / ':'')+e.source),text('p',labels[item.alignment]));
+    metadata.append(text('summary',zh?'来源与时间':'Source & time'),text('p',labels[e.precision]+' · '+labels[e.confirmation]),text('p',(zh?'来源：':'Source: ')+(e.publisher?e.publisher+' / ':'')+e.source),text('p',labels[item.alignment]));
     if(e.published)metadata.append(text('p',(zh?'原始时间：':'Original time: ')+e.published));
     if(e.providerFetchedAt)metadata.append(text('p',(zh?'来源下载时间：':'Provider fetched: ')+e.providerFetchedAt));
     if(e.providerAsOf)metadata.append(text('p',(zh?'来源数据时间：':'Provider as of: ')+e.providerAsOf));
@@ -189,7 +192,9 @@
       for (const [name,value] of Object.entries({background:t.background,text:t.text,muted:t.muted,control:t.control,border:t.border,accent:t.accent,'error-background':t.errorBackground,'error-text':t.errorText}))
         if (value) document.documentElement.style.setProperty('--'+name,value);
       document.getElementById('symbol').textContent = state.symbol;
-      document.getElementById('fit').textContent = state.language === 'zh-CN' ? '适应窗口' : 'Fit chart';
+      document.getElementById('fit').textContent = state.language === 'zh-CN' ? '适应' : 'Fit';
+      document.getElementById('fit').setAttribute('aria-label',state.language === 'zh-CN' ? '适应图表窗口' : 'Fit chart to window');
+      document.getElementById('help-heading').textContent=state.language === 'zh-CN' ? '? 操作' : '? Controls';
       document.getElementById('hint').textContent = state.language === 'zh-CN' ? '滚轮缩放 · 拖动平移 · 拖动面板分隔线调整高度' : 'Scroll to zoom · Drag to pan · Resize pane separators';
       document.getElementById('empty').textContent = state.rows.length ? '' : state.labels.empty;
       document.getElementById('error').style.display = 'none';

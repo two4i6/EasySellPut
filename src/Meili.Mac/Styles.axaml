@@ -133,19 +133,37 @@
         <Setter Property="Background" Value="{DynamicResource RowHighlightBrush}" />
         <Setter Property="TextElement.Foreground" Value="{DynamicResource AccentTextFillColorPrimaryBrush}" />
     </Style>
-    <Style Selector="UserControl.ChartWorkspace Button, UserControl.ChartWorkspace ToggleButton">
+    <Style Selector=".ChartWorkspace Button, .ChartWorkspace ToggleButton">
         <Setter Property="CornerRadius" Value="6" />
         <Setter Property="MinHeight" Value="32" />
         <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
         <Setter Property="BorderThickness" Value="0" />
     </Style>
-    <Style Selector="UserControl.ChartWorkspace ToggleButton:checked">
+    <Style Selector=".ChartWorkspace ToggleButton:checked">
         <Setter Property="Background" Value="{DynamicResource RowHighlightBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource AccentTextFillColorPrimaryBrush}" />
     </Style>
-    <Style Selector="UserControl.ChartWorkspace Button.Chip.Selected">
+    <Style Selector=".ChartWorkspace Button.Chip.Selected">
         <Setter Property="Background" Value="{DynamicResource AccentFillColorDefaultBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}" />
+    </Style>
+    <Style Selector=".ChartWorkspace Button, .ChartWorkspace ToggleButton">
+        <Setter Property="Template">
+            <ControlTemplate TargetType="Button">
+                <Border Name="Surface" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}" BorderBrush="Transparent" BorderThickness="1">
+                    <ContentPresenter Name="PART_ContentPresenter" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector=".ChartWorkspace Button:pointerover, .ChartWorkspace ToggleButton:pointerover">
+        <Setter Property="Background" Value="{DynamicResource RowHighlightBrush}" />
+    </Style>
+    <Style Selector=".ChartWorkspace Button:focus-visible /template/ Border#Surface, .ChartWorkspace ToggleButton:focus-visible /template/ Border#Surface">
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+    </Style>
+    <Style Selector=".ChartWorkspace Button:disabled, .ChartWorkspace ToggleButton:disabled">
+        <Setter Property="Opacity" Value="0.45" />
     </Style>
 </Styles>

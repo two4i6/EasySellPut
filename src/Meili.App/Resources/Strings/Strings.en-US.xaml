@@ -793,7 +793,7 @@
     <sys:String x:Key="Set_AiPrivacy">Query results are sent to the connected AI tool.</sys:String>
     <sys:String x:Key="Set_AiMoveApp">Move the app to Applications and reopen it first.</sys:String>
     <sys:String x:Key="Set_AiClaude">Copy Claude Code + Skill</sys:String>
-    <sys:String x:Key="Ch_Tools">Indicators &amp; settings</sys:String>
+    <sys:String x:Key="Ch_Tools">Indicators</sys:String>
     <sys:String x:Key="Ch_Indicators">Indicators</sys:String>
     <sys:String x:Key="Ch_DrawTools">Draw</sys:String>
     <sys:String x:Key="Ch_HLineShort">H line</sys:String>

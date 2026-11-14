@@ -65,7 +65,7 @@
                 <DockPanel LastChildFill="False">
                     <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
                         <controls:SymbolBox x:Name="SymbolInput" Width="180" MinWidth="160" Text="{Binding SymbolText}" WatchSymbols="{Binding WatchSymbols}" CommitCommand="{Binding LoadFromBoxCommand}"/>
-                        <ui:Button Margin="6,0,0,0" Padding="10,6" Content="{DynamicResource Ch_Load}" Command="{Binding LoadFromBoxCommand}"/>
+                        <ui:Button Margin="6,0,0,0" Padding="10,6" Content="↵" AutomationProperties.Name="{DynamicResource Ch_Load}" ToolTip="{DynamicResource Ch_Load}" Command="{Binding LoadFromBoxCommand}"/>
                     </StackPanel>
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                         <ToggleButton x:Name="InspectorToggle" Margin="6,0,0,0" Padding="10,6" Content="{DynamicResource Ch_Tools}" IsChecked="{Binding ShowInspector, Mode=TwoWay}" AutomationProperties.AutomationId="ChartsTools"/>
@@ -90,12 +90,11 @@
             </StackPanel>
         </Border>
         <DockPanel Grid.Row="1">
-            <Border DockPanel.Dock="Left" Width="88" Padding="6,12" BorderThickness="0,0,1,0" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}">
+            <Border DockPanel.Dock="Left" Width="72" Padding="6,12" BorderThickness="0,0,1,0" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}">
                 <StackPanel>
-                    <TextBlock Style="{StaticResource CardTitle}" Text="{DynamicResource Ch_DrawTools}" Margin="4,0,0,12"/>
-                    <ToggleButton Padding="6,6" IsChecked="{Binding IsHorizontalDrawing, Mode=OneWay}" Margin="0,0,0,8" Content="{DynamicResource Ch_HLineShort}" ToolTip="{DynamicResource Ch_DrawHLineHint}" Command="{Binding StartDrawingCommand}" CommandParameter="{x:Static cs:DrawingKind.HorizontalLine}" AutomationProperties.AutomationId="ChartsDrawHLine"/>
-                    <ToggleButton Padding="6,6" IsChecked="{Binding IsTrendDrawing, Mode=OneWay}" Margin="0,0,0,8" Content="{DynamicResource Ch_TrendShort}" ToolTip="{DynamicResource Ch_DrawTrendHint1}" Command="{Binding StartDrawingCommand}" CommandParameter="{x:Static cs:DrawingKind.TrendLine}" AutomationProperties.AutomationId="ChartsDrawTrend"/>
-                    <ui:Button Appearance="Secondary" Padding="10,5" Margin="0,0,0,8" Content="{DynamicResource Ch_ClearShort}" Command="{Binding ClearDrawingsCommand}"/>
+                    <ToggleButton Padding="6,6" IsChecked="{Binding IsHorizontalDrawing, Mode=OneWay}" Margin="0,0,0,8"  ToolTip="{DynamicResource Ch_DrawHLineHint}" Command="{Binding StartDrawingCommand}" CommandParameter="{x:Static cs:DrawingKind.HorizontalLine}" AutomationProperties.AutomationId="ChartsDrawHLine" AutomationProperties.Name="{DynamicResource Ch_HLineShort}"><StackPanel HorizontalAlignment="Center"><Path Data="M 2,10 L 18,10" Width="20" Height="20" StrokeThickness="1.6" Stroke="{DynamicResource TextFillColorPrimaryBrush}" Stretch="Uniform" /><TextBlock Text="{DynamicResource Ch_HLineShort}" FontSize="12" HorizontalAlignment="Center"/></StackPanel></ToggleButton>
+                    <ToggleButton Padding="6,6" IsChecked="{Binding IsTrendDrawing, Mode=OneWay}" Margin="0,0,0,8"  ToolTip="{DynamicResource Ch_DrawTrendHint1}" Command="{Binding StartDrawingCommand}" CommandParameter="{x:Static cs:DrawingKind.TrendLine}" AutomationProperties.AutomationId="ChartsDrawTrend" AutomationProperties.Name="{DynamicResource Ch_TrendShort}"><StackPanel HorizontalAlignment="Center"><Path Data="M 3,17 L 17,3" Width="20" Height="20" StrokeThickness="1.6" Stroke="{DynamicResource TextFillColorPrimaryBrush}" Stretch="Uniform" /><TextBlock Text="{DynamicResource Ch_TrendShort}" FontSize="12" HorizontalAlignment="Center"/></StackPanel></ToggleButton>
+                    <ui:Button Appearance="Secondary" Padding="10,5" Margin="0,0,0,8"  Command="{Binding ClearDrawingsCommand}" AutomationProperties.Name="{DynamicResource Ch_ClearShort}"><StackPanel HorizontalAlignment="Center"><Path Data="M 4,5 L 16,5 M 7,5 L 7,2 L 13,2 L 13,5 M 6,5 L 7,18 L 13,18 L 14,5" Width="20" Height="20" StrokeThickness="1.6" Stroke="{DynamicResource TextFillColorPrimaryBrush}" Stretch="Uniform" /><TextBlock Text="{DynamicResource Ch_ClearShort}" FontSize="12" HorizontalAlignment="Center"/></StackPanel></ui:Button>
                 </StackPanel>
             </Border>
             <Border x:Name="ChartInspector" DockPanel.Dock="Right" Width="280" BorderThickness="1,0,0,0" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" Visibility="{Binding ShowInspector, Converter={StaticResource BoolToVis}}">
@@ -173,9 +172,6 @@
                         <StackPanel Margin="0,12,0,0">
                             <!-- F7: adjustment basis -->
                             <CheckBox Style="{StaticResource IndCheck}" Content="{DynamicResource Ch_AdjToggle}" IsChecked="{Binding DividendAdjusted}" ToolTip="{DynamicResource Ch_AdjToggleTip}" AutomationProperties.AutomationId="ChartsDividendAdjusted"/>
-                            <Border CornerRadius="4" Padding="8,2" VerticalAlignment="Center" Background="{DynamicResource ControlFillColorSecondaryBrush}" ToolTip="{DynamicResource Ch_AdjToggleTip}" Visibility="{Binding AdjustText, Converter={StaticResource NonEmptyToVis}}">
-                                <TextBlock Style="{StaticResource Caption}" Text="{Binding AdjustText}"/>
-                            </Border>
                         </StackPanel>
                     </StackPanel>
                 </ScrollViewer>

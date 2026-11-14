@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Headless.XUnit;
 using Avalonia.VisualTree;
+using Avalonia.Media;
 using Meili.Core.Settings;
 using Meili.Mac.Platform;
 using Meili.Mac.Views;
@@ -42,7 +43,9 @@ public sealed class ChartWorkspaceTests
             Assert.True(chart.Bounds.Width>=400);
             Assert.True(page.FindControl<TextBox>("CompareBox")!.IsEffectivelyVisible);
             var draw=page.GetVisualDescendants().OfType<ToggleButton>().First(b=>Equals(b.CommandParameter,DrawingKind.HorizontalLine));
+            Assert.Equal(Color.FromUInt32(Meili.Shared.Services.ThemePalette.For(dark).Control),((ISolidColorBrush)draw.Background!).Color);
             draw.Command!.Execute(draw.CommandParameter);MacHost.Pump();Assert.True(draw.IsChecked);
+            Assert.Equal(Color.FromUInt32(Meili.Shared.Services.ThemePalette.For(dark).RowHighlight),((ISolidColorBrush)draw.Background!).Color);
             vm.DrawMode=null;MacHost.Pump();Assert.False(draw.IsChecked);
             MacHost.Save(window,$"workspace-{width}-{language}-{dark}-inspector");
             toggle.IsChecked=false;MacHost.Pump();Assert.False(vm.ShowInspector);
