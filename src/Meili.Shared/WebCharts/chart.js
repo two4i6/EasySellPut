@@ -28,6 +28,46 @@
     series[id].applyOptions({title, color});
     series[id].setData(state.rows.map(r => point(r, field)));
   }
+  const eventNames = () => state.language === 'zh-CN'
+    ? {news:'新闻',earnings:'财报',ex_dividend:'除息'}
+    : {news:'News',earnings:'Earnings',ex_dividend:'Ex-dividend'};
+  const eventStyle = type => ({news:{shape:'circle',color:state.theme.colors[0],symbol:'●'},
+    earnings:{shape:'square',color:state.theme.colors[2],symbol:'■'},
+    ex_dividend:{shape:'arrowDown',color:state.theme.colors[1],symbol:'▼'}}[type]);
+  const hideEventTooltip = () => {document.getElementById('event-tooltip').hidden = true;};
+  function showEventTooltip(param) {
+    const items = (state.events || []).filter(item => filters.has(item.event.type) && finite(item.time)
+      && (item.time === param.time || item.event.id === param.hoveredObjectId));
+    if (!param.point || state.drawingMode || !items.length) {hideEventTooltip();return;}
+    const box = document.getElementById('event-tooltip'), names = eventNames(), zh = state.language === 'zh-CN';
+    box.replaceChildren();
+    const append = (parent,tag,value,css) => {const node=document.createElement(tag);node.textContent=value;if(css)node.className=css;parent.append(node);return node;};
+    append(box,'div',zh ? `${items.length} 项事件` : `${items.length} event${items.length === 1 ? '' : 's'}`,'tooltip-heading');
+    const limit=Math.max(1,Math.min(5,Math.floor((root.clientHeight-80)/150)));
+    for (const item of items.slice(0,limit)) {
+      const e=item.event, row=append(box,'div','','tooltip-event');
+      const heading=append(row,'div',eventStyle(e.type).symbol+' '+names[e.type],'tooltip-type');heading.style.color=eventStyle(e.type).color;
+      const when=e.published ? new Intl.DateTimeFormat(state.language,{timeZone:'America/New_York',dateStyle:'medium',timeStyle:'short'}).format(new Date(e.published))+' ET'
+        : e.date ? e.date+(e.endDate?' – '+e.endDate:'') : (zh?'时间未知':'Time unknown');
+      append(row,'div',when,'tooltip-meta');
+      if (e.title) append(row,'div',e.title,'tooltip-title');
+      const confirmation=zh ? {estimated:'预计',source_confirmed:'来源已确认',unverified:'未核实'} : {estimated:'Estimated',source_confirmed:'Source confirmed',unverified:'Unverified'};
+      const meta=[e.publisher||e.source,e.type!=='news'?confirmation[e.confirmation]:null].filter(Boolean);
+      if(meta.length)append(row,'div',meta.join(' · '),'tooltip-meta');
+      const alignment=zh ? {next_bar:'标记对齐后续 K 线，以上为原始事件时间',same_day:'标记按同日 K 线对齐，以上为原始事件时间',period_bucket:'标记按周期汇总，以上为原始事件时间'}
+        : {next_bar:'Marker aligned to next bar; original event time shown above',same_day:'Marker aligned to same-day bar; original event time shown above',period_bucket:'Marker grouped by chart period; original event time shown above'};
+      if(alignment[item.alignment])append(row,'div',alignment[item.alignment],'tooltip-meta');
+    }
+    append(box,'div',items.length>limit ? (zh?`另有 ${items.length-limit} 项 · 点击图表查看详情`:`${items.length-limit} more · Click chart for details`)
+      : (zh?'点击图表查看详情':'Click chart for details'),'tooltip-meta');
+    box.hidden=false;
+    const width=box.offsetWidth, height=box.offsetHeight;
+    box.style.left=Math.max(8,Math.min(param.point.x+16,root.clientWidth-width-8))+'px';
+    box.style.top=Math.max(8,Math.min(param.point.y+16,root.clientHeight-height-8))+'px';
+  }
+  root.addEventListener('mouseleave',hideEventTooltip);
+  root.addEventListener('wheel',hideEventTooltip,{passive:true});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')hideEventTooltip();});
   function build() {
     if (chart) chart.remove();
     series = {}; priceLines = []; drawingSeries = [];
@@ -49,10 +89,12 @@
       const row = byTime.get(param.time);
       pendingHover = {kind: 'crosshair', key: state.key, index: row ? row.index : -1};
       if (row) showLegend(row);
+      showEventTooltip(param);
     });
     chart.subscribeClick(param => {
       if (!state.drawingMode) {
         const hit = (state.events || []).find(e => filters.has(e.event.type) && (e.event.id === param.hoveredObjectId || e.time === param.time));
+        hideEventTooltip();
         if (hit) {selectedEvent = hit.event.id; document.getElementById('timeline').open = true; renderEvents();}
         return;
       }
@@ -64,8 +106,9 @@
     chart.timeScale().subscribeVisibleLogicalRangeChange(range => {if (!applying && range) userRange = range;});
   }
   function renderEvents() {
+    hideEventTooltip();
     const zh = state.language === 'zh-CN';
-    const names = zh ? {news:'新闻',earnings:'财报',ex_dividend:'除息'} : {news:'News',earnings:'Earnings',ex_dividend:'Ex-dividend'};
+    const names = eventNames();
     const labels = zh ? {estimated:'预计',source_confirmed:'来源已确认',unverified:'未核实',reported_published:'来源发布时间',timestamp:'精确时间',date:'仅日期',date_range:'日期范围',unknown:'时间未知',outside_chart:'图表范围外',next_bar:'对齐后续 K 线',same_day:'同日 K 线',period_bucket:'周期汇总',exact:'精确对齐',available:'可用',empty:'暂无新闻',not_reported:'来源未提供',unavailable:'不可用'} :
       {estimated:'Estimated',source_confirmed:'Source confirmed',unverified:'Unverified',reported_published:'Reported publication',timestamp:'Timestamp',date:'Date only',date_range:'Date range',unknown:'Time unknown',outside_chart:'Outside chart',next_bar:'Aligned to next bar',same_day:'Same day bar',period_bucket:'Period bucket',exact:'Exact',available:'Available',empty:'No recent news',not_reported:'Not reported',unavailable:'Unavailable'};
     const text = (tag,value,css) => {const node=document.createElement(tag);node.textContent=value;if(css)node.className=css;return node;};
@@ -76,9 +119,10 @@
       box.dataset.language=state.language;box.replaceChildren();
       for (const type of Object.keys(names)) {
         const label = text('label',''), input=document.createElement('input');input.type='checkbox';input.checked=filters.has(type);input.dataset.type=type;
-        input.addEventListener('change',()=>{input.checked?filters.add(type):filters.delete(type);renderEvents();});label.append(input,document.createTextNode(names[type]));box.append(label);
+        input.addEventListener('change',()=>{input.checked?filters.add(type):filters.delete(type);renderEvents();});label.append(input);const glyph=text('span',eventStyle(type).symbol);glyph.style.color=eventStyle(type).color;glyph.setAttribute('aria-hidden','true');label.append(glyph,document.createTextNode(names[type]));box.append(label);
       }
     }
+    for(const label of box.querySelectorAll('label'))label.querySelector('span').style.color=eventStyle(label.querySelector('input').dataset.type).color;
     const status=document.getElementById('event-status');
     status.textContent=state.timelineStatus==='loading' ? (zh?'加载中…':'Loading…') : (state.coverage||[]).filter(c=>c.status==='unavailable').map(c=>names[c.type]+': '+labels.unavailable).join(' · ');
     status.hidden=!status.textContent;
@@ -88,7 +132,12 @@
     const visible=(state.events||[]).filter(e=>filters.has(e.event.type));
     if(!visible.some(e=>e.event.id===selectedEvent)) selectedEvent=null;
     const groups=new Map();for(const item of visible) if(finite(item.time)){if(!groups.has(item.time))groups.set(item.time,[]);groups.get(item.time).push(item);}
-    eventMarkers.setMarkers([...groups].sort((a,b)=>a[0]-b[0]).map(([time,items])=>({time,id:items[0].event.id,position:'aboveBar',shape:items.some(i=>i.event.id===selectedEvent)?'square':'circle',color:state.theme.accent,text:items.length>1?String(items.length):names[items[0].event.type]})));
+    eventMarkers.setMarkers([...groups].sort((a,b)=>a[0]-b[0]).map(([time,items])=>{
+      const types=[...new Set(items.map(i=>i.event.type))], selected=items.some(i=>i.event.id===selectedEvent);
+      const style=eventStyle(items[0].event.type);
+      return {time,id:items[0].event.id,position:'aboveBar',shape:style.shape,color:selected?state.theme.accent:style.color,
+        size:selected?1.5:1,text:(selected?'› ':'')+types.map(type=>names[type]).join(' / ')+(items.length>1?' · '+items.length:'')};
+    }));
     const focusedId=document.activeElement?.dataset.eventId;
     const list=document.getElementById('event-list');list.replaceChildren();
     for(const item of visible) {
@@ -149,7 +198,7 @@
       series.candles.setData(state.rows.map(r => !r.incomplete && [r.open,r.high,r.low,r.close].every(finite) ? {time:r.time,open:r.open,high:r.high,low:r.low,close:r.close} : {time:r.time}));
       series.incomplete.applyOptions({color:t.muted,lineVisible:state.rows.length > 0 && state.rows.every(r=>r.incomplete),pointMarkersVisible:!state.rows.every(r=>r.incomplete)});
       series.incomplete.setData(state.rows.map(r => r.incomplete ? point(r, 'close') : {time: r.time}));
-      series.eventAnchor.setData(state.rows.map(r => point(r, 'close')));
+      series.eventAnchor.setData(state.rows.map(r => point(r, finite(r.high) ? 'high' : 'close')));
       renderEvents();
       if (state.show.ma) line('ma', 'ma', state.labels.ma, c[0]);
       if (state.show.ema) line('ema', 'ema', state.labels.ema, c[1]);
