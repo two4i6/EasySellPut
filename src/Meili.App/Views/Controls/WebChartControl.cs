@@ -1,4 +1,5 @@
 using System.IO;
+using Button = Wpf.Ui.Controls.Button;
 using System.Windows;
 using System.Windows.Controls;
 using Meili.Core.Diagnostics;
@@ -18,6 +19,14 @@ public sealed class WebChartControl : UserControl
     public string? LastDiagnostic { get; private set; }
     public WebChartControl()
     {
+        _status.FontSize = 12;
+        _status.Margin = new Thickness(12, 8, 12, 8);
+        _status.Padding = new Thickness(12, 8, 12, 8);
+        _status.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorSecondaryBrush");
+        _status.SetResourceReference(TextBlock.BackgroundProperty, "InfoBarBrush");
+        _install.FontSize = 14; _install.MinHeight = 32;
+        _install.Padding = new Thickness(12, 6, 12, 6); _install.Margin = new Thickness(12, 0, 12, 8);
+        _install.Appearance = Wpf.Ui.Controls.ControlAppearance.Secondary;
         DockPanel.SetDock(_status, Dock.Top); _root.Children.Add(_status);
         DockPanel.SetDock(_install, Dock.Top); _root.Children.Add(_install);
         _install.Click += (_, _) => Ui.Platform.OpenUrl("https://developer.microsoft.com/microsoft-edge/webview2/#download-section");
@@ -29,6 +38,7 @@ public sealed class WebChartControl : UserControl
         Session = new WebChartSession(vm); Session.Update(palette);
         Session.DiagnosticReceived += OnDiagnostic;
         _status.Visibility = Visibility.Visible;
+        _status.SetResourceReference(TextBlock.BackgroundProperty, "InfoBarBrush");
         _status.Text = LocalizationService.Current["Ch_WebLoading"];
         var web = new WebView2(); _web = web;
         web.Loaded += async (_, _) => await InitializeAsync(web, Session);
@@ -38,8 +48,14 @@ public sealed class WebChartControl : UserControl
     {
         LastDiagnostic = e.GetRawText();
         _status.Visibility = e.GetProperty("status").GetString() == "rendered" ? Visibility.Collapsed : Visibility.Visible;
-        _status.Text = e.GetProperty("status").GetString() == "rendered" ? "" : LocalizationService.Current["Ch_WebFailed"];
+        if (e.GetProperty("status").GetString() == "rendered") _status.Text = ""; else ShowFailure();
         if (e.TryGetProperty("message", out var message)) AppLog.Warn("web-chart", message.GetString() ?? "Chart script failed");
+    }
+    private void ShowFailure()
+    {
+        _status.Visibility = Visibility.Visible;
+        _status.SetResourceReference(TextBlock.BackgroundProperty, "ErrorBarBrush");
+        _status.Text = LocalizationService.Current["Ch_WebFailed"];
     }
     private async Task InitializeAsync(WebView2 web, WebChartSession? session)
     {
@@ -58,14 +74,15 @@ public sealed class WebChartControl : UserControl
             core.DownloadStarting += (_, e) => e.Cancel = true;
             core.PermissionRequested += (_, e) => e.State = CoreWebView2PermissionState.Deny;
             core.NavigationStarting += (_, e) => e.Cancel = !session.IsPageUrl(e.Uri);
-            core.ProcessFailed += (_, _) => _status.Text = LocalizationService.Current["Ch_WebFailed"];
-            core.NavigationCompleted += (_, e) => { if (!e.IsSuccess) _status.Text = LocalizationService.Current["Ch_WebFailed"]; };
+            core.ProcessFailed += (_, _) => ShowFailure();
+            core.NavigationCompleted += (_, e) => { if (!e.IsSuccess) ShowFailure(); };
             core.Navigate(session.PageUri.AbsoluteUri);
         }
         catch (Exception ex)
         {
             AppLog.Warn("web-chart", "WebView2 chart initialization failed", ex);
             if (_web != web) return;
+            ShowFailure();
             _status.Text = LocalizationService.Current[ex is WebView2RuntimeNotFoundException ? "Reader_Runtime" : "Ch_WebFailed"];
             _install.Visibility = ex is WebView2RuntimeNotFoundException ? Visibility.Visible : Visibility.Collapsed;
         }

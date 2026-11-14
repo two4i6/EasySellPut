@@ -41,6 +41,8 @@ public static class WebChartSnapshot
             };
         }).ToArray();
         static string Css(ScottPlot.Color c) => $"#{c.R:X2}{c.G:X2}{c.B:X2}";
+        var ui = ThemePalette.For(palette.Dark);
+        static string Token(uint argb) => $"#{argb & 0xFFFFFF:X6}";
         var compare = vm.CompareLine is { } line ? line.Time.Select((t, i) => new { time = t.ToUnixTimeSeconds(), value = Finite(line.Close[i]) }).ToArray() : [];
         return JsonSerializer.Serialize(new
         {
@@ -50,7 +52,7 @@ public static class WebChartSnapshot
             rows, compare, compareLabel = vm.CompareLabel,
             show = new { ma = vm.ShowMa, ema = vm.ShowEma, boll = vm.ShowBoll, volume = vm.ShowVolume, macd = vm.ShowMacd, rsi = vm.ShowRsi, kdj = vm.ShowKdj },
             labels = new { ma = vm.MaLabel, ema = vm.EmaLabel, boll = vm.BollLabel, macd = vm.MacdLabel, rsi = vm.RsiLabel, kdj = vm.KdjLabel, volume = LocalizationService.Current["Ch_Volume"], empty = LocalizationService.Current["Ch_Empty"] },
-            theme = new { background = Css(palette.Background), text = Css(palette.Text), muted = Css(palette.Muted), grid = Css(palette.Grid), up = Css(palette.Up), down = Css(palette.Down), colors = new[] { palette.Series1, palette.Series2, palette.Series3, palette.Series4, palette.Series5, palette.Series6 }.Select(Css) },
+            theme = new { dark = palette.Dark, control = Token(ui.Control), border = Token(ui.Border), accent = Token(ui.Accent), errorBackground = Token(ui.ErrorBar), errorText = Token(ui.Degraded), background = Css(palette.Background), text = Css(palette.Text), muted = Css(palette.Muted), grid = $"{Css(palette.Grid)}{palette.Grid.A:X2}", up = Css(palette.Up), down = Css(palette.Down), colors = new[] { palette.Series1, palette.Series2, palette.Series3, palette.Series4, palette.Series5, palette.Series6 }.Select(Css) },
             drawingMode = vm.DrawMode?.ToString(),
             drawings = vm.Drawings.Where(d => double.IsFinite(d.Price1) && double.IsFinite(d.Price2)).Select(d => new { kind = d.Kind.ToString(), price1 = d.Price1, time1 = d.Time1?.ToUnixTimeSeconds(), price2 = d.Price2, time2 = d.Time2?.ToUnixTimeSeconds() }),
         }, Json);

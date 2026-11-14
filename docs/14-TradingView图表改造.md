@@ -45,3 +45,11 @@
 - `bash build/test-headless.sh`：桌面、共享业务、指标、CLI/MCP 全量回归。
 - Windows/macOS 原生：`dotnet run --project tests/Meili.NewsBrowser.Smoke/Meili.NewsBrowser.Smoke.csproj -c Release`，同时验收新闻与实际图表组件，包括 120 根数据/119 根真实蜡烛、五面板、MA 结果、主题、指标显隐、停止后重新挂载。
 - CI 在 Windows x64/ARM64、macOS Intel/Apple Silicon 实际运行原生宿主；Linux 验证真实浏览器渲染、桌面无头回归及 CLI/MCP。固定测试数据不代表真实行情联网验证，也不保证所有供应商都提供所有周期。
+
+## UI/UX 一致性检查
+
+图表内的控件、边框、焦点、错误色与深浅外观直接取自 `ThemePalette`，与原生页面同步；正文 14px、说明/价格轴 12px，按钮圆角 6px、最小高度 32px，使用应用对应平台的系统字体。保留统一的 8/12px 间距。窄屏隐藏可选手势说明，保留可点击的 TradingView 署名；键盘焦点使用应用强调色。
+
+新闻窗口使用同一组动态资源、按钮尺寸及信息/错误状态背景，主题切换无需重开窗口，空状态栏会收起。新闻发布者的网页正文遵循其自身设计，不注入脚本或样式。网页渲染器出现后续错误时会重新显示原生状态栏。此次样式调整不改变 CLI/MCP 能力及数据协议。
+
+浏览器测试输出 `webchart-unified-dark.png` / `webchart-unified-light.png`；桌面测试覆盖新闻窗口实时主题与语言切换，并可按 `MEILI_RENDER_DIR` 输出阅读窗口截图。CI 继续执行四个平台的实际 WebView 及 Windows 页面集成检查。

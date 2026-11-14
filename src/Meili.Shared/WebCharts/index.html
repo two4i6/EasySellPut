@@ -4,7 +4,24 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>EasySellPut Charts</title>
 <style>
-:root{color-scheme:dark}*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;font:12px system-ui,sans-serif;background:#201e1c;color:#c9c6c1}body{display:flex;flex-direction:column}#toolbar{display:flex;gap:12px;align-items:center;padding:6px 10px;min-height:30px;border-bottom:1px solid #8883}#symbol{font-weight:600}#legend{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}button{background:transparent;color:inherit;border:1px solid #8885;border-radius:4px;padding:3px 9px;cursor:pointer}#chart{position:relative;flex:1;min-height:120px}#empty{position:absolute;inset:45% 0 auto;text-align:center;pointer-events:none;z-index:2}footer{padding:3px 10px;display:flex;justify-content:space-between;color:inherit;opacity:.8}a{color:inherit}#error{padding:12px;color:#dd8a7d;display:none}
+/* Fallbacks match ThemePalette.Dark; chart.js replaces every token from the active app theme. */
+:root{color-scheme:dark;--background:#201e1c;--text:#c9c6c1;--muted:#969188;--control:#32302c;--border:#433f3a;--accent:#c4b3d4;--error-background:#3a2a28;--error-text:#c4a46a}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;font:12px "Segoe UI Variable Text","Segoe UI",-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei UI",sans-serif;background:var(--background);color:var(--text)}
+body{display:flex;flex-direction:column}
+#toolbar{display:flex;gap:12px;align-items:center;padding:8px 12px;min-height:48px;border-bottom:1px solid var(--border)}
+#symbol{font-size:14px;font-weight:600;flex-shrink:0}
+#legend{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+button{font:inherit;font-size:14px;background:var(--control);color:var(--text);border:1px solid var(--border);border-radius:6px;min-height:32px;padding:4px 12px;cursor:pointer;flex-shrink:0}
+button:hover{border-color:var(--accent)}
+button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#chart{position:relative;flex:1;min-height:120px}
+#empty{position:absolute;inset:45% 12px auto;text-align:center;pointer-events:none;z-index:2;color:var(--muted);font-size:14px}
+footer{padding:8px 12px;display:flex;gap:12px;align-items:center;justify-content:space-between;color:var(--muted);border-top:1px solid var(--border)}
+#hint{min-width:0}a{color:inherit;white-space:nowrap}a:hover{color:var(--accent)}
+#error{margin:8px 12px;padding:12px 14px;border-radius:6px;background:var(--error-background);color:var(--error-text);font-size:14px;display:none}
+@media(max-width:640px){#hint{display:none}footer{justify-content:flex-end}#toolbar{gap:8px}#legend{font-size:12px}}
+
 </style>
 <script src="library.js" defer></script><script src="chart.js" defer></script>
 </head>

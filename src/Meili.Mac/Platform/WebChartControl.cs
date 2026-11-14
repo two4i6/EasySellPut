@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Markup.Xaml.MarkupExtensions;
 using Meili.Core.Diagnostics;
 
 namespace Meili.Mac.Platform;
@@ -14,6 +15,11 @@ public sealed class WebChartControl : UserControl
     public string? LastDiagnostic { get; private set; }
     public WebChartControl()
     {
+        _status.FontSize = 12;
+        _status.Margin = new Thickness(12, 8, 12, 8);
+        _status.Padding = new Thickness(12, 8);
+        _status.Bind(TextBlock.ForegroundProperty, new DynamicResourceExtension("TextFillColorSecondaryBrush"));
+        _status.Bind(TextBlock.BackgroundProperty, new DynamicResourceExtension("InfoBarBrush"));
         DockPanel.SetDock(_status, Dock.Top); _root.Children.Add(_status); Content = _root;
     }
     public void Start(ChartsViewModel vm, ChartPalette palette)
@@ -22,6 +28,7 @@ public sealed class WebChartControl : UserControl
         var session = new WebChartSession(vm); Session = session; session.Update(palette);
         session.DiagnosticReceived += OnDiagnostic;
         _status.IsVisible = true;
+        _status.Bind(TextBlock.BackgroundProperty, new DynamicResourceExtension("InfoBarBrush"));
         _status.Text = LocalizationService.Current["Ch_WebLoading"];
         var web = new NewsWebView { NavigationPolicy = session.IsPageUrl }; _web = web;
         web.Changed += OnNativeChanged;
@@ -29,13 +36,14 @@ public sealed class WebChartControl : UserControl
     }
     private void OnNativeChanged()
     {
-        if (_web?.StatusKey == "Reader_Failed") { _status.IsVisible = true; _status.Text = LocalizationService.Current["Ch_WebFailed"]; }
+        if (_web?.StatusKey == "Reader_Failed") { _status.Bind(TextBlock.BackgroundProperty, new DynamicResourceExtension("ErrorBarBrush")); _status.IsVisible = true; _status.Text = LocalizationService.Current["Ch_WebFailed"]; }
     }
     private void OnDiagnostic(System.Text.Json.JsonElement e)
     {
         LastDiagnostic = e.GetRawText();
         _status.IsVisible = e.GetProperty("status").GetString() != "rendered";
         _status.Text = e.GetProperty("status").GetString() == "rendered" ? "" : LocalizationService.Current["Ch_WebFailed"];
+        _status.Bind(TextBlock.BackgroundProperty, new DynamicResourceExtension("ErrorBarBrush"));
         if (e.TryGetProperty("message", out var message)) AppLog.Warn("web-chart", message.GetString() ?? "Chart script failed");
     }
     public void Update(ChartPalette palette) => Session?.Update(palette);

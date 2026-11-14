@@ -69,6 +69,36 @@ public class ChartThemeTests
         });
     }
 
+    [Fact]
+    public void Reader_chrome_uses_live_resources_and_localized_error_state()
+    {
+        WpfHost.Run(() =>
+        {
+            var loc = LocalizationService.Current;
+            var reader = new NewsReaderWindow();
+            try
+            {
+                var root = (DockPanel)reader.Content;
+                var status = root.Children.OfType<TextBlock>().Single();
+                var toolbar = root.Children.OfType<WrapPanel>().Single();
+                Assert.Equal(System.Windows.Visibility.Collapsed, status.Visibility);
+                foreach (var dark in new[] { true, false })
+                {
+                    ScreenRenderTests.Apply("zh-CN", dark);
+                    var palette = ThemePalette.For(dark);
+                    Assert.Equal(MColor.FromRgb((byte)(palette.Window >> 16), (byte)(palette.Window >> 8), (byte)palette.Window), ((System.Windows.Media.SolidColorBrush)reader.Background).Color);
+                    reader.OpenArticle("file:///blocked", "Blocked");
+                    Assert.Equal(System.Windows.Visibility.Visible, status.Visibility);
+                    Assert.Equal(loc["Reader_Blocked"], status.Text);
+                    Assert.All(toolbar.Children.OfType<Wpf.Ui.Controls.Button>(), b => Assert.True(b.FontSize >= 14 && b.MinHeight >= 32));
+                }
+                loc.Apply("en-US");
+                Assert.Equal(loc["Reader_Blocked"], status.Text);
+            }
+            finally { reader.Close(); loc.Apply("zh-CN"); ScreenRenderTests.Apply("zh-CN", true); }
+        });
+    }
+
     [Theory]
     [InlineData(typeof(OptionsPage))]
     [InlineData(typeof(StrategyPage))]

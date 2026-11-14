@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
+using Avalonia.Markup.Xaml.MarkupExtensions;
 
 namespace Meili.Mac.Platform;
 
@@ -15,9 +16,30 @@ public sealed class NewsReaderWindow : Window
     public NewsReaderWindow()
     {
         Width = 1050; Height = 760; MinWidth = 640; MinHeight = 400;
+        FontSize = 14;
+        this.Bind(BackgroundProperty, new DynamicResourceExtension("ApplicationBackgroundBrush"));
+        this.Bind(ForegroundProperty, new DynamicResourceExtension("TextFillColorPrimaryBrush"));
+        this.Bind(FontFamilyProperty, new DynamicResourceExtension("AppFont"));
+        _back.IsEnabled = _forward.IsEnabled = false;
+        _address.Margin = new Thickness(12, 0, 12, 8);
+        _address.Padding = new Thickness(10, 6);
+        _address.Bind(TextBox.BackgroundProperty, new DynamicResourceExtension("ControlFillColorSecondaryBrush"));
+        _address.Bind(TextBox.ForegroundProperty, new DynamicResourceExtension("TextFillColorPrimaryBrush"));
+        _address.Bind(TextBox.BorderBrushProperty, new DynamicResourceExtension("ControlStrokeColorDefaultBrush"));
+        _status.Margin = new Thickness(12, 0, 12, 8);
+        _status.Padding = new Thickness(12, 8);
+        _status.FontSize = 12;
+        _status.Bind(TextBlock.ForegroundProperty, new DynamicResourceExtension("TextFillColorSecondaryBrush"));
+        _status.Bind(TextBlock.BackgroundProperty, new DynamicResourceExtension("InfoBarBrush"));
+        _status.IsVisible = false;
         var root = new DockPanel();
-        var toolbar = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(6), Spacing = 6 };
-        foreach (var button in new[] { _back, _forward, _reload, _external }) toolbar.Children.Add(button);
+        var toolbar = new WrapPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(12, 12, 6, 2) };
+        foreach (var button in new[] { _back, _forward, _reload, _external })
+        {
+            button.Margin = new Thickness(0, 0, 6, 6); button.Padding = new Thickness(12, 6);
+            button.FontSize = 14; button.MinHeight = 32; button.CornerRadius = new CornerRadius(6);
+            toolbar.Children.Add(button);
+        }
         DockPanel.SetDock(toolbar, Dock.Top); root.Children.Add(toolbar);
         DockPanel.SetDock(_address, Dock.Top); root.Children.Add(_address);
         DockPanel.SetDock(_status, Dock.Top); root.Children.Add(_status);
@@ -32,21 +54,31 @@ public sealed class NewsReaderWindow : Window
     }
     public void OpenArticle(string url, string title)
     {
-        if (!NewsReaderPolicy.IsAllowed(url)) { _status.Text = _loc["Reader_Blocked"]; return; }
-        _url = url; _address.Text = url; Title = title; _web.Navigate(url);
+        if (!NewsReaderPolicy.IsAllowed(url)) { SetStatus("Reader_Blocked"); return; }
+        _url = url; _address.Text = url; _hasArticle = true; Title = title; _web.Navigate(url);
     }
     private void Update()
     {
         if (NewsReaderPolicy.IsAllowed(_web.Address)) { _url = _web.Address; _address.Text = _url; }
         if (_web.DocumentTitle.Length > 0) Title = _web.DocumentTitle;
-        _status.Text = _web.StatusKey.Length == 0 ? "" : _loc[_web.StatusKey];
+        SetStatus(_web.StatusKey);
         _back.IsEnabled = _web.CanGoBack; _forward.IsEnabled = _web.CanGoForward;
     }
+    private bool _hasArticle;
+    private string _statusKey = "";
+    private void SetStatus(string key)
+    {
+        _statusKey = key;
+        _status.Text = key.Length == 0 ? "" : _loc[key];
+        _status.IsVisible = key.Length > 0;
+        _status.Bind(TextBlock.BackgroundProperty, new DynamicResourceExtension(key is "" or "Reader_Loading" ? "InfoBarBrush" : "ErrorBarBrush"));
+    }
+
     private void Relabel(object? sender, EventArgs e)
     {
-        Title = _loc["Reader_Title"];
+        if (!_hasArticle) Title = _loc["Reader_Title"];
+        SetStatus(_statusKey);
         _back.Content = _loc["Reader_Back"]; _forward.Content = _loc["Reader_Forward"];
         _reload.Content = _loc["Reader_Reload"]; _external.Content = _loc["Reader_External"];
-        Update();
     }
 }

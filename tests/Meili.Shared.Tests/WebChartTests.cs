@@ -44,6 +44,13 @@ public sealed class WebChartTests : IDisposable
         Assert.Equal(_vm.Snapshot!.Sma[^1], rows[119].GetProperty("ma").GetDouble());
         Assert.Equal(_vm.Snapshot.Macd.Macd[^1], rows[119].GetProperty("macd").GetDouble());
         Assert.Contains("fixture", json.RootElement.GetProperty("key").GetString());
+        var theme = json.RootElement.GetProperty("theme");
+        Assert.True(theme.GetProperty("dark").GetBoolean());
+        Assert.Equal("#32302C", theme.GetProperty("control").GetString());
+        Assert.Equal("#433F3A", theme.GetProperty("border").GetString());
+        Assert.Equal("#C9C6C11F", theme.GetProperty("grid").GetString());
+        Assert.Equal("#C4B3D4", theme.GetProperty("accent").GetString());
+        Assert.Equal("#3A2A28", theme.GetProperty("errorBackground").GetString());
     }
     [Fact]
     public async Task Private_channel_serves_bundled_assets_versions_and_rejects_foreign_origins_and_untyped_events()

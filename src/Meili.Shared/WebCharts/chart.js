@@ -33,12 +33,12 @@
     series = {}; priceLines = []; drawingSeries = [];
     chart = LightweightCharts.createChart(root, {
       autoSize: true,
-      layout: {background: {type: 'solid', color: state.theme.background}, textColor: state.theme.text, attributionLogo: true, panes: {enableResize: true}},
+      layout: {fontFamily:getComputedStyle(document.body).fontFamily,fontSize:12,background: {type: 'solid', color: state.theme.background}, textColor: state.theme.text, attributionLogo: true, panes: {enableResize: true}},
       rightPriceScale: {borderVisible: false, minimumWidth: 70},
       timeScale: {borderVisible: false, timeVisible: state.intraday, secondsVisible: false, rightOffset: 5, tickMarkFormatter: time => eastern(time)},
       localization: {locale: state.language, timeFormatter: time => eastern(time, true)},
       crosshair: {mode: LightweightCharts.CrosshairMode.Normal},
-      grid: {vertLines: {color: state.theme.grid + '30'}, horzLines: {color: state.theme.grid + '30'}},
+      grid: {vertLines: {color: state.theme.grid}, horzLines: {color: state.theme.grid}},
     });
     series.candles = chart.addSeries(LightweightCharts.CandlestickSeries, {priceLineVisible: true, borderVisible: false});
     series.incomplete = chart.addSeries(LightweightCharts.LineSeries, {color: state.theme.muted, lineVisible: false, pointMarkersVisible: true, pointMarkersRadius: 3, priceLineVisible: false, lastValueVisible: false});
@@ -73,13 +73,15 @@
       key = state.key;
       const t = state.theme, c = t.colors;
       document.body.style.background = t.background; document.body.style.color = t.text;
-      document.documentElement.style.colorScheme = t.background === '#F6F0E3' ? 'light' : 'dark';
+      document.documentElement.style.colorScheme = t.dark ? 'dark' : 'light';
+      for (const [name,value] of Object.entries({background:t.background,text:t.text,muted:t.muted,control:t.control,border:t.border,accent:t.accent,'error-background':t.errorBackground,'error-text':t.errorText}))
+        if (value) document.documentElement.style.setProperty('--'+name,value);
       document.getElementById('symbol').textContent = state.symbol;
       document.getElementById('fit').textContent = state.language === 'zh-CN' ? '适应窗口' : 'Fit chart';
       document.getElementById('hint').textContent = state.language === 'zh-CN' ? '滚轮缩放 · 拖动平移 · 拖动面板分隔线调整高度' : 'Scroll to zoom · Drag to pan · Resize pane separators';
       document.getElementById('empty').textContent = state.rows.length ? '' : state.labels.empty;
       document.getElementById('error').style.display = 'none';
-      chart.applyOptions({layout: {background: {type: 'solid', color: t.background}, textColor: t.text}, grid: {vertLines: {color: t.grid + '30'}, horzLines: {color: t.grid + '30'}}, localization: {locale: state.language}, timeScale: {timeVisible: state.intraday}});
+      chart.applyOptions({layout: {background: {type: 'solid', color: t.background}, textColor: t.text}, grid: {vertLines: {color: t.grid}, horzLines: {color: t.grid}}, localization: {locale: state.language}, timeScale: {timeVisible: state.intraday}});
       series.candles.applyOptions({upColor: t.up, downColor: t.down, wickUpColor: t.up, wickDownColor: t.down, borderUpColor: t.up, borderDownColor: t.down});
       series.candles.setData(state.rows.map(r => !r.incomplete && [r.open,r.high,r.low,r.close].every(finite) ? {time:r.time,open:r.open,high:r.high,low:r.low,close:r.close} : {time:r.time}));
       series.incomplete.applyOptions({color:t.muted,lineVisible:state.rows.length > 0 && state.rows.every(r=>r.incomplete),pointMarkersVisible:!state.rows.every(r=>r.incomplete)});

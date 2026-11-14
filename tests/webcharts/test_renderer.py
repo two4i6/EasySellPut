@@ -28,7 +28,7 @@ def fixture():
                 rows=rows, compare=[dict(time=r['time'],value=r['close']*1.01) for r in rows], compareLabel='COMPARE',
                 show=dict(ma=True,ema=True,boll=True,volume=True,macd=True,rsi=True,kdj=True),
                 labels=dict(ma='MA(20)',ema='EMA(20)',boll='BOLL(20,2)',macd='MACD(12,26,9)',rsi='RSI(14)',kdj='KDJ(9,3,3)',volume='Volume',empty='No data'),
-                theme=dict(background='#201E1C',text='#C9C6C1',muted='#969188',grid='#969188',up='#CC8E8A',down='#6EAA8A',colors=['#7BA8C0','#C9A06A','#BAA8C6','#6AADC0','#C4909E','#B4A072']),
+                theme=dict(dark=True,control='#32302C',border='#433F3A',accent='#C4B3D4',errorBackground='#3A2A28',errorText='#C4A46A',background='#201E1C',text='#C9C6C1',muted='#A09B92',grid='#C9C6C11F',up='#CC8E8A',down='#6EAA8A',colors=['#7BA8C0','#C9A06A','#BAA8C6','#6AADC0','#C4909E','#B4A072']),
                 drawingMode=None,drawings=[dict(kind='HorizontalLine',price1=105,price2=0,time1=None,time2=None),dict(kind='TrendLine',price1=102,price2=110,time1=rows[10]['time'],time2=rows[90]['time'])])
 
 
@@ -79,7 +79,7 @@ class RendererTests(unittest.TestCase):
         p=self.page
         p.mouse.move(600,250);p.mouse.wheel(0,-500);p.wait_for_timeout(250)
         before=p.evaluate('meiliChart.inspect().chart.timeScale().getVisibleLogicalRange()')
-        next_state=copy.deepcopy(self.state);next_state['preserveView']=True;next_state['theme'].update(background='#F6F0E3',text='#2F2B26',up='#1A7050',down='#A83E38');next_state['language']='zh-CN'
+        next_state=copy.deepcopy(self.state);next_state['preserveView']=True;next_state['theme'].update(dark=False,muted='#5F594F',grid='#2F2B261F',colors=['#1C648E','#8E4E00','#5E3F8A','#0C6262','#8E3F68','#6A4E10'],control='#FBF7F0',border='#E0D6C8',accent='#6A458E',errorBackground='#F4E4DC',errorText='#7A5500',background='#F6F0E3',text='#2F2B26',up='#1A7050',down='#A83E38');next_state['language']='zh-CN'
         p.evaluate('(s)=>meiliChart.render(s)',next_state)
         after=p.evaluate('meiliChart.inspect().chart.timeScale().getVisibleLogicalRange()')
         self.assertAlmostEqual(before['from'],after['from'],places=5);self.assertAlmostEqual(before['to'],after['to'],places=5)
@@ -107,6 +107,25 @@ class RendererTests(unittest.TestCase):
         self.assertEqual(p.locator('#empty').inner_text(),'No data')
         self.assertFalse(self.errors)
         p.evaluate('(s)=>meiliChart.render(s)',fixture())
+    def test_theme_tokens_keyboard_focus_and_compact_footer(self):
+        p=self.page
+        for dark in [True,False]:
+            data=fixture()
+            if not dark: data['theme'].update(dark=False,muted='#5F594F',grid='#2F2B261F',colors=['#1C648E','#8E4E00','#5E3F8A','#0C6262','#8E3F68','#6A4E10'],control='#FBF7F0',border='#E0D6C8',accent='#6A458E',errorBackground='#F4E4DC',errorText='#7A5500',background='#F6F0E3',text='#2F2B26',up='#A83E38',down='#1A7050')
+            p.evaluate('(s)=>meiliChart.render(s)',data)
+            style=p.locator('#fit').evaluate('(e)=>{const s=getComputedStyle(e);return {background:s.backgroundColor,radius:s.borderRadius,size:s.fontSize,height:e.getBoundingClientRect().height}}')
+            self.assertEqual(style['background'],'rgb(50, 48, 44)' if dark else 'rgb(251, 247, 240)')
+            self.assertEqual(style['radius'],'6px');self.assertEqual(style['size'],'14px');self.assertGreaterEqual(style['height'],32)
+            p.keyboard.press('Tab');p.locator('#fit').focus()
+            self.assertEqual(p.locator('#fit').evaluate('(e)=>getComputedStyle(e).outlineWidth'),'2px')
+            self.assertEqual(p.evaluate('getComputedStyle(document.documentElement).colorScheme'),'dark' if dark else 'light')
+            output=os.environ.get('MEILI_RENDER_DIR')
+            if output: p.screenshot(path=str(pathlib.Path(output)/('webchart-unified-dark.png' if dark else 'webchart-unified-light.png')))
+        p.set_viewport_size(dict(width=480,height=800))
+        self.assertFalse(p.locator('#hint').is_visible());self.assertTrue(p.locator('#attribution').is_visible())
+        bounds=p.locator('#attribution').bounding_box();self.assertLessEqual(bounds['x']+bounds['width'],480)
+        self.assertLessEqual(p.locator('#toolbar').evaluate('(e)=>e.scrollWidth'),480)
+        p.set_viewport_size(dict(width=1280,height=800));p.evaluate('(s)=>meiliChart.render(s)',fixture())
     def test_vendor_integrity(self):
         provenance=json.loads((ASSETS/'vendor/provenance.json').read_text())
         self.assertEqual(hashlib.sha256((ASSETS/'vendor/lightweight-charts.js').read_bytes()).hexdigest(),provenance['sha256'])
