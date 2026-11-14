@@ -8,6 +8,7 @@ namespace Meili.Shared.Services;
 /// <summary>H1: the risk-free rate and dividend yield one symbol is priced with.</summary>
 public sealed record PricingInputs(RiskFreeRate Rate, double DividendYield)
 {
+    public DividendYieldObservation? DividendObservation { get; init; }
     public OptionEnrichmentSettings Enrichment(DateTimeOffset now, OptionChain? chain = null) =>
         new() { RiskFreeRate = Rate.Rate, DividendYield = DividendYield, Now = chain is null ? now : DataFreshness.SnapshotTime(chain, now) };
 }
@@ -23,8 +24,9 @@ public sealed class PricingAssumptions(IMarketDataService data, RiskFreeRateProv
 
     public async Task<PricingInputs> ForAsync(string symbol, string area, CancellationToken ct)
     {
-        var yieldTask = SafeData.DividendYieldAsync(data, symbol, area, ct);
+        var yieldTask = SafeData.DividendObservationAsync(data, symbol, area, ct);
         var rate = await rates.GetAsync(ct);
-        return new PricingInputs(rate, await yieldTask);
+        var observed = await yieldTask;
+        return new PricingInputs(rate, observed.Yield) { DividendObservation = observed };
     }
 }

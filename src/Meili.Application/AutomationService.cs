@@ -14,11 +14,12 @@ using Right = Meili.Analytics.OptionRight;
 namespace Meili.Automation;
 
 /// <summary>UI-free application boundary shared by CLI and MCP. Serializes requests within one host.</summary>
-public sealed class AutomationService(DataDirectoryInfo directory, IMarketDataService? market = null) : IDisposable
+public sealed partial class AutomationService(DataDirectoryInfo directory, IMarketDataService? market = null, IReadOnlyList<IDataProvider>? diagnosticProviders = null) : IDisposable
 {
     private readonly SemaphoreSlim _gate = new(1);
     private readonly bool _injectedMarket = market is not null;
     private DataServices? _sources;
+    private Meili.Data.Routing.FailoverRouter? _probeRouter;
     private IMarketDataService? _market = market;
     public DataDirectoryInfo DirectoryInfo { get; } = directory;
 
@@ -97,7 +98,7 @@ public sealed class AutomationService(DataDirectoryInfo directory, IMarketDataSe
             case "get_source_health":
                 {
                     if (_sources is null && !_injectedMarket) await Market(ct);
-                    return new { scope = "current_process", sources = _sources?.Health.All.Select(h => new { h.Id, h.DisplayName, h.Capabilities, state = h.State(DateTimeOffset.UtcNow), h.Successes, h.Failures, h.LastSuccessAt, h.LastLatency }), note = "Unknown is not a connectivity check. Counters are not shared with the desktop." };
+                    return new { scope = "current_process", sources = (_sources?.Health ?? _probeRouter?.Health)?.All.Select(h => new { h.Id, h.DisplayName, h.Capabilities, state = h.State(DateTimeOffset.UtcNow), h.Successes, h.Failures, h.LastSuccessAt, h.LastLatency }), note = "Unknown is not a connectivity check. Counters are not shared with the desktop." };
                 }
             case "calculate_option":
                 {
@@ -139,7 +140,7 @@ public sealed class AutomationService(DataDirectoryInfo directory, IMarketDataSe
             case "save_strategy":
                 {
                     var legs = Legs(a); var name = a.Text("name"); var store = Strategies();
-                    var saved = new SavedStrategy(name, Symbol(a.Text("symbol")), StrategyKind.Custom, legs.Select(SavedLeg.From).ToArray(), DateTimeOffset.UtcNow);
+                    var saved = new SavedStrategy(name, Symbol(a.Text("symbol")), Enum.Parse<StrategyKind>(a.Text("kind", "Custom")), legs.Select(SavedLeg.From).ToArray(), DateTimeOffset.UtcNow);
                     store.Save(saved); return saved;
                 }
             case "delete_strategy":
@@ -171,9 +172,9 @@ public sealed class AutomationService(DataDirectoryInfo directory, IMarketDataSe
                 }
             case "get_settings":
                 {
-                    var s = Settings().Current; return new { dataDirectory = DirectoryInfo, s.Language, s.Theme, s.Pricing, s.Alerts, proxyMode = s.Network.ProxyMode };
+                    var s = Settings().Current; return PreferencesSnapshot(s);
                 }
-            default: throw new ArgumentException("Unsupported operation.");
+            default: return await ExecuteCoverageAsync(op, a, ct);
         }
     }
 
@@ -204,7 +205,7 @@ public sealed class AutomationService(DataDirectoryInfo directory, IMarketDataSe
             probabilityOfProfit = valuation is not null && vol is > 0 ? StrategyRisk.ProbabilityOfProfit(strategy, spot, vol.Value, valuation) : (double?)null,
             probabilityStatus = valuation is not null && vol is > 0 ? "risk_neutral_model" : "requires_valuation_time_and_positive_fallback_volatility",
             margin = StrategyRisk.RegTMargin(strategy, spot),
-            curve = new { prices, pnl = prices.Select(p => horizon is null ? strategy.PnlAtExpiry(p) : strategy.PnlAt(p, horizon)).ToArray() },
+            curve = new { prices, pnl = prices.Select(p => horizon is null ? strategy.PnlAtExpiry(p) : strategy.PnlAt(p, horizon)).ToArray(), valuationPnl = valuation is null ? null : prices.Select(p => strategy.PnlAt(p, valuation)).ToArray() },
             note = "Margin is a Reg-T estimate, not a broker requirement. Mixed-expiry payoff is valued at earliest expiry."
         };
     }
@@ -218,7 +219,7 @@ public sealed class AutomationService(DataDirectoryInfo directory, IMarketDataSe
     public void Dispose() { _sources?.Dispose(); _gate.Dispose(); }
 }
 
-public sealed record LegInput(LegType Type, PositionSide Side, int Quantity, double Premium, double Strike = 0, DateOnly? Expiry = null, double? Iv = null, int Multiplier = 100)
+public sealed record LegInput(LegType Type, PositionSide Side, int Quantity, double Premium, double Strike = 0, [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] DateOnly? Expiry = null, [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] double? Iv = null, int Multiplier = 100)
 {
     public StrategyLeg ToLeg()
     {

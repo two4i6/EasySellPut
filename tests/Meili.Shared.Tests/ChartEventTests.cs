@@ -71,5 +71,16 @@ public sealed class ChartEventTests : IDisposable
         first.SetResult([new(){Title="Old",Url="https://example.com",Published=Monday}]);await Task.Delay(30);
         Assert.Equal("MSFT",_vm.Timeline!.Symbol);Assert.Empty(_vm.Timeline.Events);
     }
+    [Fact]
+    public async Task External_drawing_change_is_reported_in_the_desktop_without_overwriting()
+    {
+        Ui.Platform=new FakeUiPlatform();var settings=new SettingsStore(_path);var loc=new LocalizationService();
+        var data=new PricingSnapshotTests.SnapshotData{Bars=new(){Symbol="AAPL",Source="fixture",Interval=BarInterval.Minute5,Bars=[Bar.CloseOnly(Monday,100,1)]}};
+        _vm=new(new WatchlistStore(settings),data,loc,new SymbolContext(),settings,new ChartDrawingStore(_path));_vm.SymbolText="AAPL";await _vm.LoadAsync();
+        new ChartDrawingStore(_path).Add("AAPL",new(DrawingKind.HorizontalLine,150));
+        _vm.StartDrawingCommand.Execute(DrawingKind.HorizontalLine);
+        Assert.False(_vm.AddDrawingPoint(Monday,100));Assert.Equal(loc["Ch_DrawingConflict"],_vm.StatusText);
+        Assert.Equal(150,Assert.Single(new ChartDrawingStore(_path).For("AAPL")).Price1);
+    }
     public void Dispose(){_vm?.Deactivate();if(Directory.Exists(_path))Directory.Delete(_path,true);}
 }

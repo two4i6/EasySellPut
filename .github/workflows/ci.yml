@@ -74,7 +74,7 @@ jobs:
         run: |
           python -m unittest discover -s tests/automation -p "test_*.py" -v
           if ($LASTEXITCODE -ne 0) { throw 'Capability coverage guard tests failed' }
-      - name: Every operation must execute through CLI and MCP
+      - name: Desktop inventory and every operation through CLI and MCP
         run: |
           python tests/automation/check_capability_coverage.py
           if ($LASTEXITCODE -ne 0) { throw 'CLI / MCP capability coverage or parity failed' }

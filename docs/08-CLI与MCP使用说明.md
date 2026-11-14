@@ -124,7 +124,7 @@ Windows command 改为完整的 `easysellput.exe` 路径，JSON 中反斜杠需�
 
 默认只读，发现列表不包含修改工具，直接调用修改工具也被拒绝。确需让客户端修改本地自选股、策略或提醒时，在 args 中显式增加 `--allow-writes`。这个开关允许本次 MCP 进程全部已登记的修改操作；仍应由客户端按自己的策略确认操作。工具注解用于描述，不代替权限检查。
 
-查询/计算工具：search_symbols、get_quotes、get_bars、get_expirations、get_option_chain、get_fundamentals、get_financials、get_news、get_market_events、get_source_health、calculate_option、calculate_indicators、analyze_strategy、get_watchlists、get_saved_strategies、get_alerts、get_alert_history、get_settings。
+查询/计算工具：search_symbols、get_quotes、get_bars、get_expirations、get_option_chain、get_fundamentals、get_financials、get_news、get_market_events、get_source_health、probe_data_sources、get_chart_analysis、analyze_option_chain、get_pricing_assumptions、get_volatility_insights、list_strategy_presets、build_strategy、strategy_what_if、get_chart_drawings、calculate_option、calculate_indicators、analyze_strategy、get_watchlists、get_saved_strategies、get_alerts、get_alert_history、get_settings。
 
 修改工具：create_watchlist_group、rename_watchlist_group、delete_watchlist_group、add_watchlist_symbol、remove_watchlist_symbol、save_strategy、delete_strategy、save_alert、delete_alert、set_alert_enabled。
 
@@ -160,3 +160,5 @@ MEILI_LIVE=1 python3 tests/automation/live_cli_mcp_smoke.py --executable /path/t
 必须显式设置 MEILI_LIVE=1。脚本分别使用生产 CLI 和 MCP 请求报价、历史K线（含末页最新交易日）、到期日、期权链、基本面、财报、新闻和搜索，校验来源、抓取时间、行情时间、缺失标的及缓存状态。报告默认在 build/out/live-readiness/acceptance。失败时返回非零，不把第三方限流或离线缓存当作成功。网络请求超时默认 60 秒，可通过 --timeout 调整。
 
 事件查询的日期精度、预计/确认状态及历史覆盖边界见 [K 线事件时间线](16-K线事件时间线.md)。
+
+完整桌面功能对应、43 项工具及界面/监控/安全例外见 [MCP 全功能覆盖审计](17-MCP全功能覆盖审计.md)。新增写入工具包括 record_option_snapshot、add_chart_drawing、clear_chart_drawings、update_preferences、clear_alert_history、move_watchlist_symbol，MCP 同样要求 --allow-writes。

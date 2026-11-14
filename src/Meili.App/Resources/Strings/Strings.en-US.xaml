@@ -587,6 +587,7 @@
     <sys:String x:Key="Ch_DrawClear">Clear lines</sys:String>
     <sys:String x:Key="Ch_DrawHLineHint">Click the price chart to place a horizontal line</sys:String>
     <sys:String x:Key="Ch_DrawTrendHint1">Click the trend line start on the price chart</sys:String>
+    <sys:String x:Key="Ch_DrawingConflict">Drawings changed in another process. Restart to edit.</sys:String>
     <sys:String x:Key="Ch_DrawTrendHint2">Now click the trend line end</sys:String>
     <sys:String x:Key="Ch_Compare">Compare</sys:String>
     <sys:String x:Key="Ch_ComparePlaceholder">e.g. QQQ</sys:String>

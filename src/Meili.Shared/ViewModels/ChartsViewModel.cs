@@ -377,7 +377,8 @@ public partial class ChartsViewModel : ObservableObject
     private void ClearDrawings()
     {
         if (Series is null) return;
-        _drawings.Clear(Series.Symbol);
+        try { _drawings.Clear(Series.Symbol); }
+        catch (DataConflictException) { ReportDrawingConflict(); return; }
         Drawings = [];
         PlotChanged?.Invoke(this, EventArgs.Empty);
     }
@@ -395,13 +396,21 @@ public partial class ChartsViewModel : ObservableObject
         var drawing = mode == DrawingKind.HorizontalLine
             ? new ChartDrawing(mode, price)
             : new ChartDrawing(mode, _trendStart!.Value.Price, _trendStart.Value.Time, price, time);
-        _drawings.Add(Series.Symbol, drawing);
+        try { _drawings.Add(Series.Symbol, drawing); }
+        catch (DataConflictException) { ReportDrawingConflict(); return false; }
         Drawings = _drawings.For(Series.Symbol).ToList();
         DrawMode = null;
         _trendStart = null;
         UpdateStatus();
         PlotChanged?.Invoke(this, EventArgs.Empty);
         return true;
+    }
+
+    private void ReportDrawingConflict()
+    {
+        DrawMode = null; _trendStart = null;
+        _lastError = _loc["Ch_DrawingConflict"];
+        UpdateStatus();
     }
 
     [RelayCommand]

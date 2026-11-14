@@ -587,6 +587,7 @@
     <sys:String x:Key="Ch_DrawClear">清除画线</sys:String>
     <sys:String x:Key="Ch_DrawHLineHint">在价格图上点击一处放置水平线</sys:String>
     <sys:String x:Key="Ch_DrawTrendHint1">在价格图上点击趋势线的起点</sys:String>
+    <sys:String x:Key="Ch_DrawingConflict">画线已在其他进程更改，请重启后再编辑。</sys:String>
     <sys:String x:Key="Ch_DrawTrendHint2">再点击趋势线的终点</sys:String>
     <sys:String x:Key="Ch_Compare">对比</sys:String>
     <sys:String x:Key="Ch_ComparePlaceholder">如 QQQ</sys:String>

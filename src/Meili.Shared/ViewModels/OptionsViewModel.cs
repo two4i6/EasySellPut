@@ -519,13 +519,8 @@ public sealed class EnrichedSide
     public const double WideSpreadMinAbs = 0.05;
 
     public static (double? Spread, double? Pct, bool Wide) SpreadOf(double? bid, double? ask)
-    {
-        if (bid is not > 0 || ask is not > 0 || ask < bid) return (null, null, false);
-        var spread = ask.Value - bid.Value;
-        var mid = (ask.Value + bid.Value) / 2;
-        var pct = spread / mid;
-        return (spread, pct, pct > WideSpreadPct && spread > WideSpreadMinAbs);
-    }
+        => Meili.Automation.OptionQuoteMetrics.SpreadOf(bid,ask);
+
     public bool InTheMoney { get; init; }
     public bool IvLocal { get; init; }
     public string IvHint { get; init; } = "";

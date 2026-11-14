@@ -11,7 +11,13 @@ using CRight = Meili.Core.Models.OptionRight;
 namespace Meili.Shared.Services;
 
 /// <summary>B6: one point of the ATM IV term structure.</summary>
-public sealed record TermPoint(DateOnly Expiration, int DaysToExpiry, double Iv);
+public sealed record TermPoint(DateOnly Expiration, int DaysToExpiry, double Iv)
+{
+    public string? Source { get; init; }
+    public DateTimeOffset? AsOf { get; init; }
+    public DateTimeOffset? FetchedAt { get; init; }
+    public int? DelayMinutes { get; init; }
+}
 
 /// <summary>B6: IV Rank from the locally recorded IV history (iv_samples, B1), the ATM term structure, and day-over-day open interest.</summary>
 public sealed class VolatilityInsights(IIvSource iv, IMarketDataService data, RiskFreeRateProvider rates, MarketDb db)
@@ -46,7 +52,7 @@ public sealed class VolatilityInsights(IIvSource iv, IMarketDataService data, Ri
                 .ToList();
             var s = chain.UnderlyingPrice is > 0 ? chain.UnderlyingPrice.Value : spot;
             if (AtmVolatility.Estimate(candidates, s, exp, DataFreshness.SnapshotTime(chain, now), rate) is { } est)
-                points.Add(new TermPoint(exp, OptionTime.DaysToExpiry(exp, now), est.Iv));
+                points.Add(new TermPoint(exp, OptionTime.DaysToExpiry(exp, now), est.Iv) { Source = chain.Source, AsOf = chain.AsOf, FetchedAt = chain.FetchedAt, DelayMinutes = chain.DelayMinutes });
         }
         return points;
     }

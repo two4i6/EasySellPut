@@ -6,7 +6,7 @@ namespace Meili.Automation;
 public sealed record Operation(string Name, string Description, bool Writes, JsonElement Schema);
 
 /// <summary>Shared discovery/validation contract: CLI help and MCP tools cannot silently diverge.</summary>
-public static class OperationCatalog
+public static partial class OperationCatalog
 {
     private static JsonObject Field(string type, string description, params string[] values)
     {
@@ -61,13 +61,14 @@ public static class OperationCatalog
         Op("add_watchlist_symbol", "Add a ticker to a group.", true, ("groupId!", S()), ("symbol!", S())),
         Op("remove_watchlist_symbol", "Remove a ticker from a group.", true, ("groupId!", S()), ("symbol!", S())),
         Op("get_saved_strategies", "Read saved local strategies."),
-        Op("save_strategy", "Save/replace a local strategy by name, using desktop-compatible JSON.", true, ("name!", S()), ("symbol!", S()), ("legs!", Legs())),
+        Op("save_strategy", "Save/replace a local strategy by name, using desktop-compatible JSON.", true, ("name!", S()), ("symbol!", S()), ("legs!", Legs()), ("kind", Field("string", "default Custom", Enum.GetNames<Meili.Analytics.StrategyKind>()))),
         Op("delete_strategy", "Delete a saved strategy by name.", true, ("name!", S())),
         Op("get_alerts", "Read local alert rules. Desktop remains responsible for continuous monitoring."),
         Op("get_alert_history", "Read paginated local alert history.", false, Page),
         Op("save_alert", "Create a rule, or update an existing id while retaining monitor bookkeeping. Does not start monitoring.", true, ("symbol!", S()), ("kind!", Field("string", "", "PriceAbove","PriceBelow","PercentUp","PercentDown","VolumeAbove","IvAbove","IvBelow")), ("threshold!", N()), ("id", S()), ("enabled", B()), ("repeat", Field("string", "", "Once","Repeat")), ("cooldownMinutes", I("1..1440")), ("includeExtendedHours", B()), ("note", S())),
         Op("delete_alert", "Delete an alert rule; history is retained.", true, ("id!", S())),
         Op("set_alert_enabled", "Enable/disable and re-arm a local alert rule.", true, ("id!", S()), ("enabled!", B())),
+        ..CoverageOperations(),
         Op("get_settings", "Read non-secret preferences and resolved data directory; proxy credentials/URLs are omitted.")
     ];
     private static JsonObject Legs()
