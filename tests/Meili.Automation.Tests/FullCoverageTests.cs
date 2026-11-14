@@ -42,7 +42,7 @@ public sealed class FullCoverageTests:IDisposable
         var insight=await Run(s,"get_volatility_insights",new{symbol="AAPL",valuationTime=at});
         Assert.Equal("insufficient_history",insight.GetProperty("rankStatus").GetString());Assert.Empty(db.LoadIvSamples("AAPL",at.AddYears(-1)));
         await Assert.ThrowsAsync<UnauthorizedAccessException>(()=>Run(s,"record_option_snapshot",new{symbol="AAPL"}));
-        await Run(s,"record_option_snapshot",new{symbol="AAPL"},true);Assert.Single(db.LoadIvSamples("AAPL",at.AddYears(-1)));
+        await Run(s,"record_option_snapshot",new{symbol="AAPL",expiry},true);Assert.Equal(expiry,market.LastChainExpiry);Assert.Single(db.LoadIvSamples("AAPL",at.AddYears(-1)));
         for(var i=1;i<=20;i++)db.AddIvSample("AAPL",at.AddDays(-i),"AtmNearest30",.10+i*.001,"fixture");
         insight=await Run(s,"get_volatility_insights",new{symbol="AAPL",valuationTime=at});Assert.Equal("ok",insight.GetProperty("rankStatus").GetString());Assert.Equal(20,insight.GetProperty("rank").GetProperty("days").GetInt32());
         Assert.Equal("fixture",insight.GetProperty("term")[0].GetProperty("source").GetString());
@@ -92,5 +92,5 @@ public sealed class FullCoverageTests:IDisposable
         Assert.Throws<DataConflictException>(()=>stale.Add("MSFT",new(DrawingKind.HorizontalLine,200)));
         Assert.Empty(stale.For("MSFT"));Assert.Single(new ChartDrawingStore(_path).For("AAPL"));
     }
-    public void Dispose(){if(Directory.Exists(_path))Directory.Delete(_path,true);}
+    public void Dispose(){Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();if(Directory.Exists(_path))Directory.Delete(_path,true);}
 }

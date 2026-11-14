@@ -85,7 +85,9 @@ public sealed partial class AutomationService
                         if (kind == DrawingKind.TrendLine && (first is null || last is null || first == last || !a.Has("price2"))) throw new ArgumentException("Trend lines need time1, time2 and price2; timestamps must differ.");
                         store.Add(symbol, new(kind, a.Number("price1"), first, a.Number("price2", 0), last));
                     }
-                    return new { symbol, drawings = store.For(symbol) };
+                    var drawings = store.For(symbol);
+                    var offset = a.Int("offset", 0, 0, int.MaxValue); var limit = a.Int("limit", operation == "get_chart_drawings" ? 100 : 200, 1, 500);
+                    return new { symbol, drawings = drawings.Skip(offset).Take(limit).ToArray(), total = drawings.Count, offset, nextOffset = (long)offset + limit < drawings.Count ? (int?)(offset + limit) : null };
                 }
             case "get_chart_analysis":
                 {
@@ -133,7 +135,7 @@ public sealed partial class AutomationService
             var sample = await iv.GetAsync(symbol, now, ct);
             if (operation == "record_option_snapshot")
             {
-                var chain = await data.GetChainAsync(symbol, null, ct); var day = DateOnly.FromDateTime(MarketClock.ToEastern(chain.AsOf ?? now));
+                var chain = await data.GetChainAsync(symbol, a.Date("expiry"), ct); var day = DateOnly.FromDateTime(MarketClock.ToEastern(chain.AsOf ?? now));
                 var previous = insights.SwapOpenInterest(symbol, day, chain.Contracts);
                 if (sample is not null) db.AddIvSample(symbol, sample.AsOf ?? now, sample.Basis.ToString(), sample.Iv, sample.Source);
                 return new { symbol, day, chain.Source, chain.AsOf, oiRecorded = chain.Contracts.Count(c => c.OpenInterest is >= 0), ivRecorded = sample is not null, ivSample = sample, previousContracts = previous.Count };
