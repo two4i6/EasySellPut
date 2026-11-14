@@ -21,6 +21,9 @@ public sealed class NewsWebView : NativeControlHost
         // Poll only while the native view exists; no KVO observer lifetime or extra native library is needed.
         _stateTimer.Tick += (_, _) => { if (_view != IntPtr.Zero) Update(StatusKey); };
     }
+    // Only the bundled chart host supplies a stricter same-document navigation policy.
+    internal Func<string, bool>? NavigationPolicy { get; init; }
+    private bool IsAllowed(string url) => NavigationPolicy?.Invoke(url) ?? NewsReaderPolicy.IsAllowed(url);
     public event Action? Changed;
     public string Address { get; private set; } = "";
     public string DocumentTitle { get; private set; } = "";
@@ -30,7 +33,7 @@ public sealed class NewsWebView : NativeControlHost
 
     public void Navigate(string url)
     {
-        if (!NewsReaderPolicy.IsAllowed(url)) { StatusKey = "Reader_Blocked"; Changed?.Invoke(); return; }
+        if (!IsAllowed(url)) { StatusKey = "Reader_Blocked"; Changed?.Invoke(); return; }
         _pending = url; Address = url;
         if (_view == IntPtr.Zero) return;
         var text = Native.String(url);
@@ -167,7 +170,7 @@ public sealed class NewsWebView : NativeControlHost
             {
                 if (!Owners.TryGetValue(self, out var owner)) return;
                 var url = Text(Send(Send(Send(action, "request"), "URL"), "absoluteString"));
-                allow = NewsReaderPolicy.IsAllowed(url);
+                allow = owner.IsAllowed(url);
                 AppLog.Info("news-reader", "Navigation policy: " + (allow ? "allow" : "block"));
                 if (!allow) { owner.StatusKey = "Reader_Blocked"; owner.Changed?.Invoke(); }
                 else if (Send(action, "targetFrame") == IntPtr.Zero) { allow = false; owner.Navigate(url); }

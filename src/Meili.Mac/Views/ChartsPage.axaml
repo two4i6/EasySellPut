@@ -3,7 +3,7 @@
              xmlns:vm="using:Meili.Shared.ViewModels"
              xmlns:cs="using:Meili.Core.Settings"
              xmlns:controls="using:Meili.Mac.Views.Controls"
-             xmlns:sp="using:ScottPlot.Avalonia"
+             xmlns:platform="using:Meili.Mac.Platform"
              x:Class="Meili.Mac.Views.ChartsPage"
              x:DataType="vm:ChartsViewModel">
     <DockPanel>
@@ -110,12 +110,6 @@
                 <TextBlock Classes="Caption Num" Text="{Binding CrosshairText}" VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
             </StackPanel>
         </StackPanel>
-        <Grid x:Name="PlotGrid" Margin="16,0,16,16" RowDefinitions="2*,0.6*,0.7*,0.55*,0.55*">
-            <sp:AvaPlot x:Name="PricePlot" Grid.Row="0" MinHeight="160" />
-            <sp:AvaPlot x:Name="VolumePlot" Grid.Row="1" MinHeight="70" />
-            <sp:AvaPlot x:Name="MacdPlot" Grid.Row="2" MinHeight="80" />
-            <sp:AvaPlot x:Name="RsiPlot" Grid.Row="3" MinHeight="70" />
-            <sp:AvaPlot x:Name="KdjPlot" Grid.Row="4" MinHeight="70" />
-        </Grid>
+        <platform:WebChartControl x:Name="Chart" Margin="16,0,16,16" MinHeight="220" />
     </DockPanel>
 </UserControl>

@@ -1,3 +1,6 @@
+using System.Net.Http;
+using System.Text.Json;
+using Meili.App.Views.Controls;
 using System.IO;
 using System.Windows.Controls;
 using ScottPlot.WPF;
@@ -33,8 +36,40 @@ public class ChartThemeTests
         });
     }
 
+    [Fact]
+    public void Kline_page_forwards_runtime_theme_and_up_down_colors_to_the_local_webview_session()
+    {
+        WpfHost.Run(async () =>
+        {
+            try
+            {
+                ScreenRenderTests.Apply("zh-CN", true);
+                var page = new ChartsPage();
+                using var host = new OffscreenHost(page, 1280, 800);
+                await ScreenRenderTests.Settle();
+                var web = UiAudit.Descendants<WebChartControl>(page).Single();
+                using var http = new HttpClient(new HttpClientHandler { UseProxy = false });
+                async Task<string?> Field(string key)
+                {
+                    using var json = JsonDocument.Parse(await http.GetStringAsync(new Uri(web.Session!.PageUri, "state")));
+                    return json.RootElement.GetProperty("data").GetProperty("theme").GetProperty(key).GetString();
+                }
+                Assert.Equal("#201E1C", await Field("background"));
+                ScreenRenderTests.Apply("zh-CN", false);
+                ThemeService.ApplyUpDownColors(UpDownColorMode.GreenUp);
+                await ScreenRenderTests.Settle();
+                Assert.Equal("#F6F0E3", await Field("background"));
+                Assert.Equal("#1A7050", await Field("up"));
+            }
+            finally
+            {
+                ThemeService.ApplyUpDownColors(AppServices.Get<SettingsStore>().Current.UpDownColors);
+                ScreenRenderTests.Apply("zh-CN", true);
+            }
+        });
+    }
+
     [Theory]
-    [InlineData(typeof(ChartsPage))]
     [InlineData(typeof(OptionsPage))]
     [InlineData(typeof(StrategyPage))]
     public void Open_chart_follows_theme_and_up_down_switches(Type pageType)
@@ -60,15 +95,7 @@ public class ChartThemeTests
                 Assert.Equal(light.DataBackground, plot.Plot.DataBackground.Color);
                 if (dir is { Length: > 0 }) host.SavePng(Path.Combine(dir, $"e5-{name}-2-light.png"));
 
-                if (pageType == typeof(ChartsPage))
-                {
-                    ThemeService.ApplyUpDownColors(UpDownColorMode.GreenUp);
-                    await ScreenRenderTests.Settle();
-                    var candles = plot.Plot.GetPlottables().OfType<ScottPlot.Plottables.CandlestickPlot>().Single();
-                    Assert.Equal(WpfChartPalette.Current(false).Up, candles.RisingFillStyle.Color);
-                    Assert.Equal(light.Down, candles.RisingFillStyle.Color);                // green-up: rising uses the former "down" green
-                    if (dir is { Length: > 0 }) host.SavePng(Path.Combine(dir, $"e5-{name}-3-light-greenup.png"));
-                }
+
             }
             finally
             {

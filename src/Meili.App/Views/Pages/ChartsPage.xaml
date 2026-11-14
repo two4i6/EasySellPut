@@ -5,7 +5,7 @@
       xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
       xmlns:cs="clr-namespace:Meili.Core.Settings;assembly=Meili.Core"
       xmlns:controls="clr-namespace:Meili.App.Views.Controls"
-      xmlns:scottplot="clr-namespace:ScottPlot.WPF;assembly=ScottPlot.WPF">
+>
     <Page.Resources>
         <Style x:Key="RangeChip" TargetType="Button">
             <Setter Property="FontSize" Value="14" />
@@ -175,19 +175,6 @@
             </DockPanel>
         </StackPanel>
 
-        <Grid x:Name="PlotGrid" Margin="16,0,16,16">
-            <Grid.RowDefinitions>
-                <RowDefinition x:Name="PriceRow" Height="2*" />
-                <RowDefinition x:Name="VolumeRow" Height="0.6*" />
-                <RowDefinition x:Name="MacdRow" Height="0.7*" />
-                <RowDefinition x:Name="RsiRow" Height="0.55*" />
-                <RowDefinition x:Name="KdjRow" Height="0.55*" />
-            </Grid.RowDefinitions>
-            <scottplot:WpfPlot x:Name="PricePlot" Grid.Row="0" MinHeight="160" />
-            <scottplot:WpfPlot x:Name="VolumePlot" Grid.Row="1" MinHeight="70" />
-            <scottplot:WpfPlot x:Name="MacdPlot" Grid.Row="2" MinHeight="80" />
-            <scottplot:WpfPlot x:Name="RsiPlot" Grid.Row="3" MinHeight="70" />
-            <scottplot:WpfPlot x:Name="KdjPlot" Grid.Row="4" MinHeight="70" />
-        </Grid>
+        <controls:WebChartControl x:Name="Chart" Margin="16,0,16,16" MinHeight="220" />
     </DockPanel>
 </Page>

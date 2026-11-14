@@ -148,6 +148,17 @@ jobs:
         run: |
           mkdir -p "$MEILI_RENDER_DIR"
           dotnet test tests/Meili.Mac.Tests/Meili.Mac.Tests.csproj -c Release -m:3 --filter 'Category!=Live' --logger 'trx;LogFileName=Mac.trx' --results-directory build/out/ci/tests -v minimal -- RunConfiguration.TreatNoTestsAsError=true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install browser test tooling
+        run: |
+          python -m pip install playwright==1.56.0
+          python -m playwright install --with-deps chromium
+      - name: Exercise actual TradingView renderer and mouse interactions
+        env:
+          MEILI_RENDER_DIR: ${{ github.workspace }}/build/out/ci/render
+        run: python tests/webcharts/test_renderer.py -v
       - name: Retain desktop results and rendered pages
         if: always()
         uses: actions/upload-artifact@v4
@@ -160,7 +171,7 @@ jobs:
           retention-days: 14
 
   news-browser:
-    name: Native news reader (${{ matrix.os }})
+    name: Native WebViews (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     strategy:
@@ -193,6 +204,13 @@ jobs:
         run: |
           dotnet run --project tests/Meili.NewsBrowser.Smoke/Meili.NewsBrowser.Smoke.csproj -c Release -p:BuildInParallel=false
           if ($LASTEXITCODE -ne 0) { throw 'Native news reader smoke failed' }
+
+      - name: Windows chart page data and theme integration
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          dotnet test tests/Meili.App.Tests/Meili.App.Tests.csproj -c Release -m:3 --filter 'FullyQualifiedName~ChartThemeTests|FullyQualifiedName~ChartsRefreshTests' -- RunConfiguration.TreatNoTestsAsError=true
+          if ($LASTEXITCODE -ne 0) { throw 'Windows chart page integration failed' }
 
   required:
     name: CLI and MCP required

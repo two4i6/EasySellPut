@@ -2,18 +2,25 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.Json;
+using Meili.Core.Models;
+using Meili.Core.Settings;
+using Meili.Core.Abstractions;
+using Meili.Shared.ViewModels;
 using Meili.Shared.Services;
 #if WINDOWS_READER
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Web.WebView2.Wpf;
 using Meili.App.Services;
+using NativeChart = Meili.App.Views.Controls.WebChartControl;
 #else
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using Meili.Mac.Platform;
+using NativeChart = Meili.Mac.Platform.WebChartControl;
 #endif
 
 internal static class Program
@@ -98,10 +105,12 @@ internal static class Program
             reopened.OpenArticle(server.Url + "one", "Reopened");
             await Until(() => reopened.Title == "Reader One", "reader recreation after disposal");
             Console.WriteLine("PASS: native HTML load, document titles, back, forward, reload, protocol blocking, HTTP error and close/reopen.");
+            await ProbeChart(directory);
             _exitCode = 0;
         }
         catch (Exception ex)
         {
+            _exitCode = 1;
             Console.Error.WriteLine(ex);
             Console.Error.WriteLine($"Title={window.Title}; HTTP fixture requests={server.Count}");
             Console.Error.WriteLine("UI status: " + string.Join(" | ", ((DockPanel)window.Content!).Children.OfType<TextBlock>().Select(t => t.Text)));
@@ -113,6 +122,71 @@ internal static class Program
                 Console.Error.WriteLine(await File.ReadAllTextAsync(file));
         }
         finally { reopened?.Close(); window.Close(); }
+    }
+    private static async Task ProbeChart(string directory)
+    {
+#if WINDOWS_READER
+        Ui.Platform = new WpfUiPlatform();
+#else
+        Ui.Platform = new MacUiPlatform();
+#endif
+        var settings = new SettingsStore(directory);
+        var vm = new ChartsViewModel(new WatchlistStore(settings), new ChartData(), LocalizationService.Current,
+            new SymbolContext(), settings, new ChartDrawingStore(directory));
+        vm.SymbolText = "FIXTURE"; vm.Range = ChartRangeKind.Minute5;
+        vm.ShowMa = vm.ShowEma = vm.ShowBoll = vm.ShowVolume = vm.ShowMacd = vm.ShowRsi = vm.ShowKdj = true;
+        await vm.LoadAsync();
+        ChartPalette Palette(bool dark, bool green)
+        {
+            var p = ThemePalette.For(dark); var (up, down) = p.UpDown(green ? UpDownColorMode.GreenUp : UpDownColorMode.RedUp);
+            ScottPlot.Color C(uint n) => new((byte)(n >> 16), (byte)(n >> 8), (byte)n);
+            return ChartPalette.Create(dark, C(up), C(down), C(p.PrimaryText), C(p.MutedText), p);
+        }
+        var palette = Palette(true, false);
+        var chart = new NativeChart();
+        var window = new Window { Width = 1200, Height = 800, Content = chart };
+        EventHandler changed = (_, _) => chart.Update(palette);
+        vm.PlotChanged += changed;
+        bool Result(Func<JsonElement, bool> check)
+        {
+            if (chart.LastDiagnostic is not { } text) return false;
+            using var d = JsonDocument.Parse(text);
+            if (d.RootElement.GetProperty("status").GetString() == "error") throw new Exception("Chart script: " + text);
+            return check(d.RootElement);
+        }
+        try
+        {
+            window.Show(); chart.Start(vm, palette);
+            await Until(() => Result(d => d.GetProperty("panes").GetInt32() == 5), "TradingView five panes: " + chart.LastDiagnostic);
+            if (!Result(d => d.GetProperty("rows").GetInt32() == 120 && d.GetProperty("candles").GetInt32() == 119)) throw new Exception("Missing OHLC was fabricated");
+            vm.MaPeriod = 5;
+            await Until(() => Result(d => Math.Abs(d.GetProperty("lastMa").GetDouble() - vm.Snapshot!.Sma[^1]) < 1e-8), "Analytics MA parity in actual chart series");
+            vm.ShowRsi = false;
+            await Until(() => Result(d => d.GetProperty("panes").GetInt32() == 4), "Indicator pane toggle");
+            palette = Palette(false, true); chart.Update(palette);
+            await Until(() => Result(d => d.GetProperty("background").GetString() == "#F6F0E3" && d.GetProperty("up").GetString() == "#1A7050"), "Theme and green-up convention");
+            chart.Stop(); chart.Start(vm, palette);
+            await Until(() => Result(d => d.GetProperty("panes").GetInt32() == 4), "Chart reattachment after disposal");
+            Console.WriteLine("PASS: TradingView native WebView, 120 bars/119 candles, five indicator panes, Analytics MA parity, pane toggle, theme/colors and restart.");
+        }
+        finally { vm.PlotChanged -= changed; vm.Deactivate(); chart.Stop(); window.Close(); }
+    }
+    private sealed class ChartData : IMarketDataService
+    {
+        public Task<BarSeries> GetBarsAsync(BarRequest request, CancellationToken ct = default)
+        {
+            var start = new DateTimeOffset(2025, 1, 6, 14, 30, 0, TimeSpan.Zero);
+            return Task.FromResult(new BarSeries { Symbol = request.Symbol, Interval = request.Interval, Source = "fixture",
+                Bars = Enumerable.Range(0, 120).Select(i => i == 70 ? Bar.CloseOnly(start.AddMinutes(i * 5), 170, 1000)
+                    : Bar.FromSource(start.AddMinutes(i * 5), 100 + i, 101 + i, 99 + i, 100.5 + i, 1000)).ToArray() });
+        }
+        public Task<IReadOnlyList<Quote>> GetQuotesAsync(IReadOnlyList<string> symbols, CancellationToken ct = default) => throw new NotSupportedException();
+        public Task<OptionChain> GetChainAsync(string symbol, DateOnly? expiration = null, CancellationToken ct = default) => throw new NotSupportedException();
+        public Task<IReadOnlyList<DateOnly>> GetExpirationsAsync(string symbol, CancellationToken ct = default) => throw new NotSupportedException();
+        public Task<Fundamentals> GetFundamentalsAsync(string symbol, CancellationToken ct = default) => throw new NotSupportedException();
+        public Task<FinancialStatements> GetFinancialsAsync(string symbol, CancellationToken ct = default) => throw new NotSupportedException();
+        public Task<IReadOnlyList<NewsItem>> GetNewsAsync(string symbol, int count = 20, CancellationToken ct = default) => throw new NotSupportedException();
+        public Task<IReadOnlyList<SymbolMatch>> SearchAsync(string query, int limit = 10, CancellationToken ct = default) => throw new NotSupportedException();
     }
     private static async Task Until(Func<bool> condition, string description)
     {

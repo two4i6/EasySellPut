@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EasySellPut Charts</title>
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;font:12px system-ui,sans-serif;background:#201e1c;color:#c9c6c1}body{display:flex;flex-direction:column}#toolbar{display:flex;gap:12px;align-items:center;padding:6px 10px;min-height:30px;border-bottom:1px solid #8883}#symbol{font-weight:600}#legend{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}button{background:transparent;color:inherit;border:1px solid #8885;border-radius:4px;padding:3px 9px;cursor:pointer}#chart{position:relative;flex:1;min-height:120px}#empty{position:absolute;inset:45% 0 auto;text-align:center;pointer-events:none;z-index:2}footer{padding:3px 10px;display:flex;justify-content:space-between;color:inherit;opacity:.8}a{color:inherit}#error{padding:12px;color:#dd8a7d;display:none}
+</style>
+<script src="library.js" defer></script><script src="chart.js" defer></script>
+</head>
+<body><div id="toolbar"><span id="symbol"></span><span id="legend"></span><button id="fit" type="button">Fit</button></div><div id="error" role="alert"></div><div id="chart"><div id="empty"></div></div><footer><span id="hint"></span><a id="attribution" href="https://www.tradingview.com/" target="_blank" rel="noopener">TradingView Lightweight Charts™</a></footer></body>
+</html>

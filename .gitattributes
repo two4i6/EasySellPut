@@ -6,3 +6,6 @@
 tests/**/Fixtures/** -text
 *.sh text eol=lf
 *.py text eol=lf
+
+# Preserve the verified upstream TradingView distribution bytes.
+src/Meili.Shared/WebCharts/vendor/** -text
