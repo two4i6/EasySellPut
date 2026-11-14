@@ -81,8 +81,11 @@ public partial class App : Application
             if (window.CurrentView?.FindControl<Button>("ConnectCodex")?.IsEnabled != true) throw new InvalidOperationException("Connect button not enabled");
             await settings.CopyCodexCommand.ExecuteAsync(null);
             var clipboard = await Avalonia.Input.Platform.ClipboardExtensions.TryGetTextAsync(window.Clipboard!);
-            if (clipboard != Meili.Automation.McpConnectionSetup.Bundled(AppContext.BaseDirectory, AppServices.DataDirectory.Path).CodexCommand)
+            if (clipboard != Meili.Automation.McpConnectionSetup.Bundled(AppContext.BaseDirectory, AppServices.DataDirectory.Path).CodexSetupCommand)
                 throw new InvalidOperationException("Clipboard connection command mismatch");
+            if (window.CurrentView?.FindControl<Button>("ConnectClaude")?.IsEnabled != true) throw new InvalidOperationException("Claude button not enabled");
+            await settings.CopyClaudeCommand.ExecuteAsync(null);
+            if (await Avalonia.Input.Platform.ClipboardExtensions.TryGetTextAsync(window.Clipboard!) != Meili.Automation.McpConnectionSetup.Bundled(AppContext.BaseDirectory, AppServices.DataDirectory.Path).ClaudeSetupCommand) throw new InvalidOperationException("Claude setup command mismatch");
             if (LocalizationService.Current["Set_AiTitle"] == "Set_AiTitle") throw new InvalidOperationException("Missing connection resources");
             window.Navigate(AppPage.Charts);
             var deadline = DateTimeOffset.UtcNow.AddSeconds(25);

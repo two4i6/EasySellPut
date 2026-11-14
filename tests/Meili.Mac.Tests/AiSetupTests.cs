@@ -18,6 +18,7 @@ public sealed class AiSetupTests
                 loc.Apply(language);MacHost.Pump();
                 var button=page.FindControl<Button>("ConnectCodex")!;
                 Assert.False(page.GetVisualDescendants().OfType<Expander>().Single(e=>Equals(e.Header,loc["Set_AiMore"])).IsExpanded);
+                var claude=page.FindControl<Button>("ConnectClaude")!;Assert.Equal(loc["Set_AiClaude"],claude.Content);Assert.False(claude.IsEnabled);
                 Assert.Equal(loc["Set_AiCodex"],button.Content);Assert.False(button.IsEnabled); // source test host does not bundle CLI
                 Assert.Equal(loc["Set_AiMissing"],((Meili.Shared.ViewModels.SettingsViewModel)page.DataContext!).AiConnectionStatus);
             }

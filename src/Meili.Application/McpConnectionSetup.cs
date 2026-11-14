@@ -15,6 +15,14 @@ public sealed record McpConnectionSetup(string Executable, string DataDirectory,
             return "\\U" + char.ConvertToUtf32((char)high, (char)low).ToString("X8");
         });
     public string CodexCommand => "codex mcp add easysellput -- " + string.Join(" ", new[] { Executable }.Concat(Arguments).Select(Quote));
+    public string ClaudeCommand => "claude mcp add --transport stdio --scope user easysellput -- " + string.Join(" ", new[] { Executable }.Concat(Arguments).Select(Quote));
+    public string CodexSetupCommand => SetupCommand("codex", CodexCommand);
+    public string ClaudeSetupCommand => SetupCommand("claude-code", ClaudeCommand);
+    private string SetupCommand(string client, string registration)
+    {
+        var install = (Windows ? "& " : "") + string.Join(" ", new[] { Executable, "install-skill", "--client", client }.Select(Quote));
+        return Windows ? install + "; if ($LASTEXITCODE -eq 0) { " + registration + " }" : install + " && " + registration;
+    }
     private string Quote(string value) => "'" + value.Replace("'", Windows ? "''" : "'\"'\"'") + "'";
     public static McpConnectionSetup Bundled(string baseDirectory, string dataDirectory) => new(
         Path.GetFullPath(Path.Combine(baseDirectory, OperatingSystem.IsMacOS() ? "../Resources/automation" : "automation", OperatingSystem.IsWindows() ? "easysellput.exe" : "easysellput")),

@@ -180,6 +180,7 @@
                 <StackPanel Spacing="8">
                     <WrapPanel>
                         <Button x:Name="ConnectCodex" Content="{DynamicResource Set_AiCodex}" Command="{Binding CopyCodexCommand}" IsEnabled="{Binding CanConnectAi}" AutomationProperties.AutomationId="ConnectCodex" Margin="0,0,12,0" />
+                        <Button x:Name="ConnectClaude" Content="{DynamicResource Set_AiClaude}" Command="{Binding CopyClaudeCommand}" IsEnabled="{Binding CanConnectAi}" AutomationProperties.AutomationId="ConnectClaude" Margin="0,0,12,0" />
                         <TextBlock Classes="Caption" Text="{Binding AiConnectionStatus}" TextWrapping="Wrap" VerticalAlignment="Center" />
                     </WrapPanel>
                     <Expander Header="{DynamicResource Set_AiMore}" HorizontalAlignment="Stretch">

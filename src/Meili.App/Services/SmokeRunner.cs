@@ -103,9 +103,12 @@ public sealed class SmokeRunner
             var page = window.ThemeSurfacesForSmoke().First(p => p.Part == "page").Element;
             if (page.FindName("ConnectCodex") is not System.Windows.Controls.Button { IsEnabled: true }) throw new InvalidOperationException("Connect button not enabled");
             await settings.CopyCodexCommand.ExecuteAsync(null);
-            var expected = Meili.Automation.McpConnectionSetup.Bundled(AppContext.BaseDirectory, AppServices.DataDirectory.Path).CodexCommand;
+            var expected = Meili.Automation.McpConnectionSetup.Bundled(AppContext.BaseDirectory, AppServices.DataDirectory.Path).CodexSetupCommand;
             if (Clipboard.GetText() != expected) throw new InvalidOperationException("Clipboard connection command mismatch");
-            return "read-only Codex command copied";
+            if (page.FindName("ConnectClaude") is not System.Windows.Controls.Button { IsEnabled: true }) throw new InvalidOperationException("Claude button not enabled");
+            await settings.CopyClaudeCommand.ExecuteAsync(null);
+            if (Clipboard.GetText() != Meili.Automation.McpConnectionSetup.Bundled(AppContext.BaseDirectory, AppServices.DataDirectory.Path).ClaudeSetupCommand) throw new InvalidOperationException("Claude setup command mismatch");
+            return "Codex/Claude skill + read-only MCP commands copied";
         });
         if (Directory.Exists(Path.Combine(AppContext.BaseDirectory, "automation"))) await CheckAsync("packaged-webview", async () =>
         {

@@ -262,13 +262,16 @@
           "uiOnly": "Opening a native file manager is desktop-only; get_settings returns the resolved data directory."
         },
         "CopyCodexAsync": {
-          "uiOnly": "Copies read-only stdio connection templates to the desktop clipboard; does not execute commands or edit AI client configuration. No new market/business operation."
+          "uiOnly": "Copies a user-executed Codex setup command: install the companion skill, then register read-only MCP. The application does not execute it or alter client configuration."
         },
         "CopyMcpTomlAsync": {
           "uiOnly": "Copies read-only stdio connection templates to the desktop clipboard; does not execute commands or edit AI client configuration. No new market/business operation."
         },
         "CopyMcpJsonAsync": {
           "uiOnly": "Copies read-only stdio connection templates to the desktop clipboard; does not execute commands or edit AI client configuration. No new market/business operation."
+        },
+        "CopyClaudeAsync": {
+          "uiOnly": "Copies a user-executed Claude Code setup command: install the companion skill, then register read-only stdio MCP. The application does not execute it or alter client configuration."
         }
       }
     },

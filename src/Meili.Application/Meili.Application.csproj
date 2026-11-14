@@ -5,4 +5,5 @@
     <ProjectReference Include="../Meili.Data/Meili.Data.csproj" />
     <ProjectReference Include="../Meili.Analytics/Meili.Analytics.csproj" />
   </ItemGroup>
+  <ItemGroup><EmbeddedResource Include="../../skills/easysellput-local/SKILL.md" LogicalName="EasySellPut.Skill" /></ItemGroup>
 </Project>

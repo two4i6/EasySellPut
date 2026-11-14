@@ -21,6 +21,30 @@ public static class Program
         Console.CancelKeyPress += (_, e) => { e.Cancel = true; stop.Cancel(); };
         try
         {
+            if (args.FirstOrDefault() == "install-skill")
+            {
+                if (args.Skip(1).SequenceEqual(new[] { "--help" }))
+                {
+                    Console.WriteLine("install-skill --client codex|claude-code [--project PATH] [--json]\nDefault: user profile. --project installs only inside the selected project. Existing different skills are never overwritten. Reconnect the AI client after installation.");
+                    return 0;
+                }
+                string? client = null, project = null;
+                var seen = new HashSet<string>();
+                for (var i = 1; i < args.Length; i++)
+                {
+                    var key = args[i];
+                    if (!seen.Add(key)) throw new ArgumentException("Duplicate setup option.");
+                    if (key == "--json") continue;
+                    if (key is not ("--client" or "--project") || ++i >= args.Length) throw new ArgumentException("Usage: install-skill --client codex|claude-code [--project PATH] [--json]");
+                    if (key == "--client") client = args[i]; else project = args[i];
+                }
+                if (client is null) throw new ArgumentException("--client is required.");
+                var root = project ?? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                if (string.IsNullOrWhiteSpace(root)) throw new IOException("User profile unavailable; specify --project.");
+                var installed = AiSkillInstaller.Install(client, root);
+                if (json) Console.WriteLine(WireJson.Element(WireJson.Success(installed)).GetRawText()); else PrintHuman(WireJson.Element(installed));
+                return 0;
+            }
             var parsed = Parse(args);
             if (parsed.Help)
             {
@@ -46,7 +70,7 @@ public static class Program
         {
             Console.Error.WriteLine($"{WireJson.Code(e)}: {WireJson.Element(WireJson.Error(e)).GetProperty("error").GetProperty("message").GetString()}");
             if (json) Console.WriteLine(JsonSerializer.Serialize(WireJson.Error(e), WireJson.Options));
-            return e switch { ArgumentException or JsonException or FormatException or OverflowException => 2, UnauthorizedAccessException => 3, Meili.Core.Settings.DataConflictException => 4, OperationCanceledException => 130, _ => 1 };
+            return e switch { ArgumentException or JsonException or FormatException or OverflowException => 2, UnauthorizedAccessException => 3, Meili.Core.Settings.DataConflictException or SkillInstallConflictException => 4, OperationCanceledException => 130, _ => 1 };
         }
     }
 
@@ -180,7 +204,7 @@ public static class Program
     private static string Kebab(string s) => string.Concat(s.Select(c => char.IsUpper(c) ? "-" + char.ToLowerInvariant(c) : c.ToString()));
     private static void PrintHelp(string? operation)
     {
-        Console.WriteLine("EasySellPut — local CLI + stdio MCP\nUsage: easysellput <command> [options] [--json] [--data-dir PATH] [--timeout 60]\n       easysellput mcp serve [--allow-writes] [--data-dir PATH]\nAliases: quote, bars, search, expirations, options, fundamentals, financials, news, events, chart, option-analysis, insights, presets, sources, price, indicators\nGroups: watchlist list/add/remove/create-group/rename-group/delete-group; strategy list/save/delete/analyze; alerts list/history/save/delete/enable; settings show\nUse any operation name below directly. --input FILE accepts an argument JSON object.\nNumbers use invariant decimal units. --help after an operation prints its JSON schema.\nExit: 0 success, 1 failure, 2 arguments, 3 permission, 4 conflict, 130 cancelled/timeout.");
+        Console.WriteLine("EasySellPut — local CLI + stdio MCP\nUsage: easysellput <command> [options] [--json] [--data-dir PATH] [--timeout 60]\n       easysellput mcp serve [--allow-writes] [--data-dir PATH]\nSetup: install-skill --client codex|claude-code [--project PATH] [--json] (CLI only; never modifies a different existing skill)\nAliases: quote, bars, search, expirations, options, fundamentals, financials, news, events, chart, option-analysis, insights, presets, sources, price, indicators\nGroups: watchlist list/add/remove/create-group/rename-group/delete-group; strategy list/save/delete/analyze; alerts list/history/save/delete/enable; settings show\nUse any operation name below directly. --input FILE accepts an argument JSON object.\nNumbers use invariant decimal units. --help after an operation prints its JSON schema.\nExit: 0 success, 1 failure, 2 arguments, 3 permission, 4 conflict, 130 cancelled/timeout.");
         foreach (var op in OperationCatalog.All.Where(o => operation is null || o.Name == operation))
         {
             Console.WriteLine($"\n{op.Name}{(op.Writes ? " [writes local data]" : "")}: {op.Description}");

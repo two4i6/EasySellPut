@@ -7,7 +7,7 @@ if (args.SequenceEqual(new[] { "--connection-fixtures" }))
         new McpConnectionSetup("/Applications/My App's 🚀/easysellput", "/tmp/中文 data '$HOME' $(echo unsafe)", false),
         new McpConnectionSetup(@"C:\Program Files\My App's 🚀\easysellput.exe", @"C:\Users\测试\data '$HOME' $(echo unsafe)", true)
     };
-    Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(values.Select(v => new {v.Executable,v.DataDirectory,v.Windows,v.Arguments,v.Json,v.Toml,v.CodexCommand})));
+    Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(values.Select(v => new {v.Executable,v.DataDirectory,v.Windows,v.Arguments,v.Json,v.Toml,v.CodexCommand,v.ClaudeCommand,v.CodexSetupCommand,v.ClaudeSetupCommand})));
     return 0;
 }
 

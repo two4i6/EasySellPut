@@ -20,6 +20,7 @@ public static class WireJson
     public static object Error(Exception e) => new { schemaVersion = 1, success = false, error = new { code = Code(e), message = SafeMessage(e) } };
     public static string Code(Exception e) => e switch
     {
+        SkillInstallConflictException => "skill_conflict",
         Core.Settings.DataConflictException => "data_conflict",
         ArgumentException or JsonException or FormatException or OverflowException => "invalid_arguments",
         OperationCanceledException => "cancelled",
@@ -28,7 +29,8 @@ public static class WireJson
         Meili.Data.Routing.AllSourcesFailedException or Meili.Data.Http.DataSourceException => "data_source_error",
         _ => "operation_failed"
     };
-    private static string SafeMessage(Exception e) => e is Meili.Data.Routing.AllSourcesFailedException all ? $"All sources failed for {all.Capability}: {string.Join(", ", all.Errors.Select(x => x.Source))}. Check connectivity and provider availability."
+    private static string SafeMessage(Exception e) => e is SkillInstallConflictException conflict ? conflict.Message
+        : e is Meili.Data.Routing.AllSourcesFailedException all ? $"All sources failed for {all.Capability}: {string.Join(", ", all.Errors.Select(x => x.Source))}. Check connectivity and provider availability."
         : e is Meili.Data.Http.DataSourceException source ? $"Source {source.SourceId}: {source.Kind} (HTTP {source.StatusCode?.ToString() ?? "unknown"})."
         : e is ArgumentException or JsonException or FormatException or OverflowException or Core.Settings.DataConflictException ? e.Message
         : e is OperationCanceledException ? "Operation cancelled or timed out."

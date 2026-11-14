@@ -77,7 +77,21 @@ def main():
     args = parser.parse_args()
     command = [str(pathlib.Path(args.executable).resolve())] if args.executable else ['dotnet', str(pathlib.Path(args.dll).resolve())]
     with tempfile.TemporaryDirectory(prefix='easysellput-process-') as data:
+        for client,folder in [('codex','.agents'),('claude-code','.claude')]:
+            project=pathlib.Path(data)/('skill project '+client)
+            def install(expected=0):
+                process=subprocess.run([*command,'install-skill','--client',client,'--project',str(project),'--json'],capture_output=True,text=True,timeout=20)
+                assert process.returncode==expected,(process.stdout,process.stderr)
+                return json.loads(process.stdout)
+            first=install();assert first['data']['status']=='installed'
+            skill=project/folder/'skills/easysellput-local/SKILL.md'
+            assert skill.is_file() and 'name: easysellput-local' in skill.read_text(encoding='utf-8')
+            assert install()['data']['status']=='already_installed'
+            skill.write_text('user custom skill',encoding='utf-8')
+            assert install(4)['error']['code']=='skill_conflict'
+            assert skill.read_text(encoding='utf-8')=='user custom skill'
         catalog = run(command, data, '--help')['data']
+        assert 'install-skill' not in {op['name'] for op in catalog['operations']}
         operations = {op['name']: op for op in catalog['operations']}
         readonly = {name for name, op in operations.items() if not op['writes']}
         sources = run(command, data, 'sources')['data']

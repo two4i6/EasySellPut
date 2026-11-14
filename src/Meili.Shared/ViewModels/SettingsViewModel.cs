@@ -44,7 +44,9 @@ public partial class SettingsViewModel : ObservableObject
         OnPropertyChanged(nameof(AiConnectionStatus));
     }
     [RelayCommand]
-    private Task CopyCodexAsync() => CopyConnectionAsync(_connection.CodexCommand);
+    private Task CopyCodexAsync() => CopyConnectionAsync(_connection.CodexSetupCommand);
+    [RelayCommand]
+    private Task CopyClaudeAsync() => CopyConnectionAsync(_connection.ClaudeSetupCommand);
     [RelayCommand]
     private Task CopyMcpTomlAsync() => CopyConnectionAsync(_connection.Toml);
     [RelayCommand]

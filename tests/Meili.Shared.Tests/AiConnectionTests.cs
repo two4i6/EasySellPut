@@ -16,8 +16,9 @@ public sealed class AiConnectionTests : IDisposable
         Directory.CreateDirectory(_path);var executable=Path.Combine(_path,"easysellput");File.WriteAllText(executable,"");
         var setup=new McpConnectionSetup(executable,Path.Combine(_path,"data"),false);var ui=new FakeUiPlatform();Ui.Platform=ui;
         var loc=new LocalizationService();var vm=new SettingsViewModel(new(_path),loc,new Theme(),new(_path,DataDirectorySource.CommandLine),new Services(),setup);
-        Assert.True(vm.CanConnectAi);await vm.CopyCodexCommand.ExecuteAsync(null);Assert.Equal(setup.CodexCommand,ui.ClipboardText);Assert.DoesNotContain("--allow-writes",ui.ClipboardText);
+        Assert.True(vm.CanConnectAi);await vm.CopyCodexCommand.ExecuteAsync(null);Assert.Equal(setup.CodexSetupCommand,ui.ClipboardText);Assert.DoesNotContain("--allow-writes",ui.ClipboardText);
         Assert.Equal(loc["Set_AiCopied"],vm.AiConnectionStatus);
+        await vm.CopyClaudeCommand.ExecuteAsync(null);Assert.Equal(setup.ClaudeSetupCommand,ui.ClipboardText);Assert.DoesNotContain("--allow-writes",ui.ClipboardText);
         await vm.CopyMcpJsonCommand.ExecuteAsync(null);Assert.Equal(setup.Json,ui.ClipboardText);
         await vm.CopyMcpTomlCommand.ExecuteAsync(null);Assert.Equal(setup.Toml,ui.ClipboardText);
         loc.Apply("en-US");Assert.Equal(loc["Set_AiCopied"],vm.AiConnectionStatus);

@@ -782,14 +782,15 @@
     <sys:String x:Key="Wb_Previous">Previous page</sys:String>
     <sys:String x:Key="Wb_Next">Next page</sys:String>
     <sys:String x:Key="Set_AiTitle">Connect AI tools</sys:String>
-    <sys:String x:Key="Set_AiReadonly">Read-only MCP · Current data directory</sys:String>
+    <sys:String x:Key="Set_AiReadonly">Read-only MCP · Companion skill</sys:String>
     <sys:String x:Key="Set_AiMissing">CLI not bundled. Download the complete desktop package.</sys:String>
-    <sys:String x:Key="Set_AiCopied">Copied. Paste into your terminal or client configuration.</sys:String>
+    <sys:String x:Key="Set_AiCopied">Copied. Paste into your terminal to install the skill and connect MCP.</sys:String>
     <sys:String x:Key="Set_AiCopyFailed">Could not copy. Copy the configuration below manually.</sys:String>
-    <sys:String x:Key="Set_AiCodex">Copy Codex command</sys:String>
+    <sys:String x:Key="Set_AiCodex">Copy Codex + Skill</sys:String>
     <sys:String x:Key="Set_AiMore">Other connection options</sys:String>
     <sys:String x:Key="Set_AiToml">Copy Codex TOML</sys:String>
     <sys:String x:Key="Set_AiJson">Copy generic JSON</sys:String>
     <sys:String x:Key="Set_AiPrivacy">Query results are sent to the connected AI tool.</sys:String>
     <sys:String x:Key="Set_AiMoveApp">Move the app to Applications and reopen it first.</sys:String>
+    <sys:String x:Key="Set_AiClaude">Copy Claude Code + Skill</sys:String>
 </ResourceDictionary>

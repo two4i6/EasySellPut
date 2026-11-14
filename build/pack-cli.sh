@@ -29,6 +29,8 @@ trap 'rm -rf "$work"' EXIT
 payload="$work/$name"
 dotnet publish src/Meili.Cli/Meili.Cli.csproj -c Release -r "$rid" --self-contained true -m:3 \
   -p:PublishTrimmed=false -p:PublishSingleFile=false -p:PackAsTool=false -o "$payload" -v minimal
+mkdir -p "$payload/skills/easysellput-local"
+cp skills/easysellput-local/SKILL.md "$payload/skills/easysellput-local/SKILL.md"
 cp LICENSE "$payload/LICENSE"
 cp docs/08-CLI与MCP使用说明.md "$payload/CLI-MCP.md"
 cp docs/12-Windows与macOS的CLI和MCP.md "$payload/12-Windows与macOS的CLI和MCP.md"

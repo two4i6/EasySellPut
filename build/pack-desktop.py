@@ -64,6 +64,7 @@ def pack(rid,output):
             shutil.copytree(automation,payload/'automation')
             (payload/'MeiliTerminal.exe').rename(payload/'EasySellPut.exe')
             (payload/'portable.flag').write_text('')
+        shutil.copytree(ROOT/'skills/easysellput-local',payload/'skills/easysellput-local')
         shutil.copy(ROOT/'LICENSE',payload/'LICENSE')
         shutil.copy(ROOT/'docs/08-CLI与MCP使用说明.md',payload/'CLI-MCP.md')
         (payload/'README.txt').write_text('EasySellPut desktop + CLI/MCP\nmacOS: move EasySellPut.app to Applications before opening.\nOpen EasySellPut, then Settings > Connect AI tools. MCP is read-only by default.\nWindows: installed Evergreen WebView2 runtime required. macOS: ad-hoc signed, not notarized.\nNo Developer ID / Windows publisher signature is included in CI builds.\n',encoding='utf-8')

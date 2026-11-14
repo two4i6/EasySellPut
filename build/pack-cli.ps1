@@ -22,6 +22,8 @@ $temp = Join-Path $OutputParent ('.publish-' + [guid]::NewGuid().ToString('N'))
 try {
     dotnet publish (Join-Path $root 'src/Meili.Cli/Meili.Cli.csproj') -c Release -r $Runtime --self-contained true -m:3 -p:PublishTrimmed=false -p:PublishSingleFile=false -p:PackAsTool=false -o $temp -v minimal
     if ($LASTEXITCODE -ne 0) { throw 'CLI publish failed' }
+    New-Item -ItemType Directory -Force -Path (Join-Path $temp 'skills/easysellput-local') | Out-Null
+    Copy-Item (Join-Path $root 'skills/easysellput-local/SKILL.md') (Join-Path $temp 'skills/easysellput-local/SKILL.md')
     Copy-Item (Join-Path $root 'LICENSE') (Join-Path $temp 'LICENSE')
     Copy-Item (Join-Path $root 'docs/08-CLI与MCP使用说明.md') (Join-Path $temp 'CLI-MCP.md')
     Copy-Item (Join-Path $root 'docs/12-Windows与macOS的CLI和MCP.md') $temp
