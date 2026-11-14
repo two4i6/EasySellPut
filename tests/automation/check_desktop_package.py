@@ -11,6 +11,7 @@ import sys
 import tempfile
 import zipfile
 from check_cli_package import binary_architecture
+from dotnet_bundle import assert_self_contained
 
 
 def check(archive,rid,destination):
@@ -36,10 +37,11 @@ def check(archive,rid,destination):
         app=root/'EasySellPut.app';base=app/'Contents/MacOS';gui=base/'MeiliMac'
         info=plistlib.loads((app/'Contents/Info.plist').read_bytes());assert info['CFBundleExecutable']=='MeiliMac'
         assert (app/'Contents/Resources/AppIcon.icns').is_file()
-        assert list(base.glob('*coreclr*.dylib'))
+        assert_self_contained(gui)
         subprocess.run(['codesign','--verify','--deep','--strict',str(app)],check=True)
     cli=(root/'EasySellPut.app/Contents/Resources/automation' if rid.startswith('osx-') else base/'automation')/('easysellput.exe' if rid.startswith('win-') else 'easysellput')
     for executable in (gui,cli):binary_architecture(executable,rid)
+    if rid.startswith('osx-'):assert_self_contained(cli)
     report=destination.parent/'desktop-smoke.json'
     with tempfile.TemporaryDirectory(prefix='meili desktop data ') as data:
         result=subprocess.run([str(gui),'--smoke-offline','--no-alerts','--data-dir',data,'--smoke-report',str(report.resolve())],timeout=180)
