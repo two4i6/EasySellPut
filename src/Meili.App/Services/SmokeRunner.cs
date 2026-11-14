@@ -94,6 +94,31 @@ public sealed class SmokeRunner
                 return "loaded";
             });
         }
+        if (Directory.Exists(Path.Combine(AppContext.BaseDirectory, "automation"))) await CheckAsync("ai-connection", async () =>
+        {
+            var settings = AppServices.Get<SettingsViewModel>();
+            if (!settings.CanConnectAi) throw new InvalidOperationException("Bundled CLI unavailable");
+            window.NavigateForSmoke(typeof(Meili.App.Views.Pages.SettingsPage));
+            await Task.Delay(300);
+            var page = window.ThemeSurfacesForSmoke().First(p => p.Part == "page").Element;
+            if (page.FindName("ConnectCodex") is not System.Windows.Controls.Button { IsEnabled: true }) throw new InvalidOperationException("Connect button not enabled");
+            await settings.CopyCodexCommand.ExecuteAsync(null);
+            var expected = Meili.Automation.McpConnectionSetup.Bundled(AppContext.BaseDirectory, AppServices.DataDirectory.Path).CodexCommand;
+            if (Clipboard.GetText() != expected) throw new InvalidOperationException("Clipboard connection command mismatch");
+            return "read-only Codex command copied";
+        });
+        if (Directory.Exists(Path.Combine(AppContext.BaseDirectory, "automation"))) await CheckAsync("packaged-webview", async () =>
+        {
+            window.NavigateForSmoke(typeof(Meili.App.Views.Pages.ChartsPage));
+            await Task.Delay(500);
+            var page = window.ThemeSurfacesForSmoke().First(p => p.Part == "page").Element;
+            var chart = page.FindName("Chart") as Meili.App.Views.Controls.WebChartControl;
+            var deadline = DateTimeOffset.UtcNow.AddSeconds(25);
+            while (chart?.LastDiagnostic is null && DateTimeOffset.UtcNow < deadline) await Task.Delay(100);
+            using var diagnostic = JsonDocument.Parse(chart?.LastDiagnostic ?? "{}");
+            if (!diagnostic.RootElement.TryGetProperty("status", out var status) || status.GetString() != "rendered") throw new InvalidOperationException("Packaged chart unavailable: " + chart?.LastDiagnostic);
+            return "real bundled chart rendered";
+        });
         await CheckAsync("keyboard-wizard", () =>
         {
             window.OpenWizardForSmoke("A");

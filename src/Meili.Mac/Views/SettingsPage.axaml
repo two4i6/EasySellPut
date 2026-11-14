@@ -175,6 +175,24 @@
 </DockPanel>
 </Border>
 
+            <TextBlock Classes="SectionTitle" Text="{DynamicResource Set_AiTitle}" />
+            <Border Classes="Card" Padding="16,12" Margin="0,0,0,4">
+                <StackPanel Spacing="8">
+                    <WrapPanel>
+                        <Button x:Name="ConnectCodex" Content="{DynamicResource Set_AiCodex}" Command="{Binding CopyCodexCommand}" IsEnabled="{Binding CanConnectAi}" AutomationProperties.AutomationId="ConnectCodex" Margin="0,0,12,0" />
+                        <TextBlock Classes="Caption" Text="{Binding AiConnectionStatus}" TextWrapping="Wrap" VerticalAlignment="Center" />
+                    </WrapPanel>
+                    <Expander Header="{DynamicResource Set_AiMore}" HorizontalAlignment="Stretch">
+                        <StackPanel Spacing="8">
+                            <Button Content="{DynamicResource Set_AiToml}" Command="{Binding CopyMcpTomlCommand}" IsEnabled="{Binding CanConnectAi}" />
+                            <TextBox Text="{Binding McpToml, Mode=OneWay}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" />
+                            <Button Content="{DynamicResource Set_AiJson}" Command="{Binding CopyMcpJsonCommand}" IsEnabled="{Binding CanConnectAi}" />
+                            <TextBox Text="{Binding McpJson, Mode=OneWay}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" />
+                            <TextBlock Classes="Caption" Text="{DynamicResource Set_AiPrivacy}" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Expander>
+                </StackPanel>
+            </Border>
             <!-- Storage -->
             <TextBlock Classes="SectionTitle" Text="{DynamicResource Set_Storage}" />
             <Border Classes="Card" Padding="16,12" Margin="0,0,0,4">

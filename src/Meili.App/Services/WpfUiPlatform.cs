@@ -41,6 +41,8 @@ public sealed class WpfUiPlatform : IUiPlatform
         _reader.Activate();
     }
 
+    public Task CopyTextAsync(string text) { Clipboard.SetText(text); return Task.CompletedTask; }
+
     public void OpenUrl(string url) => Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
 
     public void OpenFolder(string path) =>

@@ -781,4 +781,14 @@
     <sys:String x:Key="Wb_LoadFailed">工作台加载失败，请重新打开策略页。</sys:String>
     <sys:String x:Key="Wb_Previous">上一页</sys:String>
     <sys:String x:Key="Wb_Next">下一页</sys:String>
+    <sys:String x:Key="Set_AiTitle">连接 AI 工具</sys:String>
+    <sys:String x:Key="Set_AiReadonly">只读 MCP · 共用当前数据目录</sys:String>
+    <sys:String x:Key="Set_AiMissing">此版本未附带 CLI，请下载完整桌面包。</sys:String>
+    <sys:String x:Key="Set_AiCopied">已复制，粘贴到终端或客户端配置。</sys:String>
+    <sys:String x:Key="Set_AiCopyFailed">无法复制，请从下方配置中手动复制。</sys:String>
+    <sys:String x:Key="Set_AiCodex">复制 Codex 命令</sys:String>
+    <sys:String x:Key="Set_AiMore">其他连接方式</sys:String>
+    <sys:String x:Key="Set_AiToml">复制 Codex TOML</sys:String>
+    <sys:String x:Key="Set_AiJson">复制通用 JSON</sys:String>
+    <sys:String x:Key="Set_AiPrivacy">查询结果会发送给连接的 AI 工具。</sys:String>
 </ResourceDictionary>

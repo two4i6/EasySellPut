@@ -1,6 +1,16 @@
 using Meili.Automation;
 using Meili.Automation.Tests;
 
+if (args.SequenceEqual(new[] { "--connection-fixtures" }))
+{
+    var values = new[] {
+        new McpConnectionSetup("/Applications/My App's 🚀/easysellput", "/tmp/中文 data '$HOME' $(echo unsafe)", false),
+        new McpConnectionSetup(@"C:\Program Files\My App's 🚀\easysellput.exe", @"C:\Users\测试\data '$HOME' $(echo unsafe)", true)
+    };
+    Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(values.Select(v => new {v.Executable,v.DataDirectory,v.Windows,v.Arguments,v.Json,v.Toml,v.CodexCommand})));
+    return 0;
+}
+
 // Test-only executable: real CLI/MCP adapters and official SDK, deterministic market data.
 // This host is never shipped in the production distribution.
 return await Meili.Cli.Program.RunAsync(args, directory => new AutomationService(directory, new FakeMarket(), [new FixtureProbe()]));

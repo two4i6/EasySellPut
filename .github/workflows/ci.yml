@@ -176,9 +176,9 @@ jobs:
           retention-days: 14
 
   news-browser:
-    name: Native WebViews (${{ matrix.os }})
+    name: Native WebViews and desktop package (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
@@ -216,6 +216,43 @@ jobs:
         run: |
           dotnet test tests/Meili.App.Tests/Meili.App.Tests.csproj -c Release -m:3 --filter 'FullyQualifiedName~ChartThemeTests|FullyQualifiedName~ChartsRefreshTests' -- RunConfiguration.TreatNoTestsAsError=true
           if ($LASTEXITCODE -ne 0) { throw 'Windows chart page integration failed' }
+
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build native desktop with bundled CLI and MCP
+        shell: pwsh
+        run: |
+          python -m pip install pillow==11.3.0
+          if ($LASTEXITCODE -ne 0) { throw 'Icon tooling installation failed' }
+          $os = if ($IsWindows) { 'win' } else { 'osx' }
+          $arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant()
+          python build/pack-desktop.py --rid "$os-$arch" --output build/out/ci/desktop
+          if ($LASTEXITCODE -ne 0) { throw 'Desktop packaging failed' }
+      - name: Extract desktop and exercise real GUI and bundled automation
+        shell: pwsh
+        run: |
+          $os = if ($IsWindows) { 'win' } else { 'osx' }
+          $arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant()
+          $archive = (Get-ChildItem build/out/ci/desktop/*.zip | Select-Object -First 1).FullName
+          python tests/automation/check_desktop_package.py --archive $archive --rid "$os-$arch" --extract-to 'build/out/ci/desktop extracted with spaces'
+          if ($LASTEXITCODE -ne 0) { throw 'Extracted desktop verification failed' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Desktop-${{ matrix.os }}
+          path: |
+            build/out/ci/desktop/*.zip
+            build/out/ci/desktop/*.sha256
+          if-no-files-found: error
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: desktop-package-evidence-${{ matrix.os }}
+          path: build/out/ci/desktop-smoke*
+          if-no-files-found: warn
+          retention-days: 14
 
   required:
     name: CLI and MCP required

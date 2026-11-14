@@ -1,3 +1,4 @@
+using Avalonia.Input.Platform;
 using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls;
@@ -44,6 +45,14 @@ public sealed class MacUiPlatform : IUiPlatform
         }
         _reader.OpenArticle(url, title);
         _reader.Activate();
+    }
+
+    public async Task CopyTextAsync(string text)
+    {
+        var window = (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+        var clipboard = window is null ? null : TopLevel.GetTopLevel(window)?.Clipboard;
+        if (clipboard is null) throw new NotSupportedException("Clipboard unavailable");
+        await clipboard.SetTextAsync(text);
     }
 
     public void OpenUrl(string url) => Open(url);

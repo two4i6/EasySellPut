@@ -260,6 +260,15 @@
         },
         "OpenDataFolder": {
           "uiOnly": "Opening a native file manager is desktop-only; get_settings returns the resolved data directory."
+        },
+        "CopyCodexAsync": {
+          "uiOnly": "Copies read-only stdio connection templates to the desktop clipboard; does not execute commands or edit AI client configuration. No new market/business operation."
+        },
+        "CopyMcpTomlAsync": {
+          "uiOnly": "Copies read-only stdio connection templates to the desktop clipboard; does not execute commands or edit AI client configuration. No new market/business operation."
+        },
+        "CopyMcpJsonAsync": {
+          "uiOnly": "Copies read-only stdio connection templates to the desktop clipboard; does not execute commands or edit AI client configuration. No new market/business operation."
         }
       }
     },

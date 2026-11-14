@@ -1,3 +1,4 @@
+using Meili.Automation;
 using System.Diagnostics;
 using System.Reflection;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -28,15 +29,37 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] public partial int CloseActionIndex { get; set; }
     [ObservableProperty] public partial string FixedRateError { get; set; } = "";
 
+    private readonly McpConnectionSetup _connection;
+    public bool CanConnectAi => File.Exists(_connection.Executable);
+    public string McpJson => _connection.Json;
+    public string McpToml => _connection.Toml;
+    public string AiConnectionStatus => _copyState == 1 ? _loc["Set_AiCopied"] : _copyState == 2 ? _loc["Set_AiCopyFailed"] : CanConnectAi ? _loc["Set_AiReadonly"] : _loc["Set_AiMissing"];
+    private int _copyState;
+    private async Task CopyConnectionAsync(string content)
+    {
+        if (!CanConnectAi) return;
+        try { await Ui.Platform.CopyTextAsync(content); _copyState = 1; }
+        catch (Exception ex) { Meili.Core.Diagnostics.AppLog.Warn("ai-setup", "Clipboard unavailable", ex); _copyState = 2; }
+        OnPropertyChanged(nameof(AiConnectionStatus));
+    }
+    [RelayCommand]
+    private Task CopyCodexAsync() => CopyConnectionAsync(_connection.CodexCommand);
+    [RelayCommand]
+    private Task CopyMcpTomlAsync() => CopyConnectionAsync(_connection.Toml);
+    [RelayCommand]
+    private Task CopyMcpJsonAsync() => CopyConnectionAsync(_connection.Json);
+
     public bool IsFixedRate => RateModeIndex == 1;
 
     public bool IsManualProxy => ProxyModeIndex == 2;
     public string DataDirectory { get; }
     public string Version { get; } = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "0.0.0";
 
-    public SettingsViewModel(SettingsStore store, LocalizationService loc, IThemeController theme, DataDirectoryInfo dataDir, IServiceProvider sp)
+    public SettingsViewModel(SettingsStore store, LocalizationService loc, IThemeController theme, DataDirectoryInfo dataDir, IServiceProvider sp, McpConnectionSetup? connection = null)
     {
         _store = store; _loc = loc; _theme = theme;
+        _connection = connection ?? McpConnectionSetup.Bundled(AppContext.BaseDirectory, dataDir.Path);
+        _loc.LanguageChanged += (_, _) => OnPropertyChanged(nameof(AiConnectionStatus));
         _network = sp.GetService(typeof(INetworkController)) as INetworkController;
         var s = store.Current;
         LanguageIndex = s.Language == "en-US" ? 1 : 0;

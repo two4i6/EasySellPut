@@ -133,6 +133,24 @@
                 <ui:TextBox MinWidth="120" Text="{Binding FixedRateText, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.AutomationId="SettingsFixedRate" />
             </ui:CardControl>
 
+            <TextBlock Style="{StaticResource SectionTitle}" Text="{DynamicResource Set_AiTitle}" />
+            <ui:CardControl Margin="0,0,0,4"><ui:CardControl.Header>
+                <StackPanel>
+                    <WrapPanel Margin="0,0,0,8">
+                        <Button x:Name="ConnectCodex" Content="{DynamicResource Set_AiCodex}" Command="{Binding CopyCodexCommand}" IsEnabled="{Binding CanConnectAi}" AutomationProperties.AutomationId="ConnectCodex" Margin="0,0,12,0" />
+                        <TextBlock FontSize="12" Text="{Binding AiConnectionStatus}" TextWrapping="Wrap" VerticalAlignment="Center" />
+                    </WrapPanel>
+                    <Expander Header="{DynamicResource Set_AiMore}">
+                        <StackPanel>
+                            <Button Content="{DynamicResource Set_AiToml}" Command="{Binding CopyMcpTomlCommand}" IsEnabled="{Binding CanConnectAi}" HorizontalAlignment="Left" Margin="0,8" />
+                            <TextBox Text="{Binding McpToml, Mode=OneWay}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" />
+                            <Button Content="{DynamicResource Set_AiJson}" Command="{Binding CopyMcpJsonCommand}" IsEnabled="{Binding CanConnectAi}" HorizontalAlignment="Left" Margin="0,8" />
+                            <TextBox Text="{Binding McpJson, Mode=OneWay}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" />
+                            <TextBlock FontSize="12" Text="{DynamicResource Set_AiPrivacy}" TextWrapping="Wrap" Margin="0,8" />
+                        </StackPanel>
+                    </Expander>
+                </StackPanel>
+            </ui:CardControl.Header></ui:CardControl>
             <!-- Storage -->
             <TextBlock Style="{StaticResource SectionTitle}" Text="{DynamicResource Set_Storage}" />
             <ui:CardControl Margin="0,0,0,4" Icon="{ui:SymbolIcon Folder24}">
