@@ -55,6 +55,9 @@ def check(archive, rid, destination):
     binary_architecture(executable, rid)
     deps = json.loads((root / 'easysellput.deps.json').read_text(encoding='utf-8-sig'))
     assert deps['runtimeTarget']['name'].endswith('/' + rid)
+    forbidden = ('webview2', 'cefsharp', 'chromium', 'meili.shared', 'avalonia')
+    assert not any(any(term in name.lower() for term in forbidden) for name in deps['libraries']), 'Desktop/browser dependency leaked into CLI/MCP'
+    assert not any('webview2' in path.name.lower() for path in root.rglob('*')), 'Browser payload leaked into CLI/MCP package'
     runtime = json.loads((root / 'easysellput.runtimeconfig.json').read_text(encoding='utf-8-sig'))['runtimeOptions']
     assert 'framework' not in runtime and 'frameworks' not in runtime, 'Expected a self-contained distribution'
     assert any(f['name'] == 'Microsoft.NETCore.App' for f in runtime['includedFrameworks'])

@@ -69,6 +69,7 @@ public sealed class NewsReaderWindow : Window
             core.Settings.AreHostObjectsAllowed = false;
             core.Settings.IsWebMessageEnabled = false;
             core.Settings.AreDevToolsEnabled = false;
+            core.Settings.AreDefaultContextMenusEnabled = false;
             core.Settings.AreDefaultScriptDialogsEnabled = false;
             core.PermissionRequested += (_, e) => e.State = CoreWebView2PermissionState.Deny;
             core.DownloadStarting += (_, e) => { e.Cancel = true; _status.Text = _loc["Reader_Blocked"]; };

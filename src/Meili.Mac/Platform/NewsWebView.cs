@@ -47,6 +47,7 @@ public sealed class NewsWebView : NativeControlHost
             finally { Native.Send(config, "release"); }
             if (_view == IntPtr.Zero) throw new InvalidOperationException("WKWebView allocation failed");
             _delegate = Native.Send(Native.DelegateClass, "new");
+            if (_delegate == IntPtr.Zero) throw new InvalidOperationException("WKWebView delegate allocation failed");
             Native.Owners[_delegate] = this;
             Native.Send(_view, "setNavigationDelegate:", _delegate);
             Native.Send(_view, "setUIDelegate:", _delegate);
@@ -55,6 +56,7 @@ public sealed class NewsWebView : NativeControlHost
         }
         catch (Exception ex)
         {
+            ReleaseNative();
             AppLog.Warn("news-reader", "WKWebView initialization failed", ex);
             StatusKey = "Reader_Failed"; Changed?.Invoke();
             return base.CreateNativeControlCore(parent);
@@ -63,6 +65,11 @@ public sealed class NewsWebView : NativeControlHost
     protected override void DestroyNativeControlCore(IPlatformHandle control)
     {
         if (_view == IntPtr.Zero) { base.DestroyNativeControlCore(control); return; }
+        ReleaseNative();
+    }
+    private void ReleaseNative()
+    {
+        if (_view == IntPtr.Zero) return;
         Native.Send(_view, "stopLoading");
         Native.Send(_view, "setNavigationDelegate:", IntPtr.Zero);
         Native.Send(_view, "setUIDelegate:", IntPtr.Zero);

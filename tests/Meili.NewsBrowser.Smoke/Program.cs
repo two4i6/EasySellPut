@@ -37,9 +37,11 @@ internal static class Program
 #if !WINDOWS_READER
     public sealed class ProbeApp : Application
     {
+        public override void Initialize() => Styles.Add(new Avalonia.Themes.Fluent.FluentTheme());
         public override void OnFrameworkInitializationCompleted()
         {
             base.OnFrameworkInitializationCompleted();
+            ((IClassicDesktopStyleApplicationLifetime)ApplicationLifetime!).ShutdownMode = ShutdownMode.OnExplicitShutdown;
             Dispatcher.UIThread.Post(async () =>
             {
                 await Probe();
@@ -53,9 +55,11 @@ internal static class Program
         using var server = new Pages();
         var directory = Path.Combine(Path.GetTempPath(), "meili-reader-probe-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(directory);
+        Meili.Core.Diagnostics.AppLog.Initialize(directory);
         // The actual reader uses its own temporary profile; never touch a user's browsing data.
         AppServices.DataDirectory = new Meili.Core.Settings.DataDirectoryInfo(directory, Meili.Core.Settings.DataDirectorySource.CommandLine);
         var window = new NewsReaderWindow();
+        NewsReaderWindow? reopened = null;
         try
         {
             window.Show();
@@ -89,11 +93,21 @@ internal static class Program
 #endif
             window.OpenArticle(server.Url + "missing", "Missing");
             await Until(() => ((DockPanel)window.Content!).Children.OfType<TextBlock>().Any(t => t.Text == LocalizationService.Current["Reader_Failed"]), "HTTP error message");
-            Console.WriteLine("PASS: native HTML load, document titles, back, forward, reload, protocol blocking and HTTP error.");
+            window.Close();
+            reopened = new NewsReaderWindow(); reopened.Show();
+            reopened.OpenArticle(server.Url + "one", "Reopened");
+            await Until(() => reopened.Title == "Reader One", "reader recreation after disposal");
+            Console.WriteLine("PASS: native HTML load, document titles, back, forward, reload, protocol blocking, HTTP error and close/reopen.");
             _exitCode = 0;
         }
-        catch (Exception ex) { Console.Error.WriteLine(ex); }
-        finally { window.Close(); }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine(ex);
+            Console.Error.WriteLine($"Title={window.Title}; HTTP fixture requests={server.Count}");
+            foreach (var file in Directory.EnumerateFiles(Path.Combine(directory, "logs"), "*.log"))
+                Console.Error.WriteLine(await File.ReadAllTextAsync(file));
+        }
+        finally { reopened?.Close(); window.Close(); }
     }
     private static async Task Until(Func<bool> condition, string description)
     {
