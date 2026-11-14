@@ -106,9 +106,15 @@ public partial class ChartsViewModel : ObservableObject
     private CancellationTokenSource? _timelineCts;
     private string? _timelineSymbol;
     private DateTimeOffset _timelineRequested;
-    private async Task LoadTimelineAsync(string symbol)
+    private async Task RefreshTimelineAsync(string symbol, bool callerWillRender = false)
     {
-        if (_timelineSymbol == symbol && DateTimeOffset.UtcNow - _timelineRequested < TimeSpan.FromMinutes(5)) return;
+        var loading = LoadTimelineAsync(symbol);
+        var completedSynchronously = loading.IsCompleted;
+        if (await loading && (!callerWillRender || !completedSynchronously)) PlotChanged?.Invoke(this, EventArgs.Empty);
+    }
+    private async Task<bool> LoadTimelineAsync(string symbol)
+    {
+        if (_timelineSymbol == symbol && DateTimeOffset.UtcNow - _timelineRequested < TimeSpan.FromMinutes(5)) return false;
         _timelineCts?.Cancel();
         var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(35));
         _timelineCts = cancellation; _timelineSymbol = symbol; _timelineRequested = DateTimeOffset.UtcNow;
@@ -116,17 +122,17 @@ public partial class ChartsViewModel : ObservableObject
         try
         {
             var result = await MarketTimelineService.LoadAsync(_data, symbol, limit: 100, ct: cancellation.Token);
-            if (cancellation.IsCancellationRequested || _timelineCts != cancellation || Series?.Symbol != symbol) return;
+            if (cancellation.IsCancellationRequested || _timelineCts != cancellation || Series?.Symbol != symbol) return false;
             Timeline = result;
-            PlotChanged?.Invoke(this, EventArgs.Empty);
+            return true;
         }
         catch (OperationCanceledException)
         {
-            if (_timelineCts != cancellation) return;
+            if (_timelineCts != cancellation) return false;
             _timelineSymbol = null;
-            if (Series?.Symbol != symbol) return;
+            if (Series?.Symbol != symbol) return false;
             Timeline = new(symbol, [], new[] { "news", "earnings", "ex_dividend" }.Select(t => new EventCoverage(t, "unavailable", "provider_timeout")).ToArray(), "unavailable", DateTimeOffset.UtcNow, false, 0);
-            PlotChanged?.Invoke(this, EventArgs.Empty);
+            return true;
         }
         finally { cancellation.Dispose(); if (_timelineCts == cancellation) _timelineCts = null; }
     }
@@ -184,7 +190,7 @@ public partial class ChartsViewModel : ObservableObject
         if (Series is null) await LoadAsync();
         else
         {
-            _ = LoadTimelineAsync(Series.Symbol);
+            _ = RefreshTimelineAsync(Series.Symbol);
             ArmTimer();
             _timer.Start();
         }
@@ -309,7 +315,7 @@ public partial class ChartsViewModel : ObservableObject
 
             if (refreshOnly && Series is { } shown && SameData(shown, series))
             {
-                _ = LoadTimelineAsync(symbol);
+                _ = RefreshTimelineAsync(symbol);
                 unchanged = true;
                 UnchangedRefreshes++;
                 return;
@@ -339,9 +345,9 @@ public partial class ChartsViewModel : ObservableObject
             if (!unchanged)
             {
                 PreserveView = refreshOnly;
+                if (Series?.Symbol == symbol) _ = RefreshTimelineAsync(symbol, callerWillRender: true);
                 PlotChanged?.Invoke(this, EventArgs.Empty);
                 PreserveView = true;
-                if (Series?.Symbol == symbol) _ = LoadTimelineAsync(symbol);
             }
         }
     }

@@ -51,6 +51,16 @@ public sealed class ChartEventTests : IDisposable
         _vm.SymbolText="MSFT";_vm.OpenTimelineEvent(id);Assert.Single(ui.Articles);
     }
     [Fact]
+    public async Task Synchronous_timeline_is_included_in_initial_fit_and_unchanged_refresh_does_not_redraw()
+    {
+        Ui.Platform=new FakeUiPlatform();var settings=new SettingsStore(_path);var loc=new LocalizationService();var requests=0;
+        var data=new PricingSnapshotTests.SnapshotData{Bars=new(){Symbol="AAPL",Source="fixture",Interval=BarInterval.Minute5,Bars=[Bar.CloseOnly(Monday,100,1)]},News=(_,_)=>{requests++;return Task.FromResult<IReadOnlyList<NewsItem>>([]);}};
+        _vm=new(new WatchlistStore(settings),data,loc,new SymbolContext(),settings,new ChartDrawingStore(_path));_vm.SymbolText="AAPL";
+        var renders=new List<bool>();_vm.PlotChanged+=(_,_)=>renders.Add(_vm.PreserveView);
+        await _vm.LoadAsync();Assert.Equal([false],renders);Assert.NotNull(_vm.Timeline);
+        await _vm.LoadAsync(refreshOnly:true);Assert.Equal([false],renders);Assert.Equal(1,requests);
+    }
+    [Fact]
     public async Task A_late_provider_response_cannot_replace_the_new_symbol_timeline()
     {
         Ui.Platform=new FakeUiPlatform();var settings=new SettingsStore(_path);var loc=new LocalizationService();
