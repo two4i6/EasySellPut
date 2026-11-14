@@ -129,4 +129,23 @@
         <Setter Property="CornerRadius" Value="6" />
         <Setter Property="Padding" Value="0,4" />
     </Style>
+    <Style Selector="ListBox.Nav > ListBoxItem:selected /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource RowHighlightBrush}" />
+        <Setter Property="TextElement.Foreground" Value="{DynamicResource AccentTextFillColorPrimaryBrush}" />
+    </Style>
+    <Style Selector="UserControl.ChartWorkspace Button, UserControl.ChartWorkspace ToggleButton">
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="MinHeight" Value="32" />
+        <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+    </Style>
+    <Style Selector="UserControl.ChartWorkspace ToggleButton:checked">
+        <Setter Property="Background" Value="{DynamicResource RowHighlightBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource AccentTextFillColorPrimaryBrush}" />
+    </Style>
+    <Style Selector="UserControl.ChartWorkspace Button.Chip.Selected">
+        <Setter Property="Background" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}" />
+    </Style>
 </Styles>

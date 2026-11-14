@@ -188,7 +188,7 @@
       if (rebuild) {
         const panes = chart.panes();
         // Relative weights remain stable when autoSize lays out the window after the first frame.
-        panes.forEach((p,i) => p.setStretchFactor(i === 0 ? Math.max(1, panes.length - 1) : 1));
+        panes.forEach((p,i) => p.setStretchFactor(i === 0 ? Math.max(4, (panes.length - 1) * 1.5) : 1));
       }
       if (saved && previousKey === key && state.preserveView) {chart.timeScale().setVisibleLogicalRange(saved);userRange = saved;}
       else {chart.timeScale().fitContent();userRange = null;}

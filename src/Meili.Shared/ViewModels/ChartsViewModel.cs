@@ -43,6 +43,9 @@ public partial class ChartsViewModel : ObservableObject
     private CancellationTokenSource? _cts;
     private bool _active;
 
+    // Desktop presentation only: never changes chart calculations or MCP permissions.
+    [ObservableProperty] public partial bool ShowInspector { get; set; }
+
     public ObservableCollection<string> WatchSymbols { get; } = [];
     public ObservableCollection<ChartRangeTab> Ranges { get; } = [];
 
@@ -83,6 +86,9 @@ public partial class ChartsViewModel : ObservableObject
     private IndicatorSettings _ind = new();
 
     // B5: user drawings (per symbol, saved) and one rebased comparison symbol.
+    public bool IsHorizontalDrawing => DrawMode == DrawingKind.HorizontalLine;
+    public bool IsTrendDrawing => DrawMode == DrawingKind.TrendLine;
+    [NotifyPropertyChangedFor(nameof(IsHorizontalDrawing), nameof(IsTrendDrawing))]
     [ObservableProperty] public partial DrawingKind? DrawMode { get; set; }
     [ObservableProperty] public partial IReadOnlyList<ChartDrawing> Drawings { get; set; } = [];
     [ObservableProperty] public partial string CompareText { get; set; } = "";

@@ -793,4 +793,10 @@
     <sys:String x:Key="Set_AiPrivacy">查询结果会发送给连接的 AI 工具。</sys:String>
     <sys:String x:Key="Set_AiMoveApp">请先将应用移到“应用程序”文件夹，再重新打开。</sys:String>
     <sys:String x:Key="Set_AiClaude">复制 Claude Code + Skill</sys:String>
+    <sys:String x:Key="Ch_Tools">指标与设置</sys:String>
+    <sys:String x:Key="Ch_Indicators">技术指标</sys:String>
+    <sys:String x:Key="Ch_DrawTools">画线</sys:String>
+    <sys:String x:Key="Ch_HLineShort">水平线</sys:String>
+    <sys:String x:Key="Ch_TrendShort">趋势线</sys:String>
+    <sys:String x:Key="Ch_ClearShort">清除</sys:String>
 </ResourceDictionary>

@@ -5,39 +5,43 @@
 <title>EasySellPut Charts</title>
 <style>
 /* Fallbacks match ThemePalette.Dark; chart.js replaces every token from the active app theme. */
-:root{color-scheme:dark;--background:#201e1c;--text:#c9c6c1;--muted:#969188;--control:#32302c;--border:#433f3a;--accent:#c4b3d4;--error-background:#3a2a28;--error-text:#c4a46a}
+:root{color-scheme:dark;--background:#131722;--text:#d1d4dc;--muted:#a3a9b5;--control:#2a2e39;--border:#363a45;--accent:#90b2ff;--error-background:#3a2a28;--error-text:#c4a46a}
 *{box-sizing:border-box}
 html,body{margin:0;width:100%;height:100%;overflow:hidden;font:12px "Segoe UI Variable Text","Segoe UI",-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei UI",sans-serif;background:var(--background);color:var(--text)}
-body{display:flex;flex-direction:column}
-#toolbar{display:flex;gap:12px;align-items:center;padding:8px 12px;min-height:48px;border-bottom:1px solid var(--border)}
+body{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:44px auto minmax(0,1fr) auto}
+#toolbar{grid-column:1;grid-row:1;display:flex;gap:12px;align-items:center;padding:8px 12px;min-height:44px;border-bottom:1px solid var(--border)}
 #symbol{font-size:14px;font-weight:600;flex-shrink:0}
 #legend{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
 button{font:inherit;font-size:14px;background:var(--control);color:var(--text);border:1px solid var(--border);border-radius:6px;min-height:32px;padding:4px 12px;cursor:pointer;flex-shrink:0}
 button:hover{border-color:var(--accent)}
 button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-#chart{position:relative;flex:1;min-height:120px}
+#chart{grid-column:1;grid-row:3;position:relative;min-width:0;min-height:120px}
 #empty{position:absolute;inset:45% 12px auto;text-align:center;pointer-events:none;z-index:2;color:var(--muted);font-size:14px}
-footer{padding:8px 12px;display:flex;gap:12px;align-items:center;justify-content:space-between;color:var(--muted);border-top:1px solid var(--border)}
+footer{grid-column:1 / -1;grid-row:4;padding:6px 12px;display:flex;gap:12px;align-items:center;justify-content:space-between;color:var(--muted);border-top:1px solid var(--border)}
 #hint{min-width:0}a{color:inherit;white-space:nowrap}a:hover{color:var(--accent)}
-#error{margin:8px 12px;padding:12px 14px;border-radius:6px;background:var(--error-background);color:var(--error-text);font-size:14px;display:none}
+#error{grid-column:1;grid-row:2;margin:8px 12px;padding:12px 14px;border-radius:6px;background:var(--error-background);color:var(--error-text);font-size:14px;display:none}
 @media(max-width:640px){#hint{display:none}footer{justify-content:flex-end}#toolbar{gap:8px}#legend{font-size:12px}}
 
-#timeline{border-top:1px solid var(--border);padding:8px 12px;max-height:35%;overflow:auto;flex-shrink:0}
+#timeline{grid-column:2;grid-row:1 / 4;width:44px;min-height:0;border-left:1px solid var(--border);padding:12px 8px;overflow:auto}
+#timeline[open]{width:300px;padding:12px}
+#timeline:not([open])>summary{writing-mode:vertical-rl;white-space:nowrap}
+#timeline[open]>summary{font-weight:600;padding-bottom:8px;border-bottom:1px solid var(--border)}
 #timeline summary{cursor:pointer;font-size:14px;min-height:24px}
 #event-tools{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:8px 0}
 #event-filters{display:flex;gap:12px;flex-wrap:wrap}#event-filters label{display:flex;align-items:center;gap:4px;min-height:28px;cursor:pointer}
 #event-info{margin-left:auto;color:var(--muted)}#event-info summary{font-size:12px}#event-info p{margin:8px 0;max-width:420px}
 #event-status{color:var(--error-text);margin:8px 0}#event-status[hidden],#event-detail[hidden]{display:none}
-#event-content{display:flex;gap:12px;min-width:0}#event-list{display:flex;flex-direction:column;gap:8px;flex:1;min-width:0;max-height:190px;overflow:auto;padding:2px}
+#event-content{display:flex;flex-direction:column;gap:12px;min-width:0}#event-list{display:flex;flex-direction:column;gap:8px;flex:1;min-width:0;max-height:none;overflow:auto;padding:2px}
 #event-list button{text-align:left;white-space:normal;flex-shrink:0;padding:8px 12px}
 .event-title{display:block;overflow-wrap:anywhere}.event-row-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px;color:var(--muted);font-size:12px}
 .event-badge{border:1px solid var(--border);border-radius:6px;padding:1px 6px;color:var(--text)}
-#event-detail{flex:1;min-width:0;overflow-wrap:anywhere;font-size:14px;border-left:1px solid var(--border);padding-left:12px}
+#event-detail{min-width:0;overflow-wrap:anywhere;font-size:14px;border-top:1px solid var(--border);padding-top:12px}
+.has-selection #event-list{max-height:180px}
 #event-detail p{margin:0 0 8px}.event-caption,.event-metadata,.event-empty{font-size:12px;color:var(--muted)}.event-summary{white-space:pre-line}
 #event-list button[aria-pressed=true]{border-color:var(--accent);box-shadow:inset 3px 0 var(--accent)}
 .event-close{float:right;font-size:12px;margin:0 0 8px 8px}.event-detail-title{font-weight:600}.event-read{border-color:var(--accent);margin-bottom:8px}
 .event-metadata{clear:both}.event-metadata summary{font-size:12px!important}.event-metadata p{margin-top:8px!important}
-@media(max-width:640px){#event-content{flex-direction:column}#timeline{max-height:45%}.has-selection #event-list{max-height:112px}#event-detail{border-left:0;border-top:1px solid var(--border);padding:12px 0 0}#event-info{margin-left:0}}
+@media(max-width:760px){body{grid-template-columns:minmax(0,1fr);grid-template-rows:44px auto minmax(120px,1fr) auto auto}#timeline{grid-column:1;grid-row:4;width:auto;border-left:0;border-top:1px solid var(--border);padding:6px 12px}#timeline[open]{width:auto;padding:8px 12px;max-height:260px}#timeline:not([open])>summary{writing-mode:horizontal-tb}footer{grid-row:5}#event-list{max-height:170px}#event-content{flex-direction:column}#timeline{max-height:45%}.has-selection #event-list{max-height:112px}#event-detail{border-left:0;border-top:1px solid var(--border);padding:12px 0 0}#event-info{margin-left:0}}
 </style>
 <script src="library.js" defer></script><script src="chart.js" defer></script>
 </head>

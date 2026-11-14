@@ -1,8 +1,8 @@
 namespace Meili.Shared.Services;
 
 /// <summary>
-/// 0.4.2 colour tokens: softer night and warmer paper. This is the single source both front ends and
-/// <see cref="ChartPalette"/> read; values match palette-proposal/tokens-0.4.2.json (0xAARRGGBB).
+/// Chart-workspace colour tokens: neutral surfaces and blue actions. This is the single source both front ends and
+/// <see cref="ChartPalette"/> read (0xAARRGGBB).
 /// </summary>
 public sealed record ThemePalette(
     uint Window, uint Sidebar, uint Card, uint Chart, uint Control, uint Border,
@@ -18,20 +18,20 @@ public sealed record ThemePalette(
     public const byte TintAlpha = 0x18;
 
     public static readonly ThemePalette Dark = new(
-        Window: 0xFF24221F, Sidebar: 0xFF1F1D1B, Card: 0xFF2C2A27, Chart: 0xFF201E1C, Control: 0xFF32302C, Border: 0xFF433F3A,
-        PrimaryText: 0xFFC9C6C1, SecondaryText: 0xFFA09B92, MutedText: 0xFF969188,
+        Window: 0xFF131722, Sidebar: 0xFF1E222D, Card: 0xFF1E222D, Chart: 0xFF131722, Control: 0xFF2A2E39, Border: 0xFF363A45,
+        PrimaryText: 0xFFD1D4DC, SecondaryText: 0xFFB2B5BE, MutedText: 0xFFA3A9B5,
         Up: 0xFFCC8E8A, Down: 0xFF6EAA8A, Healthy: 0xFF7EA6C0, Degraded: 0xFFC4A46A, DownState: 0xFF9A958C, Unknown: 0xFF9A958C,
-        Accent: 0xFFC4B3D4, OnAccent: 0xFF1A1816, RowHighlight: 0xFF35322E, ItmTint: 0x22C4B3D4, Placeholder: 0xFF969188,
-        Badge: 0xFFC4A46A, BadgeText: 0xFF1A1816, ErrorBar: 0xFF3A2A28, InfoBar: 0xFF2C2A28,
+        Accent: 0xFF90B2FF, OnAccent: 0xFF131722, RowHighlight: 0xFF2A2E39, ItmTint: 0x2290B2FF, Placeholder: 0xFFA3A9B5,
+        Badge: 0xFFC4A46A, BadgeText: 0xFF131722, ErrorBar: 0xFF3A2A28, InfoBar: 0xFF222B40,
         GridAlpha: 0x1F,
         Series1: 0xFF7BA8C0, Series2: 0xFFC9A06A, Series3: 0xFFBAA8C6, Series4: 0xFF6AADC0, Series5: 0xFFC4909E, Series6: 0xFFB4A072);
 
     public static readonly ThemePalette Light = new(
-        Window: 0xFFF4EDDF, Sidebar: 0xFFEDE4D4, Card: 0xFFF9F4EA, Chart: 0xFFF6F0E3, Control: 0xFFFBF7F0, Border: 0xFFE0D6C8,
-        PrimaryText: 0xFF2F2B26, SecondaryText: 0xFF5F594F, MutedText: 0xFF655E55,
-        Up: 0xFFA83E38, Down: 0xFF1A7050, Healthy: 0xFF1A5F96, Degraded: 0xFF7A5500, DownState: 0xFF5F594F, Unknown: 0xFF5F594F,
-        Accent: 0xFF6A458E, OnAccent: 0xFFF9F4EA, RowHighlight: 0xFFE8DFD0, ItmTint: 0x156A458E, Placeholder: 0xFF655E55,
-        Badge: 0xFFC4A46A, BadgeText: 0xFF1A1816, ErrorBar: 0xFFF4E4DC, InfoBar: 0xFFEDE6D8,
+        Window: 0xFFF0F3FA, Sidebar: 0xFFFFFFFF, Card: 0xFFFFFFFF, Chart: 0xFFFFFFFF, Control: 0xFFF8F9FD, Border: 0xFFE0E3EB,
+        PrimaryText: 0xFF131722, SecondaryText: 0xFF434651, MutedText: 0xFF565D6B,
+        Up: 0xFFA83E38, Down: 0xFF1A7050, Healthy: 0xFF1A5F96, Degraded: 0xFF7A5500, DownState: 0xFF434651, Unknown: 0xFF434651,
+        Accent: 0xFF245BDB, OnAccent: 0xFFFFFFFF, RowHighlight: 0xFFE8EEFF, ItmTint: 0x15245BDB, Placeholder: 0xFF565D6B,
+        Badge: 0xFFC4A46A, BadgeText: 0xFF131722, ErrorBar: 0xFFF4E4DC, InfoBar: 0xFFEDF2FF,
         GridAlpha: 0x1F,
         Series1: 0xFF1C648E, Series2: 0xFF8E4E00, Series3: 0xFF5E3F8A, Series4: 0xFF0C6262, Series5: 0xFF8E3F68, Series6: 0xFF6A4E10);
 

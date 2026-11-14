@@ -46,10 +46,10 @@ public sealed class WebChartTests : IDisposable
         Assert.Contains("fixture", json.RootElement.GetProperty("key").GetString());
         var theme = json.RootElement.GetProperty("theme");
         Assert.True(theme.GetProperty("dark").GetBoolean());
-        Assert.Equal("#32302C", theme.GetProperty("control").GetString());
-        Assert.Equal("#433F3A", theme.GetProperty("border").GetString());
-        Assert.Equal("#C9C6C11F", theme.GetProperty("grid").GetString());
-        Assert.Equal("#C4B3D4", theme.GetProperty("accent").GetString());
+        Assert.Equal("#2A2E39", theme.GetProperty("control").GetString());
+        Assert.Equal("#363A45", theme.GetProperty("border").GetString());
+        Assert.Equal("#D1D4DC1F", theme.GetProperty("grid").GetString());
+        Assert.Equal("#90B2FF", theme.GetProperty("accent").GetString());
         Assert.Equal("#3A2A28", theme.GetProperty("errorBackground").GetString());
     }
     [Fact]

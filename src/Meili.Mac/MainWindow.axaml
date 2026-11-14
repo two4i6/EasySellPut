@@ -10,7 +10,7 @@
         Background="{DynamicResource ApplicationBackgroundBrush}"
         FontFamily="{StaticResource AppFont}" FontSize="14"
         Icon="avares://MeiliMac/Assets/app-256.png">
-    <Grid RowDefinitions="*,Auto" ColumnDefinitions="220,*">
+    <Grid RowDefinitions="*,Auto" ColumnDefinitions="168,*">
         <!-- Navigation (⌘1…⌘9 in this order) -->
         <DockPanel Grid.Row="0" Grid.Column="0" Background="{DynamicResource SidebarBackgroundBrush}">
             <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="12,8" Spacing="6">
@@ -20,7 +20,7 @@
                 <Button x:Name="ThemeButton" Classes="Subtle" MinWidth="40" Content="◐"
                         ToolTip.Tip="{DynamicResource Title_ToggleTheme}" Click="OnToggleTheme" />
             </StackPanel>
-            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="16,14,12,10" Spacing="10">
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="12,12,8,12" Spacing="8">
                 <Image Source="avares://MeiliMac/Assets/app-64.png" Width="22" Height="22" />
                 <TextBlock Text="{DynamicResource Mac_AppShort}" FontWeight="SemiBold" VerticalAlignment="Center" />
             </StackPanel>
@@ -68,9 +68,9 @@
                 </StackPanel>
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
                     <Ellipse Width="8" Height="8" Margin="0,0,6,0" Fill="{Binding SourcesBrush}" />
-                    <TextBlock Classes="Caption" Text="{Binding SourcesText}" Margin="0,0,18,0" />
-                    <TextBlock Classes="Caption" Text="{Binding NetworkText}" Margin="0,0,18,0" />
-                    <TextBlock Classes="Caption" Text="{Binding DataDirText}" />
+                    <TextBlock Classes="Caption" Text="{Binding SourcesText}" Margin="0,0,0,0" ToolTip.Tip="{Binding NetworkText}" />
+
+
                 </StackPanel>
             </DockPanel>
         </Border>

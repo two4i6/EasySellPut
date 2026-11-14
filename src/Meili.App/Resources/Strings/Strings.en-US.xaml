@@ -9,7 +9,7 @@
     <sys:String x:Key="Nav_Charts">Charts</sys:String>
     <sys:String x:Key="Nav_Options">Options</sys:String>
     <sys:String x:Key="Nav_Strategy">Strategy P/L</sys:String>
-    <sys:String x:Key="Nav_News">News &amp; Fundamentals</sys:String>
+    <sys:String x:Key="Nav_News">News &amp; data</sys:String>
     <sys:String x:Key="Nav_Alerts">Price Alerts</sys:String>
     <sys:String x:Key="Nav_DataSources">Data Sources</sys:String>
     <sys:String x:Key="Nav_Settings">Settings</sys:String>
@@ -793,4 +793,10 @@
     <sys:String x:Key="Set_AiPrivacy">Query results are sent to the connected AI tool.</sys:String>
     <sys:String x:Key="Set_AiMoveApp">Move the app to Applications and reopen it first.</sys:String>
     <sys:String x:Key="Set_AiClaude">Copy Claude Code + Skill</sys:String>
+    <sys:String x:Key="Ch_Tools">Indicators &amp; settings</sys:String>
+    <sys:String x:Key="Ch_Indicators">Indicators</sys:String>
+    <sys:String x:Key="Ch_DrawTools">Draw</sys:String>
+    <sys:String x:Key="Ch_HLineShort">H line</sys:String>
+    <sys:String x:Key="Ch_TrendShort">Trend</sys:String>
+    <sys:String x:Key="Ch_ClearShort">Clear</sys:String>
 </ResourceDictionary>
