@@ -329,7 +329,7 @@ public partial class StrategyViewModel : ObservableObject
                 ApplySeed(seed);
             }
             else if (_hasChain && !_manualLegs) BuildFromPreset(force: false);
-            else if (_hasChain && _manualLegs) RefreshLegQuotes();
+            else if (_hasChain && _manualLegs && WorkbenchSymbolMatches) RefreshLegQuotes();
             Recompute();
         }
         catch (OperationCanceledException) when (_active && !refreshOnly)
@@ -467,7 +467,7 @@ public partial class StrategyViewModel : ObservableObject
 
     private void ReplaceLegs(IReadOnlyList<StrategyLeg> legs)
     {
-        _workbenchDraftSymbol = _loadedSymbol;
+        _workbenchDraftSymbol = _loadedSymbol ?? SymbolText;
         _suppress = true;
         try
         {
@@ -510,6 +510,7 @@ public partial class StrategyViewModel : ObservableObject
     internal void OnLegEdited()
     {
         if (_suppress) return;
+        if (Legs.Count > 0) _workbenchDraftSymbol ??= _loadedSymbol ?? SymbolText;
         _manualLegs = true;
         if (SelectedPreset?.Kind != StrategyKind.Custom)
         {
@@ -533,6 +534,14 @@ public partial class StrategyViewModel : ObservableObject
     private void Recompute()
     {
         WorkbenchGreeks = null;
+        if (!WorkbenchSymbolMatches)
+        {
+            Curve = null; ExpiryAnalysis = null; HasCurve = false; _compiled = null;
+            CostText = MaxProfitText = MaxLossText = BreakevenText = GreeksText = PopText = MarginText = "—";
+            ResetWhatIfAfterRecompute();
+            StatusText = _loc["Wb_DifferentSymbol"];
+            return;
+        }
         LocalNote = "";
         RewardText = "";
         GreeksText = "";

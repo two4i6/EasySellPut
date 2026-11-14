@@ -95,6 +95,7 @@
     const t=state.theme;for(const [k,v]of Object.entries({background:t.background,text:t.text,muted:t.muted,control:t.control,border:t.border,accent:t.accent,up:t.up,down:t.down,'error-background':t.errorBackground,'error-text':t.errorText}))document.documentElement.style.setProperty('--'+k,v);
     text('context',[state.headline,state.sourceText,state.delayText,state.model].filter(Boolean).join(' · '));message(state.message||'');
     for(const [id,k]of Object.entries({chainTitle:'Chain',legsTitle:'Legs',nearLabel:'Near',clear:'Clear',draft:'Draft',curveTitle:'Curve',fit:'Fit'}))text(id,label(k));
+    text('draft',label('Draft')+(state.draftSymbol?' · '+state.draftSymbol:''));
     $('previous').setAttribute('aria-label',label('Previous'));$('next').setAttribute('aria-label',label('Next'));
     $('search').placeholder=label('Search');$('search').setAttribute('aria-label',label('Search'));$('right').setAttribute('aria-label',label('Call')+'/'+label('Put'));
     for(const o of $('right').options)o.textContent=label(o.value);$('horizon').setAttribute('aria-label',label('Expiry'));$('horizon').value=state.horizonDays;
@@ -105,7 +106,7 @@
     renderCurve();text('whatif',`${label('WhatIf')} ${number(state.whatIf.price)} · ${label('Pnl')} ${state.whatIf.pnl}`);$('whatif').className=state.whatIf.isProfit?'up':state.whatIf.isLoss?'down':'';
     $('priceSlider').setAttribute('aria-label',label('WhatIf'));text('curveLegend',[state.expiryLabel,state.horizonLabel].filter(Boolean).join(' · '));text('notes',[state.note,state.status,state.truncated?label('Truncated'):'',label('Hint')].filter(Boolean).join(' · '));
     lock(false);document.title='EasySellPut Strategy · '+state.symbol;
-    diagnostic({status:'rendered',kindOfView:'workbench',key:state.key,contracts:state.contracts.length,legs:state.legs.length,points:state.curve.length,quantities:state.legs.map(l=>l.quantity),whatIf:state.whatIf.price,background:state.theme.background,maxProfit:state.metrics.maxProfit});
+    diagnostic({status:'rendered',kindOfView:'workbench',key:state.key,contracts:state.contracts.length,legs:state.legs.length,points:state.curve.length,renderedPoints:($('payoff').querySelector('[data-series=expiry]')?.getAttribute('d').match(/[ML]/g)??[]).length,quantities:state.legs.map(l=>l.quantity),whatIf:state.whatIf.price,background:state.theme.background,maxProfit:state.metrics.maxProfit});
   }
   $('search').addEventListener('input',()=>{page=0;renderChain(true);});$('right').addEventListener('change',()=>{page=0;renderChain(true);});$('near').addEventListener('change',()=>{page=0;renderChain(true);});
   $('previous').addEventListener('click',()=>{page--;renderChain(true);});$('next').addEventListener('click',()=>{page++;renderChain(true);});

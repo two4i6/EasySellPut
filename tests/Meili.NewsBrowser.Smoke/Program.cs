@@ -200,7 +200,7 @@ internal static class Program
             window.Show();chart.Start(vm,palette);
             await Until(()=>Result(d=>d.GetProperty("contracts").GetInt32()==18),"Native workspace document");
             await Send(new{kind="add-contract",key=vm.WorkbenchKey,contract="Call100",side="Long",quantity=1});
-            await Until(()=>Result(d=>d.GetProperty("legs").GetInt32()==1&&d.GetProperty("points").GetInt32()==251),"Native linked curve after first leg");
+            await Until(()=>Result(d=>d.GetProperty("legs").GetInt32()==1&&d.GetProperty("points").GetInt32()==vm.Curve!.Prices.Length&&d.GetProperty("renderedPoints").GetInt32()==vm.Curve.Prices.Length),"Native linked curve after first leg");
             await Send(new{kind="add-contract",key=vm.WorkbenchKey,contract="Call110",side="Short",quantity=1});
             await Until(()=>Result(d=>d.GetProperty("legs").GetInt32()==2),"Native spread construction");
             if(Math.Abs(vm.ExpiryAnalysis!.MaxProfit-850)>1e-8)throw new Exception("Spread payoff mismatch");
@@ -214,6 +214,7 @@ internal static class Program
             await Until(()=>Result(d=>d.GetProperty("legs").GetInt32()==2),"Workspace reload preserves draft");
             Console.WriteLine("PASS: native linked workspace, chain, spread/Analytics payoff, quantity, what-if, theme and restart.");
         }
+        catch(Exception){Console.Error.WriteLine("Workspace diagnostic: "+chart.LastDiagnostic);Console.Error.WriteLine($"Model legs={vm.Legs.Count}, points={vm.Curve?.Prices.Length}");throw;}
         finally{vm.ChartChanged-=changed;vm.WhatIfChanged-=changed;vm.Deactivate();chart.Stop();window.Close();}
     }
     private sealed class ChartData : IMarketDataService

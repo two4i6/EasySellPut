@@ -12,8 +12,8 @@ public partial class StrategyViewModel
     public StrategyGreeks? WorkbenchGreeks { get; private set; }
     private long _workbenchChainRevision;
     private string? _workbenchDraftSymbol;
-    public string? WorkbenchDraftSymbol => _workbenchDraftSymbol ?? _loadedSymbol;
-    public bool WorkbenchSymbolMatches => Legs.Count == 0 || string.Equals(WorkbenchDraftSymbol, _hdrChain?.Underlying, StringComparison.OrdinalIgnoreCase);
+    public string WorkbenchDraftSymbol => _workbenchDraftSymbol ?? _loadedSymbol ?? SymbolText;
+    public bool WorkbenchSymbolMatches => Legs.Count == 0 || string.Equals(WorkbenchDraftSymbol, _hdrChain?.Underlying ?? SymbolText, StringComparison.OrdinalIgnoreCase);
     public OptionChain? WorkbenchChain => _hdrChain;
     public string WorkbenchMessage { get; private set; } = "";
     public string WorkbenchKey
