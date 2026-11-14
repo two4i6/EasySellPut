@@ -76,7 +76,6 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" MinHeight="220" />
         </Grid.RowDefinitions>
         <StackPanel x:Name="HeaderPanel" Grid.Row="0" Margin="32,16,32,4">
@@ -173,7 +172,13 @@
             </WrapPanel>
         </StackPanel>
 
-        <ScrollViewer x:Name="MidScroll" Grid.Row="1" Margin="32,0,32,8" MaxHeight="360" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+        <TabControl x:Name="SurfaceTabs" Grid.Row="1" Margin="16,0,16,12">
+            <TabItem x:Name="WorkbenchTab" Header="{DynamicResource Wb_Workbench}" IsSelected="True">
+                <controls:WebChartControl x:Name="Workspace" MinHeight="300" />
+            </TabItem>
+            <TabItem x:Name="DetailedTab" Header="{DynamicResource Wb_Details}">
+                <Grid><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" MinHeight="220" /></Grid.RowDefinitions>
+        <ScrollViewer x:Name="MidScroll" Grid.Row="0" Margin="32,0,32,8" MaxHeight="360" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -275,7 +280,7 @@
         </ScrollViewer>
 
         <!-- Chart takes at least half of the remaining height. -->
-        <DockPanel Grid.Row="2" Margin="16,0,16,12">
+        <DockPanel Grid.Row="1" Margin="16,0,16,12">
             <WrapPanel DockPanel.Dock="Top" Margin="16,0,16,6" VerticalAlignment="Center">
                 <TextBlock Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0,0,10,0" Text="{DynamicResource St_Horizon}" />
                 <Button Style="{StaticResource RangeChip}" Content="{DynamicResource St_TnNow}" Tag="0" Click="OnHorizonClick" />
@@ -366,5 +371,9 @@
                 </ScrollViewer>
             </Grid>
         </DockPanel>
+
+                </Grid>
+            </TabItem>
+        </TabControl>
     </Grid>
 </Page>

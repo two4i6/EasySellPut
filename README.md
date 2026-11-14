@@ -9,10 +9,12 @@ Current version: **0.6.0**
 ## Features
 
 - Watchlists, quote overview, and K-line charts
-- Options chain, implied volatility, and strategy P/L
+- Options chain, implied volatility, and a linked multi-leg strategy/payoff workbench
 - Price / IV alerts, news and fundamentals, and data-source status
 - Chinese and English UI, light and dark themes
 - Windows installer / portable builds, and a macOS portable app
+
+Open **Strategy → Linked workbench** to add contracts, edit quantities and inspect payoff/Greeks without switching pages. Existing inputs and per-leg analysis remain under **Detailed analysis**. [使用与改造说明](docs/15-期权链与策略联动工作台.md)
 
 ## Build from source
 

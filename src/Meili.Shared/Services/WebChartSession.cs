@@ -18,18 +18,22 @@ public sealed class WebChartSession : IDisposable
     private readonly CancellationTokenSource _stop = new();
     private readonly SemaphoreSlim _clients = new(8);
     private readonly string _token = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
-    private readonly ChartsViewModel _vm;
+    private readonly ChartsViewModel? _vm;
+    private readonly StrategyViewModel? _strategy;
     private State _state = new(0, "{}");
     private long _revision;
     private bool _disposed;
+    public bool IsStrategyWorkbench => _strategy is not null;
     public Uri PageUri { get; }
     public string Origin => PageUri.GetLeftPart(UriPartial.Authority);
     public event Action<JsonElement>? DiagnosticReceived;
     private sealed record State(long Version, string Json);
 
-    public WebChartSession(ChartsViewModel vm)
+    public WebChartSession(ChartsViewModel vm) : this(vm, null) { }
+    public WebChartSession(StrategyViewModel vm) : this(null, vm) { }
+    private WebChartSession(ChartsViewModel? vm, StrategyViewModel? strategy)
     {
-        _vm = vm;
+        _vm = vm; _strategy = strategy;
         _listener.Start();
         PageUri = new Uri($"http://127.0.0.1:{((IPEndPoint)_listener.LocalEndpoint).Port}/{_token}/index.html");
         _ = AcceptAsync();
@@ -40,7 +44,7 @@ public sealed class WebChartSession : IDisposable
     public void Update(ChartPalette palette)
     {
         if (_disposed) return;
-        Volatile.Write(ref _state, new State(++_revision, WebChartSnapshot.Serialize(_vm, palette)));
+        Volatile.Write(ref _state, new State(++_revision, _strategy is { } strategy ? StrategyWorkbench.Serialize(strategy, palette) : WebChartSnapshot.Serialize(_vm!, palette)));
     }
 
     private async Task AcceptAsync()
@@ -102,7 +106,7 @@ public sealed class WebChartSession : IDisposable
                     var body = Encoding.UTF8.GetBytes($"{{\"version\":{state.Version},\"data\":{state.Json}}}");
                     await Reply(stream, 200, "application/json", body, ct); return;
                 }
-                var file = route switch { "index.html" => "index.html", "chart.js" => "chart.js", "library.js" => "vendor/lightweight-charts.js", _ => null };
+                var file = route switch { "index.html" => _strategy is null ? "index.html" : "workbench.html", "workbench.js" when _strategy is not null => "workbench.js", "chart.js" when _strategy is null => "chart.js", "library.js" => "vendor/lightweight-charts.js", _ => null };
                 if (file is not null)
                 {
                     await Reply(stream, 200, file.EndsWith("html", StringComparison.Ordinal) ? "text/html; charset=utf-8" : "text/javascript; charset=utf-8", Asset(file), ct); return;
@@ -126,9 +130,10 @@ public sealed class WebChartSession : IDisposable
         catch (Exception ex) { AppLog.Warn("web-chart", "Chart request failed", ex); }
         finally { _clients.Release(); }
     }
-    private static bool ValidEvent(JsonElement e)
+    private bool ValidEvent(JsonElement e)
     {
         if (e.ValueKind != JsonValueKind.Object || !e.TryGetProperty("kind", out var kind) || kind.ValueKind != JsonValueKind.String) return false;
+        if (_strategy is not null && kind.GetString() is not ("attribution" or "diagnostic")) return StrategyWorkbench.ValidEvent(e);
         return kind.GetString() switch
         {
             "attribution" => true,
@@ -147,11 +152,12 @@ public sealed class WebChartSession : IDisposable
             var kind = message.GetProperty("kind").GetString();
             if (kind == "attribution") { Ui.Platform.OpenUrl("https://www.tradingview.com/"); return; }
             if (kind == "diagnostic") { DiagnosticReceived?.Invoke(message); return; }
+            if (_strategy is { } strategy) { StrategyWorkbench.Dispatch(strategy, message); return; }
             var current = Volatile.Read(ref _state);
             using var state = JsonDocument.Parse(current.Json);
             if (message.GetProperty("key").GetString() != state.RootElement.GetProperty("key").GetString()) return;
             var index = message.GetProperty("index").GetInt32();
-            if (_vm.Series is not { } series || index < 0 || index >= series.Bars.Count) { if (kind == "crosshair") _vm.UpdateCrosshair(-1); return; }
+            if (_vm!.Series is not { } series || index < 0 || index >= series.Bars.Count) { if (kind == "crosshair") _vm.UpdateCrosshair(-1); return; }
             if (kind == "drawing") _vm.AddDrawingPoint(series.Bars[index].Time, message.GetProperty("price").GetDouble());
             else _vm.UpdateCrosshair(index);
         }

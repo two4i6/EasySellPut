@@ -1,4 +1,6 @@
 using System.IO;
+using System.Net.Http;
+using Meili.Testing;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -106,6 +108,7 @@ internal static class Program
             await Until(() => reopened.Title == "Reader One", "reader recreation after disposal");
             Console.WriteLine("PASS: native HTML load, document titles, back, forward, reload, protocol blocking, HTTP error and close/reopen.");
             await ProbeChart(directory);
+            await ProbeWorkbench(directory);
             _exitCode = 0;
         }
         catch (Exception ex)
@@ -170,6 +173,48 @@ internal static class Program
             Console.WriteLine("PASS: TradingView native WebView, 120 bars/119 candles, five indicator panes, Analytics MA parity, pane toggle, theme/colors and restart.");
         }
         finally { vm.PlotChanged -= changed; vm.Deactivate(); chart.Stop(); window.Close(); }
+    }
+    private static async Task ProbeWorkbench(string directory)
+    {
+        var vm=await WorkbenchFixture.CreateAsync(directory);
+        var palette=WorkbenchFixture.Palette(true);
+        var chart=new NativeChart();var window=new Window{Width=1280,Height=850,Content=chart};
+        EventHandler changed=(_,_)=>chart.Update(palette);
+        vm.ChartChanged+=changed;vm.WhatIfChanged+=changed;
+        bool Result(Func<JsonElement,bool> predicate)
+        {
+            if(chart.LastDiagnostic is not{} json)return false;
+            using var document=JsonDocument.Parse(json);var root=document.RootElement;
+            if(root.GetProperty("status").GetString()=="error")throw new Exception(json);
+            return predicate(root);
+        }
+        using var http=new HttpClient(new HttpClientHandler{UseProxy=false});
+        async Task Send(object value)
+        {
+            using var request=new HttpRequestMessage(HttpMethod.Post,new Uri(chart.Session!.PageUri,"event")){Content=new ByteArrayContent(JsonSerializer.SerializeToUtf8Bytes(value))};
+            request.Headers.Add("Origin",chart.Session.Origin);request.Content.Headers.ContentType=new("application/json");
+            using var response=await http.SendAsync(request);response.EnsureSuccessStatusCode();
+        }
+        try
+        {
+            window.Show();chart.Start(vm,palette);
+            await Until(()=>Result(d=>d.GetProperty("contracts").GetInt32()==18),"Native workspace document");
+            await Send(new{kind="add-contract",key=vm.WorkbenchKey,contract="Call100",side="Long",quantity=1});
+            await Until(()=>Result(d=>d.GetProperty("legs").GetInt32()==1&&d.GetProperty("points").GetInt32()==251),"Native linked curve after first leg");
+            await Send(new{kind="add-contract",key=vm.WorkbenchKey,contract="Call110",side="Short",quantity=1});
+            await Until(()=>Result(d=>d.GetProperty("legs").GetInt32()==2),"Native spread construction");
+            if(Math.Abs(vm.ExpiryAnalysis!.MaxProfit-850)>1e-8)throw new Exception("Spread payoff mismatch");
+            await Send(new{kind="edit-leg",key=vm.WorkbenchKey,id=vm.Legs[0].Id,field="quantity",quantity=2});
+            await Until(()=>Result(d=>d.GetProperty("quantities")[0].GetString()=="2"),"Native quantity/curve linkage");
+            await Send(new{kind="what-if",key=vm.WorkbenchKey,price=110});
+            await Until(()=>Result(d=>d.GetProperty("whatIf").GetDouble()==110),"Native what-if valuation");
+            palette=WorkbenchFixture.Palette(false);chart.Update(palette);
+            await Until(()=>Result(d=>d.GetProperty("background").GetString()=="#F6F0E3"),"Workspace theme");
+            chart.Stop();chart.Start(vm,palette);
+            await Until(()=>Result(d=>d.GetProperty("legs").GetInt32()==2),"Workspace reload preserves draft");
+            Console.WriteLine("PASS: native linked workspace, chain, spread/Analytics payoff, quantity, what-if, theme and restart.");
+        }
+        finally{vm.ChartChanged-=changed;vm.WhatIfChanged-=changed;vm.Deactivate();chart.Stop();window.Close();}
     }
     private sealed class ChartData : IMarketDataService
     {

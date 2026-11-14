@@ -88,7 +88,7 @@ public sealed class AutomationService(DataDirectoryInfo directory, IMarketDataSe
                     var s = await (await Market(ct)).GetChainAsync(Symbol(a.Text("symbol")), a.Date("expiry"), ct);
                     var requestedExpiry = a.Date("expiry");
                     var filtered = s.Contracts.Where(c => (!requestedExpiry.HasValue || c.Expiration == requestedExpiry.Value) && (!a.Has("right") || c.Right.ToString().Equals(a.Text("right"), StringComparison.OrdinalIgnoreCase)) && (!min.HasValue || c.Strike >= min) && (!max.HasValue || c.Strike <= max)).OrderBy(c => c.Expiration).ThenBy(c => c.Strike).ThenBy(c => c.Right).ToArray();
-                    return new { s.Underlying, s.UnderlyingPrice, s.Expiration, s.Expirations, s.Source, s.AsOf, s.FetchedAt, s.IsRealtime, s.DelayMinutes, page = Page(filtered, a) };
+                    return new { s.Underlying, s.UnderlyingPrice, s.Expiration, s.Expirations, s.Source, s.AsOf, s.FetchedAt, s.IsRealtime, s.DelayMinutes, page = Page(filtered, a), entryReferences = Page(filtered.Select(c => new { c.ContractSymbol, reference = OptionEntryReference.From(c) }).ToArray(), a) };
                 }
             case "get_fundamentals": return await (await Market(ct)).GetFundamentalsAsync(Symbol(a.Text("symbol")), ct);
             case "get_financials": return await (await Market(ct)).GetFinancialsAsync(Symbol(a.Text("symbol")), ct);

@@ -57,6 +57,7 @@ public partial class StrategyViewModel
         finally { _suppress = false; }
         await LoadAsync();
         ReplaceLegs(legs);
+        foreach (var row in Legs) row.LockEntryPrice();
         Recompute();
         ChartChanged?.Invoke(this, EventArgs.Empty);
     }

@@ -66,3 +66,7 @@ Desktop K-lines use bundled TradingView Lightweight Charts in system WebViews. K
 ## UI/UX consistency
 
 Use the existing ThemePalette and live resource brushes for all app-owned chrome, including WebView wrappers and bundled HTML. Match the 14px body/12px caption typography, 6px controls, 8/12px spacing, semantic status backgrounds, and keyboard focus cues. Test live dark/light and locale changes while windows remain open, empty/loading/error visibility, and compact layouts without hiding required attribution. Remote publishers own their article content; theme the reader chrome without injecting styles/scripts into remote news. UI-only styling does not add CLI/MCP business operations; preserve their contracts and lean packages.
+
+## Linked strategy workbench
+
+The strategy workbench and detailed tab share one StrategyViewModel; dispose hidden WebViews and never start a duplicate market/alert loop. Keep entry reference selection in Application/OptionEntryReference, shared by desktop and get_option_chain. Missing/crossed quotes must not become invented executable prices; expose midpoint/last/missing basis. Preserve recorded entry premiums across refreshes and calculate all payoff/Greeks in Analytics, not JavaScript. Reject stale draft identities and cross-underlying additions. Keep the existing detailed analysis and local saving usable. Browser tests must exercise the real test-only C# host, and native Windows/macOS x64/ARM64 checks must load the actual workbench. Test fixture hosts must never be referenced by production projects.

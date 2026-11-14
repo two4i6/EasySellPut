@@ -99,6 +99,26 @@ public class ChartThemeTests
         });
     }
 
+    [Fact]
+    public void Strategy_default_workbench_and_details_share_one_model_and_release_hidden_browser()
+    {
+        WpfHost.Run(async()=>
+        {
+            var page=new StrategyPage();
+            using var host=new OffscreenHost(page,1280,900);
+            await ScreenRenderTests.Settle();
+            var web=UiAudit.Descendants<WebChartControl>(page).Single();
+            var session=web.Session;
+            Assert.NotNull(session);Assert.True(session!.IsStrategyWorkbench);
+            var model=page.DataContext;
+            page.ShowDetailedAnalysis();await ScreenRenderTests.Settle();
+            Assert.Null(web.Session);Assert.Same(model,page.DataContext);
+            UiAudit.Descendants<TabControl>(page).First(t=>t.Name=="SurfaceTabs").SelectedIndex=0;
+            await ScreenRenderTests.Settle();
+            Assert.NotNull(web.Session);Assert.NotSame(session,web.Session);
+        });
+    }
+
     [Theory]
     [InlineData(typeof(OptionsPage))]
     [InlineData(typeof(StrategyPage))]
@@ -112,6 +132,7 @@ public class ChartThemeTests
             {
                 ScreenRenderTests.Apply("zh-CN", true);
                 var page = (Page)Activator.CreateInstance(pageType)!;
+                if (page is StrategyPage strategyPage) strategyPage.ShowDetailedAnalysis();
                 using var host = new OffscreenHost(page, 1280, 800);
                 await ScreenRenderTests.Settle();
                 var plot = UiAudit.Descendants<WpfPlot>(page).First(p => p.IsVisible);

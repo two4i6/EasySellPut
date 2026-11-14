@@ -18,6 +18,8 @@
   <ItemGroup>
     <EmbeddedResource Include="WebCharts/index.html" LogicalName="WebCharts/index.html" />
     <EmbeddedResource Include="WebCharts/chart.js" LogicalName="WebCharts/chart.js" />
+    <EmbeddedResource Include="WebCharts/workbench.html" LogicalName="WebCharts/workbench.html" />
+    <EmbeddedResource Include="WebCharts/workbench.js" LogicalName="WebCharts/workbench.js" />
     <EmbeddedResource Include="WebCharts/vendor/lightweight-charts.js" LogicalName="WebCharts/vendor/lightweight-charts.js" />
     <EmbeddedResource Include="WebCharts/vendor/LICENSE" LogicalName="WebCharts/vendor/LICENSE" />
     <EmbeddedResource Include="WebCharts/vendor/NOTICE" LogicalName="WebCharts/vendor/NOTICE" />

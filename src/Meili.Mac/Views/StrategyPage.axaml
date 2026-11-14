@@ -4,6 +4,7 @@
              xmlns:local="using:Meili.Mac.Views"
              xmlns:controls="using:Meili.Mac.Views.Controls"
              xmlns:sp="using:ScottPlot.Avalonia"
+             xmlns:platform="using:Meili.Mac.Platform"
              x:Class="Meili.Mac.Views.StrategyPage"
              x:DataType="vm:StrategyViewModel">
     <UserControl.Styles>
@@ -14,7 +15,7 @@
             <Setter Property="Foreground" Value="{DynamicResource DownBrush}" />
         </Style>
     </UserControl.Styles>
-    <Grid RowDefinitions="Auto,Auto,*">
+    <Grid RowDefinitions="Auto,*">
         <StackPanel x:Name="HeaderPanel" Grid.Row="0" Margin="32,16,32,4">
             <TextBlock Classes="PageTitle" Text="{DynamicResource St_Title}" />
             <Border Margin="0,8,0,8" Padding="12,8" CornerRadius="8"
@@ -88,7 +89,13 @@
             </WrapPanel>
         </StackPanel>
 
-        <ScrollViewer x:Name="MidScroll" Grid.Row="1" Margin="32,0,32,8" MaxHeight="360" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+        <TabControl x:Name="SurfaceTabs" Grid.Row="1" Margin="16,0,16,12">
+            <TabItem x:Name="WorkbenchTab" Header="{DynamicResource Wb_Workbench}" IsSelected="True">
+                <platform:WebChartControl x:Name="Workspace" MinHeight="300" />
+            </TabItem>
+            <TabItem x:Name="DetailedTab" Header="{DynamicResource Wb_Details}">
+                <Grid RowDefinitions="Auto,*">
+        <ScrollViewer x:Name="MidScroll" Grid.Row="0" Margin="32,0,32,8" MaxHeight="360" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
             <Grid ColumnDefinitions="*,20,*">
                 <DockPanel Grid.Column="0">
                     <TextBlock DockPanel.Dock="Top" Classes="Caption" Text="{DynamicResource St_Summary}" Margin="0,0,0,4" />
@@ -177,7 +184,7 @@
             </Grid>
         </ScrollViewer>
 
-        <DockPanel Grid.Row="2" Margin="16,0,16,12">
+        <DockPanel Grid.Row="1" Margin="16,0,16,12">
             <WrapPanel DockPanel.Dock="Top" Margin="16,0,16,6">
                 <TextBlock Classes="Caption" VerticalAlignment="Center" Margin="0,0,10,0" Text="{DynamicResource St_Horizon}" />
                 <Button x:Name="Tn0" Classes="Chip" Padding="10,6" Margin="0,0,6,0" Content="{DynamicResource St_TnNow}" Command="{Binding SelectHorizonCommand}" />
@@ -228,5 +235,9 @@
                 </ScrollViewer>
             </Grid>
         </DockPanel>
+
+                </Grid>
+            </TabItem>
+        </TabControl>
     </Grid>
 </UserControl>

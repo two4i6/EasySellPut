@@ -32,14 +32,16 @@ public sealed class WebChartControl : UserControl
         _install.Click += (_, _) => Ui.Platform.OpenUrl("https://developer.microsoft.com/microsoft-edge/webview2/#download-section");
         Content = _root;
     }
-    public void Start(ChartsViewModel vm, ChartPalette palette)
+    public void Start(ChartsViewModel vm, ChartPalette palette) => Start(() => new WebChartSession(vm), palette);
+    public void Start(StrategyViewModel vm, ChartPalette palette) => Start(() => new WebChartSession(vm), palette);
+    private void Start(Func<WebChartSession> create, ChartPalette palette)
     {
         Stop();
-        Session = new WebChartSession(vm); Session.Update(palette);
+        Session = create(); Session.Update(palette);
         Session.DiagnosticReceived += OnDiagnostic;
         _status.Visibility = Visibility.Visible;
         _status.SetResourceReference(TextBlock.BackgroundProperty, "InfoBarBrush");
-        _status.Text = LocalizationService.Current["Ch_WebLoading"];
+        _status.Text = LocalizationService.Current[Session?.IsStrategyWorkbench == true ? "Wb_Loading" : "Ch_WebLoading"];
         var web = new WebView2(); _web = web;
         web.Loaded += async (_, _) => await InitializeAsync(web, Session);
         _root.Children.Add(web);
@@ -55,7 +57,7 @@ public sealed class WebChartControl : UserControl
     {
         _status.Visibility = Visibility.Visible;
         _status.SetResourceReference(TextBlock.BackgroundProperty, "ErrorBarBrush");
-        _status.Text = LocalizationService.Current["Ch_WebFailed"];
+        _status.Text = LocalizationService.Current[Session?.IsStrategyWorkbench == true ? "Wb_LoadFailed" : "Ch_WebFailed"];
     }
     private async Task InitializeAsync(WebView2 web, WebChartSession? session)
     {

@@ -155,10 +155,14 @@ jobs:
         run: |
           python -m pip install playwright==1.56.0
           python -m playwright install --with-deps chromium
+      - name: Build the test-only linked workbench host
+        run: dotnet build tests/Meili.Workbench.Host/Meili.Workbench.Host.csproj -c Release -m:3 -v minimal
       - name: Exercise actual TradingView renderer and mouse interactions
         env:
           MEILI_RENDER_DIR: ${{ github.workspace }}/build/out/ci/render
-        run: python tests/webcharts/test_renderer.py -v
+        run: |
+          python tests/webcharts/test_renderer.py -v
+          python tests/webcharts/test_workbench.py -v
       - name: Retain desktop results and rendered pages
         if: always()
         uses: actions/upload-artifact@v4

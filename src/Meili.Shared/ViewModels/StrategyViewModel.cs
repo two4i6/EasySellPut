@@ -320,6 +320,7 @@ public partial class StrategyViewModel : ObservableObject
             }
 
             (_hdrSymbol, _hdrQuote, _hdrChain) = (symbol, q, chain);
+            _workbenchChainRevision++;
             RelabelHeader();
 
             if (seed is not null)
@@ -466,6 +467,7 @@ public partial class StrategyViewModel : ObservableObject
 
     private void ReplaceLegs(IReadOnlyList<StrategyLeg> legs)
     {
+        _workbenchDraftSymbol = _loadedSymbol;
         _suppress = true;
         try
         {
@@ -530,6 +532,7 @@ public partial class StrategyViewModel : ObservableObject
 
     private void Recompute()
     {
+        WorkbenchGreeks = null;
         LocalNote = "";
         RewardText = "";
         GreeksText = "";
@@ -593,6 +596,7 @@ public partial class StrategyViewModel : ObservableObject
             if (Spot is { } s && overlay is { } val)
             {
                 var g = strategy.GreeksAt(s, val);
+                WorkbenchGreeks = g;
                 if (double.IsFinite(g.Delta))
                     GreeksText = string.Format(_loc["St_Delta"], g.Delta.ToString("0.00", CultureInfo.InvariantCulture));
             }

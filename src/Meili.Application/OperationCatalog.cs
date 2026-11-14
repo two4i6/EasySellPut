@@ -42,7 +42,7 @@ public static class OperationCatalog
         Op("get_quotes", "Batch quotes with source, market time, download time and declared delay. Missing symbols are reported.", false, ("symbols!", Field("array", "1..100 ticker symbols"))),
         Op("get_bars", "Historical OHLCV with provenance, adjustment and offline-cache status. Missing OHLC is null, never fabricated.", false, [("symbol!", S()), ("interval", Field("string", "default 1d", "1m","5m","15m","30m","1h","1d","1w","1mo")), ("from", S("ISO-8601 instant")), ("to", S("ISO-8601 instant")), ("adjust", Field("string", "default split", "split","total")), ..Page]),
         Op("get_expirations", "List option expiration dates.", false, ("symbol!", S())),
-        Op("get_option_chain", "Paginated option contracts with source metadata. Request expiry YYYY-MM-DD and optional right/strike filters.", false, [("symbol!", S()), ("expiry", S()), ("right", Field("string", "", "call","put")), ("minStrike", N()), ("maxStrike", N()), ..Page]),
+        Op("get_option_chain", "Paginated option contracts with source metadata and non-executable midpoint/last entry references (missing quotes stay null). Request expiry YYYY-MM-DD and optional right/strike filters.", false, [("symbol!", S()), ("expiry", S()), ("right", Field("string", "", "call","put")), ("minStrike", N()), ("maxStrike", N()), ..Page]),
         Op("get_fundamentals", "Company fundamentals with source and freshness metadata.", false, ("symbol!", S())),
         Op("get_financials", "Financial statements with source and freshness metadata.", false, ("symbol!", S())),
         Op("get_news", "Recent provider news, retaining publisher, URL and publication time.", false, ("symbol!", S()), ("limit", I("1..50, default 20"))),

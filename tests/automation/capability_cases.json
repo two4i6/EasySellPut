@@ -86,6 +86,15 @@
         },
         "/data/page/items/0/contractSymbol": {
           "equals": "put"
+        },
+        "/data/entryReferences/items/0/reference/basis": {
+          "equals": "missing"
+        },
+        "/data/entryReferences/items/0/reference/isExecutable": {
+          "equals": false
+        },
+        "/data/entryReferences/items/0/reference/price": {
+          "equals": null
         }
       },
       "compare": [
