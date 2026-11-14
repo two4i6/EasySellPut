@@ -2,7 +2,7 @@
 'use strict';
 (() => {
   const root = document.getElementById('chart');
-  let byTime = new Map();
+  let byTime = new Map(), eventMarkers, selectedEvent, filters = new Set(["news","earnings","ex_dividend"]);
   let chart, state, version = -1, signature = '', key = '', series = {}, priceLines = [], drawingSeries = [];
   let posting = false, pendingHover = null, userRange = null, applying = false;
   const finite = Number.isFinite;
@@ -41,6 +41,8 @@
       grid: {vertLines: {color: state.theme.grid}, horzLines: {color: state.theme.grid}},
     });
     series.candles = chart.addSeries(LightweightCharts.CandlestickSeries, {priceLineVisible: true, borderVisible: false});
+    series.eventAnchor = chart.addSeries(LightweightCharts.LineSeries, {lineVisible:false,pointMarkersVisible:false,crosshairMarkerVisible:false,priceLineVisible:false,lastValueVisible:false});
+    eventMarkers = LightweightCharts.createSeriesMarkers(series.eventAnchor, []);
     series.incomplete = chart.addSeries(LightweightCharts.LineSeries, {color: state.theme.muted, lineVisible: false, pointMarkersVisible: true, pointMarkersRadius: 3, priceLineVisible: false, lastValueVisible: false});
     chart.subscribeCrosshairMove(param => {
       if (applying) return;
@@ -49,12 +51,50 @@
       if (row) showLegend(row);
     });
     chart.subscribeClick(param => {
-      if (!state.drawingMode || !param.point || typeof param.time !== 'number') return;
+      if (!state.drawingMode) {
+        const hit = (state.events || []).find(e => filters.has(e.event.type) && (e.event.id === param.hoveredObjectId || e.time === param.time));
+        if (hit) {selectedEvent = hit.event.id; document.getElementById('timeline').open = true; renderEvents();}
+        return;
+      }
+      if (!param.point || typeof param.time !== 'number') return;
       const row = byTime.get(param.time);
       const price = series.candles.coordinateToPrice(param.point.y);
       if (row && finite(price)) post({kind: 'drawing', key: state.key, index: row.index, price}).catch(error);
     });
     chart.timeScale().subscribeVisibleLogicalRangeChange(range => {if (!applying && range) userRange = range;});
+  }
+  function renderEvents() {
+    const zh = state.language === 'zh-CN';
+    const names = zh ? {news:'新闻',earnings:'财报',ex_dividend:'除息'} : {news:'News',earnings:'Earnings',ex_dividend:'Ex-dividend'};
+    const labels = zh ? {estimated:'预计',source_confirmed:'来源已确认',unverified:'未核实',reported_published:'来源发布时间',timestamp:'精确时间',date:'仅日期',date_range:'日期范围',unknown:'时间未知',outside_chart:'图表范围外',next_bar:'对齐后续 K 线',same_day:'同日 K 线',period_bucket:'周期汇总',exact:'精确对齐',available:'可用',empty:'暂无新闻',not_reported:'来源未提供',unavailable:'不可用'} :
+      {estimated:'Estimated',source_confirmed:'Source confirmed',unverified:'Unverified',reported_published:'Reported publication',timestamp:'Timestamp',date:'Date only',date_range:'Date range',unknown:'Time unknown',outside_chart:'Outside chart',next_bar:'Aligned to next bar',same_day:'Same day bar',period_bucket:'Period bucket',exact:'Exact',available:'Available',empty:'No recent news',not_reported:'Not reported',unavailable:'Unavailable'};
+    const text = (tag,value) => {const node=document.createElement(tag);node.textContent=value;return node;};
+    const date = e => e.published ? new Intl.DateTimeFormat(state.language,{timeZone:'America/New_York',dateStyle:'medium',timeStyle:'short'}).format(new Date(e.published))+' ET' : e.date ? e.date+(e.endDate ? ' – '+e.endDate : '') : labels.unknown;
+    document.getElementById('event-heading').textContent = zh ? '事件时间线' : 'Event timeline';
+    const box = document.getElementById('event-filters');
+    if (box.dataset.language !== state.language) {box.dataset.language=state.language;box.replaceChildren();
+    for (const type of Object.keys(names)) {
+      const label = text('label',''), input=document.createElement('input');input.type='checkbox';input.checked=filters.has(type);input.dataset.type=type;
+      input.addEventListener('change',()=>{input.checked?filters.add(type):filters.delete(type);renderEvents();});label.append(input,document.createTextNode(names[type]));box.append(label);
+    }}
+    document.getElementById('event-status').textContent = state.timelineStatus === 'loading' ? (zh?'事件加载中…':'Loading events…') :
+      (state.coverage || []).map(c=>names[c.type]+': '+(labels[c.status]||c.status)).join(' · ') + (zh?' · 最近新闻及当前日历快照，非历史档案':' · Recent news/current calendar snapshot; not an archive');
+    const visible=(state.events||[]).filter(e=>filters.has(e.event.type));
+    const groups=new Map();for(const item of visible) if(finite(item.time)){if(!groups.has(item.time))groups.set(item.time,[]);groups.get(item.time).push(item);}
+    eventMarkers.setMarkers([...groups].sort((a,b)=>a[0]-b[0]).map(([time,items])=>({time,id:items[0].event.id,position:'aboveBar',shape:'circle',color:state.theme.accent,text:items.length>1?String(items.length):names[items[0].event.type]})));
+    const focusedId=document.activeElement?.dataset.eventId;
+    const list=document.getElementById('event-list');list.replaceChildren();
+    if(!visible.some(e=>e.event.id===selectedEvent)) selectedEvent=visible[0]?.event.id;
+    for(const item of visible){const e=item.event,b=text('button',names[e.type]+' · '+date(e)+' · '+(e.type==='news'?e.title:labels[e.confirmation]));b.type='button';b.dataset.eventId=e.id;b.setAttribute('aria-pressed',String(e.id===selectedEvent));b.addEventListener('click',()=>{selectedEvent=e.id;renderEvents();});list.append(b);if(focusedId===e.id)b.focus({preventScroll:true});}
+    const detail=document.getElementById('event-detail');detail.replaceChildren();
+    const item=visible.find(e=>e.event.id===selectedEvent);if(!item){detail.append(text('p',zh?'没有符合筛选条件的事件':'No matching events'));return;}
+    const e=item.event;
+    detail.append(text('p',e.type==='news'?e.title:names[e.type]),text('p',date(e)+' · '+labels[e.precision]+' · '+labels[e.confirmation]),text('p',(zh?'来源：':'Source: ')+(e.publisher?e.publisher+' / ':'')+e.source),text('p',labels[item.alignment]));
+    if(e.summary)detail.append(text('p',e.summary));
+    if(e.providerFetchedAt)detail.append(text('p',(zh?'来源下载时间：':'Provider fetched: ')+e.providerFetchedAt));
+    if(e.providerAsOf)detail.append(text('p',(zh?'来源数据时间：':'Provider as of: ')+e.providerAsOf));
+    detail.append(text('p',(zh?'本次读取：':'Observed: ')+e.observedAt));
+    if(e.type==='news' && e.url){const b=text('button',zh?'内置阅读器打开原文':'Read original');b.type='button';b.addEventListener('click',()=>post({kind:'open-event',key:state.key,id:e.id}).catch(error));detail.append(b);}
   }
   function showLegend(row) {
     const fields = [state.show.ma && ['MA', row.ma], state.show.ema && ['EMA', row.ema], state.show.macd && ['MACD', row.macd], state.show.rsi && ['RSI', row.rsi], state.show.kdj && ['K', row.k]];
@@ -71,6 +111,7 @@
     try {
       if (rebuild) {signature = shape; build();}
       key = state.key;
+      if (previousKey !== key) selectedEvent = null;
       const t = state.theme, c = t.colors;
       document.body.style.background = t.background; document.body.style.color = t.text;
       document.documentElement.style.colorScheme = t.dark ? 'dark' : 'light';
@@ -86,6 +127,8 @@
       series.candles.setData(state.rows.map(r => !r.incomplete && [r.open,r.high,r.low,r.close].every(finite) ? {time:r.time,open:r.open,high:r.high,low:r.low,close:r.close} : {time:r.time}));
       series.incomplete.applyOptions({color:t.muted,lineVisible:state.rows.length > 0 && state.rows.every(r=>r.incomplete),pointMarkersVisible:!state.rows.every(r=>r.incomplete)});
       series.incomplete.setData(state.rows.map(r => r.incomplete ? point(r, 'close') : {time: r.time}));
+      series.eventAnchor.setData(state.rows.map(r => point(r, 'close')));
+      renderEvents();
       if (state.show.ma) line('ma', 'ma', state.labels.ma, c[0]);
       if (state.show.ema) line('ema', 'ema', state.labels.ema, c[1]);
       if (state.show.boll) {line('bollMiddle','bollMiddle',state.labels.boll,c[2]);line('bollUpper','bollUpper','BOLL ↑',c[2]);line('bollLower','bollLower','BOLL ↓',c[2]);}
@@ -93,6 +136,7 @@
       if (state.show.volume) {
         pane++;
         if (!series.volume) series.volume = chart.addSeries(LightweightCharts.HistogramSeries, {title: state.labels.volume, priceFormat: {type: 'volume'}, lastValueVisible: false, priceLineVisible: false}, pane);
+        series.volume.applyOptions({title:state.labels.volume});
         series.volume.setData(state.rows.map((r,i) => point(r, 'volume', r.close >= (finite(r.open) ? r.open : state.rows[i-1]?.close ?? r.close) ? t.up : t.down)));
       }
       if (state.show.macd) {
@@ -128,7 +172,7 @@
       else {chart.timeScale().fitContent();userRange = null;}
       if (state.rows.length) showLegend(state.rows[state.rows.length - 1]);
       document.title = 'EasySellPut Charts · ' + state.symbol;
-      diagnostic({status:'rendered',key:state.key,rows:state.rows.length,candles:series.candles.data().filter(p=>finite(p.open)).length,panes:chart.panes().length,lastMa:series.ma?.data().at(-1)?.value ?? null,background:t.background,up:series.candles.options().upColor,range:chart.timeScale().getVisibleLogicalRange()});
+      diagnostic({status:'rendered',events:(state.events||[]).length,eventMarkers:eventMarkers.markers().length,key:state.key,rows:state.rows.length,candles:series.candles.data().filter(p=>finite(p.open)).length,panes:chart.panes().length,lastMa:series.ma?.data().at(-1)?.value ?? null,background:t.background,up:series.candles.options().upColor,range:chart.timeScale().getVisibleLogicalRange()});
     } finally {applying = false;}
   }
   document.getElementById('fit').addEventListener('click',()=>{if(chart){userRange=null;chart.timeScale().fitContent();chart.priceScale('right').applyOptions({autoScale:true});}});
@@ -147,6 +191,6 @@
     setTimeout(poll,250);
   }
   // Read-only diagnostics for renderer tests; it grants no native capabilities.
-  window.meiliChart = {inspect:()=>({chart,series,state}),render};
+  window.meiliChart = {inspect:()=>({chart,series,state,eventMarkers}),render};
   poll();
 })();

@@ -137,6 +137,8 @@ public sealed class WebChartSession : IDisposable
         return kind.GetString() switch
         {
             "attribution" => true,
+            "open-event" => e.TryGetProperty("key", out var eventKey) && eventKey.ValueKind == JsonValueKind.String && eventKey.GetString()!.Length <= 512
+                && e.TryGetProperty("id", out var id) && id.ValueKind == JsonValueKind.String && id.GetString()!.Length == 64,
             "diagnostic" => e.TryGetProperty("status", out var s) && s.ValueKind == JsonValueKind.String,
             "crosshair" or "drawing" => e.TryGetProperty("key", out var key) && key.ValueKind == JsonValueKind.String
                 && e.TryGetProperty("index", out var i) && i.ValueKind == JsonValueKind.Number && i.TryGetInt32(out _)
@@ -156,6 +158,7 @@ public sealed class WebChartSession : IDisposable
             var current = Volatile.Read(ref _state);
             using var state = JsonDocument.Parse(current.Json);
             if (message.GetProperty("key").GetString() != state.RootElement.GetProperty("key").GetString()) return;
+            if (kind == "open-event") { _vm!.OpenTimelineEvent(message.GetProperty("id").GetString()!); return; }
             var index = message.GetProperty("index").GetInt32();
             if (_vm!.Series is not { } series || index < 0 || index >= series.Bars.Count) { if (kind == "crosshair") _vm.UpdateCrosshair(-1); return; }
             if (kind == "drawing") _vm.AddDrawingPoint(series.Bars[index].Time, message.GetProperty("price").GetDouble());

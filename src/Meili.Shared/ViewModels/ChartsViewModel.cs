@@ -1,4 +1,5 @@
 using Meili.Core.Diagnostics;
+using Meili.Automation;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -101,6 +102,40 @@ public partial class ChartsViewModel : ObservableObject
     /// <summary>F7: shown when the source cannot give what was asked, or a source switch changed the basis.</summary>
     [ObservableProperty] public partial string AdjustWarning { get; set; } = "";
 
+    public MarketTimeline? Timeline { get; private set; }
+    private CancellationTokenSource? _timelineCts;
+    private string? _timelineSymbol;
+    private DateTimeOffset _timelineRequested;
+    private async Task LoadTimelineAsync(string symbol)
+    {
+        if (_timelineSymbol == symbol && DateTimeOffset.UtcNow - _timelineRequested < TimeSpan.FromMinutes(5)) return;
+        _timelineCts?.Cancel();
+        var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(35));
+        _timelineCts = cancellation; _timelineSymbol = symbol; _timelineRequested = DateTimeOffset.UtcNow;
+        if (Timeline?.Symbol != symbol) Timeline = null;
+        try
+        {
+            var result = await MarketTimelineService.LoadAsync(_data, symbol, limit: 100, ct: cancellation.Token);
+            if (cancellation.IsCancellationRequested || _timelineCts != cancellation || Series?.Symbol != symbol) return;
+            Timeline = result;
+            PlotChanged?.Invoke(this, EventArgs.Empty);
+        }
+        catch (OperationCanceledException)
+        {
+            if (_timelineCts != cancellation) return;
+            _timelineSymbol = null;
+            if (Series?.Symbol != symbol) return;
+            Timeline = new(symbol, [], new[] { "news", "earnings", "ex_dividend" }.Select(t => new EventCoverage(t, "unavailable", "provider_timeout")).ToArray(), "unavailable", DateTimeOffset.UtcNow, false, 0);
+            PlotChanged?.Invoke(this, EventArgs.Empty);
+        }
+        finally { cancellation.Dispose(); if (_timelineCts == cancellation) _timelineCts = null; }
+    }
+    public void OpenTimelineEvent(string id)
+    {
+        if (Timeline?.Symbol != Series?.Symbol || SymbolText != Series?.Symbol) return;
+        var item = Timeline?.Events.FirstOrDefault(e => e.Id == id && e.Type == "news");
+        if (item?.Url is { } url && NewsReaderPolicy.IsAllowed(url)) Ui.Platform.OpenNewsArticle(url, item.Title);
+    }
     public event EventHandler? PlotChanged;
 
     /// <summary>
@@ -149,6 +184,7 @@ public partial class ChartsViewModel : ObservableObject
         if (Series is null) await LoadAsync();
         else
         {
+            _ = LoadTimelineAsync(Series.Symbol);
             ArmTimer();
             _timer.Start();
         }
@@ -166,6 +202,9 @@ public partial class ChartsViewModel : ObservableObject
         _active = false;
         _timer.Stop();
         _cts?.Cancel();
+        var timelineCancellation = _timelineCts;
+        _timelineCts = null; _timelineSymbol = null;
+        timelineCancellation?.Cancel();
     }
 
     public Task OpenSymbolAsync(string symbol)
@@ -248,6 +287,7 @@ public partial class ChartsViewModel : ObservableObject
             if (!refreshOnly)
             {
                 StatusText = _loc["Ch_InvalidSymbol"];
+                _timelineCts?.Cancel(); Timeline = null; _timelineSymbol = null;
                 Series = null;
                 Snapshot = null;
                 PlotChanged?.Invoke(this, EventArgs.Empty);
@@ -266,8 +306,10 @@ public partial class ChartsViewModel : ObservableObject
             var request = BuildRequest(symbol, Range) with { Adjust = DividendAdjusted ? AdjustMode.Total : AdjustMode.Split };
             // C2: the cache layer turns a refresh into a short tail download; nothing new → no recompute, no redraw.
             var series = await _data.GetBarsAsync(request, _cts.Token);
+
             if (refreshOnly && Series is { } shown && SameData(shown, series))
             {
+                _ = LoadTimelineAsync(symbol);
                 unchanged = true;
                 UnchangedRefreshes++;
                 return;
@@ -299,6 +341,7 @@ public partial class ChartsViewModel : ObservableObject
                 PreserveView = refreshOnly;
                 PlotChanged?.Invoke(this, EventArgs.Empty);
                 PreserveView = true;
+                if (Series?.Symbol == symbol) _ = LoadTimelineAsync(symbol);
             }
         }
     }

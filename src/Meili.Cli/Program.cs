@@ -68,7 +68,7 @@ public static class Program
                 Name = x.Name,
                 Description = x.Description,
                 InputSchema = x.Schema,
-                Annotations = new ToolAnnotations { ReadOnlyHint = !x.Writes, DestructiveHint = x.Writes, IdempotentHint = !x.Writes, OpenWorldHint = x.Name is "search_symbols" or "get_quotes" or "get_bars" or "get_expirations" or "get_option_chain" or "get_fundamentals" or "get_financials" or "get_news" }
+                Annotations = new ToolAnnotations { ReadOnlyHint = !x.Writes, DestructiveHint = x.Writes, IdempotentHint = !x.Writes, OpenWorldHint = x.Name is "search_symbols" or "get_quotes" or "get_bars" or "get_expirations" or "get_option_chain" or "get_fundamentals" or "get_financials" or "get_news" or "get_market_events" }
             }).ToList()
         }))
         .WithCallToolHandler(async (request, cancel) =>
@@ -125,7 +125,7 @@ public static class Program
             mcp = true; return new(null, WireJson.Element(new { }), directory, timeout, mcp, writes, help, version);
         }
         var command = words[0];
-        var aliases = new Dictionary<string, string> { ["quote"] = "get_quotes", ["bars"] = "get_bars", ["search"] = "search_symbols", ["expirations"] = "get_expirations", ["options"] = "get_option_chain", ["fundamentals"] = "get_fundamentals", ["financials"] = "get_financials", ["news"] = "get_news", ["sources"] = "get_source_health", ["price"] = "calculate_option", ["indicators"] = "calculate_indicators" };
+        var aliases = new Dictionary<string, string> { ["quote"] = "get_quotes", ["bars"] = "get_bars", ["search"] = "search_symbols", ["expirations"] = "get_expirations", ["options"] = "get_option_chain", ["fundamentals"] = "get_fundamentals", ["financials"] = "get_financials", ["news"] = "get_news", ["events"] = "get_market_events", ["sources"] = "get_source_health", ["price"] = "calculate_option", ["indicators"] = "calculate_indicators" };
         if (command is "watchlist" or "strategy" or "alerts" or "settings")
         {
             if (words.Count < 2) throw new ArgumentException($"{command} needs a subcommand. See --help.");
@@ -180,7 +180,7 @@ public static class Program
     private static string Kebab(string s) => string.Concat(s.Select(c => char.IsUpper(c) ? "-" + char.ToLowerInvariant(c) : c.ToString()));
     private static void PrintHelp(string? operation)
     {
-        Console.WriteLine("EasySellPut — local CLI + stdio MCP\nUsage: easysellput <command> [options] [--json] [--data-dir PATH] [--timeout 60]\n       easysellput mcp serve [--allow-writes] [--data-dir PATH]\nAliases: quote, bars, search, expirations, options, fundamentals, financials, news, sources, price, indicators\nGroups: watchlist list/add/remove/create-group/rename-group/delete-group; strategy list/save/delete/analyze; alerts list/history/save/delete/enable; settings show\nUse any operation name below directly. --input FILE accepts an argument JSON object.\nNumbers use invariant decimal units. --help after an operation prints its JSON schema.\nExit: 0 success, 1 failure, 2 arguments, 3 permission, 4 conflict, 130 cancelled/timeout.");
+        Console.WriteLine("EasySellPut — local CLI + stdio MCP\nUsage: easysellput <command> [options] [--json] [--data-dir PATH] [--timeout 60]\n       easysellput mcp serve [--allow-writes] [--data-dir PATH]\nAliases: quote, bars, search, expirations, options, fundamentals, financials, news, events, sources, price, indicators\nGroups: watchlist list/add/remove/create-group/rename-group/delete-group; strategy list/save/delete/analyze; alerts list/history/save/delete/enable; settings show\nUse any operation name below directly. --input FILE accepts an argument JSON object.\nNumbers use invariant decimal units. --help after an operation prints its JSON schema.\nExit: 0 success, 1 failure, 2 arguments, 3 permission, 4 conflict, 130 cancelled/timeout.");
         foreach (var op in OperationCatalog.All.Where(o => operation is null || o.Name == operation))
         {
             Console.WriteLine($"\n{op.Name}{(op.Writes ? " [writes local data]" : "")}: {op.Description}");

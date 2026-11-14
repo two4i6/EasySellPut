@@ -162,6 +162,7 @@ internal static class Program
             window.Show(); chart.Start(vm, palette);
             await Until(() => Result(d => d.GetProperty("panes").GetInt32() == 5), "TradingView five panes: " + chart.LastDiagnostic);
             if (!Result(d => d.GetProperty("rows").GetInt32() == 120 && d.GetProperty("candles").GetInt32() == 119)) throw new Exception("Missing OHLC was fabricated");
+            await Until(() => Result(d => d.GetProperty("events").GetInt32() == 3 && d.GetProperty("eventMarkers").GetInt32() == 2), "News and calendar markers in native chart");
             vm.MaPeriod = 5;
             await Until(() => Result(d => Math.Abs(d.GetProperty("lastMa").GetDouble() - vm.Snapshot!.Sma[^1]) < 1e-8), "Analytics MA parity in actual chart series");
             vm.ShowRsi = false;
@@ -170,7 +171,7 @@ internal static class Program
             await Until(() => Result(d => d.GetProperty("background").GetString() == "#F6F0E3" && d.GetProperty("up").GetString() == "#1A7050"), "Theme and green-up convention");
             chart.Stop(); chart.Start(vm, palette);
             await Until(() => Result(d => d.GetProperty("panes").GetInt32() == 4), "Chart reattachment after disposal");
-            Console.WriteLine("PASS: TradingView native WebView, 120 bars/119 candles, five indicator panes, Analytics MA parity, pane toggle, theme/colors and restart.");
+            Console.WriteLine("PASS: TradingView native WebView, 120 bars/119 candles, news/calendar markers, five indicator panes, Analytics MA parity, pane toggle, theme/colors and restart.");
         }
         finally { vm.PlotChanged -= changed; vm.Deactivate(); chart.Stop(); window.Close(); }
     }
@@ -229,9 +230,9 @@ internal static class Program
         public Task<IReadOnlyList<Quote>> GetQuotesAsync(IReadOnlyList<string> symbols, CancellationToken ct = default) => throw new NotSupportedException();
         public Task<OptionChain> GetChainAsync(string symbol, DateOnly? expiration = null, CancellationToken ct = default) => throw new NotSupportedException();
         public Task<IReadOnlyList<DateOnly>> GetExpirationsAsync(string symbol, CancellationToken ct = default) => throw new NotSupportedException();
-        public Task<Fundamentals> GetFundamentalsAsync(string symbol, CancellationToken ct = default) => throw new NotSupportedException();
+        public Task<Fundamentals> GetFundamentalsAsync(string symbol, CancellationToken ct = default) => Task.FromResult(new Fundamentals{Symbol=symbol,Source="fixture",NextEarningsDate=new(2025,1,6),EarningsDateStatus=EventDateStatus.Estimated,ExDividendDate=new(2099,1,1)});
         public Task<FinancialStatements> GetFinancialsAsync(string symbol, CancellationToken ct = default) => throw new NotSupportedException();
-        public Task<IReadOnlyList<NewsItem>> GetNewsAsync(string symbol, int count = 20, CancellationToken ct = default) => throw new NotSupportedException();
+        public Task<IReadOnlyList<NewsItem>> GetNewsAsync(string symbol, int count = 20, CancellationToken ct = default) => Task.FromResult<IReadOnlyList<NewsItem>>([new(){Title="Fixture news",Url="https://example.com",Source="fixture",Published=new(2025,1,6,16,0,0,TimeSpan.Zero)}]);
         public Task<IReadOnlyList<SymbolMatch>> SearchAsync(string query, int limit = 10, CancellationToken ct = default) => throw new NotSupportedException();
     }
     private static async Task Until(Func<bool> condition, string description)

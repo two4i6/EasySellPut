@@ -23,7 +23,7 @@ public static class OperationCatalog
         {
             var k = key.TrimEnd('!'); var copy = (JsonObject)schema.DeepClone();
             if (k == "offset") copy["minimum"] = 0;
-            if (k == "limit") { copy["minimum"] = 1; copy["maximum"] = name == "search_symbols" || name == "get_news" ? 50 : 500; }
+            if (k == "limit") { copy["minimum"] = 1; copy["maximum"] = name == "search_symbols" || name == "get_news" ? 50 : name == "get_market_events" ? 100 : 500; }
             if (k == "symbols") { copy["minItems"] = 1; copy["maxItems"] = 100; }
             props[k] = copy; if (key.EndsWith('!')) required.Add(k);
         }
@@ -46,6 +46,8 @@ public static class OperationCatalog
         Op("get_fundamentals", "Company fundamentals with source and freshness metadata.", false, ("symbol!", S())),
         Op("get_financials", "Financial statements with source and freshness metadata.", false, ("symbol!", S())),
         Op("get_news", "Recent provider news, retaining publisher, URL and publication time.", false, ("symbol!", S()), ("limit", I("1..50, default 20"))),
+        Op("get_market_events", "Recent news and current earnings/ex-dividend calendar snapshot, with source, exact/date-only timing and estimate/confirmation metadata. Not a historical corporate-action archive.", false,
+            ("symbol!", S()), ("type", Field("string", "default all", "all", "news", "earnings", "ex_dividend")), ("from", S("YYYY-MM-DD, inclusive Eastern calendar date")), ("to", S("YYYY-MM-DD, inclusive Eastern calendar date")), ("limit", I("1..100, default 50"))),
         Op("get_source_health", "Source health observed in THIS process only; unknown is not a successful connectivity check."),
         Op("calculate_option", "European Black-Scholes price/Greeks and optional solved IV; decimal units (0.25=25%). No network.", false,
             ("right!", Field("string", "", "call","put")), ("spot!", N()), ("strike!", N()), ("years!", N()), ("rate", N("Continuously compounded, default 0")), ("dividendYield", N("default 0")), ("volatility!", N()), ("price", N("Optional observed per-share price for IV solving"))),

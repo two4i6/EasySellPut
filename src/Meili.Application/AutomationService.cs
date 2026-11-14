@@ -93,6 +93,7 @@ public sealed class AutomationService(DataDirectoryInfo directory, IMarketDataSe
             case "get_fundamentals": return await (await Market(ct)).GetFundamentalsAsync(Symbol(a.Text("symbol")), ct);
             case "get_financials": return await (await Market(ct)).GetFinancialsAsync(Symbol(a.Text("symbol")), ct);
             case "get_news": return await (await Market(ct)).GetNewsAsync(Symbol(a.Text("symbol")), a.Int("limit", 20, 1, 50), ct);
+            case "get_market_events": return await MarketTimelineService.LoadAsync(await Market(ct), Symbol(a.Text("symbol")), a.Text("type", "all"), a.Date("from"), a.Date("to"), a.Int("limit", 50, 1, 100), ct);
             case "get_source_health":
                 {
                     if (_sources is null && !_injectedMarket) await Market(ct);

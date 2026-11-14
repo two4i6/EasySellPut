@@ -18,6 +18,12 @@ internal static class WorkbenchFixture
         vm.SymbolText="AAPL";vm.SelectedPreset=vm.Presets.First(p=>p.Kind==StrategyKind.Custom);
         await vm.LoadAsync();return vm;
     }
+    public static async Task<ChartsViewModel> CreateChartAsync(string path)
+    {
+        var settings=new SettingsStore(path);
+        var vm=new ChartsViewModel(new WatchlistStore(settings),new Data(),LocalizationService.Current,new SymbolContext(),settings,new ChartDrawingStore(path));
+        vm.SymbolText="AAPL";await vm.LoadAsync();return vm;
+    }
     public static ChartPalette Palette(bool dark)
     {
         var p=ThemePalette.For(dark);ScottPlot.Color C(uint n)=>new((byte)(n>>16),(byte)(n>>8),(byte)n);
@@ -38,11 +44,11 @@ internal static class WorkbenchFixture
             return Task.FromResult(new OptionChain{Underlying=symbol,UnderlyingPrice=100,Expiration=_expiry,Expirations=[_expiry],Contracts=contracts,Source="fixture",AsOf=DateTimeOffset.UtcNow.AddMinutes(-15),DelayMinutes=15});
         }
         public Task<IReadOnlyList<Quote>> GetQuotesAsync(IReadOnlyList<string> symbols,CancellationToken ct=default)=>Task.FromResult<IReadOnlyList<Quote>>(symbols.Select(s=>new Quote{Symbol=s,Price=100,Source="fixture"}).ToArray());
-        public Task<Fundamentals> GetFundamentalsAsync(string symbol,CancellationToken ct=default)=>Task.FromResult(new Fundamentals{Symbol=symbol,DividendYield=0});
+        public Task<Fundamentals> GetFundamentalsAsync(string symbol,CancellationToken ct=default)=>Task.FromResult(new Fundamentals{Symbol=symbol,DividendYield=0,Source="fixture",NextEarningsDate=new(2025,1,6),EarningsDateStatus=EventDateStatus.Estimated,ExDividendDate=new(2099,1,1)});
         public Task<IReadOnlyList<DateOnly>> GetExpirationsAsync(string symbol,CancellationToken ct=default)=>Task.FromResult<IReadOnlyList<DateOnly>>([_expiry]);
-        public Task<BarSeries> GetBarsAsync(BarRequest request,CancellationToken ct=default)=>throw new NotSupportedException();
+        public Task<BarSeries> GetBarsAsync(BarRequest request,CancellationToken ct=default)=>Task.FromResult(new BarSeries{Symbol=request.Symbol,Interval=BarInterval.Minute5,Source="fixture",Bars=Enumerable.Range(0,120).Select(i=>Bar.FromSource(new DateTimeOffset(2025,1,6,14,30,0,TimeSpan.Zero).AddMinutes(i*5),100+i,101+i,99+i,100.5+i,1000)).ToArray()});
         public Task<FinancialStatements> GetFinancialsAsync(string symbol,CancellationToken ct=default)=>throw new NotSupportedException();
-        public Task<IReadOnlyList<NewsItem>> GetNewsAsync(string symbol,int count=20,CancellationToken ct=default)=>throw new NotSupportedException();
+        public Task<IReadOnlyList<NewsItem>> GetNewsAsync(string symbol,int count=20,CancellationToken ct=default)=>Task.FromResult<IReadOnlyList<NewsItem>>([new(){Title="Fixture news <script>literal</script>",Url="https://example.com/news",Source="fixture",Publisher="Test publisher",Published=new(2025,1,6,16,0,0,TimeSpan.Zero),Summary="News summary"},new(){Title="Unknown time",Url="https://example.com/unknown",Source="fixture"}]);
         public Task<IReadOnlyList<SymbolMatch>> SearchAsync(string query,int limit=10,CancellationToken ct=default)=>throw new NotSupportedException();
     }
 }

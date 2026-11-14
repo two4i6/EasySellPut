@@ -489,6 +489,36 @@
       "compare": [
         "/success"
       ]
+    },
+    {
+      "operation": "get_market_events",
+      "arguments": {
+        "symbol": "AAPL",
+        "type": "earnings",
+        "from": "2026-11-19",
+        "to": "2026-11-21"
+      },
+      "expect": {
+        "/data/events/0/type": {
+          "equals": "earnings"
+        },
+        "/data/events/0/date": {
+          "equals": "2026-11-20"
+        },
+        "/data/events/0/confirmation": {
+          "equals": "estimated"
+        },
+        "/data/status": {
+          "equals": "complete"
+        }
+      },
+      "compare": [
+        "/data/events/0/id",
+        "/data/events/0/date",
+        "/data/events/0/confirmation",
+        "/data/coverage",
+        "/data/scope"
+      ]
     }
   ]
 }

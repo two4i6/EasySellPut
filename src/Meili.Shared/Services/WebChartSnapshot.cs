@@ -46,6 +46,8 @@ public static class WebChartSnapshot
             schemaVersion = 1, key = $"{vm.Series?.Symbol}|{vm.Range}|{vm.Series?.Source}|{vm.Series?.Adjustment}",
             symbol = vm.Series?.Symbol ?? vm.SymbolText, preserveView = vm.PreserveView,
             language = LocalizationService.Current.Language, intraday = vm.Series?.Interval.IsIntraday() ?? false,
+            events = ChartEventAlignment.Map(vm), timelineStatus = vm.Timeline is not null && vm.Timeline.Symbol == vm.Series?.Symbol ? vm.Timeline.Status : "loading",
+            coverage = vm.Timeline is not null && vm.Timeline.Symbol == vm.Series?.Symbol ? vm.Timeline.Coverage : null,
             rows, compare, compareLabel = vm.CompareLabel,
             show = new { ma = vm.ShowMa, ema = vm.ShowEma, boll = vm.ShowBoll, volume = vm.ShowVolume, macd = vm.ShowMacd, rsi = vm.ShowRsi, kdj = vm.ShowKdj },
             labels = new { ma = vm.MaLabel, ema = vm.EmaLabel, boll = vm.BollLabel, macd = vm.MacdLabel, rsi = vm.RsiLabel, kdj = vm.KdjLabel, volume = LocalizationService.Current["Ch_Volume"], empty = LocalizationService.Current["Ch_Empty"] },
