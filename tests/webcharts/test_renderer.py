@@ -115,6 +115,8 @@ class RendererTests(unittest.TestCase):
             p.evaluate('(s)=>meiliChart.render(s)',data)
             style=p.locator('#fit').evaluate('(e)=>{const s=getComputedStyle(e);return {background:s.backgroundColor,radius:s.borderRadius,size:s.fontSize,height:e.getBoundingClientRect().height}}')
             self.assertEqual(style['background'],'rgb(50, 48, 44)' if dark else 'rgb(251, 247, 240)')
+            self.assertEqual(p.evaluate('meiliChart.inspect().chart.options().layout.panes.separatorColor'),data['theme']['border'])
+            self.assertEqual(p.evaluate('meiliChart.inspect().chart.options().crosshair.vertLine.labelBackgroundColor'),data['theme']['accent'])
             self.assertEqual(style['radius'],'6px');self.assertEqual(style['size'],'14px');self.assertGreaterEqual(style['height'],32)
             p.keyboard.press('Tab');p.locator('#fit').focus()
             self.assertEqual(p.locator('#fit').evaluate('(e)=>getComputedStyle(e).outlineWidth'),'2px')
