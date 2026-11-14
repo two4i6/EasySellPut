@@ -2,6 +2,8 @@
 
 桌面、CLI 和 MCP 使用同一套行情适配与计算库，用户数据保存在本机。CLI/MCP 不需要启动 WPF 或 Avalonia，不运行 Web 服务器，不监听网络端口。行情查询仍会访问第三方数据源；MCP 工具结果会交给启动它的 AI 客户端。
 
+Windows / macOS 用户请先看 [平台快速开始与 MCP 配置](12-Windows与macOS的CLI和MCP.md)。
+
 ## 安装与启动
 
 使用 `build/pack-cli.sh <rid>` 生成的自包含发行包，解压整个目录后运行 `easysellput`（Windows 为 `easysellput.exe`），不需要另装 .NET。不要只复制可执行文件；同目录包含运行时和 SQLite 等依赖。支持发布 `win-x64`、`win-arm64`、`osx-x64`、`osx-arm64`、`linux-x64`、`linux-arm64`；交叉发布不等于已在目标系统运行验证。macOS 包是命令行发行包，无 Developer ID 签名/公证。
@@ -14,7 +16,7 @@ dotnet build src/Meili.Cli/Meili.Cli.csproj
 dotnet run --project src/Meili.Cli -- --help
 ```
 
-Windows 可先 `. .\tools\env.ps1`，并用 `powershell -ExecutionPolicy Bypass -File build/pack-cli.ps1 -Runtime win-x64` 原生发布；该 PowerShell 发布入口需在 Windows 上验证。以下命令以已解压并加入 PATH 的 `easysellput` 为例。
+Windows 可先 `. .\tools\env.ps1`，并用 `powershell -ExecutionPolicy Bypass -File build/pack-cli.ps1 -Runtime win-x64` 原生发布；该入口由 Windows 原生 CI 执行并检验发行包。以下命令以已解压并加入 PATH 的 `easysellput` 为例。
 
 ## CLI
 

@@ -33,13 +33,15 @@ Release packs (installers and portable zips) are produced by `build/pack.ps1` an
 
 ## CLI and MCP
 
-Version 0.6.0 adds a cross-platform local CLI and stdio MCP server, sharing the desktop market-data adapters and analytics. No GUI or Web server is required.
+Version 0.6.0 adds a local CLI and stdio MCP server for **Windows x64/ARM64 and macOS Intel/Apple Silicon**, with Linux support as well. They share the desktop market-data adapters and analytics; no GUI, Web server or separate .NET installation is required for self-contained packages.
 
 ```bash
 easysellput quote AAPL MSFT --json
 easysellput strategy analyze --input analysis.json --json
 easysellput mcp serve --data-dir /path/to/EasySellPut-data
 ```
+
+[Windows/macOS quick start and MCP configuration](docs/12-Windows与macOS的CLI和MCP.md) covers native packages, PowerShell/Terminal commands and platform data locations.
 
 MCP is read-only by default; `--allow-writes` enables registered local mutations. See [CLI / MCP usage and client configuration](docs/08-CLI与MCP使用说明.md) and [implementation tasks](docs/07-CLI与MCP改造任务.md).
 

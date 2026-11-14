@@ -5,7 +5,19 @@ set -euo pipefail
 root=$(cd "$(dirname "$0")/.." && pwd)
 source "$root/tools/env.sh"
 cd "$root"
-rid=${1:-linux-x64}
+if [[ -n "${1:-}" ]]; then
+  rid=$1
+else
+  case "$(uname -s)" in
+    Darwin) target_os=osx ;; Linux) target_os=linux ;; MINGW*|MSYS*|CYGWIN*) target_os=win ;;
+    *) echo 'Cannot detect host OS; pass an explicit runtime identifier.' >&2; exit 2 ;;
+  esac
+  case "$(uname -m)" in
+    arm64|aarch64) target_arch=arm64 ;; x86_64|amd64) target_arch=x64 ;;
+    *) echo 'Cannot detect host architecture; pass an explicit runtime identifier.' >&2; exit 2 ;;
+  esac
+  rid="$target_os-$target_arch"
+fi
 case "$rid" in linux-x64|linux-arm64|win-x64|win-arm64|osx-x64|osx-arm64) ;; *) echo 'Unsupported runtime identifier' >&2; exit 2 ;; esac
 version=$(python3 -c 'import xml.etree.ElementTree as E; print(E.parse("Directory.Build.props").find(".//Version").text)')
 parent=${2:-$root/build/out/cli}
@@ -19,7 +31,13 @@ dotnet publish src/Meili.Cli/Meili.Cli.csproj -c Release -r "$rid" --self-contai
   -p:PublishTrimmed=false -p:PublishSingleFile=false -p:PackAsTool=false -o "$payload" -v minimal
 cp LICENSE "$payload/LICENSE"
 cp docs/08-CLI与MCP使用说明.md "$payload/CLI-MCP.md"
-cp docs/mcp-config.example.json "$payload/mcp-config.example.json"
+cp docs/12-Windows与macOS的CLI和MCP.md "$payload/12-Windows与macOS的CLI和MCP.md"
+case "$rid" in
+  win-*) config=docs/mcp-config.windows.example.json ;;
+  osx-*) config=docs/mcp-config.macos.example.json ;;
+  *) config=docs/mcp-config.example.json ;;
+esac
+cp "$config" "$payload/mcp-config.example.json"
 # Never delete or overwrite an existing distribution silently.
 if [[ -e "$parent/$name" || -e "$parent/$name.tar.gz" || -e "$parent/$name.zip" ]]; then
   echo "Distribution already exists: $parent/$name; choose another output-parent." >&2

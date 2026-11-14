@@ -5,12 +5,12 @@ on:
   pull_request:
   workflow_dispatch:
     inputs:
-      macos_runner:
-        description: macOS architecture to validate (ARM64 capacity may be limited)
+      macos_arm_runner:
+        description: Apple Silicon runner (macOS Intel is always tested separately)
         type: choice
-        default: macos-15-intel
+        default: macos-26
         options:
-          - macos-15-intel
+          - macos-26
           - macos-15
 
 permissions:
@@ -28,13 +28,23 @@ env:
 
 jobs:
   automation:
-    name: CLI and MCP (${{ matrix.os }})
+    name: CLI and MCP (${{ matrix.rid }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, windows-latest, "${{ inputs.macos_runner || 'macos-15-intel' }}"]
+        include:
+          - os: ubuntu-24.04
+            rid: linux-x64
+          - os: windows-latest
+            rid: win-x64
+          - os: windows-11-arm
+            rid: win-arm64
+          - os: macos-15-intel
+            rid: osx-x64
+          - os: "${{ inputs.macos_arm_runner || 'macos-26' }}"
+            rid: osx-arm64
     defaults:
       run:
         shell: pwsh
@@ -72,20 +82,44 @@ jobs:
         run: |
           python tests/automation/cli_mcp_smoke.py --dll src/Meili.Cli/bin/Release/net10.0/easysellput.dll
           if ($LASTEXITCODE -ne 0) { throw 'Production CLI / MCP process checks failed' }
-      - name: Publish and test the native self-contained executable
+      - name: Package, extract and test the native CLI and MCP distribution
         run: |
           $os = if ($IsWindows) { 'win' } elseif ($IsMacOS) { 'osx' } else { 'linux' }
           $arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant()
-          dotnet publish src/Meili.Cli/Meili.Cli.csproj -c Release -r "$os-$arch" --self-contained true -m:3 -p:PackAsTool=false -p:PublishTrimmed=false -o build/out/ci/publish -v minimal
-          if ($LASTEXITCODE -ne 0) { throw 'Native CLI publish failed' }
-          $executable = if ($IsWindows) { 'build/out/ci/publish/easysellput.exe' } else { 'build/out/ci/publish/easysellput' }
+          $rid = "${{ matrix.rid }}"
+          if ("$os-$arch" -ne $rid) { throw "Runner architecture mismatch: $os-$arch, expected $rid" }
+          if ($IsWindows) {
+            powershell.exe -NoProfile -ExecutionPolicy Bypass -File build/pack-cli.ps1 -Runtime $rid -OutputParent build/out/ci/packages
+          } else {
+            bash build/pack-cli.sh $rid build/out/ci/packages
+          }
+          if ($LASTEXITCODE -ne 0) { throw 'Native CLI package build failed' }
+          $version = ([xml](Get-Content Directory.Build.props -Raw)).Project.PropertyGroup.Version
+          $name = "EasySellPut-CLI-$version-$rid"
+          $extension = if ($IsWindows) { '.zip' } else { '.tar.gz' }
+          $archive = "build/out/ci/packages/$name$extension"
+          $extract = 'build/out/ci/extracted package with spaces'
+          python tests/automation/check_cli_package.py --archive $archive --rid $rid --extract-to $extract
+          if ($LASTEXITCODE -ne 0) { throw 'Distribution verification failed' }
+          $binary = if ($IsWindows) { 'easysellput.exe' } else { 'easysellput' }
+          $executable = Join-Path (Join-Path $extract $name) $binary
           python tests/automation/cli_mcp_smoke.py --executable $executable
-          if ($LASTEXITCODE -ne 0) { throw 'Published executable process checks failed' }
+          if ($LASTEXITCODE -ne 0) { throw 'Extracted CLI / MCP process checks failed' }
+      - name: Retain installable platform packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: CLI-MCP-${{ matrix.rid }}
+          path: |
+            build/out/ci/packages/*.zip
+            build/out/ci/packages/*.tar.gz
+            build/out/ci/packages/*.sha256
+          if-no-files-found: error
+          retention-days: 14
       - name: Retain test evidence even on failure
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: automation-${{ matrix.os }}
+          name: automation-${{ matrix.rid }}
           path: |
             build/out/ci/tests/**/*.trx
             build/out/ci/capability-coverage.json
