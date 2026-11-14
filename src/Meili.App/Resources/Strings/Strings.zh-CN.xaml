@@ -717,4 +717,14 @@
     <sys:String x:Key="Mac_AlDesc">价格上穿或下穿、涨跌幅、成交量或 IV 达到设定值时，会在窗口右上角显示提醒、弹出 macOS 通知并跳动程序坞图标。关闭窗口默认会退出程序；若在设置中改为隐藏窗口，提醒会继续在后台检查，⌘Q 也可退出。</sys:String>
     <sys:String x:Key="Mac_ShortcutsDesc">⌘1…⌘9 依次切换概览、自选、K 线、期权、策略、新闻、提醒、数据源、设置；⌘R 刷新当前页；⌘F 或在非输入框处直接打字弹出键盘精灵；⌘E 导出当前表格；⌘, 设置；⌘W 或红色关闭按钮默认退出（可在设置中改为仅隐藏窗口）；⌘Q 退出。</sys:String>
     <sys:String x:Key="Menu_Close">关闭窗口</sys:String>
+    <sys:String x:Key="Reader_Title">新闻阅读</sys:String>
+    <sys:String x:Key="Reader_Back">后退</sys:String>
+    <sys:String x:Key="Reader_Forward">前进</sys:String>
+    <sys:String x:Key="Reader_Reload">刷新</sys:String>
+    <sys:String x:Key="Reader_External">在浏览器打开</sys:String>
+    <sys:String x:Key="Reader_Loading">正在加载…</sys:String>
+    <sys:String x:Key="Reader_Failed">网页加载失败，可刷新或在浏览器中打开。</sys:String>
+    <sys:String x:Key="Reader_Blocked">仅支持 HTTP/HTTPS 网页，不允许下载或其他协议。</sys:String>
+    <sys:String x:Key="Reader_Runtime">需要 Microsoft Edge WebView2 Runtime，请安装后重启应用。</sys:String>
+    <sys:String x:Key="Reader_Install">安装 WebView2 Runtime</sys:String>
 </ResourceDictionary>

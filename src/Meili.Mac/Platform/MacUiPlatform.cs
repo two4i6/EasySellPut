@@ -32,6 +32,20 @@ public sealed class MacUiPlatform : IUiPlatform
         return await new ConfirmDialog(title, message).ShowDialog<bool>(owner);
     }
 
+    private NewsReaderWindow? _reader;
+    public void OpenNewsArticle(string url, string title)
+    {
+        if (!NewsReaderPolicy.IsAllowed(url)) throw new ArgumentException("Unsupported article URL", nameof(url));
+        if (_reader is null)
+        {
+            _reader = new NewsReaderWindow();
+            _reader.Closed += (_, _) => _reader = null;
+            if (MainWindow is { } owner) _reader.Show(owner); else _reader.Show();
+        }
+        _reader.OpenArticle(url, title);
+        _reader.Activate();
+    }
+
     public void OpenUrl(string url) => Open(url);
 
     public void OpenFolder(string path) => Open(path);

@@ -159,16 +159,53 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
+  news-browser:
+    name: Native news reader (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, windows-11-arm, macos-15-intel, macos-26]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Ensure system Evergreen runtime on Windows test runner
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $roots = @(${env:ProgramFiles(x86)}, $env:ProgramFiles) | Where-Object { $_ }
+          $runtime = $roots | ForEach-Object { Get-ChildItem "$_/Microsoft/EdgeWebView/Application/*/msedgewebview2.exe" -ErrorAction SilentlyContinue }
+          if (-not $runtime) {
+            $installer = Join-Path $env:RUNNER_TEMP 'MicrosoftEdgeWebview2Setup.exe'
+            Invoke-WebRequest 'https://go.microsoft.com/fwlink/p/?LinkId=2124703' -OutFile $installer
+            $signature = Get-AuthenticodeSignature $installer
+            if ($signature.Status -ne 'Valid' -or $signature.SignerCertificate.Subject -notmatch 'O=Microsoft Corporation') { throw 'Invalid WebView2 installer signature' }
+            $process = Start-Process $installer -ArgumentList '/silent', '/install' -Wait -PassThru
+            if ($process.ExitCode -ne 0) { throw "WebView2 installation failed: $($process.ExitCode)" }
+          }
+      - name: Load real HTML and exercise the system browser engine
+        shell: pwsh
+        run: |
+          dotnet run --project tests/Meili.NewsBrowser.Smoke/Meili.NewsBrowser.Smoke.csproj -c Release -p:BuildInParallel=false
+          if ($LASTEXITCODE -ne 0) { throw 'Native news reader smoke failed' }
+
   required:
     name: CLI and MCP required
     if: always()
-    needs: [automation, desktop]
+    needs: [automation, desktop, news-browser]
     runs-on: ubuntu-24.04
     steps:
       - name: All platform and desktop checks must pass
         env:
           AUTOMATION_RESULT: ${{ needs.automation.result }}
           DESKTOP_RESULT: ${{ needs.desktop.result }}
+          BROWSER_RESULT: ${{ needs.news-browser.result }}
         run: |
           test "$AUTOMATION_RESULT" = success
           test "$DESKTOP_RESULT" = success
+          test "$BROWSER_RESULT" = success

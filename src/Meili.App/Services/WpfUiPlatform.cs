@@ -26,6 +26,21 @@ public sealed class WpfUiPlatform : IUiPlatform
     public Task<bool> ConfirmAsync(string title, string message) =>
         Task.FromResult(MessageBox.Show(message, title, MessageBoxButton.OKCancel, MessageBoxImage.Question) == MessageBoxResult.OK);
 
+    private NewsReaderWindow? _reader;
+    public void OpenNewsArticle(string url, string title)
+    {
+        if (!NewsReaderPolicy.IsAllowed(url)) throw new ArgumentException("Unsupported article URL", nameof(url));
+        if (_reader is null)
+        {
+            _reader = new NewsReaderWindow();
+            _reader.Closed += (_, _) => _reader = null;
+            _reader.Owner = Application.Current?.MainWindow;
+            _reader.Show();
+        }
+        _reader.OpenArticle(url, title);
+        _reader.Activate();
+    }
+
     public void OpenUrl(string url) => Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
 
     public void OpenFolder(string path) =>

@@ -717,4 +717,14 @@
     <sys:String x:Key="Mac_AlDesc">When last price, change percent, volume or IV crosses a level you set, a banner appears in the window, a macOS notification is posted and the Dock icon bounces. Closing the window exits by default. In Settings you can choose to hide the window instead so alerts keep running; ⌘Q also quits.</sys:String>
     <sys:String x:Key="Mac_ShortcutsDesc">⌘1…⌘9 switch to Overview, Watchlist, K-line, Options, Strategy, News, Alerts, Data Sources, Settings; ⌘R refreshes the page; ⌘F or typing outside a text box opens the keyboard wizard; ⌘E exports the current table; ⌘, opens Settings; ⌘W or the red close button exits by default (in Settings you can hide the window instead); ⌘Q quits.</sys:String>
     <sys:String x:Key="Menu_Close">Close Window</sys:String>
+    <sys:String x:Key="Reader_Title">News reader</sys:String>
+    <sys:String x:Key="Reader_Back">Back</sys:String>
+    <sys:String x:Key="Reader_Forward">Forward</sys:String>
+    <sys:String x:Key="Reader_Reload">Reload</sys:String>
+    <sys:String x:Key="Reader_External">Open in browser</sys:String>
+    <sys:String x:Key="Reader_Loading">Loading…</sys:String>
+    <sys:String x:Key="Reader_Failed">Could not load this page. Retry or open it in your browser.</sys:String>
+    <sys:String x:Key="Reader_Blocked">Only HTTP/HTTPS pages are supported. Downloads and other protocols are blocked.</sys:String>
+    <sys:String x:Key="Reader_Runtime">Microsoft Edge WebView2 Runtime is required. Install it and restart the app.</sys:String>
+    <sys:String x:Key="Reader_Install">Install WebView2 Runtime</sys:String>
 </ResourceDictionary>

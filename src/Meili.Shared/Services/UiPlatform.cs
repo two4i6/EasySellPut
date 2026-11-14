@@ -24,6 +24,8 @@ public interface IUiPlatform
 
     void OpenUrl(string url);
 
+    void OpenNewsArticle(string url, string title);
+
     void OpenFolder(string path);
 
     /// <summary>Native save dialog offering .xlsx and .csv. Null when the user cancels.</summary>
