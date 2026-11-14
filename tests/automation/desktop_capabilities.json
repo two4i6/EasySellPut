@@ -213,7 +213,9 @@
         "get_volatility_insights",
         "record_option_snapshot",
         "build_strategy",
-        "update_preferences"
+        "update_preferences",
+        "analyze_strategy",
+        "save_strategy"
       ],
       "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation.",
       "commands": {
@@ -225,8 +227,11 @@
         },
         "BuildStrategy": {
           "operations": [
-            "build_strategy"
-          ]
+            "get_option_chain",
+            "analyze_strategy",
+            "save_strategy"
+          ],
+          "scope": "A selected call/put with Long/Short side becomes explicit legs from its quoted reference; transferring the seed to a desktop tab is presentation. Presets are separately covered by build_strategy."
         },
         "RefreshAsync": {
           "operations": [
