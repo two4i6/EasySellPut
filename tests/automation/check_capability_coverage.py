@@ -8,6 +8,7 @@ import tempfile
 
 from cli_mcp_smoke import Mcp, run
 from desktop_coverage import check_desktop
+from skill_coverage import check_skill
 
 
 def validate_cases(operations, cases):
@@ -68,6 +69,7 @@ def check(command, manifest, report):
         if not operations or len(operations) != len(catalog['operations']):
             raise AssertionError('Compiled operation catalog must be nonempty with unique names.')
         check_desktop(operations)
+        check_skill(operations)
         cases = manifest['cases']
         validate_cases(operations, cases)
         reader = Mcp(command, mcp_dir)

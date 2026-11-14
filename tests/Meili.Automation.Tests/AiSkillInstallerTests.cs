@@ -15,6 +15,19 @@ public sealed class AiSkillInstallerTests:IDisposable
         File.WriteAllText(target,"user-owned");Assert.Throws<SkillInstallConflictException>(()=>AiSkillInstaller.Install(client,_root));Assert.Equal("user-owned",File.ReadAllText(target));
     }
     [Fact]
+    public void Embedded_skill_covers_every_catalog_tool_with_matching_access()
+    {
+        var content=AiSkillInstaller.Content;
+        var section=content.Split("<!-- mcp-tool-guide:start -->")[1].Split("<!-- mcp-tool-guide:end -->")[0];
+        var rows=section.Split('\n').Where(line=>line.StartsWith("| `",StringComparison.Ordinal)).ToArray();
+        Assert.Equal(OperationCatalog.All.Count,rows.Length);
+        foreach(var operation in OperationCatalog.All)
+        {
+            var prefix=$"| `{operation.Name}` | {(operation.Writes ? "write" : "read")} | ";
+            Assert.Single(rows,line=>line.StartsWith(prefix,StringComparison.Ordinal));
+        }
+    }
+    [Fact]
     public void Unknown_client_cannot_choose_a_destination()
     {
         Assert.Throws<ArgumentException>(()=>AiSkillInstaller.Install("../other",_root));Assert.False(Directory.Exists(_root));

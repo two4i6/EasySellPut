@@ -49,3 +49,9 @@ Skill 引导工具发现、行情来源/时效、缺失值、图表指标、期�
 真实进程 smoke 在临时项目分别安装两个客户端 skill，验证重复安装不重写、冲突退出且旧内容不变；同样用于解压后的四架构发行包。模板测试验证 POSIX/PowerShell 的条件执行、Claude user/stdio 参数、中文/空格/引号/Unicode 路径和只读默认。原生桌面自检检查两个按钮及剪贴板内容；现有 43 项业务 MCP/CLI 场景继续执行。`install-skill` 仅为 CLI 本地配置辅助命令，不作为 MCP 工具开放。
 
 格式参考：Codex [Skills](https://developers.openai.com/codex/skills/)、Anthropic [Skills 仓库](https://github.com/anthropics/skills)、Claude Code [Skills](https://code.claude.com/docs/en/skills) / [MCP](https://code.claude.com/docs/en/mcp)。本环境已用预装 Codex CLI 0.167.0-alpha.4 的 `mcp add --help` 核对注册语法；Claude Code 未安装，访问后两份网页返回 403；技能格式与个人目录另参考官方 GitHub 文档/变更记录。没有在开发环境冒充已安装的 Codex/Claude 去修改用户配置；实际客户端是否存在、注册是否成功，由用户执行命令的退出结果确认。
+
+## Skill 与 MCP 的 CI 同步检查
+
+`check_capability_coverage.py` 从编译后的 CLI 帮助读取 OperationCatalog，再检查 skill 中的完整工具指南：每个 MCP 工具必须恰好有一项用途说明，读写标记必须一致，不能保留已删除或改名的工具引用。此检查已纳入五平台 CLI/MCP CI 和本地 `build/test-headless.sh`，受 `CLI and MCP required` 汇总检查约束。新增工具遗漏 skill 会失败；新增用例仍须实际通过 CLI 和 MCP 执行。
+
+此检查证明工具清单与权限标记同步，不代表能够自动判断自然语言指引的业务正确性；修改参数或业务行为时仍需人工审查工作流说明。skill 是使用指引，工具实现和实时参数定义仍由 MCP 服务提供，安装 skill 不会启用写权限。
