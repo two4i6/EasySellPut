@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using Avalonia.Controls;
 using Avalonia.Platform;
+using Avalonia.Threading;
 using Meili.Core.Diagnostics;
 
 namespace Meili.Mac.Platform;
@@ -11,6 +12,15 @@ public sealed class NewsWebView : NativeControlHost
 {
     private IntPtr _view, _delegate;
     private string? _pending;
+    private readonly DispatcherTimer _stateTimer = new() { Interval = TimeSpan.FromMilliseconds(250) };
+    private bool _lastBack, _lastForward;
+
+    public NewsWebView()
+    {
+        // WebKit title/history can change after didFinishNavigation (including client-rendered headlines).
+        // Poll only while the native view exists; no KVO observer lifetime or extra native library is needed.
+        _stateTimer.Tick += (_, _) => { if (_view != IntPtr.Zero) Update(StatusKey); };
+    }
     public event Action? Changed;
     public string Address { get; private set; } = "";
     public string DocumentTitle { get; private set; } = "";
@@ -52,6 +62,7 @@ public sealed class NewsWebView : NativeControlHost
             AppLog.Info("news-reader", "WKWebView initialized");
             Native.Send(_view, "setNavigationDelegate:", _delegate);
             Native.Send(_view, "setUIDelegate:", _delegate);
+            _stateTimer.Start();
             if (_pending is not null) Navigate(_pending);
             return new PlatformHandle(_view, "NSView");
         }
@@ -70,6 +81,7 @@ public sealed class NewsWebView : NativeControlHost
     }
     private void ReleaseNative()
     {
+        _stateTimer.Stop();
         if (_view == IntPtr.Zero) return;
         AppLog.Info("news-reader", "WKWebView disposed");
         Native.Send(_view, "stopLoading");
@@ -82,10 +94,12 @@ public sealed class NewsWebView : NativeControlHost
     }
     private void Update(string status)
     {
-        StatusKey = status;
-        Address = Native.Text(Native.Send(Native.Send(_view, "URL"), "absoluteString"));
-        DocumentTitle = Native.Text(Native.Send(_view, "title"));
-        Changed?.Invoke();
+        var address = Native.Text(Native.Send(Native.Send(_view, "URL"), "absoluteString"));
+        var title = Native.Text(Native.Send(_view, "title"));
+        var back = CanGoBack; var forward = CanGoForward;
+        var changed = status != StatusKey || address != Address || title != DocumentTitle || back != _lastBack || forward != _lastForward;
+        StatusKey = status; Address = address; DocumentTitle = title; _lastBack = back; _lastForward = forward;
+        if (changed) Changed?.Invoke();
     }
 
     private static class Native
