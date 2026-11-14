@@ -791,4 +791,5 @@
     <sys:String x:Key="Set_AiToml">Copy Codex TOML</sys:String>
     <sys:String x:Key="Set_AiJson">Copy generic JSON</sys:String>
     <sys:String x:Key="Set_AiPrivacy">Query results are sent to the connected AI tool.</sys:String>
+    <sys:String x:Key="Set_AiMoveApp">Move the app to Applications and reopen it first.</sys:String>
 </ResourceDictionary>

@@ -17,6 +17,6 @@ public sealed record McpConnectionSetup(string Executable, string DataDirectory,
     public string CodexCommand => "codex mcp add easysellput -- " + string.Join(" ", new[] { Executable }.Concat(Arguments).Select(Quote));
     private string Quote(string value) => "'" + value.Replace("'", Windows ? "''" : "'\"'\"'") + "'";
     public static McpConnectionSetup Bundled(string baseDirectory, string dataDirectory) => new(
-        Path.GetFullPath(Path.Combine(baseDirectory, "automation", OperatingSystem.IsWindows() ? "easysellput.exe" : "easysellput")),
+        Path.GetFullPath(Path.Combine(baseDirectory, OperatingSystem.IsMacOS() ? "../Resources/automation" : "automation", OperatingSystem.IsWindows() ? "easysellput.exe" : "easysellput")),
         Path.GetFullPath(dataDirectory), OperatingSystem.IsWindows());
 }

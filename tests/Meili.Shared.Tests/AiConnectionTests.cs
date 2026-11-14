@@ -31,6 +31,13 @@ public sealed class AiConnectionTests : IDisposable
         await vm.CopyCodexCommand.ExecuteAsync(null);Assert.Equal(loc["Set_AiCopyFailed"],vm.AiConnectionStatus);Assert.Null(((FakeUiPlatform)Ui.Platform).ClipboardText);
     }
     [Fact]
+    public void Translocated_mac_paths_are_not_copied_as_permanent_configuration()
+    {
+        var loc=new LocalizationService();
+        var vm=new SettingsViewModel(new(_path),loc,new Theme(),new(_path,DataDirectorySource.CommandLine),new Services(),new("/private/var/AppTranslocation/id/EasySellPut.app/Contents/Resources/automation/easysellput",_path,false));
+        Assert.True(vm.IsTransientConnection);Assert.False(vm.CanConnectAi);Assert.Equal(loc["Set_AiMoveApp"],vm.AiConnectionStatus);Assert.Empty(vm.McpJson);Assert.Empty(vm.McpToml);
+    }
+    [Fact]
     public async Task Missing_cli_is_explicit_and_does_not_copy_a_broken_command()
     {
         Ui.Platform=new FakeUiPlatform();var loc=new LocalizationService();

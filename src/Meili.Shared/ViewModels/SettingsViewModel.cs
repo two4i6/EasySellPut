@@ -30,10 +30,11 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] public partial string FixedRateError { get; set; } = "";
 
     private readonly McpConnectionSetup _connection;
-    public bool CanConnectAi => File.Exists(_connection.Executable);
-    public string McpJson => _connection.Json;
-    public string McpToml => _connection.Toml;
-    public string AiConnectionStatus => _copyState == 1 ? _loc["Set_AiCopied"] : _copyState == 2 ? _loc["Set_AiCopyFailed"] : CanConnectAi ? _loc["Set_AiReadonly"] : _loc["Set_AiMissing"];
+    public bool IsTransientConnection => !_connection.Windows && _connection.Executable.Contains("/AppTranslocation/", StringComparison.Ordinal);
+    public bool CanConnectAi => !IsTransientConnection && File.Exists(_connection.Executable);
+    public string McpJson => CanConnectAi ? _connection.Json : "";
+    public string McpToml => CanConnectAi ? _connection.Toml : "";
+    public string AiConnectionStatus => _copyState == 1 ? _loc["Set_AiCopied"] : _copyState == 2 ? _loc["Set_AiCopyFailed"] : IsTransientConnection ? _loc["Set_AiMoveApp"] : CanConnectAi ? _loc["Set_AiReadonly"] : _loc["Set_AiMissing"];
     private int _copyState;
     private async Task CopyConnectionAsync(string content)
     {

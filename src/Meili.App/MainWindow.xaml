@@ -98,7 +98,7 @@
         </Border>
 
         <!-- Status bar -->
-        <Border Grid.Row="2" Padding="16,6" BorderThickness="0,1,0,0"
+        <Border x:Name="StatusBarSurface" Grid.Row="2" Padding="16,6" BorderThickness="0,1,0,0"
                 BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
                 Background="{DynamicResource LayerFillColorDefaultBrush}">
             <DockPanel LastChildFill="False">

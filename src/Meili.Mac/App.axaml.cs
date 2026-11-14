@@ -94,7 +94,7 @@ public partial class App : Application
             var db = AppServices.Get<Meili.Data.Cache.MarketDb>();
             if (db.ReadSchemaVersion() != Meili.Data.Cache.MarketDb.SchemaVersion) throw new InvalidOperationException("Native SQLite unavailable");
         }
-        catch (Exception ex) { failures.Add(ex.ToString()); }
+        catch (Exception ex) { AppLog.Error("package-smoke", "Packaged desktop self-check failed", ex); failures.Add(ex.ToString()); }
         var report = options.SmokeReport ?? Path.Combine(AppServices.DataDirectory.Path, "logs", "smoke.json");
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(report))!);
         await File.WriteAllTextAsync(report, System.Text.Json.JsonSerializer.Serialize(new { Failures = failures.Count, Errors = failures, Checks = new[] { "real_window", "settings", "bundled_automation", "clipboard", "resources", "sqlite", "packaged_webview_chart" }, Architecture = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString() }));

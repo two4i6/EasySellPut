@@ -45,14 +45,15 @@ def pack(rid,output):
         publish=work/'publish'
         project=ROOT/('src/Meili.App/Meili.App.csproj' if host=='win' else 'src/Meili.Mac/Meili.Mac.csproj')
         run('dotnet','publish',project,'-c','Release','-r',rid,'--self-contained','true','-m:3','-p:PublishTrimmed=false',f'-p:PublishSingleFile={str(host=="osx").lower()}','-p:IncludeNativeLibrariesForSelfExtract=false','-p:DebugType=None','-o',publish)
-        automation=publish/'automation'
-        run('dotnet','publish',ROOT/'src/Meili.Cli/Meili.Cli.csproj','-c','Release','-r',rid,'--self-contained','true','-m:3','-p:PublishTrimmed=false',f'-p:PublishSingleFile={str(host=="osx").lower()}','-p:IncludeNativeLibrariesForSelfExtract=false','-p:PackAsTool=false','-p:DebugType=None','-o',automation)
+        automation=work/'automation'
+        run('dotnet','publish',ROOT/'src/Meili.Cli/Meili.Cli.csproj','-c','Release','-r',rid,'--self-contained','true','-m:3','-p:PublishTrimmed=false',f'-p:PublishSingleFile={str(host=="osx").lower()}','-p:IncludeNativeLibrariesForSelfExtract=false','-p:PackAsTool=false','-p:DebugType=None','-p:GenerateDocumentationFile=false','-p:PublishReferencesDocumentationFiles=false','-o',automation)
         if host=='osx':
             icon=work/'AppIcon.icns';run(sys.executable,ROOT/'build/mac/make_icon.py',icon)
             app=payload/'EasySellPut.app';bundle.make_app(publish,app,version,icon)
+            shutil.copytree(automation,app/'Contents/Resources/automation')
             # All managed assemblies are single-file; sign native libraries and executables from the inside out.
-            for file in sorted((app/'Contents/MacOS').rglob('*'),key=lambda p:len(p.parts),reverse=True):
-                if not file.is_file() or file.is_symlink():continue
+            for file in sorted(app.rglob('*'),key=lambda p:len(p.parts),reverse=True):
+                if not file.is_file() or file.is_symlink() or file==app/'Contents/MacOS/MeiliMac':continue
                 with file.open('rb') as stream:magic=stream.read(4)
                 if magic in (b'\xcf\xfa\xed\xfe',b'\xca\xfe\xba\xbe'):
                     run('codesign','--force','--sign','-',file)
@@ -60,11 +61,12 @@ def pack(rid,output):
             run('codesign','--verify','--deep','--strict',app)
         else:
             shutil.copytree(publish,payload,dirs_exist_ok=True)
+            shutil.copytree(automation,payload/'automation')
             (payload/'MeiliTerminal.exe').rename(payload/'EasySellPut.exe')
             (payload/'portable.flag').write_text('')
         shutil.copy(ROOT/'LICENSE',payload/'LICENSE')
         shutil.copy(ROOT/'docs/08-CLI与MCP使用说明.md',payload/'CLI-MCP.md')
-        (payload/'README.txt').write_text('EasySellPut desktop + CLI/MCP\nOpen EasySellPut, then Settings > Connect AI tools. MCP is read-only by default.\nWindows: installed Evergreen WebView2 runtime required. macOS: ad-hoc signed, not notarized.\nNo Developer ID / Windows publisher signature is included in CI builds.\n',encoding='utf-8')
+        (payload/'README.txt').write_text('EasySellPut desktop + CLI/MCP\nmacOS: move EasySellPut.app to Applications before opening.\nOpen EasySellPut, then Settings > Connect AI tools. MCP is read-only by default.\nWindows: installed Evergreen WebView2 runtime required. macOS: ad-hoc signed, not notarized.\nNo Developer ID / Windows publisher signature is included in CI builds.\n',encoding='utf-8')
         with __import__('zipfile').ZipFile(archive,'w') as zipped:
             for file in sorted(payload.rglob('*')):
                 bundle.add(zipped,str(file),str(file.relative_to(work)).replace('\\','/'))

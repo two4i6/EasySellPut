@@ -38,7 +38,7 @@ def check(archive,rid,destination):
         assert (app/'Contents/Resources/AppIcon.icns').is_file()
         assert list(base.glob('*coreclr*.dylib'))
         subprocess.run(['codesign','--verify','--deep','--strict',str(app)],check=True)
-    cli=base/'automation'/('easysellput.exe' if rid.startswith('win-') else 'easysellput')
+    cli=(root/'EasySellPut.app/Contents/Resources/automation' if rid.startswith('osx-') else base/'automation')/('easysellput.exe' if rid.startswith('win-') else 'easysellput')
     for executable in (gui,cli):binary_architecture(executable,rid)
     report=destination.parent/'desktop-smoke.json'
     with tempfile.TemporaryDirectory(prefix='meili desktop data ') as data:

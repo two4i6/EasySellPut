@@ -89,7 +89,7 @@ public partial class MainWindow : FluentWindow
         ("title-bar", TitleBar, new Point(320, 22)),
         ("navigation", RootNavigation, new Point(40, 560)),
         ("page", (FrameworkElement?)_currentPage ?? RootNavigation, new Point(1000, 400)),
-        ("status-bar", RootNavigation, new Point(900, ActualHeight - 12)),
+        ("status-bar", StatusBarSurface, StatusBarSurface.TranslatePoint(new Point(8, StatusBarSurface.ActualHeight / 2), this)),
     ];
 
     private bool _smoke;
