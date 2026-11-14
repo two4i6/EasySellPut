@@ -68,33 +68,55 @@
     const names = zh ? {news:'新闻',earnings:'财报',ex_dividend:'除息'} : {news:'News',earnings:'Earnings',ex_dividend:'Ex-dividend'};
     const labels = zh ? {estimated:'预计',source_confirmed:'来源已确认',unverified:'未核实',reported_published:'来源发布时间',timestamp:'精确时间',date:'仅日期',date_range:'日期范围',unknown:'时间未知',outside_chart:'图表范围外',next_bar:'对齐后续 K 线',same_day:'同日 K 线',period_bucket:'周期汇总',exact:'精确对齐',available:'可用',empty:'暂无新闻',not_reported:'来源未提供',unavailable:'不可用'} :
       {estimated:'Estimated',source_confirmed:'Source confirmed',unverified:'Unverified',reported_published:'Reported publication',timestamp:'Timestamp',date:'Date only',date_range:'Date range',unknown:'Time unknown',outside_chart:'Outside chart',next_bar:'Aligned to next bar',same_day:'Same day bar',period_bucket:'Period bucket',exact:'Exact',available:'Available',empty:'No recent news',not_reported:'Not reported',unavailable:'Unavailable'};
-    const text = (tag,value) => {const node=document.createElement(tag);node.textContent=value;return node;};
-    const date = e => e.published ? new Intl.DateTimeFormat(state.language,{timeZone:'America/New_York',dateStyle:'medium',timeStyle:'short'}).format(new Date(e.published))+' ET' : e.date ? e.date+(e.endDate ? ' – '+e.endDate : '') : labels.unknown;
+    const text = (tag,value,css) => {const node=document.createElement(tag);node.textContent=value;if(css)node.className=css;return node;};
+    const date = (e,compact=false) => e.published ? new Intl.DateTimeFormat(state.language,{timeZone:'America/New_York',dateStyle:compact?'short':'medium',timeStyle:'short'}).format(new Date(e.published))+' ET' : e.date ? e.date+(e.endDate ? ' – '+e.endDate : '') : labels.unknown;
     document.getElementById('event-heading').textContent = zh ? '事件时间线' : 'Event timeline';
     const box = document.getElementById('event-filters');
-    if (box.dataset.language !== state.language) {box.dataset.language=state.language;box.replaceChildren();
-    for (const type of Object.keys(names)) {
-      const label = text('label',''), input=document.createElement('input');input.type='checkbox';input.checked=filters.has(type);input.dataset.type=type;
-      input.addEventListener('change',()=>{input.checked?filters.add(type):filters.delete(type);renderEvents();});label.append(input,document.createTextNode(names[type]));box.append(label);
-    }}
-    document.getElementById('event-status').textContent = state.timelineStatus === 'loading' ? (zh?'事件加载中…':'Loading events…') :
-      (state.coverage || []).map(c=>names[c.type]+': '+(labels[c.status]||c.status)).join(' · ') + (zh?' · 最近新闻及当前日历快照，非历史档案':' · Recent news/current calendar snapshot; not an archive');
+    if (box.dataset.language !== state.language) {
+      box.dataset.language=state.language;box.replaceChildren();
+      for (const type of Object.keys(names)) {
+        const label = text('label',''), input=document.createElement('input');input.type='checkbox';input.checked=filters.has(type);input.dataset.type=type;
+        input.addEventListener('change',()=>{input.checked?filters.add(type):filters.delete(type);renderEvents();});label.append(input,document.createTextNode(names[type]));box.append(label);
+      }
+    }
+    const status=document.getElementById('event-status');
+    status.textContent=state.timelineStatus==='loading' ? (zh?'加载中…':'Loading…') : (state.coverage||[]).filter(c=>c.status==='unavailable').map(c=>names[c.type]+': '+labels.unavailable).join(' · ');
+    status.hidden=!status.textContent;
+    document.getElementById('event-info-heading').textContent=zh?'数据范围':'Data coverage';
+    document.getElementById('event-coverage').textContent=(state.coverage||[]).map(c=>names[c.type]+': '+(labels[c.status]||c.status)).join(' · ');
+    document.getElementById('event-scope').textContent=zh?'最近新闻与当前日历快照，不含完整历史。':'Recent news and current calendar snapshot; historical coverage is limited.';
     const visible=(state.events||[]).filter(e=>filters.has(e.event.type));
+    if(!visible.some(e=>e.event.id===selectedEvent)) selectedEvent=null;
     const groups=new Map();for(const item of visible) if(finite(item.time)){if(!groups.has(item.time))groups.set(item.time,[]);groups.get(item.time).push(item);}
-    eventMarkers.setMarkers([...groups].sort((a,b)=>a[0]-b[0]).map(([time,items])=>({time,id:items[0].event.id,position:'aboveBar',shape:'circle',color:state.theme.accent,text:items.length>1?String(items.length):names[items[0].event.type]})));
+    eventMarkers.setMarkers([...groups].sort((a,b)=>a[0]-b[0]).map(([time,items])=>({time,id:items[0].event.id,position:'aboveBar',shape:items.some(i=>i.event.id===selectedEvent)?'square':'circle',color:state.theme.accent,text:items.length>1?String(items.length):names[items[0].event.type]})));
     const focusedId=document.activeElement?.dataset.eventId;
     const list=document.getElementById('event-list');list.replaceChildren();
-    if(!visible.some(e=>e.event.id===selectedEvent)) selectedEvent=visible[0]?.event.id;
-    for(const item of visible){const e=item.event,b=text('button',names[e.type]+' · '+date(e)+' · '+(e.type==='news'?e.title:labels[e.confirmation]));b.type='button';b.dataset.eventId=e.id;b.setAttribute('aria-pressed',String(e.id===selectedEvent));b.addEventListener('click',()=>{selectedEvent=e.id;renderEvents();});list.append(b);if(focusedId===e.id)b.focus({preventScroll:true});}
-    const detail=document.getElementById('event-detail');detail.replaceChildren();
-    const item=visible.find(e=>e.event.id===selectedEvent);if(!item){detail.append(text('p',zh?'没有符合筛选条件的事件':'No matching events'));return;}
+    for(const item of visible) {
+      const e=item.event,b=text('button','');b.type='button';b.dataset.eventId=e.id;b.setAttribute('aria-pressed',String(e.id===selectedEvent));b.setAttribute('aria-controls','event-detail');
+      b.append(text('span',e.type==='news'?e.title:names[e.type],'event-title'));
+      const meta=text('span','','event-row-meta');meta.append(text('span',date(e,true)));
+      if(e.type!=='news')meta.append(text('span',labels[e.confirmation],'event-badge'));
+      if(item.alignment==='outside_chart' && e.date)meta.append(text('span',labels.outside_chart,'event-badge'));
+      b.append(meta);b.addEventListener('click',()=>{selectedEvent=e.id;renderEvents();});list.append(b);if(focusedId===e.id)b.focus({preventScroll:true});
+    }
+    if(!visible.length && state.timelineStatus!=='loading')list.append(text('p',zh?'暂无匹配事件':'No matching events','event-empty'));
+    const detail=document.getElementById('event-detail');
+    const keepMetadataOpen=detail.dataset.eventId===selectedEvent && detail.querySelector('details')?.open;
+    detail.dataset.eventId=selectedEvent||'';detail.replaceChildren();detail.hidden=!selectedEvent;
+    document.getElementById('event-content').classList.toggle('has-selection',!!selectedEvent);
+    const item=visible.find(e=>e.event.id===selectedEvent);if(!item)return;
     const e=item.event;
-    detail.append(text('p',e.type==='news'?e.title:names[e.type]),text('p',date(e)+' · '+labels[e.precision]+' · '+labels[e.confirmation]),text('p',(zh?'来源：':'Source: ')+(e.publisher?e.publisher+' / ':'')+e.source),text('p',labels[item.alignment]));
-    if(e.summary)detail.append(text('p',e.summary));
-    if(e.providerFetchedAt)detail.append(text('p',(zh?'来源下载时间：':'Provider fetched: ')+e.providerFetchedAt));
-    if(e.providerAsOf)detail.append(text('p',(zh?'来源数据时间：':'Provider as of: ')+e.providerAsOf));
-    detail.append(text('p',(zh?'本次读取：':'Observed: ')+e.observedAt));
-    if(e.type==='news' && e.url){const b=text('button',zh?'内置阅读器打开原文':'Read original');b.type='button';b.addEventListener('click',()=>post({kind:'open-event',key:state.key,id:e.id}).catch(error));detail.append(b);}
+    const close=text('button',zh?'收起详情':'Close details','event-close');close.type='button';close.id='event-close';close.addEventListener('click',()=>{const id=selectedEvent;selectedEvent=null;renderEvents();list.querySelector('[data-event-id="'+id+'"]')?.focus({preventScroll:true});});
+    detail.append(close,text('p',e.type==='news'?e.title:names[e.type],'event-detail-title'),text('p',date(e)+(e.type!=='news'?' · '+labels[e.confirmation]:''),'event-caption'));
+    if(e.publisher||e.source)detail.append(text('p',e.publisher||e.source,'event-caption'));
+    if(e.summary)detail.append(text('p',e.summary,'event-summary'));
+    if(e.type==='news' && e.url){const b=text('button',zh?'阅读原文':'Read original','event-read');b.type='button';b.id='event-read';b.addEventListener('click',()=>post({kind:'open-event',key:state.key,id:e.id}).catch(error));detail.append(b);}
+    const metadata=document.createElement('details');metadata.className='event-metadata';metadata.open=!!keepMetadataOpen;
+    metadata.append(text('summary',zh?'数据详情':'Data details'),text('p',labels[e.precision]+' · '+labels[e.confirmation]),text('p',(zh?'来源：':'Source: ')+(e.publisher?e.publisher+' / ':'')+e.source),text('p',labels[item.alignment]));
+    if(e.published)metadata.append(text('p',(zh?'原始时间：':'Original time: ')+e.published));
+    if(e.providerFetchedAt)metadata.append(text('p',(zh?'来源下载时间：':'Provider fetched: ')+e.providerFetchedAt));
+    if(e.providerAsOf)metadata.append(text('p',(zh?'来源数据时间：':'Provider as of: ')+e.providerAsOf));
+    metadata.append(text('p',(zh?'本次读取：':'Observed: ')+e.observedAt));detail.append(metadata);
   }
   function showLegend(row) {
     const fields = [state.show.ma && ['MA', row.ma], state.show.ema && ['EMA', row.ema], state.show.macd && ['MACD', row.macd], state.show.rsi && ['RSI', row.rsi], state.show.kdj && ['K', row.k]];

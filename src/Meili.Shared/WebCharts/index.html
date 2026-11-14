@@ -24,14 +24,22 @@ footer{padding:8px 12px;display:flex;gap:12px;align-items:center;justify-content
 
 #timeline{border-top:1px solid var(--border);padding:8px 12px;max-height:35%;overflow:auto;flex-shrink:0}
 #timeline summary{cursor:pointer;font-size:14px;min-height:24px}
-#event-filters{display:flex;gap:12px;flex-wrap:wrap;margin:8px 0}
-#event-status{color:var(--muted);margin:8px 0}
-#event-content{display:flex;gap:12px;min-width:0}#event-list{display:flex;flex-direction:column;gap:8px;flex:1;min-width:0;max-height:140px;overflow:auto}
-#event-list button{text-align:left;white-space:normal;flex-shrink:0}#event-detail{flex:1;min-width:0;overflow-wrap:anywhere;white-space:pre-line;font-size:14px}
-#event-detail p{margin:0 0 8px}#event-list button[aria-pressed=true]{border-color:var(--accent)}
-@media(max-width:640px){#event-content{flex-direction:column}#timeline{max-height:40%}#event-list{max-height:80px}}
+#event-tools{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:8px 0}
+#event-filters{display:flex;gap:12px;flex-wrap:wrap}#event-filters label{display:flex;align-items:center;gap:4px;min-height:28px;cursor:pointer}
+#event-info{margin-left:auto;color:var(--muted)}#event-info summary{font-size:12px}#event-info p{margin:8px 0;max-width:420px}
+#event-status{color:var(--error-text);margin:8px 0}#event-status[hidden],#event-detail[hidden]{display:none}
+#event-content{display:flex;gap:12px;min-width:0}#event-list{display:flex;flex-direction:column;gap:8px;flex:1;min-width:0;max-height:190px;overflow:auto;padding:2px}
+#event-list button{text-align:left;white-space:normal;flex-shrink:0;padding:8px 12px}
+.event-title{display:block;overflow-wrap:anywhere}.event-row-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px;color:var(--muted);font-size:12px}
+.event-badge{border:1px solid var(--border);border-radius:6px;padding:1px 6px;color:var(--text)}
+#event-detail{flex:1;min-width:0;overflow-wrap:anywhere;font-size:14px;border-left:1px solid var(--border);padding-left:12px}
+#event-detail p{margin:0 0 8px}.event-caption,.event-metadata,.event-empty{font-size:12px;color:var(--muted)}.event-summary{white-space:pre-line}
+#event-list button[aria-pressed=true]{border-color:var(--accent);box-shadow:inset 3px 0 var(--accent)}
+.event-close{float:right;font-size:12px;margin:0 0 8px 8px}.event-detail-title{font-weight:600}.event-read{border-color:var(--accent);margin-bottom:8px}
+.event-metadata{clear:both}.event-metadata summary{font-size:12px!important}.event-metadata p{margin-top:8px!important}
+@media(max-width:640px){#event-content{flex-direction:column}#timeline{max-height:45%}.has-selection #event-list{max-height:112px}#event-detail{border-left:0;border-top:1px solid var(--border);padding:12px 0 0}#event-info{margin-left:0}}
 </style>
 <script src="library.js" defer></script><script src="chart.js" defer></script>
 </head>
-<body><div id="toolbar"><span id="symbol"></span><span id="legend"></span><button id="fit" type="button">Fit</button></div><div id="error" role="alert"></div><div id="chart"><div id="empty"></div></div><details id="timeline"><summary id="event-heading">Events</summary><div id="event-filters"></div><div id="event-status" role="status"></div><div id="event-content"><div id="event-list"></div><div id="event-detail" aria-live="polite"></div></div></details><footer><span id="hint"></span><a id="attribution" href="https://www.tradingview.com/" target="_blank" rel="noopener">TradingView Lightweight Charts™</a></footer></body>
+<body><div id="toolbar"><span id="symbol"></span><span id="legend"></span><button id="fit" type="button">Fit</button></div><div id="error" role="alert"></div><div id="chart"><div id="empty"></div></div><details id="timeline"><summary id="event-heading">Events</summary><div id="event-tools"><div id="event-filters"></div><details id="event-info"><summary id="event-info-heading">Data coverage</summary><p id="event-coverage"></p><p id="event-scope"></p></details></div><div id="event-status" role="status"></div><div id="event-content"><div id="event-list"></div><div id="event-detail" aria-live="polite" hidden></div></div></details><footer><span id="hint"></span><a id="attribution" href="https://www.tradingview.com/" target="_blank" rel="noopener">TradingView Lightweight Charts™</a></footer></body>
 </html>
