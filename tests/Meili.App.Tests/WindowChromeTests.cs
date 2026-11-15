@@ -17,6 +17,7 @@ public sealed class WindowChromeTests
                     ScreenRenderTests.Apply("zh-CN",dark);await ScreenRenderTests.Settle();
                     Assert.Equal(DesignTokens.WindowHeaderHeight,title.ActualHeight);
                     Assert.Equal(ThemePalette.For(dark).Window,ColorValue((SolidColorBrush)title.Background));
+                    Assert.Empty(title.Title);Assert.Equal(LocalizationService.Current["App_Title"],w.Title);
                     Assert.True(w.ExtendsContentIntoTitleBar);Assert.True(title.ShowClose);Assert.True(title.ShowMinimize);Assert.True(title.ShowMaximize);
                     var workspace=(FrameworkElement)w.FindName("WorkspaceGrid");Assert.True(workspace.TranslatePoint(default,w).Y>=title.ActualHeight);
                 }

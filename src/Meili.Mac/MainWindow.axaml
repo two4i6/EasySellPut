@@ -47,10 +47,6 @@
     <Border x:Name="WindowHeader" DockPanel.Dock="Top" Height="{StaticResource WindowHeaderHeight}"
             Background="{DynamicResource ApplicationBackgroundBrush}"
             chrome:WindowDecorationProperties.ElementRole="TitleBar">
-        <TextBlock Text="{DynamicResource App_Title}" Classes="Caption"
-                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                   Margin="160,0" HorizontalAlignment="Center" VerticalAlignment="Center"
-                   IsHitTestVisible="False"/>
     </Border>
     <Grid RowDefinitions="*,Auto" ColumnDefinitions="64,*">
         <Border Grid.Column="0" Background="{DynamicResource LayerFillColorDefaultBrush}" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="0,0,1,0">

@@ -24,9 +24,8 @@ public sealed class WindowChromeTests
                 header.IsVisible=true;MacHost.Pump();
                 Assert.Equal(DesignTokens.WindowHeaderHeight,header.Bounds.Height);
                 Assert.Equal(ThemePalette.For(dark).Window,((ISolidColorBrush)header.Background!).Color.ToUInt32());
-                var title=header.GetVisualDescendants().OfType<TextBlock>().Single();Assert.Equal(LocalizationService.Current["App_Title"],title.Text);
-                var p=title.TranslatePoint(new Point(title.Bounds.Width/2,title.Bounds.Height/2),window)!.Value;
-                Assert.InRange(Math.Abs(p.X-window.ClientSize.Width/2),0,1);Assert.InRange(Math.Abs(p.Y-header.Bounds.Height/2),0,1);
+                Assert.Empty(header.GetVisualDescendants().OfType<TextBlock>());
+                Assert.Equal(LocalizationService.Current["App_Title"],window.Title); // OS switcher accessibility keeps its title
                 Assert.True(window.FindControl<ContentControl>("PageHost")!.TranslatePoint(default,window)!.Value.Y>=header.Bounds.Bottom);
                 MacHost.Save(window,$"window-chrome-{width}-{language}-{dark}");
             }
