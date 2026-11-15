@@ -43,6 +43,48 @@ class TimelineTests(unittest.TestCase):
             self.page.screenshot(path=str(pathlib.Path(output)/(name+'.png')))
             if name.startswith('news-history'):
                 self.page.locator('#timeline').screenshot(path=str(pathlib.Path(output)/(name+'-panel.png')))
+    def test_aggregated_marker_opens_all_28_events_with_matching_filters(self):
+        p=self.page
+        original=p.evaluate('structuredClone(meiliChart.inspect().state)')
+        try:
+            p.set_viewport_size(dict(width=1440,height=1000))
+            p.evaluate("""()=>{const s=structuredClone(meiliChart.inspect().state),template=s.events.find(x=>x.event.type==='news'&&x.time);
+                s.key+='|group-repro';s.events=Array.from({length:28},(_,n)=>({...template,event:{...template.event,id:'bucket-'+n,title:'聚合新闻 '+String(n+1).padStart(2,'0')+' · 测试数据',published:new Date(Date.UTC(2025,0,6,20)-n*60000).toISOString()}}));
+                s.events.push({...template,time:s.rows.at(-1).time,event:{...template.event,id:'outside-bucket',title:'另一根 K 线的新闻 · 测试数据'}});meiliChart.render(s);}""")
+            def click_bucket():
+                p.locator('#fit').click();p.wait_for_timeout(200)
+                point=p.evaluate("""()=>{const {chart,series,state}=meiliChart.inspect();return {x:chart.timeScale().timeToCoordinate(state.events[0].time),y:series.candles.priceToCoordinate(118.5)}}""")
+                bounds=p.locator('#chart').bounding_box()
+                p.mouse.move(bounds['x']+point['x'],bounds['y']+point['y']);p.wait_for_timeout(100)
+                self.assertIn('28',p.locator('.tooltip-heading').inner_text())
+                p.mouse.click(bounds['x']+point['x'],bounds['y']+point['y']);p.wait_for_timeout(100)
+            click_bucket()
+            self.assertIn('28',p.locator('#event-group-label').inner_text())
+            self.assertEqual(p.locator('#event-list [data-event-id]').count(),28)
+            self.assertFalse(p.locator('#event-detail').is_visible())
+            self.assertEqual(p.locator('[data-event-id="outside-bucket"]').count(),0)
+            self.capture('event-group-28-dark')
+            p.locator('[data-event-id="bucket-27"]').click()
+            self.assertIn('聚合新闻 28',p.locator('#event-detail').inner_text())
+            self.assertEqual(p.locator('#event-list [data-event-id]').count(),28)
+            before=p.locator('#event-list').evaluate('(e)=>e.scrollTop')
+            p.evaluate('meiliChart.render(structuredClone(meiliChart.inspect().state))')
+            self.assertAlmostEqual(p.locator('#event-list').evaluate('(e)=>e.scrollTop'),before,delta=2)
+            p.locator('#event-close').click()
+            self.assertEqual(p.locator('#event-list [data-event-id]').count(),28)
+            p.evaluate("""()=>{const s=structuredClone(meiliChart.inspect().state);s.events.push({...s.events[0],event:{...s.events[0].event,id:'mixed-earnings',type:'earnings'}});meiliChart.render(s);}""")
+            self.assertIn('29',p.locator('#event-group-label').inner_text())
+            p.locator('input[data-type="news"]').uncheck()
+            self.assertEqual(p.locator('#event-list [data-event-id]').count(),1)
+            self.assertIn('1',p.locator('#event-group-label').inner_text())
+            p.locator('input[data-type="news"]').check()
+            p.locator('#event-group-clear').click()
+            self.assertFalse(p.locator('#event-group').is_visible())
+            self.assertEqual(p.locator('#event-list [data-event-id]').count(),30)
+        finally:
+            p.locator('input[data-type="news"]').check()
+            p.evaluate('(s)=>meiliChart.render(s)',original)
+
     def test_local_detail_motion_reduced_motion_and_refresh_focus(self):
         p=self.page
         p.emulate_media(reduced_motion='no-preference')

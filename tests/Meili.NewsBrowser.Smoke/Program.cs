@@ -177,16 +177,9 @@ internal static class Program
             window.Show();
             await Until(() => first.DocumentTitle == "Reader One" && second.DocumentTitle == "Reader Two", "two workspace browser documents");
             var requestsBeforeResize=server.DocumentCount;window.Width=980;await Task.Delay(250);
-            if(!host.IsVertical)throw new Exception("Compact article split did not stack");
+            if(host.IsVertical)throw new Exception("Compact article split must remain side by side");
             window.Width=1320;await Task.Delay(250);
-#if WINDOWS_READER
-            var narrow=host.ActualWidth<1100;
-#else
-            var narrow=host.Bounds.Width<1100;
-#endif
-            // Windows runners can clamp native windows to their display's maximum track size.
-            // Assert against actual client space, rather than the requested outer width.
-            if(host.IsVertical!=narrow||server.DocumentCount!=requestsBeforeResize)throw new Exception($"Article resize: vertical={host.IsVertical}, narrow={narrow}, documents={requestsBeforeResize}->{server.DocumentCount}");
+            if(host.IsVertical||server.DocumentCount!=requestsBeforeResize)throw new Exception($"Article resize: vertical={host.IsVertical}, documents={requestsBeforeResize}->{server.DocumentCount}");
 #if WINDOWS_READER
             var web = ((DockPanel)first.Content).Children.OfType<WebView2>().Single();
             first.Visibility = Visibility.Collapsed; second.Visibility = Visibility.Visible;

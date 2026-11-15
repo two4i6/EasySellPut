@@ -10,9 +10,9 @@ public sealed class ArticleSplitView : Grid
     private readonly GridSplitter _divider=new();
     private readonly Border _article=new();
     private readonly Control _main;
-    private bool _open,_vertical;
+    private bool _open;
     public bool IsOpen=>_open;
-    public bool IsVertical=>_vertical;
+    public bool IsVertical=>false;
     public ArticleSplitView(Control main)
     {
         _main=main;Children.Add(main);Children.Add(_divider);Children.Add(_article);
@@ -20,7 +20,6 @@ public sealed class ArticleSplitView : Grid
         _divider.Background=Avalonia.Media.Brushes.Transparent;
         _article.Bind(Border.BorderBrushProperty,new DynamicResourceExtension("ControlStrokeColorDefaultBrush"));
         _divider.HorizontalAlignment=HorizontalAlignment.Stretch;_divider.VerticalAlignment=VerticalAlignment.Stretch;
-        SizeChanged+=(_,_)=>{if(_open)LayoutSplit();};
         SetOpen(false);
     }
     public void Open(Control article){_article.Child=article;if(!_open)SetOpen(true);}
@@ -28,37 +27,18 @@ public sealed class ArticleSplitView : Grid
     private void SetOpen(bool open)
     {
         _open=open;_divider.IsVisible=_article.IsVisible=open;
-        LayoutSplit(true);
+        LayoutSplit();
     }
-    private void LayoutSplit(bool force=false)
+    private void LayoutSplit()
     {
-        var vertical=Bounds.Width>0&&Bounds.Width<1100;
-        if(!force&&vertical==_vertical)return;
-        _vertical=vertical;
-        _article.BorderThickness=vertical?new Avalonia.Thickness(0,1,0,0):new Avalonia.Thickness(1,0,0,0);
-        // Keep definition objects stable: native content must never detach on resize.
+        // Stable definition objects keep native views attached and retain the ratio on article changes.
         if(ColumnDefinitions.Count==0)for(var i=0;i<3;i++)ColumnDefinitions.Add(new ColumnDefinition());
-        if(RowDefinitions.Count==0)for(var i=0;i<3;i++)RowDefinitions.Add(new RowDefinition());
-        for(var i=0;i<3;i++)
-        {
-            ColumnDefinitions[i].Width=i==0?new GridLength(1,GridUnitType.Star):new GridLength(0);ColumnDefinitions[i].MinWidth=0;
-            RowDefinitions[i].Height=i==0?new GridLength(1,GridUnitType.Star):new GridLength(0);RowDefinitions[i].MinHeight=0;
-        }
-        SetColumn(_main,0);SetRow(_main,0);SetColumn(_divider,vertical?0:1);SetRow(_divider,vertical?1:0);SetColumn(_article,vertical?0:2);SetRow(_article,vertical?2:0);
-        if(!_open)return;
-        if(vertical)
-        {
-            RowDefinitions[0].Height=new GridLength(5,GridUnitType.Star);RowDefinitions[0].MinHeight=220;
-            RowDefinitions[1].Height=new GridLength(6);
-            RowDefinitions[2].Height=new GridLength(4,GridUnitType.Star);RowDefinitions[2].MinHeight=180;
-            _divider.ResizeDirection=GridResizeDirection.Rows;
-        }
-        else
-        {
-            ColumnDefinitions[0].Width=new GridLength(5,GridUnitType.Star);ColumnDefinitions[0].MinWidth=500;
-            ColumnDefinitions[1].Width=new GridLength(6);
-            ColumnDefinitions[2].Width=new GridLength(4,GridUnitType.Star);ColumnDefinitions[2].MinWidth=340;
-            _divider.ResizeDirection=GridResizeDirection.Columns;
-        }
+        if(RowDefinitions.Count==0)RowDefinitions.Add(new RowDefinition());
+        _article.BorderThickness=new Thickness(1,0,0,0);
+        SetColumn(_main,0);SetRow(_main,0);SetColumn(_divider,1);SetRow(_divider,0);SetColumn(_article,2);SetRow(_article,0);
+        ColumnDefinitions[0].Width=new GridLength(_open?5:1,GridUnitType.Star);ColumnDefinitions[0].MinWidth=_open?500:0;
+        ColumnDefinitions[1].Width=new GridLength(_open?6:0);
+        ColumnDefinitions[2].Width=_open?new GridLength(4,GridUnitType.Star):new GridLength(0);ColumnDefinitions[2].MinWidth=_open?340:0;
+        _divider.ResizeDirection=GridResizeDirection.Columns;
     }
 }

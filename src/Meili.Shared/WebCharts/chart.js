@@ -2,7 +2,7 @@
 'use strict';
 (() => {
   const root = document.getElementById('chart');
-  let byTime = new Map(), eventMarkers, selectedEvent, filters = new Set(["news","earnings","ex_dividend"]);
+  let byTime = new Map(), eventMarkers, selectedEvent, selectedEventTime=null, filters = new Set(["news","earnings","ex_dividend"]);
   let sessionBands=[],sessionLayers=[];
   let chart, state, version = -1, signature = '', key = '', series = {}, priceLines = [], drawingSeries = [];
   let posting = false, pendingHover = null, userRange = null, applying = false;
@@ -153,9 +153,15 @@
     earnings:{shape:'square',color:state.theme.colors[2],icon:'CalendarClock'},
     ex_dividend:{shape:'arrowDown',color:state.theme.colors[1],icon:'Dividend'}}[type]);
   const hideEventTooltip = () => {document.getElementById('event-tooltip').hidden = true;};
+  // Tooltip and click must resolve exactly the same filtered candle bucket.
+  function eventHitItems(param) {
+    const visible=(state.events||[]).filter(item=>filters.has(item.event.type)&&finite(item.time));
+    const marker=visible.find(item=>item.event.id===param.hoveredObjectId);
+    const time=marker?.time??param.time;
+    return visible.filter(item=>item.time===time);
+  }
   function showEventTooltip(param) {
-    const items = (state.events || []).filter(item => filters.has(item.event.type) && finite(item.time)
-      && (item.time === param.time || item.event.id === param.hoveredObjectId));
+    const items = eventHitItems(param);
     if (!param.point || state.drawingMode || !items.length) {hideEventTooltip();return;}
     const box = document.getElementById('event-tooltip'), names = eventNames(), zh = state.language === 'zh-CN';
     box.replaceChildren();
@@ -256,9 +262,13 @@
       if (!state.drawingMode) {
         const drawing=param.paneIndex===undefined||param.paneIndex===0?drawingHit(param.point):-1;if(drawing>=0){if(drawing!==selectedDrawing)selectDrawing(drawing);root.focus();return;}
         if(selectedDrawing>=0)selectDrawing(-1);
-        const hit = (state.events || []).find(e => filters.has(e.event.type) && (e.event.id === param.hoveredObjectId || e.time === param.time));
+        const hits=eventHitItems(param);
         hideEventTooltip();
-        if (hit) {selectedEvent = hit.event.id; renderEvents();}
+        if (hits.length) {
+          selectedEventTime=hits[0].time;
+          selectedEvent=hits.length===1?hits[0].event.id:null;
+          renderEvents();
+        }
         return;
       }
       // Drawing gestures use their own mouse lifecycle, including rapid second clicks.
@@ -294,7 +304,11 @@
     filters.clear();
     for(const type of button.dataset.view==='news'?['news']:button.dataset.view==='calendar'?['earnings','ex_dividend']:['news','earnings','ex_dividend'])filters.add(type);
     for(const input of document.querySelectorAll('#event-filters input'))input.checked=filters.has(input.dataset.type);
-    selectedEvent=null;renderEvents();document.getElementById('event-list').scrollTop=0;
+    selectedEvent=null;selectedEventTime=null;renderEvents();document.getElementById('event-list').scrollTop=0;
+  });
+  document.getElementById('event-group-clear').addEventListener('click',()=>{
+    selectedEventTime=null;selectedEvent=null;renderEvents();document.getElementById('event-group-clear').blur();
+    document.getElementById('event-heading').focus();
   });
   window.addEventListener('resize',scheduleHistory);
   const historySize=new ResizeObserver(scheduleHistory);
@@ -335,20 +349,28 @@
     document.getElementById('event-scope').textContent=zh?'最近新闻与当前日历快照，不含完整历史。':'Recent news and current calendar snapshot; historical coverage is limited.';
     const visible=(state.events||[]).filter(e=>filters.has(e.event.type));
     if(!visible.some(e=>e.event.id===selectedEvent)) selectedEvent=null;
+    if(selectedEventTime!==null&&!visible.some(e=>e.time===selectedEventTime))selectedEventTime=null;
+    const feed=selectedEventTime===null?visible:visible.filter(e=>e.time===selectedEventTime);
+    const groupHeader=document.getElementById('event-group');groupHeader.hidden=selectedEventTime===null;
+    const groupLabel=document.getElementById('event-group-label'),groupText=(zh?'所选 K 线':'Selected candle')+' · '+feed.length;
+    if(groupLabel.textContent!==groupText)groupLabel.textContent=groupText;
+    const clearGroup=document.getElementById('event-group-clear');clearGroup.title=zh?'返回全部事件':'Show all events';clearGroup.setAttribute('aria-label',clearGroup.title);
+    if(!clearGroup.childElementCount)clearGroup.append(meiliIcons.svg('ArrowLeft',16));
     const groups=new Map();for(const item of visible) if(finite(item.time)){if(!groups.has(item.time))groups.set(item.time,[]);groups.get(item.time).push(item);}
     eventMarkers.setMarkers([...groups].sort((a,b)=>a[0]-b[0]).map(([time,items])=>{
-      const types=[...new Set(items.map(i=>i.event.type))], selected=items.some(i=>i.event.id===selectedEvent);
+      const types=[...new Set(items.map(i=>i.event.type))], selected=selectedEventTime===time||items.some(i=>i.event.id===selectedEvent);
       const style=eventStyle(items[0].event.type);
       return {time,id:items[0].event.id,position:'aboveBar',shape:style.shape,color:selected?state.theme.accent:style.color,
         size:selected?1.5:1,text:(selected?'› ':'')+types.map(type=>names[type]).join(' / ')+(items.length>1?' · '+items.length:'')};
     }));
     const focusedId=document.activeElement?.dataset.eventId;
     const list=document.getElementById('event-list'), nav=document.getElementById('event-history');
-    const scroll=list.dataset.key===state.key?list.scrollTop:0, focusedDay=document.activeElement?.dataset.day;
-    list.dataset.key=state.key;list.replaceChildren();nav.replaceChildren();
+    const groupKey=selectedEventTime===null?'all':String(selectedEventTime);
+    const scroll=list.dataset.key===state.key&&list.dataset.group===groupKey?list.scrollTop:0, focusedDay=document.activeElement?.dataset.day;
+    list.dataset.key=state.key;list.dataset.group=groupKey;list.replaceChildren();nav.replaceChildren();
     nav.setAttribute('aria-label',zh?'历史日期导航':'History by date');
     const days=new Map();
-    for(const item of visible){const day=eventDay(item.event);if(!days.has(day))days.set(day,[]);days.get(day).push(item);}
+    for(const item of feed){const day=eventDay(item.event);if(!days.has(day))days.set(day,[]);days.get(day).push(item);}
     const dayLabel=day=>day?new Intl.DateTimeFormat(state.language,{timeZone:'UTC',month:'short',day:'numeric',weekday:'short',year:'numeric'}).format(new Date(day+'T12:00:00Z')):labels.unknown;
     let dayIndex=0;
     for(const [day,items] of [...days].sort(([a],[b])=>b.localeCompare(a))) {
@@ -372,7 +394,7 @@
     nav.hidden=!days.size;document.getElementById('event-feed').classList.toggle('no-history',!days.size);
     list.scrollTop=scroll;scheduleHistory();
     if(selectedEvent && document.getElementById('event-detail').dataset.eventId!==selectedEvent){const selected=[...list.querySelectorAll('[data-event-id]')].find(b=>b.dataset.eventId===selectedEvent);if(selected)list.scrollTop+=selected.getBoundingClientRect().top-list.getBoundingClientRect().top-34;}
-    if(!visible.length && state.timelineStatus!=='loading')list.append(text('p',zh?'暂无匹配事件':'No matching events','event-empty'));
+    if(!feed.length && state.timelineStatus!=='loading')list.append(text('p',zh?'暂无匹配事件':'No matching events','event-empty'));
     const detail=document.getElementById('event-detail');
     const changedDetail=detail.dataset.eventId!==(selectedEvent||'');
     const focusedDetail=!changedDetail&&detail.contains(document.activeElement)?document.activeElement.id:null;
@@ -416,7 +438,7 @@
     try {
       if (rebuild) {signature = shape; build();}
       key = state.key;
-      if (previousKey !== key) selectedEvent = null;
+      if (previousKey !== key) {selectedEvent = null;selectedEventTime=null;}
       const t = state.theme, c = t.colors;
       document.body.style.background = t.background; document.body.style.color = t.text;
       document.documentElement.dataset.reducedMotion=String(state.theme.reducedMotion===true);document.documentElement.style.colorScheme = t.dark ? 'dark' : 'light';

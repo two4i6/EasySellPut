@@ -38451,6 +38451,16 @@
     {
       "platform": "WebView",
       "page": "index.html",
+      "type": "button",
+      "attributes": {
+        "id": "event-group-clear",
+        "type": "button"
+      },
+      "source": "src/Meili.Shared/WebCharts/index.html"
+    },
+    {
+      "platform": "WebView",
+      "page": "index.html",
       "type": "nav",
       "attributes": {
         "id": "event-history",

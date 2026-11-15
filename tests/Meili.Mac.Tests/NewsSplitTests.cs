@@ -25,7 +25,7 @@ public sealed class NewsSplitTests
             foreach(var dark in new[]{false,true})
             {
                 AppServices.Get<MacTheme>().Apply(dark?Meili.Core.Settings.AppThemeMode.Dark:Meili.Core.Settings.AppThemeMode.Light);
-                foreach(var width in new[]{1440,980}){w.Width=width;MacHost.Pump();Assert.Equal(width==980,w.NewsSplit.IsVertical);MacHost.Save(w,$"news-split-{width}-{dark}");}
+                foreach(var width in new[]{1440,980}){w.Width=width;MacHost.Pump();Assert.False(w.NewsSplit.IsVertical);MacHost.Save(w,$"news-split-{width}-{dark}");}
             }
             Assert.Throws<ArgumentException>(()=>w.OpenNewsArticle("file:///tmp/blocked","Blocked"));
             w.KeyPress(Key.Escape,RawInputModifiers.None,PhysicalKey.Escape,null);MacHost.Pump();Assert.False(w.NewsSplit.IsOpen);Assert.Same(original,w.CurrentView);

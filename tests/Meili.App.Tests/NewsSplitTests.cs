@@ -11,7 +11,7 @@ public sealed class NewsSplitTests
             foreach(var width in new[]{1440,980,1440})
             {
                 split.Measure(new System.Windows.Size(width,900));split.Arrange(new System.Windows.Rect(0,0,width,900));split.UpdateLayout();
-                Assert.Equal(width<1100,split.IsVertical);
+                Assert.False(split.IsVertical);
             }
             split.ColumnDefinitions[0].Width=new System.Windows.GridLength(3,System.Windows.GridUnitType.Star);split.Open(article);
             Assert.Equal(new System.Windows.GridLength(3,System.Windows.GridUnitType.Star),split.ColumnDefinitions[0].Width);split.Close();Assert.False(split.IsOpen);
@@ -26,12 +26,12 @@ public sealed class NewsSplitTests
             try
             {
                 w.OpenNewsArticle(publisher.Url,"本地演示新闻");await ScreenRenderTests.Settle();
-                Assert.True(w.NewsSplit!.IsOpen);Assert.Equal(w.NewsSplit.ActualWidth<1100,w.NewsSplit.IsVertical);
+                Assert.True(w.NewsSplit!.IsOpen);Assert.False(w.NewsSplit.IsVertical);
                 var pane=UiAudit.Descendants<WebTabPane>(w).Single();Assert.Empty(UiAudit.Descendants<TextBox>(pane));Assert.Equal(3,UiAudit.Descendants<Button>(pane).Count());
                 var deadline=DateTimeOffset.UtcNow.AddSeconds(20);while(pane.DocumentTitle!="本地演示新闻"&&DateTimeOffset.UtcNow<deadline)await Task.Delay(100);
                 Assert.Equal("本地演示新闻",pane.DocumentTitle);
                 w.OpenNewsArticle(publisher.Url+"?second","Second");Assert.Same(pane,UiAudit.Descendants<WebTabPane>(w).Single());
-                w.Width=980;await ScreenRenderTests.Settle();Assert.True(w.NewsSplit.IsVertical);
+                w.Width=980;await ScreenRenderTests.Settle();Assert.False(w.NewsSplit.IsVertical);
                 Assert.Throws<ArgumentException>(()=>w.OpenNewsArticle("file:///tmp/blocked","Blocked"));
                 if(Environment.GetEnvironmentVariable("MEILI_RENDER_DIR") is {Length:>0} dir)
                 {
