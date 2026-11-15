@@ -66,7 +66,9 @@ class DrawingTests(unittest.TestCase):
                     a=point(30,p.evaluate('meiliChart.inspect().state.drawings[0].price1'));b=point(75,180);bounds=p.locator('#chart').bounding_box()
                     p.mouse.click(bounds['x']+(a['x']+b['x'])/2,bounds['y']+(a['y']+b['y'])/2)
                     self.assertTrue(p.locator('#drawing-panel').is_visible())
-                select_trend();p.locator('#drawing-first').fill('150');capture('drawing-selected-dark');p.locator('#drawing-save').click()
+                    return bounds['x']+(a['x']+b['x'])/2,bounds['y']+(a['y']+b['y'])/2
+                target=select_trend();p.keyboard.press('Escape');p.mouse.dblclick(*target,delay=20);self.assertTrue(p.locator('#drawing-panel').is_visible())
+                p.locator('#drawing-first').fill('150');capture('drawing-selected-dark');p.locator('#drawing-save').click()
                 wait('meiliChart.inspect().state.drawings[0].price1===150')
                 process.stdin.write('light\nen-US\n');process.stdin.flush();wait('!meiliChart.inspect().state.theme.dark && meiliChart.inspect().state.language==="en-US"')
                 select_trend();self.assertEqual(p.locator('#drawing-save').inner_text(),'Save');capture('drawing-selected-light')

@@ -18,15 +18,25 @@
   };
   window.addEventListener('error', e => error(e.message));
   window.addEventListener('unhandledrejection', e => error(e.reason));
-  let drawingDown=null, drawingRequests=Promise.resolve(), finishingDrawing=false;
+  let selectionDown=null, drawingDown=null, drawingRequests=Promise.resolve(), finishingDrawing=false;
   function mouseDrawingPoint(event){const rect=root.getBoundingClientRect(),point={x:event.clientX-rect.left,y:event.clientY-rect.top};return drawingPoint({point,time:chart.timeScale().coordinateToTime(point.x),paneIndex:0});}
   root.addEventListener('mousedown',event=>{
-    if(!state?.drawingMode || event.button!==0)return;
+    if(!chart || !state)return;
+    if(event.button!==0)return;
+    if(!state?.drawingMode){if(!event.target.closest('#drawing-panel'))selectionDown={x:event.clientX,y:event.clientY};return;}
     const point=mouseDrawingPoint(event);if(!point)return;
     drawingDown={x:event.clientX,y:event.clientY};event.preventDefault();event.stopPropagation();
   },true);
   root.addEventListener('mouseup',event=>{
-    if(!state?.drawingMode || !drawingDown || event.button!==0)return;
+    if(!chart || !state)return;
+    if(!state.drawingMode){
+      const down=selectionDown;selectionDown=null;
+      if(!down || event.button!==0 || Math.hypot(event.clientX-down.x,event.clientY-down.y)>5)return;
+      const rect=root.getBoundingClientRect(),point={x:event.clientX-rect.left,y:event.clientY-rect.top};
+      if(point.x<0 || point.x>=chart.timeScale().width())return;
+      const hit=drawingHit(point);if(hit>=0){selectDrawing(hit);root.focus();}return;
+    }
+    if(!drawingDown || event.button!==0)return;
     const down=drawingDown;drawingDown=null;event.preventDefault();event.stopPropagation();
     if(Math.hypot(event.clientX-down.x,event.clientY-down.y)>5 || finishingDrawing)return;
     const point=mouseDrawingPoint(event);if(!point)return;root.focus();
@@ -36,7 +46,7 @@
     const body={kind:'drawing',key:state.key,mode:state.drawingMode,epoch:state.drawingEpoch,index:point.index,price:point.price};
     drawingRequests=drawingRequests.then(()=>post(body)).then(response=>{if(!response.ok)throw new Error('Drawing request rejected');}).catch(e=>{finishingDrawing=false;error(e);});drawOverlay();
   },true);
-  window.addEventListener('mouseup',()=>{drawingDown=null;});
+  window.addEventListener('mouseup',()=>{drawingDown=null;selectionDown=null;});
   const overlay = document.getElementById('drawing-overlay');
   const drawingPanel = document.getElementById('drawing-panel');
   function drawingPoint(param) {
@@ -243,7 +253,7 @@
     });
     chart.subscribeClick(param => {
       if (!state.drawingMode) {
-        const drawing=param.paneIndex===undefined||param.paneIndex===0?drawingHit(param.point):-1;if(drawing>=0){selectDrawing(drawing);root.focus();return;}
+        const drawing=param.paneIndex===undefined||param.paneIndex===0?drawingHit(param.point):-1;if(drawing>=0){if(drawing!==selectedDrawing)selectDrawing(drawing);root.focus();return;}
         if(selectedDrawing>=0)selectDrawing(-1);
         const hit = (state.events || []).find(e => filters.has(e.event.type) && (e.event.id === param.hoveredObjectId || e.time === param.time));
         hideEventTooltip();
