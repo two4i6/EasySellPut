@@ -59,7 +59,10 @@ public partial class App : Application
         Boot();
 
         var window = new MainWindow();
-        desktop.MainWindow = window;
+        // Avalonia automatically shows MainWindow after initialization. Defer assignment
+        // for background startup so the lifetime cannot flash the main window.
+        if(options.StartInBackground)Dispatcher.UIThread.Post(()=>desktop.MainWindow=window,DispatcherPriority.Send);
+        else desktop.MainWindow=window;
         MacMenu.Install(this, window, desktop);
         desktop.ShutdownRequested += (_, _) => window.AllowClose();
         desktop.Exit += (_, e) => OnExit(e.ApplicationExitCode);
