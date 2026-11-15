@@ -59,11 +59,11 @@ public class ChartThemeTests
                     using var json = JsonDocument.Parse(await http.GetStringAsync(new Uri(web.Session!.PageUri, "state")));
                     return json.RootElement.GetProperty("data").GetProperty("theme").GetProperty(key).GetString();
                 }
-                Assert.Equal("#131722", await Field("background"));
+                Assert.Equal($"#{ThemePalette.Dark.Chart & 0xFFFFFF:X6}", await Field("background"));
                 ScreenRenderTests.Apply("zh-CN", false);
                 ThemeService.ApplyUpDownColors(UpDownColorMode.GreenUp);
                 await ScreenRenderTests.Settle();
-                Assert.Equal("#FFFFFF", await Field("background"));
+                Assert.Equal($"#{ThemePalette.Light.Chart & 0xFFFFFF:X6}", await Field("background"));
                 Assert.Equal("#1A7050", await Field("up"));
             }
             finally

@@ -265,7 +265,7 @@ internal static class Program
             vm.ShowRsi = false;
             await Until(() => Result(d => d.GetProperty("panes").GetInt32() == 4), "Indicator pane toggle");
             palette = Palette(false, true); chart.Update(palette);
-            await Until(() => Result(d => d.GetProperty("background").GetString() == "#FFFFFF" && d.GetProperty("up").GetString() == "#1A7050"), "Theme and green-up convention");
+            await Until(() => Result(d => d.GetProperty("background").GetString() == $"#{ThemePalette.Light.Chart & 0xFFFFFF:X6}" && d.GetProperty("up").GetString() == "#1A7050"), "Theme and green-up convention");
             chart.Stop(); chart.Start(vm, palette);
             await Until(() => Result(d => d.GetProperty("panes").GetInt32() == 4), "Chart reattachment after disposal");
             Console.WriteLine("PASS: TradingView native WebView, 120 bars/119 candles, news/calendar markers, five indicator panes, Analytics MA parity, pane toggle, theme/colors and restart.");
@@ -307,7 +307,7 @@ internal static class Program
             await Send(new{kind="what-if",key=vm.WorkbenchKey,price=110});
             await Until(()=>Result(d=>d.GetProperty("whatIf").GetDouble()==110),"Native what-if valuation");
             palette=WorkbenchFixture.Palette(false);chart.Update(palette);
-            await Until(()=>Result(d=>d.GetProperty("background").GetString()=="#FFFFFF"),"Workspace theme");
+            await Until(()=>Result(d=>d.GetProperty("background").GetString()==$"#{ThemePalette.Light.Chart & 0xFFFFFF:X6}"),"Workspace theme");
             chart.Stop();chart.Start(vm,palette);
             await Until(()=>Result(d=>d.GetProperty("legs").GetInt32()==2),"Workspace reload preserves draft");
             Console.WriteLine("PASS: native linked workspace, chain, spread/Analytics payoff, quantity, what-if, theme and restart.");

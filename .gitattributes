@@ -14,5 +14,5 @@ src/Meili.Shared/WebCharts/vendor/** -text
 src/Meili.Shared/Assets/NavigationIcons/** -text
 
 # Preserve licensed bundled font files and notices.
-src/Meili.Shared/Assets/Fonts/** -text
+src/Meili.Shared/Assets/Fonts/** -text -whitespace
 *.ttf binary

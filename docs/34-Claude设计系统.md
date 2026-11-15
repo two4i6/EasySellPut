@@ -39,4 +39,4 @@ CLI/MCP：本次为桌面视觉与组件基础设施，业务操作和权限不�
 
 已迁移 `AppSelect`；其 macOS 端修复选中 ComboBoxItem 的本地化标签缓存，切换语言不重设 SelectedIndex，不触发额外设置写入。共享输入/选择保留平台弹出、键盘与 IME 行为；图表比较按钮统一为 32px 高度。组件画廊只存在于测试，不向产品页面加入开发说明。
 
-本地验证：Windows 编译通过；共享层 64 项、Chromium 13 项交互、自动化 36 项检查通过。完整桌面回归中 82 项通过，新增选择框测试调整初始化后 3 项组件专项通过；完整 83 项将继续由 CI 执行。截图位于 build/out/claude-design，为实际 Avalonia/Skia 和 Chromium 渲染，使用测试数据。
+本地验证：Windows 编译通过；共享层 64 项、Chromium 13 项交互、自动化 36 项检查通过。CI 的完整桌面 83 项回归已通过；原生 WebView 冒烟测试的主题背景断言也改为读取同一设计变量。截图位于 build/out/claude-design，为实际 Avalonia/Skia 和 Chromium 渲染，使用测试数据。
