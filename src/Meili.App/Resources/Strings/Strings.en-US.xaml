@@ -883,4 +883,14 @@
     <sys:String x:Key="Web_Privacy">Only names and addresses are saved; web sessions clear on exit.</sys:String>
     <sys:String x:Key="Web_ConfirmRemove">Click again to remove</sys:String>
     <sys:String x:Key="Ch_ClearAllShort">Clear all</sys:String>
+    <sys:String x:Key="UX_Help">Help</sys:String>
+    <sys:String x:Key="UX_Details">Details</sys:String>
+    <sys:String x:Key="UX_QuickStart">Quick start</sys:String>
+    <sys:String x:Key="UX_Columns">Columns &amp; analysis</sys:String>
+    <sys:String x:Key="UX_AlertMore">Repeat &amp; more</sys:String>
+    <sys:String x:Key="UX_OpenChartFor">Chart for {0}</sys:String>
+    <sys:String x:Key="UX_SelectedActions">Selected symbol</sys:String>
+    <sys:String x:Key="UX_SelectedContract">Selected strike</sys:String>
+    <sys:String x:Key="UX_RunningOnly">Alerts run while the app is running</sys:String>
+    <sys:String x:Key="UX_CooldownError">Enter a whole number of minutes from 1 to 1440.</sys:String>
 </ResourceDictionary>

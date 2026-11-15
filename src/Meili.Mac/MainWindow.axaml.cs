@@ -144,9 +144,11 @@ public partial class MainWindow : Window
 
     private void ShowBanner(string title, string body)
     {
+        var changed=!Banner.IsVisible || BannerTitle.Text!=title || BannerBody.Text!=body;
         BannerTitle.Text = title;
         BannerBody.Text = body;
         Banner.IsVisible = true;
+        if(changed)Meili.Mac.Views.Controls.AppMotion.Enter(Banner);
         _bannerTimer.Stop();
         _bannerTimer.Start();
     }

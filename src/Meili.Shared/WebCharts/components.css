@@ -24,3 +24,5 @@ a{color:var(--link,var(--text))}
 input[type=checkbox],input[type=range]{accent-color:var(--text)}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 :root[data-reduced-motion=true] *, :root[data-reduced-motion=true] *::before{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+
+button{transition:background-color var(--motion-fast-ms) ease-out,border-color var(--motion-fast-ms) ease-out,opacity var(--motion-fast-ms) ease-out}button:active:not(:disabled),button.keyboard-pressed:not(:disabled){opacity:.9}

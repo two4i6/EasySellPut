@@ -8,7 +8,7 @@
   const number=(value,digits=2)=>finite(value)?new Intl.NumberFormat(state?.language||'en-US',{maximumFractionDigits:digits,minimumFractionDigits:digits}).format(value):'—';
   const diagnostic=body=>fetch('event',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind:'diagnostic',...body})}).catch(()=>{});
   function message(value){text('message',value);$('message').style.display=value?'block':'none';}
-  function lock(value){pending=value;document.querySelectorAll('[data-mutation]').forEach(e=>e.disabled=value||state?.busy||e.dataset.unavailable==='true');}
+  function lock(value){document.body.setAttribute('aria-busy',String(value));pending=value;document.querySelectorAll('[data-mutation]').forEach(e=>e.disabled=value||state?.busy||e.dataset.unavailable==='true');}
   async function send(body){
     if(pending||!state||state.busy)return;
     lock(true);clearTimeout(pendingTimer);
@@ -47,7 +47,7 @@
     const body=$('legs').querySelector('tbody'),existing=new Map([...body.children].map(row=>[row.dataset.id,row]));
     for(const leg of state.legs){
       let row=existing.get(leg.id);
-      if(!row){row=element('tr');row.dataset.id=leg.id;for(let i=0;i<5;i++)cell(row,'');}
+      if(!row){row=element('tr');row.dataset.newLeg='true';row.dataset.id=leg.id;for(let i=0;i<5;i++)cell(row,'');}
       row.children[0].textContent=`${label(leg.type)} ${leg.strike} ${leg.expiration}`;row.children[0].title=row.children[0].textContent;
       let side=row.querySelector('select');if(!side){side=element('select');side.dataset.mutation='true';side.addEventListener('change',()=>send({kind:'edit-leg',id:leg.id,field:'side',side:side.value}));row.children[1].append(side);}
       side.replaceChildren(...[['Long','Buy'],['Short','Sell']].map(([value,k])=>{const o=element('option',label(k));o.value=value;return o;}));side.value=leg.side;side.setAttribute('aria-label',label('Buy')+'/'+label('Sell'));
@@ -55,7 +55,7 @@
       qty.max=leg.type==='Stock'?'1000000':'1000';qty.setAttribute('aria-label',label('Quantity'));if(document.activeElement!==qty)qty.value=leg.quantity;
       row.children[3].textContent=leg.premium;
       row.children[4].replaceChildren(button('',()=>send({kind:'edit-leg',id:leg.id,field:'remove'})));row.children[4].firstChild.append(meiliIcons.svg('Trash',16));row.children[4].firstChild.setAttribute('aria-label',label('Remove'));
-      body.append(row);existing.delete(leg.id);
+      body.append(row);if(row.dataset.newLeg){delete row.dataset.newLeg;meiliMotion.enter(row);}existing.delete(leg.id);
     }
     for(const row of existing.values())row.remove();text('legsEmpty',state.legs.length?'':label('Empty'));$('legsEmpty').hidden=state.legs.length>0;
   }

@@ -132,6 +132,9 @@
           "operations": [
             "get_quotes"
           ]
+        },
+        "OpenChart": {
+          "uiOnly": "Navigate to the selected existing quote symbol in the chart workspace; quote/chart data remain covered by existing CLI/MCP operations."
         }
       }
     },

@@ -374,6 +374,8 @@
     if(selectedEvent && document.getElementById('event-detail').dataset.eventId!==selectedEvent){const selected=[...list.querySelectorAll('[data-event-id]')].find(b=>b.dataset.eventId===selectedEvent);if(selected)list.scrollTop+=selected.getBoundingClientRect().top-list.getBoundingClientRect().top-34;}
     if(!visible.length && state.timelineStatus!=='loading')list.append(text('p',zh?'暂无匹配事件':'No matching events','event-empty'));
     const detail=document.getElementById('event-detail');
+    const changedDetail=detail.dataset.eventId!==(selectedEvent||'');
+    const focusedDetail=!changedDetail&&detail.contains(document.activeElement)?document.activeElement.id:null;
     const keepMetadataOpen=detail.dataset.eventId===selectedEvent && detail.querySelector('details')?.open;
     detail.dataset.eventId=selectedEvent||'';detail.replaceChildren();detail.hidden=!selectedEvent;
     document.getElementById('event-content').classList.toggle('has-selection',!!selectedEvent);
@@ -390,6 +392,8 @@
     if(e.providerFetchedAt)metadata.append(text('p',(zh?'来源下载时间：':'Provider fetched: ')+e.providerFetchedAt));
     if(e.providerAsOf)metadata.append(text('p',(zh?'来源数据时间：':'Provider as of: ')+e.providerAsOf));
     metadata.append(text('p',(zh?'本次读取：':'Observed: ')+e.observedAt));detail.append(metadata);
+    if(changedDetail)meiliMotion.enter(detail);
+    if(focusedDetail)detail.querySelector('#'+focusedDetail)?.focus({preventScroll:true});
   }
   function showLegend(row) {
     const fields = [state.show.ma && ['MA', row.ma], state.show.ema && ['EMA', row.ema], state.show.macd && ['MACD', row.macd], state.show.rsi && ['RSI', row.rsi], state.show.kdj && ['K', row.k]];

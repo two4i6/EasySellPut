@@ -45,6 +45,7 @@ public partial class OptionsViewModel : ObservableObject
     public ObservableCollection<OptionStrikeRow> Rows { get; } = [];
     public List<IvSmilePoint> SmilePoints { get; private set; } = [];
 
+    public bool HasSelectedRow => SelectedRow is not null;
     [ObservableProperty] public partial string SymbolText { get; set; } = "";
     [ObservableProperty] public partial ExpirationChoice? SelectedExpiration { get; set; }
     [ObservableProperty] public partial StrikeWindowKind Window { get; set; } = StrikeWindowKind.Near10;
@@ -79,7 +80,7 @@ public partial class OptionsViewModel : ObservableObject
     [ObservableProperty] public partial double? Spot { get; set; }
     [ObservableProperty] public partial bool HasRows { get; set; }
     [ObservableProperty] public partial OptionStrikeRow? AtmRow { get; set; }
-    [ObservableProperty] public partial OptionStrikeRow? SelectedRow { get; set; }
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(HasSelectedRow))] public partial OptionStrikeRow? SelectedRow { get; set; }
 
     public event EventHandler? TableChanged;
     private readonly SettingsStore _settings;

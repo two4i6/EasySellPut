@@ -55,6 +55,7 @@ class WorkbenchTests(unittest.TestCase):
         qty=p.locator('#legs input').first;qty.fill('2');qty.press('Tab')
         self.wait(p,'meiliWorkbench.inspect().state.legs[0].quantity === "2"')
         self.assertEqual(p.evaluate('meiliWorkbench.inspect().state.legs[0].premium'),'3')
+        self.assertEqual(p.locator('#legs tbody tr').first.evaluate('(e)=>e.getAnimations().length'),0)
         span=p.evaluate('meiliWorkbench.inspect().domain.high-meiliWorkbench.inspect().domain.low')
         plot_bounds=p.locator('#payoff').bounding_box();p.mouse.move(plot_bounds['x']+plot_bounds['width']/2,plot_bounds['y']+plot_bounds['height']/2);p.mouse.wheel(0,-300)
         self.assertLess(p.evaluate('meiliWorkbench.inspect().domain.high-meiliWorkbench.inspect().domain.low'),span)

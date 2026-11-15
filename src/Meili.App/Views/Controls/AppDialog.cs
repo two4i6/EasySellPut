@@ -7,6 +7,7 @@ public class AppDialog : Window
 {
     public AppDialog()
     {
+        ContentRendered+=(_,_)=>ComponentMotion.Enter(Content as UIElement);
         Width=440;MinWidth=400;SizeToContent=SizeToContent.Height;ResizeMode=ResizeMode.NoResize;
         WindowStartupLocation=WindowStartupLocation.CenterOwner;ShowInTaskbar=false;
         SetResourceReference(BackgroundProperty,"CardBackgroundFillColorDefaultBrush");SetResourceReference(ForegroundProperty,"TextFillColorPrimaryBrush");

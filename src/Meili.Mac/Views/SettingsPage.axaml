@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:lucide="using:Meili.Mac.Views.Controls"
     xmlns:ds="using:Meili.Mac.Views.Controls"
+    xmlns:ux="using:Meili.Mac.Views.Controls"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Meili.Shared.ViewModels"
              xmlns:sp="using:ScottPlot.Avalonia"
@@ -31,8 +32,8 @@
                     <DockPanel LastChildFill="True">
                         <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center">
                             <Button Content="{DynamicResource Upd_Check}" Command="{Binding CheckUpdatesCommand}" Margin="0,0,8,0"/>
-                            <Button Classes="Accent" Content="{DynamicResource Upd_Download}" Command="{Binding DownloadUpdateCommand}" IsVisible="{Binding ShowDownloadUpdate}" Margin="0,0,8,0"/>
-                            <Button Classes="Accent" Content="{DynamicResource Upd_Install}" Command="{Binding InstallUpdateCommand}" IsVisible="{Binding ShowInstallUpdate}" Margin="0,0,8,0"/>
+                            <Button Classes="Primary" Content="{DynamicResource Upd_Download}" Command="{Binding DownloadUpdateCommand}" IsVisible="{Binding ShowDownloadUpdate}" Margin="0,0,8,0"/>
+                            <Button Classes="Primary" Content="{DynamicResource Upd_Install}" Command="{Binding InstallUpdateCommand}" IsVisible="{Binding ShowInstallUpdate}" Margin="0,0,8,0"/>
                             <Button Classes="Subtle" Content="{DynamicResource Upd_OpenDownload}" Command="{Binding OpenUpdateFolderCommand}" IsVisible="{Binding ShowUpdateFolder}" Margin="0,0,8,0"/>
                             <Button Classes="Subtle" Command="{Binding OpenUpdateHistoryCommand}"><StackPanel Orientation="Horizontal"><TextBlock Text="{DynamicResource Upd_History}" VerticalAlignment="Center"/><lucide:LucideIcon Kind="ExternalLink" Width="14" Height="14" Margin="6,0,0,0"/></StackPanel></Button>
                         </WrapPanel>
@@ -59,8 +60,7 @@
             </StackPanel>
 
                     <StackPanel>
-                        <TextBlock Classes="CardTitle" Text="{DynamicResource Set_Language}" />
-                        <TextBlock Classes="Caption" Text="{DynamicResource Set_LanguageDesc}" />
+                        <DockPanel LastChildFill="True"><ux:AppHelp HelpText="{DynamicResource Set_LanguageDesc}" DockPanel.Dock="Right" Margin="8,0,0,0"/><TextBlock Classes="CardTitle" Text="{DynamicResource Set_Language}" /></DockPanel>
                     </StackPanel>
                 
 </DockPanel>
@@ -76,8 +76,7 @@
             </StackPanel>
 
                     <StackPanel>
-                        <TextBlock Classes="CardTitle" Text="{DynamicResource Set_Theme}" />
-                        <TextBlock Classes="Caption" Text="{DynamicResource Set_ThemeDesc}" />
+                        <DockPanel LastChildFill="True"><ux:AppHelp HelpText="{DynamicResource Set_ThemeDesc}" DockPanel.Dock="Right" Margin="8,0,0,0"/><TextBlock Classes="CardTitle" Text="{DynamicResource Set_Theme}" /></DockPanel>
                     </StackPanel>
                 
 </DockPanel>
@@ -92,8 +91,7 @@
             </StackPanel>
 
                     <StackPanel>
-                        <TextBlock Classes="CardTitle" Text="{DynamicResource Set_UpDown}" />
-                        <TextBlock Classes="Caption" Text="{DynamicResource Set_UpDownDesc}" />
+                        <DockPanel LastChildFill="True"><ux:AppHelp HelpText="{DynamicResource Set_UpDownDesc}" DockPanel.Dock="Right" Margin="8,0,0,0"/><TextBlock Classes="CardTitle" Text="{DynamicResource Set_UpDown}" /></DockPanel>
                     </StackPanel>
                 
 </DockPanel>
@@ -110,8 +108,7 @@
                 </ds:AppSelect>
             </StackPanel>
                     <StackPanel>
-                        <TextBlock Classes="CardTitle" Text="{DynamicResource Set_CloseAction}" />
-                        <TextBlock Classes="Caption" Text="{DynamicResource Set_CloseActionDesc}" TextWrapping="Wrap" />
+                        <DockPanel LastChildFill="True"><ux:AppHelp HelpText="{DynamicResource Set_CloseActionDesc}" DockPanel.Dock="Right" Margin="8,0,0,0"/><TextBlock Classes="CardTitle" Text="{DynamicResource Set_CloseAction}" /></DockPanel>
                     </StackPanel>
 </DockPanel>
 </ds:AppCard>
@@ -130,8 +127,7 @@
             </StackPanel>
 
                     <StackPanel>
-                        <TextBlock Classes="CardTitle" Text="{DynamicResource Set_ProxyMode}" />
-                        <TextBlock Classes="Caption" Text="{DynamicResource Set_ProxyModeDesc}" />
+                        <DockPanel LastChildFill="True"><ux:AppHelp HelpText="{DynamicResource Set_ProxyModeDesc}" DockPanel.Dock="Right" Margin="8,0,0,0"/><TextBlock Classes="CardTitle" Text="{DynamicResource Set_ProxyMode}" /></DockPanel>
                     </StackPanel>
                 
 </DockPanel>
@@ -143,8 +139,7 @@
             </StackPanel>
 
                     <StackPanel>
-                        <TextBlock Classes="CardTitle" Text="{DynamicResource Set_ManualProxy}" />
-                        <TextBlock Classes="Caption" Text="{DynamicResource Set_ManualProxyDesc}" />
+                        <DockPanel LastChildFill="True"><ux:AppHelp HelpText="{DynamicResource Set_ManualProxyDesc}" DockPanel.Dock="Right" Margin="8,0,0,0"/><TextBlock Classes="CardTitle" Text="{DynamicResource Set_ManualProxy}" /></DockPanel>
                     </StackPanel>
                 
 </DockPanel>
@@ -152,7 +147,7 @@
             <ds:AppCard Classes="Card" Padding="16,12" Margin="0,0,0,4">
 <DockPanel>
 <StackPanel DockPanel.Dock="Right" VerticalAlignment="Center" Margin="16,0,0,0">
-                <Button Classes="accent" Content="{DynamicResource Set_ProxyApply}" Command="{Binding ApplyProxyCommand}" MinWidth="140" />
+                <Button Classes="Primary" Content="{DynamicResource Set_ProxyApply}" Command="{Binding ApplyProxyCommand}" MinWidth="140" />
             </StackPanel>
 
                     <StackPanel>
@@ -192,8 +187,7 @@
             </StackPanel>
 
                     <StackPanel>
-                        <TextBlock Classes="CardTitle" Text="{DynamicResource Set_RateMode}" />
-                        <TextBlock Classes="Caption" Text="{DynamicResource Set_RateModeDesc}" TextWrapping="Wrap" />
+                        <DockPanel LastChildFill="True"><ux:AppHelp HelpText="{DynamicResource Set_RateModeDesc}" DockPanel.Dock="Right" Margin="8,0,0,0"/><TextBlock Classes="CardTitle" Text="{DynamicResource Set_RateMode}" /></DockPanel>
                     </StackPanel>
                 
 </DockPanel>
@@ -205,8 +199,7 @@
             </StackPanel>
 
                     <StackPanel>
-                        <TextBlock Classes="CardTitle" Text="{DynamicResource Set_FixedRate}" />
-                        <TextBlock Classes="Caption" Text="{DynamicResource Set_FixedRateDesc}" TextWrapping="Wrap" />
+                        <DockPanel LastChildFill="True"><ux:AppHelp HelpText="{DynamicResource Set_FixedRateDesc}" DockPanel.Dock="Right" Margin="8,0,0,0"/><TextBlock Classes="CardTitle" Text="{DynamicResource Set_FixedRate}" /></DockPanel>
                         <TextBlock Classes="Caption" Text="{Binding FixedRateError}" Foreground="{DynamicResource SystemFillColorCriticalBrush}" />
                     </StackPanel>
                 
@@ -271,7 +264,7 @@
                     <StackPanel>
                         <TextBlock Classes="CardTitle" Text="{DynamicResource Set_DataDir}" />
                         <TextBlock Classes="Body" Text="{Binding DataDirectory}" Margin="0,2,0,2" />
-                        <TextBlock Classes="Caption" Text="{DynamicResource Set_DataDirDesc}" />
+                        <ux:AppHelp HelpText="{DynamicResource Set_DataDirDesc}" DockPanel.Dock="Right" Margin="8,0,0,0"/>
                     </StackPanel>
                 
 </DockPanel>
@@ -294,7 +287,7 @@
                             </TextBlock>
                         </StackPanel>
                     </StackPanel>
-                    <TextBlock Classes="Secondary" Text="{DynamicResource Set_AboutDesc}" />
+                    <ux:AppHelp HelpText="{DynamicResource Set_AboutDesc}" DockPanel.Dock="Right" Margin="8,0,0,0"/>
                 </StackPanel>
             </ds:AppCard>
         </StackPanel>

@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:ds="using:Meili.Mac.Views.Controls"
+    xmlns:ux="using:Meili.Mac.Views.Controls"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Meili.Shared.ViewModels"
              xmlns:local="using:Meili.Mac.Views"
@@ -18,18 +19,9 @@
     </UserControl.Styles>
     <Grid RowDefinitions="Auto,*">
         <StackPanel x:Name="HeaderPanel" Grid.Row="0" Margin="32,16,32,4">
-            <TextBlock Classes="PageTitle" Text="{DynamicResource St_Title}" />
-            <Border Margin="0,8,0,8" Padding="12,8" CornerRadius="8"
-                    Background="{DynamicResource ControlFillColorSecondaryBrush}"
-                    IsVisible="{Binding ShowHint}">
-                <DockPanel>
-                    <Button DockPanel.Dock="Right" Classes="Subtle" Padding="10,4" Margin="12,0,0,0"
-                            Command="{Binding DismissHintCommand}" Content="{DynamicResource St_HintDismiss}" />
-                    <TextBlock Classes="Secondary" FontSize="14" TextWrapping="Wrap" Text="{DynamicResource St_Hint}" />
-                </DockPanel>
-            </Border>
+            <DockPanel LastChildFill="True"><ux:AppHelp HelpText="{DynamicResource St_Hint}" DockPanel.Dock="Right" Margin="12,0,0,0"/><TextBlock Classes="PageTitle" Text="{DynamicResource St_Title}" /></DockPanel>
             <DockPanel Margin="0,0,0,8">
-                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding RefreshCommand}" Content="{DynamicResource St_Refresh}" />
+                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding RefreshCommand}" Content="{DynamicResource St_Refresh}"  IsEnabled="{Binding !IsBusy}"/>
                 <Button DockPanel.Dock="Right" Margin="8,0,0,0" Content="{DynamicResource St_SavedMenu}">
                     <Button.Flyout>
                         <Flyout Placement="BottomEdgeAlignedRight">
@@ -41,7 +33,7 @@
                                     <Button Command="{Binding DeleteSavedCommand}" Content="{DynamicResource St_DeleteSaved}" />
                                 </StackPanel>
                                 <DockPanel>
-                                    <Button DockPanel.Dock="Right" Classes="Accent" Margin="8,0,0,0"
+                                    <Button DockPanel.Dock="Right" Classes="Primary" Margin="8,0,0,0"
                                             Command="{Binding SaveStrategyCommand}" Content="{DynamicResource St_Save}" />
                                     <TextBox PlaceholderText="{DynamicResource St_SaveName}" Text="{Binding SaveName}" />
                                 </DockPanel>

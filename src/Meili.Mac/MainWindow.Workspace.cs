@@ -145,7 +145,7 @@ public partial class MainWindow
             }
             catch (Exception ex) when (ex is System.IO.IOException or InvalidOperationException or ArgumentException) { Fail("Web_Failed"); }
         }
-        Button("Web_Save", Save).Classes.Add("Accent"); Button("Web_Cancel", () => dialog.Close());
+        Button("Web_Save", Save).Classes.Add("Primary"); Button("Web_Cancel", () => dialog.Close());
         if (tab is not null)
         {
             void Move(int delta) { try { _workspace.Move(tab.Id, delta); RebuildWebsiteRail(); } catch (System.IO.IOException) { Fail("Web_Failed"); } }

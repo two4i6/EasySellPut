@@ -6,7 +6,7 @@
         <Setter Property="MinHeight" Value="{StaticResource ControlHeight}"/><Setter Property="Padding" Value="12,5"/><Setter Property="CornerRadius" Value="{StaticResource ControlCornerRadius}"/>
         <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}"/><Setter Property="BorderThickness" Value="1"/>
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
-        <Setter Property="Transitions"><Transitions><BrushTransition Property="Background" Duration="{StaticResource MotionFastDuration}"/><BrushTransition Property="BorderBrush" Duration="{StaticResource MotionFastDuration}"/></Transitions></Setter>
+        <Setter Property="Transitions"><Transitions><DoubleTransition Property="Opacity" Duration="{StaticResource MotionFastDuration}"/><BrushTransition Property="Background" Duration="{StaticResource MotionFastDuration}"/><BrushTransition Property="BorderBrush" Duration="{StaticResource MotionFastDuration}"/></Transitions></Setter>
     </Style>
     <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter, ToggleButton:pointerover /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="{DynamicResource RowHighlightBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}"/><Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/></Style>
     <Style Selector="Button:pressed /template/ ContentPresenter#PART_ContentPresenter, ToggleButton:pressed /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="{DynamicResource PressedBrush}"/></Style>
@@ -26,4 +26,7 @@
     <Style Selector="ProgressBar"><Setter Property="Foreground" Value="{DynamicResource BrandBrush}"/><Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}"/><Setter Property="CornerRadius" Value="4"/></Style>
     <Style Selector="Window.ReducedMotion Button, Window.ReducedMotion ToggleButton"><Setter Property="Transitions" Value="{x:Null}"/></Style>
     <Style Selector="CheckBox /template/ Border#NormalRectangle"><Setter Property="CornerRadius" Value="4"/></Style>
+    <Style Selector="Button:pressed, ToggleButton:pressed"><Setter Property="Opacity" Value="0.9"/></Style>
+    <Style Selector="Expander.Disclosure"><Setter Property="BorderThickness" Value="0"/><Setter Property="Background" Value="Transparent"/><Setter Property="Padding" Value="0"/></Style>
+    <Style Selector="Expander.Disclosure /template/ ToggleButton#ExpanderHeader"><Setter Property="HorizontalContentAlignment" Value="Left"/><Setter Property="MinHeight" Value="28"/><Setter Property="Padding" Value="4,2"/><Setter Property="FontSize" Value="{StaticResource CaptionFontSize}"/><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}"/></Style>
 </Styles>

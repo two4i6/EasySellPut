@@ -9,7 +9,7 @@ public class AppDialog : Window
 {
     public AppDialog()
     {
-        Opened+=(_,_)=>{DesignMotion.Changed+=MotionChanged;MotionChanged(null,EventArgs.Empty);};
+        Opened+=(_,_)=>{DesignMotion.Changed+=MotionChanged;MotionChanged(null,EventArgs.Empty);AppMotion.Enter(Content as Control);};
         Closed+=(_,_)=>DesignMotion.Changed-=MotionChanged;
         Width=440;MinWidth=400;SizeToContent=SizeToContent.Height;CanResize=false;
         WindowStartupLocation=WindowStartupLocation.CenterOwner;ShowInTaskbar=false;

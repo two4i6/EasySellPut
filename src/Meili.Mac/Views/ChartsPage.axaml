@@ -13,7 +13,7 @@
             <Grid x:Name="ChartToolbar" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" ColumnDefinitions="Auto,*,Auto">
                 <StackPanel Grid.Column="0" VerticalAlignment="Center" Orientation="Horizontal">
                         <controls:SymbolBox x:Name="SymbolInput" Width="144" MinWidth="132" Text="{Binding SymbolText}" WatchSymbols="{Binding WatchSymbols}" CommitCommand="{Binding LoadFromBoxCommand}"/>
-                        <Button Classes="Icon" Margin="6,0,0,0" AutomationProperties.Name="{DynamicResource Ch_Load}" ToolTip.Tip="{DynamicResource Ch_Load}" Command="{Binding LoadFromBoxCommand}"><lucide:LucideIcon Kind="CornerDownLeft"/></Button>
+                        <Button Classes="Icon" Margin="6,0,0,0" AutomationProperties.Name="{DynamicResource Ch_Load}" ToolTip.Tip="{DynamicResource Ch_Load}" Command="{Binding LoadFromBoxCommand}" IsEnabled="{Binding !IsBusy}"><lucide:LucideIcon Kind="CornerDownLeft"/></Button>
                     </StackPanel>
                 <ScrollViewer x:Name="RangeScroller" Grid.Column="1" Margin="12,0,6,0" VerticalAlignment="Center" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
                     <ItemsControl x:Name="RangeTabs" ItemsSource="{Binding Ranges}" Margin="0">
@@ -31,7 +31,7 @@
                 </ScrollViewer>
                 <StackPanel Grid.Column="2" VerticalAlignment="Center" Orientation="Horizontal">
                         <ToggleButton x:Name="InspectorToggle" Margin="6,0,0,0" Padding="10,6" Content="{DynamicResource Ch_Tools}" IsChecked="{Binding ShowInspector, Mode=TwoWay}" AutomationProperties.AutomationId="ChartsTools"/>
-                        <Button Margin="6,0,0,0" Padding="10,6" Content="{DynamicResource Ch_Refresh}" Command="{Binding RefreshCommand}"/>
+                        <Button Margin="6,0,0,0" Padding="10,6" Content="{DynamicResource Ch_Refresh}" Command="{Binding RefreshCommand}" IsEnabled="{Binding !IsBusy}"/>
                         <Button Margin="6,0,0,0" Padding="10,6" Content="{DynamicResource Ch_Export}" Command="{Binding ExportCommand}"/>
                     </StackPanel>
             </Grid>

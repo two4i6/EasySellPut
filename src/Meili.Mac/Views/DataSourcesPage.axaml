@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:lucide="using:Meili.Mac.Views.Controls"
     xmlns:ds="using:Meili.Mac.Views.Controls"
+    xmlns:ux="using:Meili.Mac.Views.Controls"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Meili.Shared.ViewModels"
              xmlns:sp="using:ScottPlot.Avalonia"
@@ -9,21 +10,20 @@
              x:DataType="vm:DataSourcesViewModel">
     <ScrollViewer Classes="PageScroller">
         <StackPanel MaxWidth="1200">
-            <TextBlock Classes="PageTitle" Text="{DynamicResource Ds_Title}" />
-            <TextBlock Classes="Secondary" Text="{DynamicResource Ds_Desc}" Margin="0,0,0,16" />
+            <DockPanel LastChildFill="True" Margin="0,0,0,8"><ux:AppHelp HelpText="{DynamicResource Ds_Desc}" DockPanel.Dock="Right" Margin="12,0,0,0"/><TextBlock Classes="PageTitle" Text="{DynamicResource Ds_Title}" /></DockPanel>
 
             <DockPanel LastChildFill="False" Margin="0,0,0,12">
                 <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center">
                     <TextBlock Classes="CardTitle" Text="{Binding SummaryText}" />
                     <TextBlock Classes="Caption" Text="{Binding NetworkText}" Margin="0,2,0,0" />
                 </StackPanel>
-                <Button DockPanel.Dock="Right" Classes="accent" Padding="14,7" Command="{Binding TestAllCommand}" IsEnabled="{Binding !IsTesting}">
+                <Button DockPanel.Dock="Right" Classes="Primary" Padding="14,7" Command="{Binding TestAllCommand}" IsEnabled="{Binding !IsTesting}">
                     <StackPanel Orientation="Horizontal">
                         
                         <TextBlock Text="{Binding TestButtonText}" />
                     </StackPanel>
                 </Button>
-                <ProgressBar DockPanel.Dock="Right" IsIndeterminate="True" Width="60" MinWidth="60" Height="4" Margin="0,0,12,0"
+                <ux:AppLoading DockPanel.Dock="Right" Margin="0,0,12,0"
                                  IsVisible="{Binding IsTesting}" />
             </DockPanel>
 
@@ -82,8 +82,7 @@
                                         IsVisible="{Binding HasError}">
                                     <StackPanel>
                                         <TextBlock Classes="Caption" FontWeight="SemiBold" Text="{DynamicResource Ds_LastError}" />
-                                        <TextBlock Classes="Caption" Text="{Binding LastErrorText}" TextTrimming="CharacterEllipsis" MaxHeight="54"
-                                                   ToolTip.Tip="{Binding LastErrorText}" />
+                                        <ux:AppDisclosure Header="{DynamicResource UX_Details}" HorizontalAlignment="Stretch"><SelectableTextBlock FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" MaxHeight="240" Text="{Binding LastErrorText}" TextWrapping="Wrap" Margin="0,8,0,0"/></ux:AppDisclosure>
                                     </StackPanel>
                                 </Border>
                             </StackPanel>

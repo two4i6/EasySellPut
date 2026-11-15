@@ -2,6 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=mscorlib"
                     xmlns:svc="clr-namespace:Meili.App.Services"
+                    xmlns:ux="clr-namespace:Meili.App.Views.Controls"
                     xmlns:p="clr-namespace:System.Windows.Controls.Primitives;assembly=PresentationFramework">
     <ResourceDictionary.MergedDictionaries><ResourceDictionary Source="../DesignSystem/Components.xaml" /></ResourceDictionary.MergedDictionaries>
     <svc:InverseBoolConverter x:Key="InverseBool" />
@@ -80,7 +81,7 @@
                 <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Tile" Property="BorderThickness" Value="2"/><Setter TargetName="Tile" Property="BorderBrush" Value="{DynamicResource TextFillColorPrimaryBrush}"/></Trigger>
             </ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
         </Style>
-    <Style x:Key="StatusAction" TargetType="p:ButtonBase">
+    <Style x:Key="StatusAction" TargetType="p:ButtonBase"><Setter Property="ux:ComponentMotion.Enabled" Value="True"/>
         <Setter Property="Width" Value="28"/><Setter Property="Height" Value="24"/><Setter Property="MinWidth" Value="28"/><Setter Property="MinHeight" Value="24"/><Setter Property="Padding" Value="0"/><Setter Property="Margin" Value="2,0,0,0"/><Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/><Setter Property="Background" Value="Transparent"/>
         <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="p:ButtonBase"><Border x:Name="Surface" CornerRadius="6" Background="{TemplateBinding Background}" BorderBrush="Transparent" BorderThickness="1"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><ControlTemplate.Triggers>
             <Trigger Property="IsMouseOver" Value="True"><Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}"/></Trigger>

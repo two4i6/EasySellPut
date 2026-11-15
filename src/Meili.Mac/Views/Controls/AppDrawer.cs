@@ -23,6 +23,6 @@ public sealed class AppDrawer : Border
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
-        if(change.Property==IsOpenProperty){IsVisible=IsOpen;if(!IsOpen && ReturnFocusTarget?.IsEffectivelyVisible==true)ReturnFocusTarget.Focus();}
+        if(change.Property==IsOpenProperty){IsVisible=IsOpen;if(IsOpen)AppMotion.Enter(Child);if(!IsOpen && ReturnFocusTarget?.IsEffectivelyVisible==true)ReturnFocusTarget.Focus();}
     }
 }

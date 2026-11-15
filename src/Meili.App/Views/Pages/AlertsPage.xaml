@@ -2,63 +2,38 @@
       Typography.NumeralAlignment="Tabular" Typography.NumeralStyle="Lining"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:ds="clr-namespace:Meili.App.Views.Controls"
+    xmlns:ux="clr-namespace:Meili.App.Views.Controls"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
       xmlns:controls="clr-namespace:Meili.App.Views.Controls"
       xmlns:vm="clr-namespace:Meili.Shared.ViewModels;assembly=Meili.Shared">
     <DockPanel>
         <StackPanel DockPanel.Dock="Top" Margin="32,24,32,12">
-            <TextBlock Style="{StaticResource PageTitle}" Text="{DynamicResource Nav_Alerts}" />
-            <TextBlock Style="{StaticResource Secondary}" Text="{DynamicResource Al_Desc}" Margin="0,0,0,16" />
+            <DockPanel LastChildFill="True" Margin="0,0,0,8"><ux:AppHelp HelpText="{DynamicResource Al_Desc}" DockPanel.Dock="Right" Margin="12,0,0,0"/><TextBlock Style="{StaticResource PageTitle}" Text="{DynamicResource Nav_Alerts}" /></DockPanel>
 
             <!-- F10: monitoring interrupted -->
             <ui:InfoBar Title="{DynamicResource Al_MonitorDownTitle}" Message="{Binding MonitorText}"
                         IsOpen="{Binding MonitorDown}" IsClosable="False" Severity="Error" Margin="0,0,0,12"
                         AutomationProperties.AutomationId="AlertsMonitorDown" />
 
-            <ds:AppCard Padding="16,16,16,12">
-                <WrapPanel Orientation="Horizontal">
-                    <StackPanel Margin="0,0,16,10" MinWidth="180">
+            <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource UX_RunningOnly}" Margin="0,0,0,8"/>
+<ds:AppCard Padding="16,16,16,12">
+                <StackPanel><WrapPanel Orientation="Horizontal"><StackPanel Margin="0,0,16,10" MinWidth="180">
                         <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Al_Symbol}" Margin="0,0,0,4" />
                         <controls:SymbolBox x:Name="SymbolInput" AutomationProperties.AutomationId="AlertsSymbol" MinWidth="180"
                           Text="{Binding SymbolText}" WatchSymbols="{Binding WatchSymbols}" />
-                    </StackPanel>
-                    <StackPanel Margin="0,0,16,10" MinWidth="220">
+                    </StackPanel><StackPanel Margin="0,0,16,10" MinWidth="220">
                         <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Al_Kind}" Margin="0,0,0,4" />
                         <ds:AppSelect ItemsSource="{Binding KindOptions}"
                                   SelectedItem="{Binding SelectedKind}"
                                   DisplayMemberPath="Title"
                                   FontSize="14" MinHeight="32" />
-                    </StackPanel>
-                    <StackPanel Margin="0,0,16,10" MinWidth="140">
+                    </StackPanel><StackPanel Margin="0,0,16,10" MinWidth="140">
                         <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Al_Threshold}" Margin="0,0,0,4" />
                         <ui:TextBox Text="{Binding ThresholdText, UpdateSourceTrigger=PropertyChanged}"
                                     PlaceholderText="{Binding ThresholdHint}"
                                     FontSize="14" Padding="10,6,10,6" />
-                    </StackPanel>
-                    <StackPanel Margin="0,0,16,10" MinWidth="140">
-                        <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Al_Repeat}" Margin="0,0,0,4" />
-                        <ds:AppSelect ItemsSource="{Binding RepeatOptions}"
-                                  SelectedItem="{Binding SelectedRepeat}"
-                                  DisplayMemberPath="Title"
-                                  FontSize="14" MinHeight="32" />
-                    </StackPanel>
-                    <StackPanel Margin="0,0,16,10" MinWidth="120">
-                        <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Al_Cooldown}" Margin="0,0,0,4" />
-                        <ui:TextBox Text="{Binding CooldownText, UpdateSourceTrigger=PropertyChanged}"
-                                    FontSize="14" Padding="10,6,10,6" />
-                    </StackPanel>
-                    <StackPanel Margin="0,0,16,10" MinWidth="180">
-                        <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Al_Note}" Margin="0,0,0,4" />
-                        <ui:TextBox Text="{Binding NoteText, UpdateSourceTrigger=PropertyChanged}"
-                                    FontSize="14" Padding="10,6,10,6" />
-                    </StackPanel>
-                    <StackPanel Margin="0,8,16,10" VerticalAlignment="Bottom">
-                        <CheckBox Content="{DynamicResource Al_Extended}"
-                                  IsChecked="{Binding IncludeExtendedHours}" IsEnabled="{Binding IsQuoteKind}"
-                                  FontSize="14" VerticalAlignment="Center" />
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" Margin="0,8,0,10" VerticalAlignment="Bottom">
+                    </StackPanel><StackPanel Orientation="Horizontal" Margin="0,8,0,10" VerticalAlignment="Bottom">
                         <ui:Button Appearance="Primary" Padding="16,6" Margin="0,0,8,0"
                                    Command="{Binding AddCommand}" Content="{DynamicResource Al_Add}" FontSize="14" />
                         <ui:Button Appearance="Secondary" Padding="16,6" Margin="0,0,8,0"
@@ -67,8 +42,25 @@
                         <ui:Button Appearance="Secondary" Padding="16,6"
                                    Command="{Binding DeleteCommand}" IsEnabled="{Binding HasSelection}"
                                    Content="{DynamicResource Al_Delete}" FontSize="14" />
-                    </StackPanel>
-                </WrapPanel>
+                    </StackPanel></WrapPanel><ux:AppDisclosure x:Name="AlertAdvanced" IsExpanded="{Binding AdvancedExpanded, Mode=TwoWay}" Header="{DynamicResource UX_AlertMore}" HorizontalAlignment="Stretch"><WrapPanel Margin="0,8,0,0"><StackPanel Margin="0,0,16,10" MinWidth="140">
+                        <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Al_Repeat}" Margin="0,0,0,4" />
+                        <ds:AppSelect ItemsSource="{Binding RepeatOptions}"
+                                  SelectedItem="{Binding SelectedRepeat}"
+                                  DisplayMemberPath="Title"
+                                  FontSize="14" MinHeight="32" />
+                    </StackPanel><StackPanel Margin="0,0,16,10" MinWidth="120">
+                        <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Al_Cooldown}" Margin="0,0,0,4" />
+                        <ui:TextBox Text="{Binding CooldownText, UpdateSourceTrigger=PropertyChanged}"
+                                    FontSize="14" Padding="10,6,10,6" />
+                    </StackPanel><StackPanel Margin="0,0,16,10" MinWidth="180">
+                        <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Al_Note}" Margin="0,0,0,4" />
+                        <ui:TextBox Text="{Binding NoteText, UpdateSourceTrigger=PropertyChanged}"
+                                    FontSize="14" Padding="10,6,10,6" />
+                    </StackPanel><StackPanel Margin="0,8,16,10" VerticalAlignment="Bottom">
+                        <CheckBox Content="{DynamicResource Al_Extended}"
+                                  IsChecked="{Binding IncludeExtendedHours}" IsEnabled="{Binding IsQuoteKind}"
+                                  FontSize="14" VerticalAlignment="Center" />
+                    </StackPanel></WrapPanel></ux:AppDisclosure></StackPanel>
             </ds:AppCard>
 
             <DockPanel Margin="0,10,0,0" LastChildFill="True">

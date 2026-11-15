@@ -43,6 +43,25 @@ class TimelineTests(unittest.TestCase):
             self.page.screenshot(path=str(pathlib.Path(output)/(name+'.png')))
             if name.startswith('news-history'):
                 self.page.locator('#timeline').screenshot(path=str(pathlib.Path(output)/(name+'-panel.png')))
+    def test_local_detail_motion_reduced_motion_and_refresh_focus(self):
+        p=self.page
+        p.emulate_media(reduced_motion='no-preference')
+        p.evaluate("document.documentElement.dataset.reducedMotion='false'")
+        p.locator('#event-list button[data-event-id]').first.click()
+        self.assertTrue(p.locator('#event-detail').is_visible())
+        p.locator('#event-close').focus()
+        p.evaluate('meiliChart.render(structuredClone(meiliChart.inspect().state))')
+        self.assertEqual(p.evaluate('document.activeElement.id'),'event-close')
+        p.evaluate("meiliMotion.enter(document.querySelector('#event-detail'))")
+        self.assertTrue(p.locator('#event-detail').evaluate('(e)=>e.getAnimations().length>0'))
+        p.evaluate("document.documentElement.dataset.reducedMotion='true'")
+        self.wait("document.querySelector('#event-detail').getAnimations().length === 0")
+        p.evaluate("meiliMotion.enter(document.querySelector('#event-detail'))")
+        self.assertEqual(p.locator('#event-detail').evaluate('(e)=>e.getAnimations().length'),0)
+        self.assertEqual(p.locator('canvas').first.evaluate('(e)=>e.getAnimations().length'),0)
+        self.capture('ux-event-detail-reduced')
+        p.locator('#event-close').click();p.evaluate("document.documentElement.dataset.reducedMotion='false'")
+
     def test_history_groups_original_dates_scroll_navigation_and_live_updates(self):
         p=self.page
         original=p.evaluate('structuredClone(meiliChart.inspect().state)')

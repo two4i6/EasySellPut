@@ -18,7 +18,7 @@
             <Grid x:Name="ChartToolbar" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                 <StackPanel Grid.Column="0" VerticalAlignment="Center" Orientation="Horizontal">
                         <controls:SymbolBox x:Name="SymbolInput" Width="144" MinWidth="132" Text="{Binding SymbolText}" WatchSymbols="{Binding WatchSymbols}" CommitCommand="{Binding LoadFromBoxCommand}"/>
-                        <ui:Button Height="32" MinHeight="32" Margin="6,0,0,0" Padding="10,4" Width="32" MinWidth="32" Content="{lucide:Lucide CornerDownLeft}" AutomationProperties.Name="{DynamicResource Ch_Load}" ToolTip="{DynamicResource Ch_Load}" Command="{Binding LoadFromBoxCommand}"/>
+                        <ui:Button Height="32" MinHeight="32" Margin="6,0,0,0" Padding="10,4" Width="32" MinWidth="32" Content="{lucide:Lucide CornerDownLeft}" AutomationProperties.Name="{DynamicResource Ch_Load}" ToolTip="{DynamicResource Ch_Load}" Command="{Binding LoadFromBoxCommand}" IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}"/>
                     </StackPanel>
                 <ScrollViewer x:Name="RangeScroller" Grid.Column="1" Margin="12,0,6,0" VerticalAlignment="Center" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
                     <ItemsControl x:Name="RangeTabs" ItemsSource="{Binding Ranges}" Margin="0">
@@ -36,7 +36,7 @@
                 </ScrollViewer>
                 <StackPanel Grid.Column="2" VerticalAlignment="Center" Orientation="Horizontal">
                         <ToggleButton x:Name="InspectorToggle" Margin="6,0,0,0" Padding="10,6" Content="{DynamicResource Ch_Tools}" IsChecked="{Binding ShowInspector, Mode=TwoWay}" AutomationProperties.AutomationId="ChartsTools"/>
-                        <ui:Button Height="32" MinHeight="32" Margin="6,0,0,0" Padding="10,4" Content="{DynamicResource Ch_Refresh}" Command="{Binding RefreshCommand}"/>
+                        <ui:Button Height="32" MinHeight="32" Margin="6,0,0,0" Padding="10,4" Content="{DynamicResource Ch_Refresh}" Command="{Binding RefreshCommand}" IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}"/>
                         <ui:Button Height="32" MinHeight="32" Margin="6,0,0,0" Padding="10,4" Content="{DynamicResource Ch_Export}" Command="{Binding ExportCommand}"/>
                     </StackPanel>
             </Grid>

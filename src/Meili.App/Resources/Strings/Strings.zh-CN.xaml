@@ -883,4 +883,14 @@
     <sys:String x:Key="Web_Privacy">仅保存名称和网址；网页会话在退出后清除。</sys:String>
     <sys:String x:Key="Web_ConfirmRemove">再次点击移除</sys:String>
     <sys:String x:Key="Ch_ClearAllShort">清空</sys:String>
+    <sys:String x:Key="UX_Help">使用帮助</sys:String>
+    <sys:String x:Key="UX_Details">说明</sys:String>
+    <sys:String x:Key="UX_QuickStart">快速开始</sys:String>
+    <sys:String x:Key="UX_Columns">列与分析</sys:String>
+    <sys:String x:Key="UX_AlertMore">重复与更多</sys:String>
+    <sys:String x:Key="UX_OpenChartFor">查看 {0} 图表</sys:String>
+    <sys:String x:Key="UX_SelectedActions">所选标的</sys:String>
+    <sys:String x:Key="UX_SelectedContract">所选执行价</sys:String>
+    <sys:String x:Key="UX_RunningOnly">应用运行期间提醒生效</sys:String>
+    <sys:String x:Key="UX_CooldownError">请输入 1–1440 的整数分钟。</sys:String>
 </ResourceDictionary>

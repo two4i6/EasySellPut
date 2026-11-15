@@ -44,7 +44,7 @@ class RendererTests(unittest.TestCase):
                     if self.path.endswith('?after='+str(cls.version)): self.send_response(204); self.end_headers(); return
                     body=json.dumps(dict(version=cls.version,data=cls.state)).encode(); mime='application/json'
                 else:
-                    file={'/index.html':'index.html','/chart.js':'chart.js','/icons.js':'icons.js','/design-tokens.css':'design-tokens.css','/components.css':'components.css',**{'/fonts/'+name:'../Assets/Fonts/'+name for name in ['SourceSans3-Regular.ttf','SourceSans3-Semibold.ttf','SourceSerif4-Regular.ttf','SourceCodePro-Regular.ttf']},'/library.js':'vendor/lightweight-charts.js'}.get(route)
+                    file={'/index.html':'index.html','/chart.js':'chart.js','/icons.js':'icons.js','/motion.js':'motion.js','/design-tokens.css':'design-tokens.css','/components.css':'components.css',**{'/fonts/'+name:'../Assets/Fonts/'+name for name in ['SourceSans3-Regular.ttf','SourceSans3-Semibold.ttf','SourceSerif4-Regular.ttf','SourceCodePro-Regular.ttf']},'/library.js':'vendor/lightweight-charts.js'}.get(route)
                     if file is None: self.send_error(404); return
                     body=(ASSETS/file).read_bytes(); mime='font/ttf' if route.endswith('.ttf') else 'text/css' if route.endswith('.css') else 'text/html' if route.endswith('.html') else 'text/javascript'
                 self.send_response(200);self.send_header('Content-Type',mime);self.send_header('Content-Length',str(len(body)));self.end_headers();self.wfile.write(body)
