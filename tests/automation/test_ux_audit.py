@@ -1,6 +1,6 @@
 """Protect discoverability, progressive disclosure and the shared feedback path on both desktops."""
 from pathlib import Path
-import json,unittest,xml.etree.ElementTree as ET
+import json,re,unittest,xml.etree.ElementTree as ET
 ROOT=Path(__file__).resolve().parents[2]
 class UxAuditTests(unittest.TestCase):
     def test_audit_inventory_and_journeys_cover_every_page(self):
@@ -24,6 +24,11 @@ class UxAuditTests(unittest.TestCase):
         for file in ['index.html','workbench.html']:self.assertIn('src="motion.js"',(ROOT/'src/Meili.Shared/WebCharts'/file).read_text(encoding="utf-8"))
         motion=(ROOT/'src/Meili.Shared/WebCharts/motion.js').read_text(encoding="utf-8");self.assertIn('prefers-reduced-motion',motion);self.assertIn('data-reduced-motion',motion)
         workflow=(ROOT/'.github/workflows/ci.yml').read_text(encoding="utf-8")
-        windows=workflow.split('- name: Windows complete offline desktop regression',1)[1].split('- uses:',1)[0]
-        self.assertIn('tests/Meili.App.Tests/Meili.App.Tests.csproj',windows);self.assertIn("--filter 'Category!=Live'",windows);self.assertNotIn('FullyQualifiedName~',windows)
+        # Locate behavior, not the human-facing step title: labels may change without changing coverage.
+        steps=re.split(r'(?m)^      - ',workflow)
+        windows=[step for step in steps if re.search(r'(?m)^\s+dotnet test tests/Meili\.App\.Tests/Meili\.App\.Tests\.csproj\b',step)]
+        self.assertEqual(len(windows),1,'Exactly one complete Windows desktop regression step is required')
+        windows=windows[0]
+        self.assertIn("runner.os == 'Windows'",windows);self.assertIn("--filter 'Category!=Live'",windows);self.assertNotIn('FullyQualifiedName~',windows)
+        self.assertIn('RunConfiguration.TreatNoTestsAsError=true',windows)
 if __name__=='__main__':unittest.main()
