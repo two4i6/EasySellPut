@@ -39,6 +39,10 @@ public sealed class QuotePanelWindow : Window
         var more=IconButton("More","QP_More",()=>{});var quitItem=new MenuItem{Header=_loc["Menu_Quit"]};quitItem.Click+=(_,_)=>quit();more.ContextMenu=new ContextMenu{Items={quitItem}};more.Click+=(_,_)=>more.ContextMenu.IsOpen=true;actions.Children.Add(more);
         var paging=new StackPanel{Orientation=Orientation.Horizontal};_previous=IconButton("ChevronLeft","QP_Previous",async()=>await _model.MoveAsync(-1));_next=IconButton("ChevronRight","QP_Next",async()=>await _model.MoveAsync(1));paging.Children.Add(_previous);_page.VerticalAlignment=VerticalAlignment.Center;paging.Children.Add(_page);paging.Children.Add(_next);footer.Children.Add(paging);
         var content=RowsGrid();content.Children.Add(header);Grid.SetRow(hero,1);content.Children.Add(hero);Grid.SetRow(list,2);content.Children.Add(list);Grid.SetRow(_status,3);content.Children.Add(_status);Grid.SetRow(footer,4);content.Children.Add(footer);Caption(_status);
+        foreach(FrameworkElement child in hero.Children)child.Margin=new Thickness(child.Margin.Left,child.Margin.Top,child.Margin.Right,child.Margin.Bottom+5);
+        foreach(FrameworkElement child in tools.Children)child.Margin=new Thickness(0,0,4,0);
+        foreach(FrameworkElement child in actions.Children)child.Margin=new Thickness(5,0,0,0);
+        foreach(FrameworkElement child in paging.Children)child.Margin=new Thickness(0,0,4,0);
         Content=new AppCard{Padding=new Thickness(16),Content=content};
         KeyDown+=(_,e)=>{if(e.Key==Key.Escape){HidePanel();e.Handled=true;}};Deactivated+=(_,_)=>{if(_pin.IsChecked!=true && !more.ContextMenu.IsOpen)HidePanel();};
         Closed+=(_,_)=>{_model.Changed-=OnChanged;_model.Dispose();};_model.Changed+=OnChanged;UpdateView();
@@ -76,7 +80,7 @@ public sealed class QuotePanelWindow : Window
         public readonly Button Button;private readonly QuotePanelWindow _owner;private readonly TextBlock _name=new(),_price=new(),_change=new(),_date=new();private readonly QuoteSparkline _spark=new(){Width=100,Height=24};
         public RowView(QuotePanelWindow owner,PanelQuoteRow row)
         {
-            _owner=owner;Button=new Button{HorizontalAlignment=HorizontalAlignment.Stretch,HorizontalContentAlignment=HorizontalAlignment.Stretch,Padding=new Thickness(8,6,8,6)};
+            _owner=owner;Button=new Button{Margin=new Thickness(0,0,0,3),HorizontalAlignment=HorizontalAlignment.Stretch,HorizontalContentAlignment=HorizontalAlignment.Stretch,Padding=new Thickness(8,6,8,6)};
             var grid=ColumnsGrid();var symbol=new TextBlock{Text=row.Symbol,FontSize=15,FontWeight=FontWeights.SemiBold};owner.Caption(_name);_name.TextTrimming=TextTrimming.CharacterEllipsis;var identity=new StackPanel{Children={symbol,_name}};grid.Children.Add(identity);
             owner.Caption(_date);_date.FontSize=10;var mini=new StackPanel{Children={_spark,_date}};Grid.SetColumn(mini,1);grid.Children.Add(mini);_price.FontSize=16;_price.FontWeight=FontWeights.SemiBold;_price.VerticalAlignment=VerticalAlignment.Center;_price.HorizontalAlignment=HorizontalAlignment.Right;Grid.SetColumn(_price,2);grid.Children.Add(_price);_change.FontSize=14;_change.VerticalAlignment=VerticalAlignment.Center;_change.HorizontalAlignment=HorizontalAlignment.Right;Grid.SetColumn(_change,3);grid.Children.Add(_change);Button.Content=grid;Button.Click+=(_,_)=>owner._model.Select(row.Symbol);Button.MouseDoubleClick+=(_,_)=>{owner._model.Select(row.Symbol);owner.OpenSelected();};
         }
