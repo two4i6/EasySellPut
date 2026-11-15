@@ -6013,11 +6013,29 @@
     {
       "platform": "App",
       "page": "Options",
-      "type": "DockPanel",
+      "type": "ScrollViewer",
       "name": null,
-      "attributes": {},
+      "attributes": {
+        "VerticalScrollBarVisibility": "Auto",
+        "HorizontalScrollBarVisibility": "Disabled"
+      },
       "composition": [
         "Page"
+      ],
+      "source": "src/Meili.App/Views/Pages/OptionsPage.xaml"
+    },
+    {
+      "platform": "App",
+      "page": "Options",
+      "type": "DockPanel",
+      "name": null,
+      "attributes": {
+        "MinHeight": "760",
+        "Height": "{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=ScrollViewer}}"
+      },
+      "composition": [
+        "Page",
+        "ScrollViewer"
       ],
       "source": "src/Meili.App/Views/Pages/OptionsPage.xaml"
     },
@@ -6032,6 +6050,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel"
       ],
       "source": "src/Meili.App/Views/Pages/OptionsPage.xaml"
@@ -6047,6 +6066,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel"
       ],
@@ -6064,6 +6084,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "DockPanel"
@@ -6081,6 +6102,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "DockPanel"
@@ -6098,6 +6120,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel"
       ],
@@ -6118,6 +6141,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "DockPanel"
@@ -6134,6 +6158,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "DockPanel",
@@ -6154,6 +6179,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "DockPanel",
@@ -6173,6 +6199,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "DockPanel",
@@ -6196,6 +6223,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "DockPanel"
@@ -6212,6 +6240,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "DockPanel",
@@ -6232,6 +6261,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "DockPanel",
@@ -6251,6 +6281,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "DockPanel",
@@ -6275,6 +6306,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "DockPanel"
@@ -6299,6 +6331,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "DockPanel"
@@ -6319,6 +6352,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "DockPanel"
@@ -6340,6 +6374,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "DockPanel"
@@ -6356,6 +6391,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel"
       ],
@@ -6375,6 +6411,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "WrapPanel"
@@ -6396,6 +6433,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "WrapPanel"
@@ -6417,6 +6455,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "WrapPanel"
@@ -6434,6 +6473,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "WrapPanel",
@@ -6456,6 +6496,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "WrapPanel"
@@ -6473,6 +6514,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "WrapPanel",
@@ -6496,6 +6538,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "WrapPanel"
@@ -6514,6 +6557,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "WrapPanel",
@@ -6531,6 +6575,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel"
       ],
@@ -6549,6 +6594,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "WrapPanel"
@@ -6568,6 +6614,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "WrapPanel"
@@ -6587,6 +6634,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "WrapPanel"
@@ -6606,6 +6654,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "WrapPanel"
@@ -6625,6 +6674,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "WrapPanel"
@@ -6644,6 +6694,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel"
       ],
@@ -6659,6 +6710,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "AppDisclosure"
@@ -6678,6 +6730,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "AppDisclosure",
@@ -6697,6 +6750,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "AppDisclosure",
@@ -6716,6 +6770,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "AppDisclosure",
@@ -6736,6 +6791,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "AppDisclosure",
@@ -6755,6 +6811,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "AppDisclosure",
@@ -6774,6 +6831,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "AppDisclosure",
@@ -6793,6 +6851,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "AppDisclosure",
@@ -6812,6 +6871,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "AppDisclosure",
@@ -6831,6 +6891,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "AppDisclosure",
@@ -6851,6 +6912,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "AppDisclosure",
@@ -6871,6 +6933,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "AppDisclosure",
@@ -6893,6 +6956,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "AppDisclosure",
@@ -6912,6 +6976,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "AppDisclosure",
@@ -6934,6 +6999,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "AppDisclosure",
@@ -6952,6 +7018,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel"
       ],
@@ -6970,6 +7037,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "WrapPanel"
@@ -6989,6 +7057,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "WrapPanel"
@@ -7008,6 +7077,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "WrapPanel"
@@ -7027,6 +7097,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "WrapPanel"
@@ -7046,6 +7117,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "WrapPanel"
@@ -7063,6 +7135,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel"
       ],
@@ -7080,6 +7153,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "DockPanel"
@@ -7099,6 +7173,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "DockPanel"
@@ -7117,6 +7192,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "DockPanel"
@@ -7137,6 +7213,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel"
       ],
       "source": "src/Meili.App/Views/Pages/OptionsPage.xaml"
@@ -7151,6 +7228,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel"
       ],
       "source": "src/Meili.App/Views/Pages/OptionsPage.xaml"
@@ -7169,6 +7247,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "Grid"
       ],
@@ -7193,6 +7272,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "Grid"
       ],
@@ -7206,6 +7286,7 @@
       "attributes": {},
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "Grid",
         "ListView"
@@ -7222,6 +7303,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "Grid",
         "ListView",
@@ -7239,6 +7321,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "Grid",
         "ListView",
@@ -7259,6 +7342,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "Grid",
         "ListView",
@@ -7280,6 +7364,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "Grid",
         "ListView",
@@ -7301,6 +7386,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "Grid",
         "ListView",
@@ -7322,6 +7408,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "Grid",
         "ListView",
@@ -7339,6 +7426,7 @@
       "attributes": {},
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "Grid",
         "ListView"
@@ -7356,6 +7444,7 @@
       },
       "composition": [
         "Page",
+        "ScrollViewer",
         "DockPanel",
         "Grid",
         "ListView",
@@ -24735,11 +24824,29 @@
     {
       "platform": "Mac",
       "page": "Options",
-      "type": "DockPanel",
+      "type": "ScrollViewer",
       "name": null,
-      "attributes": {},
+      "attributes": {
+        "VerticalScrollBarVisibility": "Auto",
+        "HorizontalScrollBarVisibility": "Disabled"
+      },
       "composition": [
         "UserControl"
+      ],
+      "source": "src/Meili.Mac/Views/OptionsPage.axaml"
+    },
+    {
+      "platform": "Mac",
+      "page": "Options",
+      "type": "DockPanel",
+      "name": null,
+      "attributes": {
+        "MinHeight": "760",
+        "Height": "{Binding $parent[ScrollViewer].Bounds.Height}"
+      },
+      "composition": [
+        "UserControl",
+        "ScrollViewer"
       ],
       "source": "src/Meili.Mac/Views/OptionsPage.axaml"
     },
@@ -24754,6 +24861,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel"
       ],
       "source": "src/Meili.Mac/Views/OptionsPage.axaml"
@@ -24769,6 +24877,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel"
       ],
@@ -24786,6 +24895,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "DockPanel"
@@ -24803,6 +24913,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "DockPanel"
@@ -24819,6 +24930,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel"
       ],
@@ -24837,6 +24949,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "DockPanel"
@@ -24857,6 +24970,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "DockPanel"
@@ -24878,6 +24992,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "DockPanel"
@@ -24900,6 +25015,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "DockPanel"
@@ -24920,6 +25036,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "DockPanel"
@@ -24940,6 +25057,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "DockPanel"
@@ -24956,6 +25074,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel"
       ],
@@ -24975,6 +25094,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "WrapPanel"
@@ -24995,6 +25115,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "WrapPanel"
@@ -25014,6 +25135,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "WrapPanel"
@@ -25031,6 +25153,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "WrapPanel",
@@ -25051,6 +25174,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "WrapPanel"
@@ -25068,6 +25192,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "WrapPanel",
@@ -25089,6 +25214,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "WrapPanel"
@@ -25106,6 +25232,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "WrapPanel",
@@ -25123,6 +25250,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel"
       ],
@@ -25141,6 +25269,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "WrapPanel"
@@ -25163,6 +25292,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "WrapPanel"
@@ -25185,6 +25315,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "WrapPanel"
@@ -25207,6 +25338,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "WrapPanel"
@@ -25229,6 +25361,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "WrapPanel"
@@ -25248,6 +25381,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel"
       ],
@@ -25263,6 +25397,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "AppDisclosure"
@@ -25282,6 +25417,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "AppDisclosure",
@@ -25301,6 +25437,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "AppDisclosure",
@@ -25320,6 +25457,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "AppDisclosure",
@@ -25340,6 +25478,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "AppDisclosure",
@@ -25359,6 +25498,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "AppDisclosure",
@@ -25378,6 +25518,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "AppDisclosure",
@@ -25397,6 +25538,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "AppDisclosure",
@@ -25416,6 +25558,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "AppDisclosure",
@@ -25435,6 +25578,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "AppDisclosure",
@@ -25455,6 +25599,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "AppDisclosure",
@@ -25475,6 +25620,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "AppDisclosure",
@@ -25495,6 +25641,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "AppDisclosure",
@@ -25514,6 +25661,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "AppDisclosure",
@@ -25535,6 +25683,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "AppDisclosure",
@@ -25553,6 +25702,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel"
       ],
@@ -25571,6 +25721,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "WrapPanel"
@@ -25590,6 +25741,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "WrapPanel"
@@ -25609,6 +25761,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "WrapPanel"
@@ -25628,6 +25781,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "WrapPanel"
@@ -25647,6 +25801,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "WrapPanel"
@@ -25664,6 +25819,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel"
       ],
@@ -25680,6 +25836,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "StackPanel"
@@ -25699,6 +25856,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "StackPanel"
@@ -25717,6 +25875,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "StackPanel",
         "StackPanel"
@@ -25737,6 +25896,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel"
       ],
       "source": "src/Meili.Mac/Views/OptionsPage.axaml"
@@ -25751,6 +25911,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel"
       ],
       "source": "src/Meili.Mac/Views/OptionsPage.axaml"
@@ -25768,6 +25929,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "Panel"
       ],
@@ -25789,6 +25951,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "Panel"
       ],
@@ -25802,6 +25965,7 @@
       "attributes": {},
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "Panel",
         "DataGrid"
@@ -25816,6 +25980,7 @@
       "attributes": {},
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "Panel",
         "DataGrid",
@@ -25833,6 +25998,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "Panel",
         "DataGrid",
@@ -25853,6 +26019,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "Panel",
         "DataGrid",
@@ -25874,6 +26041,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "Panel",
         "DataGrid",
@@ -25895,6 +26063,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "Panel",
         "DataGrid",
@@ -25916,6 +26085,7 @@
       },
       "composition": [
         "UserControl",
+        "ScrollViewer",
         "DockPanel",
         "Panel",
         "DataGrid",

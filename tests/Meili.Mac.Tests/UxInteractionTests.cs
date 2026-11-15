@@ -32,6 +32,7 @@ public sealed class UxInteractionTests
             foreach(var page in MainWindow.PageOrder)
             {
                 w.Navigate(page);await Settle();var view=w.CurrentView!;
+                if(page==AppPage.Options)Assert.True(view.FindControl<DataGrid>("ChainList")!.Bounds.Height>=180,"Compact option chain needs usable row space");
                 var disclosures=view.GetVisualDescendants().OfType<AppDisclosure>().ToArray();
                 // Fields survive collapsed state; no default full-page tutorial is introduced.
                 var text=view.GetVisualDescendants().OfType<TextBlock>().Where(t=>t.IsEffectivelyVisible).Select(t=>t.Text??"").ToArray();

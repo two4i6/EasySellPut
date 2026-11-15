@@ -147,7 +147,7 @@ jobs:
           MEILI_RENDER_DIR: ${{ github.workspace }}/build/out/ci/render
         run: |
           mkdir -p "$MEILI_RENDER_DIR"
-          dotnet test tests/Meili.Mac.Tests/Meili.Mac.Tests.csproj -c Release -m:3 --filter 'Category!=Live' --logger 'trx;LogFileName=Mac.trx' --results-directory build/out/ci/tests -v minimal -- RunConfiguration.TreatNoTestsAsError=true
+          dotnet test tests/Meili.Mac.Tests/Meili.Mac.Tests.csproj -c Release -m:3 --blame-crash --blame-crash-dump-type mini --filter 'Category!=Live' --logger 'trx;LogFileName=Mac.trx' --results-directory build/out/ci/tests -v minimal -- RunConfiguration.TreatNoTestsAsError=true
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -173,6 +173,8 @@ jobs:
           name: desktop-headless
           path: |
             build/out/ci/tests/**/*.trx
+            build/out/ci/tests/**/*_Sequence.xml
+            build/out/ci/tests/**/*.dmp
             build/out/ci/render/**/*.png
           if-no-files-found: warn
           retention-days: 14

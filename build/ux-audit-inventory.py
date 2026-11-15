@@ -7,7 +7,7 @@ ROOT=Path(__file__).resolve().parents[1]
 PAGES=['Dashboard','Watchlist','Charts','Options','Strategy','News','Alerts','DataSources','Settings']
 def build(current=False):
     records=[]
-    def read(path):return (ROOT/path).read_text() if current else subprocess.check_output(['git','show','67f0357:'+path],cwd=ROOT,text=True)
+    def read(path):return (ROOT/path).read_text(encoding="utf-8") if current else subprocess.check_output(['git','show','67f0357:'+path],cwd=ROOT,text=True,encoding='utf-8')
     for platform,extension,sub in [('App','xaml','Views/Pages'),('Mac','axaml','Views')]:
         for page in PAGES+['Shell']:
             path=f'src/Meili.{platform}/{sub}/{page}Page.{extension}' if page!='Shell' else f'src/Meili.{platform}/MainWindow.{extension}'
@@ -27,4 +27,4 @@ def build(current=False):
         parser=HTML(file);parser.feed(read('src/Meili.Shared/WebCharts/'+file))
     return {'baseline':'67f0357','mode':'current' if current else 'baseline','scope':'All native page/shell XML declarations and static bundled HTML. Dynamic/template instances follow the manual report and browser tests.','components':records}
 if __name__=='__main__':
-    current='--current' in sys.argv;result=build(current);output=ROOT/'docs/ux'/('components-after.json' if current else 'components-before.json');output.write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n');print(len(result['components']),output)
+    current='--current' in sys.argv;result=build(current);output=ROOT/'docs/ux'/('components-after.json' if current else 'components-before.json');output.write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8');print(len(result['components']),output)
