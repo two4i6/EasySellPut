@@ -31,7 +31,7 @@ public partial class MainWindow
         }
         try { _workspace = new WebWorkspace(AppServices.DataDirectory.Path); }
         catch (Exception ex) when (ex is IOException or System.Text.Json.JsonException or ArgumentException)
-        { AddWebsite.IsEnabled = false; AddWebsite.ToolTip = _loc["Web_Failed"]; }
+        { Meili.Core.Diagnostics.AppLog.Warn("web-workspace", "Workspace could not be loaded", ex); AddWebsite.IsEnabled = false; AddWebsite.ToolTip = _loc["Web_Failed"]; }
         _loc.LanguageChanged += WorkspaceLanguageChanged;
         RebuildWebsiteRail(); MotionButton.IsChecked = _workspace?.ReduceMotion == true;
         AnimateTile(HomeWorkspace); AnimateTile(AddWebsite); AnimateTile(MotionButton);
@@ -81,6 +81,7 @@ public partial class MainWindow
         }
         tile.MouseEnter += (_, _) => { Animate(1.04); Shape(true); };
         tile.MouseLeave += (_, _) => { Animate(1); Shape(false); };
+        tile.Loaded += (_, _) => Shape(tile.IsMouseOver);
         tile.Checked += (_, _) => Shape(tile.IsMouseOver); tile.Unchecked += (_, _) => Shape(tile.IsMouseOver);
     }
     internal void OpenWebsite(WebWorkspaceTab tab)

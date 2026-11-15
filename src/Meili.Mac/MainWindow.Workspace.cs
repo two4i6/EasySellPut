@@ -20,7 +20,7 @@ public partial class MainWindow
     {
         try { _workspace = new WebWorkspace(AppServices.DataDirectory.Path); }
         catch (Exception ex) when (ex is System.IO.IOException or System.Text.Json.JsonException or ArgumentException)
-        { AddWebsite.IsEnabled = false; ShowBanner(_loc["Web_Edit"], _loc["Web_Failed"]); }
+        { Meili.Core.Diagnostics.AppLog.Warn("web-workspace", "Workspace could not be loaded", ex); AddWebsite.IsEnabled = false; ShowBanner(_loc["Web_Edit"], _loc["Web_Failed"]); }
         RebuildWebsiteRail(); ApplyWorkspaceMotion();
         _loc.LanguageChanged += WorkspaceLanguageChanged; Closed += (_, _) => _loc.LanguageChanged -= WorkspaceLanguageChanged;
         Activated += (_, _) => ApplyWorkspaceMotion();
@@ -84,7 +84,7 @@ public partial class MainWindow
     {
         if (!OperatingSystem.IsMacOS()) return false;
         try { return SendBool(SendObject(ObjClass("NSWorkspace"), ObjSelector("sharedWorkspace")), ObjSelector("accessibilityDisplayShouldReduceMotion")); }
-        catch (Exception ex) when (ex is DllNotFoundException or EntryPointNotFoundException) { return true; }
+        catch (Exception ex) when (ex is DllNotFoundException or EntryPointNotFoundException) { Meili.Core.Diagnostics.AppLog.Warn("web-workspace", "System motion preference unavailable", ex); return true; }
     }
     [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_getClass")] private static extern IntPtr ObjClass(string name);
     [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "sel_registerName")] private static extern IntPtr ObjSelector(string name);
