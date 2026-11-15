@@ -196,7 +196,7 @@ internal static class Program
             window.Show(); chart.Start(vm, palette);
             await Until(() => Result(d => d.GetProperty("panes").GetInt32() == 5), "TradingView five panes: " + chart.LastDiagnostic);
             if (!Result(d => d.GetProperty("rows").GetInt32() == 120 && d.GetProperty("candles").GetInt32() == 119)) throw new Exception("Missing OHLC was fabricated");
-            await Until(() => Result(d => d.GetProperty("events").GetInt32() == 3 && d.GetProperty("eventMarkers").GetInt32() == 2), "News and calendar markers in native chart");
+            await Until(() => Result(d => d.GetProperty("events").GetInt32() == 3 && d.GetProperty("eventMarkers").GetInt32() == 2 && d.GetProperty("historyGroups").GetInt32() == 2 && d.GetProperty("historyStops").GetInt32() == 2), "News/calendar markers, date groups and history stops in native chart");
             vm.MaPeriod = 5;
             await Until(() => Result(d => Math.Abs(d.GetProperty("lastMa").GetDouble() - vm.Snapshot!.Sma[^1]) < 1e-8), "Analytics MA parity in actual chart series");
             vm.ShowRsi = false;

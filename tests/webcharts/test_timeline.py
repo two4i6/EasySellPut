@@ -41,6 +41,74 @@ class TimelineTests(unittest.TestCase):
         if output:
             pathlib.Path(output).mkdir(parents=True,exist_ok=True)
             self.page.screenshot(path=str(pathlib.Path(output)/(name+'.png')))
+            if name.startswith('news-history'):
+                self.page.locator('#timeline').screenshot(path=str(pathlib.Path(output)/(name+'-panel.png')))
+    def test_history_groups_original_dates_scroll_navigation_and_live_updates(self):
+        p=self.page
+        original=p.evaluate('structuredClone(meiliChart.inspect().state)')
+        try:
+            p.set_viewport_size(dict(width=1280,height=900))
+            p.evaluate("""()=>{const s=structuredClone(meiliChart.inspect().state),template=s.events.find(e=>e.event.type==='news');
+                s.events=[];
+                for(let day=0;day<12;day++)for(let n=0;n<3;n++){
+                    const published=new Date(Date.UTC(2026,10,14-day,20-n)).toISOString();
+                    s.events.push({...template,event:{...template.event,id:`history-${day}-${n}`,published,date:'2099-01-01',title:['市场焦点：科技股盘中走势与资金流向','公司动态：最新业绩展望及分析师观点','行业观察：半导体板块与大盘表现'][n]+' · 测试新闻',publisher:'Fixture publisher'}});
+                }
+                // 02:00 UTC is the previous New York calendar day, not the UTC day or aligned candle.
+                s.events[0].event.published='2026-11-15T02:00:00Z';
+                const calendar=s.events[0];
+                s.events.push({...calendar,event:{...calendar.event,id:'undated',published:null,date:null,title:'未提供发布时间 · 测试新闻'}});
+                s.events.push({...calendar,event:{...calendar.event,id:'date-range',type:'earnings',published:null,date:'2026-12-31',endDate:'2027-01-03',precision:'date_range',confirmation:'estimated'}});
+                meiliChart.render(s);document.getElementById('timeline').open=true;}""")
+            p.wait_for_timeout(100)
+            self.assertEqual(p.locator('.event-day').count(),14)
+            self.assertEqual(p.locator('#event-history button').count(),14)
+            self.assertEqual(p.locator('.event-day[data-day="2026-11-14"] [data-event-id]').count(),3)
+            self.assertEqual(p.locator('.event-day[data-day="2026-11-14"] [data-event-id]').first.get_attribute('data-event-id'),'history-0-0')
+            self.assertIn('21:00 ET',p.locator('[data-event-id="history-0-0"]').inner_text())
+            self.assertIn('2027-01-03',p.locator('[data-event-id="date-range"]').inner_text())
+            self.assertEqual(p.locator('.event-day').last.get_attribute('data-day'),'')
+            self.capture('news-history-dark')
+            target=p.locator('#event-history button[data-day="2026-11-08"]')
+            target.click();p.wait_for_timeout(100)
+            self.assertEqual(p.locator('#event-history [aria-current]').get_attribute('data-day'),'2026-11-08')
+            self.assertGreater(p.locator('#event-list').evaluate('(e)=>e.scrollTop'),500)
+            # The latest quote/theme payload must not reset the user's reading position.
+            before=p.locator('#event-list').evaluate('(e)=>e.scrollTop')
+            p.evaluate('meiliChart.render(structuredClone(meiliChart.inspect().state))');p.wait_for_timeout(80)
+            self.assertAlmostEqual(p.locator('#event-list').evaluate('(e)=>e.scrollTop'),before,delta=2)
+            p.locator('#event-history button[data-day="2026-11-08"]').focus()
+            p.keyboard.press('ArrowDown');p.wait_for_timeout(80)
+            self.assertEqual(p.locator('#event-history [aria-current]').get_attribute('data-day'),'2026-11-07')
+            self.capture('news-history-navigated-dark')
+            p.locator('#event-list').evaluate('(e)=>e.scrollTop=0');p.wait_for_timeout(80)
+            self.assertEqual(p.locator('#event-history [aria-current]').get_attribute('data-day'),'2026-12-31')
+            p.locator('input[data-type="news"]').uncheck()
+            self.assertEqual(p.locator('#event-history button').count(),1)
+            p.locator('input[data-type="earnings"]').uncheck();p.locator('input[data-type="ex_dividend"]').uncheck()
+            self.assertFalse(p.locator('#event-history').is_visible())
+            for kind in ['news','earnings','ex_dividend']:p.locator('input[data-type="'+kind+'"]').check()
+            # Change locale/theme using real host settings while retaining the fixture timeline payload.
+            history_state=p.evaluate('structuredClone(meiliChart.inspect().state)')
+            self.process.stdin.write('light\nen-US\n');self.process.stdin.flush()
+            self.wait('meiliChart.inspect().state.language === "en-US" && !meiliChart.inspect().state.theme.dark')
+            p.evaluate('(s)=>{s.language="en-US";s.theme=meiliChart.inspect().state.theme;meiliChart.render(s)}',history_state)
+            p.wait_for_timeout(80);self.capture('news-history-light')
+            self.assertEqual(p.locator('#event-history').get_attribute('aria-label'),'History by date')
+            p.set_viewport_size(dict(width=480,height=800));p.wait_for_timeout(100)
+            self.assertLessEqual(p.locator('body').evaluate('(e)=>e.scrollWidth'),480)
+            self.assertTrue(p.locator('#attribution').is_visible())
+            p.locator('#event-history button').nth(6).click();p.wait_for_timeout(80)
+            self.assertEqual(p.locator('#event-history [aria-current]').get_attribute('data-day'),p.locator('#event-history button').nth(6).get_attribute('data-day'))
+            self.capture('news-history-compact')
+            self.assertFalse(self.errors)
+        finally:
+            p.evaluate('(s)=>meiliChart.render(s)',original)
+            self.process.stdin.write('dark\nzh-CN\n');self.process.stdin.flush()
+            self.wait('meiliChart.inspect().state.language === "zh-CN" && meiliChart.inspect().state.theme.dark')
+            p.set_viewport_size(dict(width=1280,height=900))
+            p.evaluate("document.getElementById('timeline').open=false")
+
     def test_timeline_filters_marker_click_metadata_reader_theme_and_compact_layout(self):
         p=self.page
         self.assertEqual(p.evaluate('meiliChart.inspect().eventMarkers.markers().length'),2)

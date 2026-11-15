@@ -47,8 +47,32 @@ footer{grid-column:1 / -1;grid-row:4;padding:6px 12px;display:flex;gap:12px;alig
 #chart-help{position:relative}#help-heading{cursor:pointer;list-style:none;min-height:24px;display:flex;align-items:center;gap:6px}#chart-help[open] #hint{position:absolute;left:0;bottom:32px;width:260px;padding:12px;border:1px solid var(--border);border-radius:6px;background:var(--control);color:var(--text);box-shadow:0 4px 18px #0003;z-index:12;line-height:1.6}
 #event-info{width:100%;font-size:12px}#event-info summary{padding:4px 2px}#event-detail{padding:16px 2px 0}.tooltip-heading{font-size:12px;color:var(--muted);font-weight:500}.tooltip-event:last-of-type{margin-bottom:0}button{transition:border-color .12s}button:active{filter:brightness(.95)}
 @media(prefers-reduced-motion:reduce){button,#event-filters label{transition:none}}
+/* Date groups and compact history rail share the list's own scroll viewport. */
+#timeline[open]{overflow:hidden}
+#timeline>summary,#event-tools,#event-status{flex-shrink:0}
+#event-content{flex:1;min-height:0;overflow:hidden}
+#event-feed{display:grid;grid-template-columns:24px minmax(0,1fr);gap:8px;flex:1;min-height:0;overflow:hidden}
+#event-feed.no-history{grid-template-columns:minmax(0,1fr)}
+#event-list{min-height:0;overscroll-behavior:contain;scrollbar-width:thin;padding:0 2px 8px}
+#event-history{display:flex;flex-direction:column;align-items:center;gap:2px;overflow:auto;overscroll-behavior:contain;scrollbar-width:none;padding:2px 0}
+#event-history[hidden]{display:none}
+#event-history button{display:flex;align-items:center;justify-content:center;width:24px;min-height:28px;padding:0;border:0;background:transparent;border-radius:6px}
+#event-history button::before{content:"";width:12px;height:5px;border-radius:2px;background:var(--muted);opacity:.4}
+#event-history button:hover{background:var(--control)}
+#event-history button:hover::before{opacity:1}
+#event-history button[aria-current=date]{background:var(--control)}
+#event-history button[aria-current=date]::before{width:20px;height:7px;background:var(--accent);opacity:1}
+.event-day{flex-shrink:0;min-width:0}
+.event-day-heading{position:sticky;top:0;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0;padding:10px 4px 8px;background:var(--background);border-bottom:1px solid var(--border);font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.event-day-count{color:var(--muted);font-weight:400;font-size:11px}
+#event-list .event-day>button{width:100%;padding:10px 4px;grid-template-columns:16px minmax(0,1fr);column-gap:4px}
+.event-row-meta{gap:6px}
+.has-selection #event-feed{flex:0 1 180px;min-height:80px}
+.has-selection #event-list{max-height:none}
+#event-detail{overflow:auto;max-height:55%;flex:0 1 auto;overscroll-behavior:contain}
+@media(max-width:760px){#timeline[open]{height:260px;max-height:40vh}#event-content{gap:8px}#event-tools{margin:6px 0;gap:4px}#event-list{max-height:none}.has-selection #event-feed{flex:0 1 100px;min-height:60px}#event-detail{max-height:50%}}
 </style>
 <script src="library.js" defer></script><script src="chart.js" defer></script>
 </head>
-<body><div id="toolbar"><span id="symbol"></span><span id="legend"></span><button id="fit" type="button">Fit</button></div><div id="error" role="alert"></div><div id="chart"><div id="empty"></div><div id="event-tooltip" role="tooltip" hidden></div></div><details id="timeline"><summary id="event-heading">Events</summary><div id="event-tools"><div id="event-filters"></div><details id="event-info"><summary id="event-info-heading">Data coverage</summary><p id="event-coverage"></p><p id="event-scope"></p></details></div><div id="event-status" role="status"></div><div id="event-content"><div id="event-list"></div><div id="event-detail" aria-live="polite" hidden></div></div></details><footer><details id="chart-help"><summary id="help-heading">? Controls</summary><span id="hint"></span></details><a id="attribution" href="https://www.tradingview.com/" target="_blank" rel="noopener">TradingView Lightweight Charts™</a></footer></body>
+<body><div id="toolbar"><span id="symbol"></span><span id="legend"></span><button id="fit" type="button">Fit</button></div><div id="error" role="alert"></div><div id="chart"><div id="empty"></div><div id="event-tooltip" role="tooltip" hidden></div></div><details id="timeline"><summary id="event-heading">Events</summary><div id="event-tools"><div id="event-filters"></div><details id="event-info"><summary id="event-info-heading">Data coverage</summary><p id="event-coverage"></p><p id="event-scope"></p></details></div><div id="event-status" role="status"></div><div id="event-content"><div id="event-feed"><nav id="event-history" aria-label="Event history" hidden></nav><div id="event-list"></div></div><div id="event-detail" aria-live="polite" hidden></div></div></details><footer><details id="chart-help"><summary id="help-heading">? Controls</summary><span id="hint"></span></details><a id="attribution" href="https://www.tradingview.com/" target="_blank" rel="noopener">TradingView Lightweight Charts™</a></footer></body>
 </html>

@@ -105,6 +105,36 @@
     });
     chart.timeScale().subscribeVisibleLogicalRangeChange(range => {if (!applying && range) userRange = range;});
   }
+  // Group by original publication day in New York, never by an aligned candle or observation time.
+  function eventDay(event) {
+    if (!event.published) return event.date || '';
+    const parts = new Intl.DateTimeFormat('en-US', {timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(event.published));
+    const value = type => parts.find(p => p.type === type).value;
+    return `${value('year')}-${value('month')}-${value('day')}`;
+  }
+  function historyPosition() {
+    const panel=document.getElementById('timeline'), content=document.getElementById('event-content');
+    if(panel.open)content.style.height=Math.max(60,panel.getBoundingClientRect().bottom-content.getBoundingClientRect().top-12)+'px';
+    const list=document.getElementById('event-list'), nav=document.getElementById('event-history');
+    const days=[...list.querySelectorAll('.event-day')];
+    if (!days.length || !list.clientHeight) return;
+    const top=list.getBoundingClientRect().top;
+    const atEnd=list.scrollHeight>list.clientHeight+1 && list.scrollTop+list.clientHeight>=list.scrollHeight-1;
+    const current=atEnd?days.at(-1):days.find(day=>day.getBoundingClientRect().bottom>top+32)||days.at(-1);
+    for (const button of nav.children) {
+      if (button.dataset.day===current.dataset.day) button.setAttribute('aria-current','date');
+      else button.removeAttribute('aria-current');
+    }
+    const active=nav.querySelector('[aria-current]');
+    if(active){const a=active.getBoundingClientRect(),n=nav.getBoundingClientRect();if(a.top<n.top)nav.scrollTop+=a.top-n.top;else if(a.bottom>n.bottom)nav.scrollTop+=a.bottom-n.bottom;}
+  }
+  let historyFrame=0;
+  const scheduleHistory=()=>{if(!historyFrame)historyFrame=requestAnimationFrame(()=>{historyFrame=0;historyPosition();});};
+  document.getElementById('event-list').addEventListener('scroll',scheduleHistory,{passive:true});
+  document.getElementById('timeline').addEventListener('toggle',scheduleHistory);
+  window.addEventListener('resize',scheduleHistory);
+  const historySize=new ResizeObserver(scheduleHistory);
+  historySize.observe(document.getElementById('timeline'));historySize.observe(document.getElementById('event-tools'));
   function renderEvents() {
     hideEventTooltip();
     const zh = state.language === 'zh-CN';
@@ -140,17 +170,35 @@
         size:selected?1.5:1,text:(selected?'› ':'')+types.map(type=>names[type]).join(' / ')+(items.length>1?' · '+items.length:'')};
     }));
     const focusedId=document.activeElement?.dataset.eventId;
-    const list=document.getElementById('event-list');list.replaceChildren();
-    for(const item of visible) {
+    const list=document.getElementById('event-list'), nav=document.getElementById('event-history');
+    const scroll=list.dataset.key===state.key?list.scrollTop:0, focusedDay=document.activeElement?.dataset.day;
+    list.dataset.key=state.key;list.replaceChildren();nav.replaceChildren();
+    nav.setAttribute('aria-label',zh?'历史日期导航':'History by date');
+    const days=new Map();
+    for(const item of visible){const day=eventDay(item.event);if(!days.has(day))days.set(day,[]);days.get(day).push(item);}
+    const dayLabel=day=>day?new Intl.DateTimeFormat(state.language,{timeZone:'UTC',month:'short',day:'numeric',weekday:'short',year:'numeric'}).format(new Date(day+'T12:00:00Z')):labels.unknown;
+    let dayIndex=0;
+    for(const [day,items] of [...days].sort(([a],[b])=>b.localeCompare(a))) {
+      const section=text('section','','event-day');section.dataset.day=day;section.id='event-day-'+dayIndex++;
+      const heading=text('h3',dayLabel(day),'event-day-heading');heading.append(text('span',String(items.length),'event-day-count'));section.append(heading);list.append(section);
+      const jump=text('button','');jump.type='button';jump.dataset.day=day;jump.title=dayLabel(day)+' · '+items.length+(zh?' 项事件':' events');jump.setAttribute('aria-label',(zh?'跳至 ':'Jump to ')+jump.title);jump.setAttribute('aria-controls',section.id);
+      jump.addEventListener('click',()=>{list.scrollTop+=section.getBoundingClientRect().top-list.getBoundingClientRect().top;historyPosition();});
+      jump.addEventListener('keydown',e=>{const buttons=[...nav.children],index=buttons.indexOf(jump);const target=e.key==='ArrowDown'?buttons[index+1]:e.key==='ArrowUp'?buttons[index-1]:e.key==='Home'?buttons[0]:e.key==='End'?buttons.at(-1):null;if(target){e.preventDefault();target.focus({preventScroll:true});target.click();}});
+      nav.append(jump);if(focusedDay===day)jump.focus({preventScroll:true});
+      for(const item of items.sort((a,b)=>(b.event.published?Date.parse(b.event.published):-Infinity)-(a.event.published?Date.parse(a.event.published):-Infinity))) {
       const e=item.event,b=text('button','');b.type='button';b.dataset.eventId=e.id;b.setAttribute('aria-pressed',String(e.id===selectedEvent));b.setAttribute('aria-controls','event-detail');
       const icon=text('span',eventStyle(e.type).symbol,'event-type-icon');icon.style.color=eventStyle(e.type).color;icon.setAttribute('aria-hidden','true');b.append(icon);
       b.append(text('span',e.type==='news'?e.title:names[e.type],'event-title'));
       b.setAttribute('aria-label',[names[e.type],e.title,date(e)].filter(Boolean).join(' · '));
-      const meta=text('span','','event-row-meta');meta.append(text('span',date(e,true)));
+      const meta=text('span','','event-row-meta');meta.append(text('span',e.published?new Intl.DateTimeFormat(state.language,{timeZone:'America/New_York',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(e.published))+' ET':date(e,true)));
       if(e.type!=='news')meta.append(text('span',labels[e.confirmation],'event-badge'));
       if(item.alignment==='outside_chart' && e.date)meta.append(text('span',labels.outside_chart,'event-badge'));
-      b.append(meta);b.addEventListener('click',()=>{selectedEvent=e.id;renderEvents();});list.append(b);if(focusedId===e.id)b.focus({preventScroll:true});
+      b.append(meta);b.addEventListener('click',()=>{selectedEvent=e.id;renderEvents();});section.append(b);if(focusedId===e.id)b.focus({preventScroll:true});
     }
+    }
+    nav.hidden=!days.size;document.getElementById('event-feed').classList.toggle('no-history',!days.size);
+    list.scrollTop=scroll;scheduleHistory();
+    if(selectedEvent && document.getElementById('event-detail').dataset.eventId!==selectedEvent){const selected=[...list.querySelectorAll('[data-event-id]')].find(b=>b.dataset.eventId===selectedEvent);if(selected)list.scrollTop+=selected.getBoundingClientRect().top-list.getBoundingClientRect().top-34;}
     if(!visible.length && state.timelineStatus!=='loading')list.append(text('p',zh?'暂无匹配事件':'No matching events','event-empty'));
     const detail=document.getElementById('event-detail');
     const keepMetadataOpen=detail.dataset.eventId===selectedEvent && detail.querySelector('details')?.open;
@@ -248,7 +296,7 @@
       else {chart.timeScale().fitContent();userRange = null;}
       if (state.rows.length) showLegend(state.rows[state.rows.length - 1]);
       document.title = 'EasySellPut Charts · ' + state.symbol;
-      diagnostic({status:'rendered',events:(state.events||[]).length,eventMarkers:eventMarkers.markers().length,key:state.key,rows:state.rows.length,candles:series.candles.data().filter(p=>finite(p.open)).length,panes:chart.panes().length,lastMa:series.ma?.data().at(-1)?.value ?? null,background:t.background,up:series.candles.options().upColor,range:chart.timeScale().getVisibleLogicalRange()});
+      diagnostic({status:'rendered',historyGroups:document.querySelectorAll('.event-day').length,historyStops:document.getElementById('event-history').children.length,events:(state.events||[]).length,eventMarkers:eventMarkers.markers().length,key:state.key,rows:state.rows.length,candles:series.candles.data().filter(p=>finite(p.open)).length,panes:chart.panes().length,lastMa:series.ma?.data().at(-1)?.value ?? null,background:t.background,up:series.candles.options().upColor,range:chart.timeScale().getVisibleLogicalRange()});
     } finally {applying = false;}
   }
   document.getElementById('fit').addEventListener('click',()=>{if(chart){userRange=null;chart.timeScale().fitContent();chart.priceScale('right').applyOptions({autoScale:true});}});
