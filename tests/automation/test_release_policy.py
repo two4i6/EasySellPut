@@ -198,8 +198,9 @@ class ReleasePolicyTests(unittest.TestCase):
             root = pathlib.Path(directory)
             for i, path in enumerate(['../bad', '/absolute', 'root/../../bad', 'C:/bad', 'root\\bad']):
                 package = root / f'{i}.zip'
-                with zipfile.ZipFile(package, 'w') as z: z.writestr(path, b'bad')
-                with self.assertRaises(ValueError): signing.extract(package, root / f'out{i}')
+                entry = zipfile.ZipInfo('placeholder'); entry.filename = path; entry.orig_filename = path
+                with zipfile.ZipFile(package, 'w') as z: z.writestr(entry, b'bad')
+                with self.subTest(path=path), self.assertRaises(ValueError): signing.extract(package, root / f'out{i}')
 
 
 if __name__ == '__main__':

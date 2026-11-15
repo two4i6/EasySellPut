@@ -52,7 +52,7 @@ def extract(package, destination):
     if package.suffix == '.zip':
         with zipfile.ZipFile(package) as z:
             for item in z.infolist():
-                name = item.filename
+                name = item.orig_filename  # ZipInfo normalizes backslashes on Windows; validate the raw name.
                 if '\\' in name or name.startswith('/') or '..' in pathlib.PurePosixPath(name).parts or ':' in name:
                     raise ValueError('Unsafe package path')
         if sys.platform == 'darwin':
