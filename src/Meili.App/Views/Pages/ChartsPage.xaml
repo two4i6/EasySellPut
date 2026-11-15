@@ -7,54 +7,7 @@
       xmlns:cs="clr-namespace:Meili.Core.Settings;assembly=Meili.Core"
       xmlns:controls="clr-namespace:Meili.App.Views.Controls"
 >
-    <Page.Resources>
-        <Style TargetType="ToggleButton"><Setter Property="Height" Value="32"/><Setter Property="Padding" Value="10,4"/>
-            <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="MinHeight" Value="32"/>
-            <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ToggleButton">
-                <Border x:Name="Surface" CornerRadius="6" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
-                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </Border>
-                <ControlTemplate.Triggers>
-                    <Trigger Property="IsChecked" Value="True"><Setter Property="Background" Value="{DynamicResource RowHighlightBrush}"/><Setter Property="Foreground" Value="{DynamicResource AccentTextFillColorPrimaryBrush}"/></Trigger>
-                    <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Surface" Property="BorderThickness" Value="2"/><Setter TargetName="Surface" Property="BorderBrush" Value="{DynamicResource AccentFillColorDefaultBrush}"/></Trigger>
-                    <Trigger Property="IsMouseOver" Value="True"><Setter Property="Background" Value="{DynamicResource RowHighlightBrush}"/></Trigger>
-                </ControlTemplate.Triggers>
-            </ControlTemplate></Setter.Value></Setter>
-        </Style>
-        <Style x:Key="RangeChip" TargetType="Button"><Setter Property="Height" Value="32"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Padding" Value="10,6"/>
-            <Setter Property="Margin" Value="0,0,6,0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding IsSelected}" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource AccentFillColorDefaultBrush}"/>
-                    <Setter Property="Foreground" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}"/>
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
-        <Style x:Key="IndCheck" TargetType="CheckBox">
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Margin" Value="0,0,16,0"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-        </Style>
-    </Page.Resources>
+
     <Grid Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -96,7 +49,7 @@
                     <ui:Button Width="56" Height="56" Appearance="Secondary" Padding="4" Margin="0,0,0,8"  Command="{Binding ClearDrawingsCommand}" AutomationProperties.Name="{DynamicResource Ch_ClearAllShort}"><StackPanel HorizontalAlignment="Center"><lucide:LucideIcon Kind="Trash" Width="20" Height="20"/><TextBlock Text="{DynamicResource Ch_ClearAllShort}" FontSize="12" HorizontalAlignment="Center"/></StackPanel></ui:Button>
                 </StackPanel>
             </Border>
-            <Border x:Name="ChartInspector" DockPanel.Dock="Right" Width="280" BorderThickness="1,0,0,0" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" Visibility="{Binding ShowInspector, Converter={StaticResource BoolToVis}}">
+            <controls:AppDrawer x:Name="ChartInspector" ReturnFocusTarget="{Binding ElementName=InspectorToggle}" AutomationProperties.Name="{DynamicResource Ch_Indicators}" DockPanel.Dock="Right" Width="280" BorderThickness="1,0,0,0" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" IsOpen="{Binding ShowInspector, Mode=TwoWay}">
                 <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="12">
                         <TextBlock Style="{StaticResource CardTitle}" Text="{DynamicResource Ch_Indicators}" Margin="0,0,0,12"/>
@@ -165,7 +118,7 @@
                                     <KeyBinding Key="Enter" Command="{Binding ApplyCompareCommand}"/>
                                 </ui:TextBox.InputBindings>
                             </ui:TextBox>
-                            <ui:Button Width="56" Height="56" Appearance="Secondary" Padding="4" Content="{DynamicResource Ch_CompareApply}" Command="{Binding ApplyCompareCommand}"/>
+                            <ui:Button Height="32" Appearance="Secondary" Padding="12,4" Content="{DynamicResource Ch_CompareApply}" Command="{Binding ApplyCompareCommand}"/>
                             <TextBlock Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0,6,0,0" Text="{Binding CompareStatus}" Foreground="{DynamicResource DegradedBrush}"/>
                         </StackPanel>
                         <StackPanel Margin="0,12,0,0">
@@ -174,17 +127,17 @@
                         </StackPanel>
                     </StackPanel>
                 </ScrollViewer>
-            </Border>
+            </controls:AppDrawer>
             <controls:WebChartControl x:Name="Chart" MinHeight="220"/>
         </DockPanel>
         <Border Grid.Row="2" Padding="12,6" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}">
             <StackPanel>
                 <TextBlock Text="{Binding AdjustWarning}" FontSize="12" Margin="0,0,0,6" TextWrapping="Wrap" Foreground="{DynamicResource DegradedBrush}" Visibility="{Binding AdjustWarning, Converter={StaticResource NonEmptyToVis}}" AutomationProperties.AutomationId="ChartsAdjustWarning"/>
                 <DockPanel LastChildFill="True">
-                    <ui:ProgressRing DockPanel.Dock="Left" Width="18" Height="18" Margin="0,0,8,0" IsIndeterminate="True" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
+                    <controls:AppLoading DockPanel.Dock="Left" Margin="0,0,8,0" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
                     <TextBlock Style="{StaticResource Caption}" Text="{Binding StatusText}" VerticalAlignment="Center" Margin="0,0,16,0"/>
 <TextBlock Style="{StaticResource Caption}" Text="{Binding AdjustText}" Margin="0,0,12,0" VerticalAlignment="Center"/>
-                    <TextBlock Style="{StaticResource Caption}" FontFamily="{StaticResource NumberFont}" Text="{Binding CrosshairText}" VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                    <TextBlock Style="{StaticResource Caption}" FontFamily="{DynamicResource NumberFont}" Text="{Binding CrosshairText}" VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
                 </DockPanel>
             </StackPanel>
         </Border>

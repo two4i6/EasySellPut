@@ -3,19 +3,13 @@
                     xmlns:sys="clr-namespace:System;assembly=mscorlib"
                     xmlns:svc="clr-namespace:Meili.App.Services"
                     xmlns:p="clr-namespace:System.Windows.Controls.Primitives;assembly=PresentationFramework">
+    <ResourceDictionary.MergedDictionaries><ResourceDictionary Source="../DesignSystem/Tokens.xaml" /><ResourceDictionary Source="../DesignSystem/Components.xaml" /></ResourceDictionary.MergedDictionaries>
     <svc:InverseBoolConverter x:Key="InverseBool" />
     <svc:BoolToVisConverter x:Key="BoolToVis" />
     <svc:BoolToVisConverter x:Key="InverseBoolToVis" Invert="True" />
     <svc:NonEmptyToVisConverter x:Key="NonEmptyToVis" />
     <svc:HealthIconConverter x:Key="HealthIcon" />
     <!-- Typography: nothing in the app is smaller than 12px. -->
-    <FontFamily x:Key="AppFont">Segoe UI Variable Text, Segoe UI, Microsoft YaHei UI</FontFamily>
-    <FontFamily x:Key="NumberFont">Segoe UI Variable Text, Segoe UI</FontFamily>
-    <sys:Double x:Key="CaptionFontSize">12</sys:Double>
-    <sys:Double x:Key="BodyFontSize">14</sys:Double>
-    <sys:Double x:Key="SubtitleFontSize">16</sys:Double>
-    <sys:Double x:Key="TitleFontSize">20</sys:Double>
-    <sys:Double x:Key="DisplayFontSize">28</sys:Double>
 
     <!-- Defaults match ThemePalette.Dark; ThemeService overwrites every key after a theme apply. -->
     <SolidColorBrush x:Key="UpBrush" Color="#CC8E8A" />
@@ -36,14 +30,15 @@
     <SolidColorBrush x:Key="InfoBarBrush" Color="#2C2A28" />
 
     <Style x:Key="PageTitle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{DynamicResource HeadingFont}"/>
         <Setter Property="FontSize" Value="{StaticResource DisplayFontSize}" />
-        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontWeight" Value="Normal" />
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
         <Setter Property="Margin" Value="0,0,0,4" />
     </Style>
     <Style x:Key="SectionTitle" TargetType="TextBlock">
         <Setter Property="FontSize" Value="{StaticResource TitleFontSize}" />
-        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontWeight" Value="Normal" />
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
         <Setter Property="Margin" Value="0,20,0,8" />
     </Style>

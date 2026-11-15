@@ -23,6 +23,7 @@ public sealed class WebChartSession : IDisposable
     private State _state = new(0, "{}");
     private long _revision;
     private bool _disposed;
+    private ChartPalette? _lastPalette;
     public bool IsStrategyWorkbench => _strategy is not null;
     public Uri PageUri { get; }
     public string Origin => PageUri.GetLeftPart(UriPartial.Authority);
@@ -34,6 +35,7 @@ public sealed class WebChartSession : IDisposable
     private WebChartSession(ChartsViewModel? vm, StrategyViewModel? strategy)
     {
         _vm = vm; _strategy = strategy;
+        DesignMotion.Changed+=OnMotionChanged;
         _listener.Start();
         PageUri = new Uri($"http://127.0.0.1:{((IPEndPoint)_listener.LocalEndpoint).Port}/{_token}/index.html");
         _ = AcceptAsync();
@@ -44,8 +46,11 @@ public sealed class WebChartSession : IDisposable
     public void Update(ChartPalette palette)
     {
         if (_disposed) return;
+        _lastPalette=palette;
         Volatile.Write(ref _state, new State(++_revision, _strategy is { } strategy ? StrategyWorkbench.Serialize(strategy, palette) : WebChartSnapshot.Serialize(_vm!, palette)));
     }
+
+    private void OnMotionChanged(object? sender,EventArgs e){if(_lastPalette is { } palette)Update(palette);}
 
     private async Task AcceptAsync()
     {
@@ -106,10 +111,10 @@ public sealed class WebChartSession : IDisposable
                     var body = Encoding.UTF8.GetBytes($"{{\"version\":{state.Version},\"data\":{state.Json}}}");
                     await Reply(stream, 200, "application/json", body, ct); return;
                 }
-                var file = route switch { "index.html" => _strategy is null ? "index.html" : "workbench.html", "workbench.js" when _strategy is not null => "workbench.js", "chart.js" when _strategy is null => "chart.js", "icons.js" => "icons.js", "library.js" => "vendor/lightweight-charts.js", _ => null };
+                var file = route switch { "index.html" => _strategy is null ? "index.html" : "workbench.html", "workbench.js" when _strategy is not null => "workbench.js", "chart.js" when _strategy is null => "chart.js", "icons.js" => "icons.js", "design-tokens.css" => "design-tokens.css", "components.css" => "components.css", "fonts/SourceSans3-Regular.ttf" or "fonts/SourceSans3-Semibold.ttf" or "fonts/SourceSerif4-Regular.ttf" or "fonts/SourceCodePro-Regular.ttf" => route, "library.js" => "vendor/lightweight-charts.js", _ => null };
                 if (file is not null)
                 {
-                    await Reply(stream, 200, file.EndsWith("html", StringComparison.Ordinal) ? "text/html; charset=utf-8" : "text/javascript; charset=utf-8", Asset(file), ct); return;
+                    await Reply(stream, 200, file.EndsWith(".ttf",StringComparison.Ordinal) ? "font/ttf" : file.EndsWith(".css",StringComparison.Ordinal) ? "text/css; charset=utf-8" : file.EndsWith("html", StringComparison.Ordinal) ? "text/html; charset=utf-8" : "text/javascript; charset=utf-8", Asset(file), ct); return;
                 }
             }
             if (request[0] == "POST" && route == "event" && origin == Origin
@@ -186,13 +191,13 @@ public sealed class WebChartSession : IDisposable
     }
     private static async Task Reply(NetworkStream stream, int status, string type, byte[] body, CancellationToken ct)
     {
-        var header = Encoding.ASCII.GetBytes($"HTTP/1.1 {status} Response\r\nContent-Type: {type}\r\nContent-Length: {body.Length}\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nReferrer-Policy: no-referrer\r\nCross-Origin-Resource-Policy: same-origin\r\nContent-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'none'\r\nConnection: close\r\n\r\n");
+        var header = Encoding.ASCII.GetBytes($"HTTP/1.1 {status} Response\r\nContent-Type: {type}\r\nContent-Length: {body.Length}\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nReferrer-Policy: no-referrer\r\nCross-Origin-Resource-Policy: same-origin\r\nContent-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; font-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'\r\nConnection: close\r\n\r\n");
         await stream.WriteAsync(header, ct); if (body.Length > 0) await stream.WriteAsync(body, ct);
     }
     public void Dispose()
     {
         if (_disposed) return;
-        _disposed = true; _stop.Cancel(); _listener.Stop();
+        _disposed = true; DesignMotion.Changed-=OnMotionChanged; _stop.Cancel(); _listener.Stop();
         // In-flight handlers own cancellation registrations and release the bounded semaphore on exit.
     }
 }

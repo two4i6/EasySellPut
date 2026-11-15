@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ds="using:Meili.Mac.Views.Controls"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Meili.Shared.ViewModels"
              xmlns:sp="using:ScottPlot.Avalonia"
              xmlns:local="using:Meili.Mac.Views"
@@ -19,7 +20,7 @@
                 </StackPanel>
             </Border>
 
-            <Border Classes="Card" Padding="16,16,16,12">
+            <ds:AppCard Classes="Card" Padding="16,16,16,12">
                 <WrapPanel Orientation="Horizontal">
                     <StackPanel Margin="0,0,16,10" MinWidth="180">
                         <TextBlock Classes="Caption" Text="{DynamicResource Al_Symbol}" Margin="0,0,0,4" />
@@ -28,7 +29,7 @@
                     </StackPanel>
                     <StackPanel Margin="0,0,16,10" MinWidth="220">
                         <TextBlock Classes="Caption" Text="{DynamicResource Al_Kind}" Margin="0,0,0,4" />
-                        <ComboBox ItemsSource="{Binding KindOptions}"
+                        <ds:AppSelect ItemsSource="{Binding KindOptions}"
                                   SelectedItem="{Binding SelectedKind}"
                                   DisplayMemberBinding="{Binding Title, x:DataType=vm:KindOption}"
                                   FontSize="14" MinHeight="32" />
@@ -41,7 +42,7 @@
                     </StackPanel>
                     <StackPanel Margin="0,0,16,10" MinWidth="140">
                         <TextBlock Classes="Caption" Text="{DynamicResource Al_Repeat}" Margin="0,0,0,4" />
-                        <ComboBox ItemsSource="{Binding RepeatOptions}"
+                        <ds:AppSelect ItemsSource="{Binding RepeatOptions}"
                                   SelectedItem="{Binding SelectedRepeat}"
                                   DisplayMemberBinding="{Binding Title, x:DataType=vm:RepeatOption}"
                                   FontSize="14" MinHeight="32" />
@@ -72,13 +73,13 @@
                                    Content="{DynamicResource Al_Delete}" FontSize="14" />
                     </StackPanel>
                 </WrapPanel>
-            </Border>
+            </ds:AppCard>
 
             <DockPanel Margin="0,10,0,0" LastChildFill="True">
                 <!-- F3: alerts ignore quotes older than this -->
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                     <TextBlock Classes="Caption" Text="{DynamicResource Al_MaxDelay}" VerticalAlignment="Center" Margin="0,0,8,0" />
-                    <ComboBox ItemsSource="{Binding MaxDelayChoices}" SelectedItem="{Binding MaxDelayMinutes}" FontSize="14" MinWidth="80"
+                    <ds:AppSelect ItemsSource="{Binding MaxDelayChoices}" SelectedItem="{Binding MaxDelayMinutes}" FontSize="14" MinWidth="80"
                               AutomationProperties.AutomationId="AlertsMaxDelay" />
                     <TextBlock Classes="Caption" Text="{DynamicResource Al_Minutes}" VerticalAlignment="Center" Margin="8,0,0,0" />
                 </StackPanel>

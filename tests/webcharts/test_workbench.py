@@ -79,7 +79,7 @@ class WorkbenchTests(unittest.TestCase):
     def test_live_theme_language_and_narrow_layout(self):
         p=self.page
         p.locator('tr[data-contract="Call100"] button.buy').click();self.wait(p,'meiliWorkbench.inspect().state.legs.length === 1')
-        for command,expected in [('dark','rgb(19, 23, 34)'),('light','rgb(255, 255, 255)')]:
+        for command,expected in [('dark','rgb(31, 30, 29)'),('light','rgb(250, 249, 245)')]:
             self.command(command);self.wait(p,'(dark)=>meiliWorkbench.inspect().state.theme.dark === dark',arg=command=='dark')
             self.assertEqual(p.locator('body').evaluate('(e)=>getComputedStyle(e).backgroundColor'),expected)
             output=os.environ.get('MEILI_RENDER_DIR')

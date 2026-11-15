@@ -27,6 +27,8 @@ public partial class App : Application
     /// <summary>After the services are built (also used by the headless tests): language, theme and colours.</summary>
     public static void Boot()
     {
+        foreach(var (key,family) in new[]{("AppFont","Anthropic Sans"),("NumberFont","Anthropic Sans"),("HeadingFont","Anthropic Serif"),("CodeFont","Anthropic Mono")})
+            if(Avalonia.Media.FontManager.Current.SystemFonts.Any(f=>f.Name==family))Application.Current!.Resources[key]=new Avalonia.Media.FontFamily(family);
         var settings = AppServices.Get<SettingsStore>().Load();
         var loc = AppServices.Get<LocalizationService>();
         loc.Apply(settings.Language);

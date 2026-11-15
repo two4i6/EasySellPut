@@ -23,7 +23,7 @@ public partial class MainWindow
         catch (Exception ex) when (ex is IOException or System.Text.Json.JsonException or ArgumentException)
         { Meili.Core.Diagnostics.AppLog.Warn("web-workspace", "Workspace could not be loaded", ex); AddWebsite.IsEnabled = false; AddWebsite.ToolTip = _loc["Web_Failed"]; }
         _loc.LanguageChanged += WorkspaceLanguageChanged;
-        RebuildWebsiteRail(); MotionButton.IsChecked = _workspace?.ReduceMotion == true;
+        RebuildWebsiteRail(); MotionButton.IsChecked = _workspace?.ReduceMotion == true; DesignMotion.SetReduced(ReducedMotion);
         AnimateTile(HomeWorkspace); AnimateTile(AddWebsite);
         PreviewKeyDown += (_, e) =>
         {
@@ -85,17 +85,17 @@ public partial class MainWindow
         var scale = new ScaleTransform(1, 1); tile.RenderTransform = scale; tile.RenderTransformOrigin = new Point(.5, .5);
         void Animate(double target)
         {
-            var duration = TimeSpan.FromMilliseconds(ReducedMotion ? 0 : 160);
+            var duration = TimeSpan.FromMilliseconds(ReducedMotion ? 0 : DesignTokens.MotionStandardMs);
             var animation = new DoubleAnimation(target, duration) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
             scale.BeginAnimation(ScaleTransform.ScaleXProperty, animation); scale.BeginAnimation(ScaleTransform.ScaleYProperty, animation);
         }
         void Shape(bool hovered)
         {
             if (tile.Template?.FindName("Tile", tile) is Border shape)
-                shape.BeginAnimation(Border.CornerRadiusProperty, new CornerRadiusAnimation(shape.CornerRadius, new CornerRadius(tile.IsChecked == true || hovered ? 14 : 22), TimeSpan.FromMilliseconds(ReducedMotion ? 0 : 160)));
+                shape.BeginAnimation(Border.CornerRadiusProperty, new CornerRadiusAnimation(shape.CornerRadius, new CornerRadius(tile.IsChecked == true || hovered ? 14 : 22), TimeSpan.FromMilliseconds(ReducedMotion ? 0 : DesignTokens.MotionStandardMs)));
             if (tile.Template?.FindName("Pill", tile) is Border pill)
             {
-                var duration = TimeSpan.FromMilliseconds(ReducedMotion ? 0 : 160);
+                var duration = TimeSpan.FromMilliseconds(ReducedMotion ? 0 : DesignTokens.MotionStandardMs);
                 pill.BeginAnimation(HeightProperty, new DoubleAnimation(tile.IsChecked == true ? 32 : 8, duration) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
                 pill.BeginAnimation(OpacityProperty, new DoubleAnimation(tile.IsChecked == true || hovered ? 1 : 0, duration));
             }
@@ -132,11 +132,12 @@ public partial class MainWindow
     {
         try { _workspace?.SetReduceMotion(MotionButton.IsChecked == true); }
         catch (IOException) { MotionButton.IsChecked = _workspace?.ReduceMotion == true; MotionButton.ToolTip = _loc["Web_Failed"]; }
+        DesignMotion.SetReduced(ReducedMotion);
     }
     internal void EditWebsite(WebWorkspaceTab? tab)
     {
         if (_workspace is null) return;
-        var dialog = new Window { Owner = this, Title = _loc[tab is null ? "Web_Add" : "Web_Edit"], Width = 440, MinWidth = 400, SizeToContent = SizeToContent.Height, ResizeMode = ResizeMode.NoResize, WindowStartupLocation = WindowStartupLocation.CenterOwner, FontSize = 14 };
+        var dialog = new Meili.App.Views.Controls.AppDialog { Owner = this, Title = _loc[tab is null ? "Web_Add" : "Web_Edit"], Width = 440, MinWidth = 400, SizeToContent = SizeToContent.Height, ResizeMode = ResizeMode.NoResize, WindowStartupLocation = WindowStartupLocation.CenterOwner, FontSize = 14 };
         dialog.SetResourceReference(BackgroundProperty, "ApplicationBackgroundBrush"); dialog.SetResourceReference(ForegroundProperty, "TextFillColorPrimaryBrush");
         var body = new StackPanel { Margin = new Thickness(24) };
         var name = new TextBox { Text = tab?.Name ?? "", MaxLength = 40, Name = "WebsiteName", Padding = new Thickness(8), Margin = new Thickness(0, 6, 0, 12) };

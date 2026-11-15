@@ -2,6 +2,7 @@
       Typography.NumeralAlignment="Tabular" Typography.NumeralStyle="Lining"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:lucide="clr-namespace:Meili.App.Views.Controls"
+    xmlns:ds="clr-namespace:Meili.App.Views.Controls"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
     <Page.Resources>
@@ -33,7 +34,7 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <ui:Card Margin="0,0,8,8" Padding="18,14" VerticalAlignment="Stretch" VerticalContentAlignment="Top">
+                        <ds:AppCard Margin="0,0,8,8" Padding="18,14" VerticalAlignment="Stretch" VerticalContentAlignment="Top">
                             <StackPanel>
                                 <DockPanel LastChildFill="False">
                                     <lucide:LucideIcon DockPanel.Dock="Left" Kind="{Binding StateIcon, Converter={StaticResource HealthIcon}}" Width="16" Height="16" Foreground="{Binding StateBrush}" VerticalAlignment="Center" Margin="0,0,8,0" />
@@ -55,19 +56,19 @@
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Grid.Column="0">
                                         <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Ds_Latency}" />
-                                        <TextBlock Style="{StaticResource CardTitle}" FontFamily="{StaticResource NumberFont}" Text="{Binding LatencyText}" />
+                                        <TextBlock Style="{StaticResource CardTitle}" FontFamily="{DynamicResource NumberFont}" Text="{Binding LatencyText}" />
                                     </StackPanel>
                                     <StackPanel Grid.Column="1">
                                         <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Ds_Success}" />
-                                        <TextBlock Style="{StaticResource CardTitle}" FontFamily="{StaticResource NumberFont}" Text="{Binding SuccessText}" />
+                                        <TextBlock Style="{StaticResource CardTitle}" FontFamily="{DynamicResource NumberFont}" Text="{Binding SuccessText}" />
                                     </StackPanel>
                                     <StackPanel Grid.Column="2">
                                         <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Ds_Failures}" />
-                                        <TextBlock Style="{StaticResource CardTitle}" FontFamily="{StaticResource NumberFont}" Text="{Binding FailureText}" />
+                                        <TextBlock Style="{StaticResource CardTitle}" FontFamily="{DynamicResource NumberFont}" Text="{Binding FailureText}" />
                                     </StackPanel>
                                     <StackPanel Grid.Column="3">
                                         <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Ds_LastUsed}" />
-                                        <TextBlock Style="{StaticResource CardTitle}" FontFamily="{StaticResource NumberFont}" Text="{Binding LastUsedText}" />
+                                        <TextBlock Style="{StaticResource CardTitle}" FontFamily="{DynamicResource NumberFont}" Text="{Binding LastUsedText}" />
                                     </StackPanel>
                                 </Grid>
                                 <Border Margin="0,12,0,0" Padding="10,6" CornerRadius="4" BorderThickness="1" BorderBrush="{DynamicResource DegradedBrush}"
@@ -86,13 +87,13 @@
                                     </StackPanel>
                                 </Border>
                             </StackPanel>
-                        </ui:Card>
+                        </ds:AppCard>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
 
             <TextBlock Style="{StaticResource SectionTitle}" Text="{DynamicResource Ds_Failover}" />
-            <ui:Card Padding="18,10">
+            <ds:AppCard Padding="18,10">
                 <ItemsControl ItemsSource="{Binding Failover}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
@@ -107,7 +108,7 @@
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
-            </ui:Card>
+            </ds:AppCard>
         </StackPanel>
     </ScrollViewer>
 </Page>

@@ -20,7 +20,7 @@ public sealed class ChartWorkspaceTests
     [InlineData(980, 620, "en-US", true)]
     [InlineData(1320, 840, "zh-CN", true)]
     [InlineData(1320, 840, "en-US", false)]
-    public void Chart_keeps_the_space_and_settings_remain_accessible(int width,int height,string language,bool dark)
+    public async Task Chart_keeps_the_space_and_settings_remain_accessible(int width,int height,string language,bool dark)
     {
         MacHost.EnsureComposed();
         var loc=AppServices.Get<LocalizationService>();var original=loc.Language;
@@ -67,7 +67,7 @@ public sealed class ChartWorkspaceTests
             Assert.True(page.FindControl<TextBox>("CompareBox")!.IsEffectivelyVisible);
             var draw=page.GetVisualDescendants().OfType<ToggleButton>().First(b=>Equals(b.CommandParameter,DrawingKind.HorizontalLine));
             Assert.Equal(Color.FromUInt32(Meili.Shared.Services.ThemePalette.For(dark).Control),((ISolidColorBrush)draw.Background!).Color);
-            draw.Command!.Execute(draw.CommandParameter);MacHost.Pump();Assert.True(draw.IsChecked);
+            draw.Command!.Execute(draw.CommandParameter);await Task.Delay(160);MacHost.Pump();Assert.True(draw.IsChecked);
             Assert.Equal(Color.FromUInt32(Meili.Shared.Services.ThemePalette.For(dark).RowHighlight),((ISolidColorBrush)draw.Background!).Color);
             vm.DrawMode=null;MacHost.Pump();Assert.False(draw.IsChecked);
             MacHost.Save(window,$"workspace-{width}-{language}-{dark}-inspector");

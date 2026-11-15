@@ -39,6 +39,8 @@ public partial class App : Application
         AppServices.Provider = services.BuildServiceProvider();
         perf?.Mark("services");
 
+        foreach(var (key,family) in new[]{("AppFont","Anthropic Sans"),("NumberFont","Anthropic Sans"),("HeadingFont","Anthropic Serif"),("CodeFont","Anthropic Mono")})
+            if(System.Windows.Media.Fonts.SystemFontFamilies.Any(f=>f.Source==family))Resources[key]=new System.Windows.Media.FontFamily(family);
         var settings = AppServices.Get<SettingsStore>().Load();
         AppServices.Get<LocalizationService>().Apply(settings.Language);
         ThemeService.ApplyUpDownColors(settings.EffectiveUpDownColors());

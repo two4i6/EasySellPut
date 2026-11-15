@@ -6,7 +6,7 @@ using Meili.Core.Settings;
 namespace Meili.Mac.Platform;
 
 /// <summary>Three-way close prompt: hide to Dock, exit, or cancel.</summary>
-internal sealed class CloseAskDialog : Window
+internal sealed class CloseAskDialog : Meili.Mac.Views.Controls.AppDialog
 {
     public CloseAskDialog()
     {

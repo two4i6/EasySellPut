@@ -1,7 +1,8 @@
 <Page x:Class="Meili.App.Views.Pages.AlertsPage"
       Typography.NumeralAlignment="Tabular" Typography.NumeralStyle="Lining"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:ds="clr-namespace:Meili.App.Views.Controls"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
       xmlns:controls="clr-namespace:Meili.App.Views.Controls"
       xmlns:vm="clr-namespace:Meili.Shared.ViewModels;assembly=Meili.Shared">
@@ -15,7 +16,7 @@
                         IsOpen="{Binding MonitorDown}" IsClosable="False" Severity="Error" Margin="0,0,0,12"
                         AutomationProperties.AutomationId="AlertsMonitorDown" />
 
-            <ui:Card Padding="16,16,16,12">
+            <ds:AppCard Padding="16,16,16,12">
                 <WrapPanel Orientation="Horizontal">
                     <StackPanel Margin="0,0,16,10" MinWidth="180">
                         <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Al_Symbol}" Margin="0,0,0,4" />
@@ -24,7 +25,7 @@
                     </StackPanel>
                     <StackPanel Margin="0,0,16,10" MinWidth="220">
                         <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Al_Kind}" Margin="0,0,0,4" />
-                        <ComboBox ItemsSource="{Binding KindOptions}"
+                        <ds:AppSelect ItemsSource="{Binding KindOptions}"
                                   SelectedItem="{Binding SelectedKind}"
                                   DisplayMemberPath="Title"
                                   FontSize="14" MinHeight="32" />
@@ -37,7 +38,7 @@
                     </StackPanel>
                     <StackPanel Margin="0,0,16,10" MinWidth="140">
                         <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Al_Repeat}" Margin="0,0,0,4" />
-                        <ComboBox ItemsSource="{Binding RepeatOptions}"
+                        <ds:AppSelect ItemsSource="{Binding RepeatOptions}"
                                   SelectedItem="{Binding SelectedRepeat}"
                                   DisplayMemberPath="Title"
                                   FontSize="14" MinHeight="32" />
@@ -68,13 +69,13 @@
                                    Content="{DynamicResource Al_Delete}" FontSize="14" />
                     </StackPanel>
                 </WrapPanel>
-            </ui:Card>
+            </ds:AppCard>
 
             <DockPanel Margin="0,10,0,0" LastChildFill="True">
                 <!-- F3: alerts ignore quotes older than this -->
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                     <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Al_MaxDelay}" VerticalAlignment="Center" Margin="0,0,8,0" />
-                    <ComboBox ItemsSource="{Binding MaxDelayChoices}" SelectedItem="{Binding MaxDelayMinutes}" FontSize="14" MinWidth="80"
+                    <ds:AppSelect ItemsSource="{Binding MaxDelayChoices}" SelectedItem="{Binding MaxDelayMinutes}" FontSize="14" MinWidth="80"
                               AutomationProperties.AutomationId="AlertsMaxDelay" />
                     <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Al_Minutes}" VerticalAlignment="Center" Margin="8,0,0,0" />
                 </StackPanel>

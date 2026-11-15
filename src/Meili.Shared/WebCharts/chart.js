@@ -415,8 +415,8 @@
       if (previousKey !== key) selectedEvent = null;
       const t = state.theme, c = t.colors;
       document.body.style.background = t.background; document.body.style.color = t.text;
-      document.documentElement.style.colorScheme = t.dark ? 'dark' : 'light';
-      for (const [name,value] of Object.entries({background:t.background,text:t.text,muted:t.muted,control:t.control,border:t.border,accent:t.accent,'error-background':t.errorBackground,'error-text':t.errorText}))
+      document.documentElement.dataset.reducedMotion=String(state.theme.reducedMotion===true);document.documentElement.style.colorScheme = t.dark ? 'dark' : 'light';
+      for (const [name,value] of Object.entries({brand:t.brand,focus:t.focus,link:t.link,input:t.input,hover:t.hover,pressed:t.pressed,danger:t.danger,background:t.background,text:t.text,muted:t.muted,control:t.control,border:t.border,accent:t.accent,'error-background':t.errorBackground,'error-text':t.errorText}))
         if (value) document.documentElement.style.setProperty('--'+name,value);
       document.getElementById('symbol').textContent = state.symbol;
       document.getElementById('fit').textContent = state.language === 'zh-CN' ? '适应' : 'Fit';

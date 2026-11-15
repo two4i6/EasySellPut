@@ -106,7 +106,7 @@ public partial class MainWindow
     private void ApplyWorkspaceMotion()
     {
         var reduced = _workspace?.ReduceMotion == true || SystemReduceMotion();
-        Classes.Set("ReducedMotion", reduced); MotionButton.IsChecked = _workspace?.ReduceMotion == true;
+        DesignMotion.SetReduced(reduced); Classes.Set("ReducedMotion", reduced); MotionButton.IsChecked = _workspace?.ReduceMotion == true;
     }
     private static bool SystemReduceMotion()
     {
@@ -122,7 +122,7 @@ public partial class MainWindow
     internal async Task EditWebsite(WebWorkspaceTab? tab)
     {
         if (_workspace is null) return;
-        var dialog = new Window { Title = _loc[tab is null ? "Web_Add" : "Web_Edit"], Width = 440, MinWidth = 400, SizeToContent = SizeToContent.Height, CanResize = false, WindowStartupLocation = WindowStartupLocation.CenterOwner, FontSize = 14 };
+        var dialog = new Meili.Mac.Views.Controls.AppDialog { Title = _loc[tab is null ? "Web_Add" : "Web_Edit"], Width = 440, MinWidth = 400, SizeToContent = SizeToContent.Height, CanResize = false, WindowStartupLocation = WindowStartupLocation.CenterOwner, FontSize = 14 };
         dialog.Bind(BackgroundProperty, new DynamicResourceExtension("ApplicationBackgroundBrush")); dialog.Bind(ForegroundProperty, new DynamicResourceExtension("TextFillColorPrimaryBrush"));
         var body = new StackPanel { Margin = new Thickness(24), Spacing = 12 };
         var name = new TextBox { Text = tab?.Name ?? "", MaxLength = 40, Name = "WebsiteName" };

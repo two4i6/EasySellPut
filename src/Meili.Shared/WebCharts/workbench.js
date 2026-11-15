@@ -91,8 +91,8 @@
   }
   function render(next){
     if(state?.symbol!==next.symbol||!next.curve.length)viewport=null;
-    state=next;clearTimeout(pendingTimer);lock(false);document.documentElement.lang=state.language;document.documentElement.style.colorScheme=state.theme.dark?'dark':'light';
-    const t=state.theme;for(const [k,v]of Object.entries({background:t.background,text:t.text,muted:t.muted,control:t.control,border:t.border,accent:t.accent,up:t.up,down:t.down,'error-background':t.errorBackground,'error-text':t.errorText}))document.documentElement.style.setProperty('--'+k,v);
+    state=next;clearTimeout(pendingTimer);lock(false);document.documentElement.lang=state.language;document.documentElement.dataset.reducedMotion=String(state.theme.reducedMotion===true);document.documentElement.style.colorScheme=state.theme.dark?'dark':'light';
+    const t=state.theme;for(const [k,v]of Object.entries({brand:t.brand,focus:t.focus,link:t.link,input:t.input,hover:t.hover,pressed:t.pressed,danger:t.danger,background:t.background,text:t.text,muted:t.muted,control:t.control,border:t.border,accent:t.accent,up:t.up,down:t.down,'error-background':t.errorBackground,'error-text':t.errorText}))document.documentElement.style.setProperty('--'+k,v);
     text('context',[state.headline,state.sourceText,state.delayText,state.model].filter(Boolean).join(' · '));message(state.message||'');
     for(const [id,k]of Object.entries({chainTitle:'Chain',legsTitle:'Legs',nearLabel:'Near',clear:'Clear',draft:'Draft',curveTitle:'Curve',fit:'Fit'}))text(id,label(k));
     text('draft',label('Draft')+(state.draftSymbol?' · '+state.draftSymbol:''));

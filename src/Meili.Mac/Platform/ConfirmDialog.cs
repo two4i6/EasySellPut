@@ -5,7 +5,7 @@ using Avalonia.Layout;
 namespace Meili.Mac.Platform;
 
 /// <summary>Small modal OK/Cancel window (shown with ShowDialog, so it is awaited rather than blocking).</summary>
-internal sealed class ConfirmDialog : Window
+internal sealed class ConfirmDialog : Meili.Mac.Views.Controls.AppDialog
 {
     public ConfirmDialog(string title, string message)
     {

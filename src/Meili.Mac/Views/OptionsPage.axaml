@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ds="using:Meili.Mac.Views.Controls"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Meili.Shared.ViewModels"
              xmlns:controls="using:Meili.Mac.Views.Controls"
              xmlns:sp="using:ScottPlot.Avalonia"
@@ -42,7 +43,7 @@
                 <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding ExportCommand}" Content="{DynamicResource Op_Export}" />
                 <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding RefreshCommand}" Content="{DynamicResource Op_Refresh}" />
                 <Button DockPanel.Dock="Right" Margin="8,0,0,0" Classes="Accent" Command="{Binding LoadFromBoxCommand}" Content="{DynamicResource Op_Load}" />
-                <ComboBox x:Name="ExpirationBox" DockPanel.Dock="Right" MinWidth="220" Margin="8,0,0,0"
+                <ds:AppSelect x:Name="ExpirationBox" DockPanel.Dock="Right" MinWidth="220" Margin="8,0,0,0"
                           ItemsSource="{Binding Expirations}" SelectedItem="{Binding SelectedExpiration}" DisplayMemberBinding="{Binding Label, x:DataType=vm:ExpirationChoice}" />
                 <TextBlock DockPanel.Dock="Right" Classes="Caption" VerticalAlignment="Center" Margin="12,0,0,0" Text="{DynamicResource Op_Expiration}" />
                 <controls:SymbolBox x:Name="SymbolInput" MinWidth="200" Text="{Binding SymbolText}" WatchSymbols="{Binding WatchSymbols}"
@@ -89,7 +90,7 @@
                 <CheckBox Margin="0,0,12,0" Content="{DynamicResource Op_Term}" IsChecked="{Binding ShowTerm}" ToolTip.Tip="{DynamicResource Op_TermTip}" IsEnabled="{Binding ShowSmile}" />
             </WrapPanel>
             <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                <ProgressBar IsIndeterminate="True" Width="60" Margin="0,0,8,0" IsVisible="{Binding IsBusy}" />
+                <controls:AppLoading Margin="0,0,8,0" IsVisible="{Binding IsBusy}" />
                 <TextBlock Classes="Caption" Text="{Binding StatusText}" VerticalAlignment="Center" Margin="0,0,16,0" />
                 <TextBlock Classes="Caption" Text="{Binding LocalNote}" VerticalAlignment="Center" />
             </StackPanel>

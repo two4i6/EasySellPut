@@ -44,9 +44,9 @@ class RendererTests(unittest.TestCase):
                     if self.path.endswith('?after='+str(cls.version)): self.send_response(204); self.end_headers(); return
                     body=json.dumps(dict(version=cls.version,data=cls.state)).encode(); mime='application/json'
                 else:
-                    file={'/index.html':'index.html','/chart.js':'chart.js','/icons.js':'icons.js','/library.js':'vendor/lightweight-charts.js'}.get(route)
+                    file={'/index.html':'index.html','/chart.js':'chart.js','/icons.js':'icons.js','/design-tokens.css':'design-tokens.css','/components.css':'components.css',**{'/fonts/'+name:'../Assets/Fonts/'+name for name in ['SourceSans3-Regular.ttf','SourceSans3-Semibold.ttf','SourceSerif4-Regular.ttf','SourceCodePro-Regular.ttf']},'/library.js':'vendor/lightweight-charts.js'}.get(route)
                     if file is None: self.send_error(404); return
-                    body=(ASSETS/file).read_bytes(); mime='text/html' if route.endswith('.html') else 'text/javascript'
+                    body=(ASSETS/file).read_bytes(); mime='font/ttf' if route.endswith('.ttf') else 'text/css' if route.endswith('.css') else 'text/html' if route.endswith('.html') else 'text/javascript'
                 self.send_response(200);self.send_header('Content-Type',mime);self.send_header('Content-Length',str(len(body)));self.end_headers();self.wfile.write(body)
             def do_POST(self):
                 cls.events.append(json.loads(self.rfile.read(int(self.headers['Content-Length']))));self.send_response(204);self.end_headers()
@@ -129,11 +129,12 @@ class RendererTests(unittest.TestCase):
             data=fixture()
             if not dark: data['theme'].update(dark=False,muted='#5F594F',grid='#2F2B261F',colors=['#1C648E','#8E4E00','#5E3F8A','#0C6262','#8E3F68','#6A4E10'],control='#FBF7F0',border='#E0D6C8',accent='#6A458E',errorBackground='#F4E4DC',errorText='#7A5500',background='#F6F0E3',text='#2F2B26',up='#A83E38',down='#1A7050')
             p.evaluate('(s)=>meiliChart.render(s)',data)
+            p.mouse.move(1,1);p.wait_for_timeout(150)
             style=p.locator('#fit').evaluate('(e)=>{const s=getComputedStyle(e);return {background:s.backgroundColor,radius:s.borderRadius,size:s.fontSize,height:e.getBoundingClientRect().height}}')
             self.assertEqual(style['background'],'rgb(50, 48, 44)' if dark else 'rgb(251, 247, 240)')
             self.assertEqual(p.evaluate('meiliChart.inspect().chart.options().layout.panes.separatorColor'),data['theme']['border'])
             self.assertEqual(p.evaluate('meiliChart.inspect().chart.options().crosshair.vertLine.labelBackgroundColor'),data['theme']['accent'])
-            self.assertEqual(style['radius'],'6px');self.assertEqual(style['size'],'14px');self.assertGreaterEqual(style['height'],32)
+            self.assertEqual(style['radius'],'8px');self.assertEqual(style['size'],'14px');self.assertGreaterEqual(style['height'],32)
             p.keyboard.press('Tab');p.locator('#fit').focus()
             self.assertEqual(p.locator('#fit').evaluate('(e)=>getComputedStyle(e).outlineWidth'),'2px')
             self.assertEqual(p.evaluate('getComputedStyle(document.documentElement).colorScheme'),'dark' if dark else 'light')

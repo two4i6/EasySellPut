@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ds="using:Meili.Mac.Views.Controls"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Meili.Shared.ViewModels"
              xmlns:local="using:Meili.Mac.Views"
              xmlns:controls="using:Meili.Mac.Views.Controls"
@@ -33,7 +34,7 @@
                     <Button.Flyout>
                         <Flyout Placement="BottomEdgeAlignedRight">
                             <StackPanel Width="320" Spacing="8">
-                                <ComboBox ItemsSource="{Binding Saved}" SelectedItem="{Binding SelectedSaved}"
+                                <ds:AppSelect ItemsSource="{Binding Saved}" SelectedItem="{Binding SelectedSaved}"
                                           DisplayMemberBinding="{ReflectionBinding Name}" />
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <Button Command="{Binding LoadSavedCommand}" Content="{DynamicResource St_LoadSaved}" />
@@ -51,10 +52,10 @@
                 <NumericUpDown DockPanel.Dock="Right" Value="{Binding Quantity}" Minimum="1" Maximum="1000" Increment="1"
                                FormatString="0" Width="110" Margin="8,0,0,0" />
                 <TextBlock DockPanel.Dock="Right" Classes="Caption" VerticalAlignment="Center" Margin="8,0,0,0" Text="{DynamicResource St_Quantity}" />
-                <ComboBox DockPanel.Dock="Right" MinWidth="180" Margin="8,0,0,0" ItemsSource="{Binding Presets}"
+                <ds:AppSelect DockPanel.Dock="Right" MinWidth="180" Margin="8,0,0,0" ItemsSource="{Binding Presets}"
                           SelectedItem="{Binding SelectedPreset}" DisplayMemberBinding="{Binding Label, x:DataType=vm:PresetChoice}" />
                 <TextBlock DockPanel.Dock="Right" Classes="Caption" VerticalAlignment="Center" Margin="8,0,0,0" Text="{DynamicResource St_Preset}" />
-                <ComboBox DockPanel.Dock="Right" MinWidth="180" Margin="8,0,0,0" IsVisible="{Binding NeedsFarExpiration}"
+                <ds:AppSelect DockPanel.Dock="Right" MinWidth="180" Margin="8,0,0,0" IsVisible="{Binding NeedsFarExpiration}"
                           ItemsSource="{Binding FarExpirations}" SelectedItem="{Binding SelectedFarExpiration}"
                           DisplayMemberBinding="{Binding Label, x:DataType=vm:ExpirationChoice}" />
                 <TextBlock DockPanel.Dock="Right" Classes="Caption" VerticalAlignment="Center" Margin="8,0,0,0"
@@ -65,13 +66,13 @@
                         IsVisible="{Binding IsExpirationToday}">
                     <TextBlock Classes="Caption" Foreground="{DynamicResource DownBrush}" Text="{DynamicResource St_ExpiresToday}" />
                 </Border>
-                <ComboBox DockPanel.Dock="Right" MinWidth="200" Margin="8,0,0,0" ItemsSource="{Binding Expirations}"
+                <ds:AppSelect DockPanel.Dock="Right" MinWidth="200" Margin="8,0,0,0" ItemsSource="{Binding Expirations}"
                           SelectedItem="{Binding SelectedExpiration}" DisplayMemberBinding="{Binding Label, x:DataType=vm:ExpirationChoice}" />
                 <controls:SymbolBox x:Name="SymbolInput" MinWidth="160" Text="{Binding SymbolText}" WatchSymbols="{Binding WatchSymbols}"
                                     CommitCommand="{Binding LoadFromBoxCommand}" />
             </DockPanel>
             <WrapPanel Margin="0,0,0,2">
-                <ProgressBar IsIndeterminate="True" Width="60" Height="8" Margin="0,0,8,4" IsVisible="{Binding IsBusy}" />
+                <controls:AppLoading Margin="0,0,8,4" IsVisible="{Binding IsBusy}" />
                 <TextBlock Classes="Caption" Text="{Binding Headline}" TextWrapping="NoWrap" VerticalAlignment="Center" Margin="0,0,12,4" />
                 <TextBlock Classes="Caption" Text="{Binding LivePriceText}" TextWrapping="NoWrap" VerticalAlignment="Center" Margin="0,0,8,4"
                            ToolTip.Tip="{DynamicResource Op_LivePriceTip}" />
@@ -117,7 +118,7 @@
                                 </DataGridTemplateColumn.CellTemplate>
                                 <DataGridTemplateColumn.CellEditingTemplate>
                                     <DataTemplate x:DataType="vm:StrategyLegRow">
-                                        <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding $parent[DataGrid].((vm:StrategyViewModel)DataContext).TypeChoices}"
+                                        <ds:AppSelect HorizontalAlignment="Stretch" ItemsSource="{Binding $parent[DataGrid].((vm:StrategyViewModel)DataContext).TypeChoices}"
                                                   SelectedValueBinding="{ReflectionBinding Value}" DisplayMemberBinding="{ReflectionBinding Label}"
                                                   SelectedValue="{Binding Type}" />
                                     </DataTemplate>
@@ -131,7 +132,7 @@
                                 </DataGridTemplateColumn.CellTemplate>
                                 <DataGridTemplateColumn.CellEditingTemplate>
                                     <DataTemplate x:DataType="vm:StrategyLegRow">
-                                        <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding $parent[DataGrid].((vm:StrategyViewModel)DataContext).SideChoices}"
+                                        <ds:AppSelect HorizontalAlignment="Stretch" ItemsSource="{Binding $parent[DataGrid].((vm:StrategyViewModel)DataContext).SideChoices}"
                                                   SelectedValueBinding="{ReflectionBinding Value}" DisplayMemberBinding="{ReflectionBinding Label}"
                                                   SelectedValue="{Binding Side}" />
                                     </DataTemplate>

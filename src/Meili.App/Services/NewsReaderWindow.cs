@@ -22,6 +22,7 @@ public sealed class NewsReaderWindow : Window
 
     public NewsReaderWindow()
     {
+        SetResourceReference(FontFamilyProperty,"AppFont");
         Width = 1050; Height = 760; MinWidth = 640; MinHeight = 400;
         FontSize = 14;
         SetResourceReference(BackgroundProperty, "ApplicationBackgroundBrush");

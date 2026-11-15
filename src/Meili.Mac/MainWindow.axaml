@@ -9,7 +9,7 @@
         Width="1320" Height="840" MinWidth="980" MinHeight="620"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource ApplicationBackgroundBrush}"
-        FontFamily="{StaticResource AppFont}" FontSize="14"
+        FontFamily="{DynamicResource AppFont}" FontSize="{StaticResource BodyFontSize}"
         Icon="avares://MeiliMac/Assets/app-256.png">
     <Window.Styles>
         <Style Selector="ToggleButton.Workspace">
@@ -22,8 +22,8 @@
                 </Border>
             </Grid></ControlTemplate></Setter>
         </Style>
-        <Style Selector="ToggleButton.Workspace /template/ Border#Tile"><Setter Property="Transitions"><Transitions><CornerRadiusTransition Property="CornerRadius" Duration="0:0:0.16" Easing="CubicEaseOut"/><BrushTransition Property="Background" Duration="0:0:0.16" Easing="CubicEaseOut"/></Transitions></Setter></Style>
-        <Style Selector="ToggleButton.Workspace /template/ Border#Pill"><Setter Property="Transitions"><Transitions><DoubleTransition Property="Height" Duration="0:0:0.16" Easing="CubicEaseOut"/><DoubleTransition Property="Opacity" Duration="0:0:0.12"/></Transitions></Setter></Style>
+        <Style Selector="ToggleButton.Workspace /template/ Border#Tile"><Setter Property="Transitions"><Transitions><CornerRadiusTransition Property="CornerRadius" Duration="{StaticResource MotionStandardDuration}" Easing="CubicEaseOut"/><BrushTransition Property="Background" Duration="{StaticResource MotionStandardDuration}" Easing="CubicEaseOut"/></Transitions></Setter></Style>
+        <Style Selector="ToggleButton.Workspace /template/ Border#Pill"><Setter Property="Transitions"><Transitions><DoubleTransition Property="Height" Duration="{StaticResource MotionStandardDuration}" Easing="CubicEaseOut"/><DoubleTransition Property="Opacity" Duration="{StaticResource MotionFastDuration}"/></Transitions></Setter></Style>
         <Style Selector="ToggleButton.Workspace:pointerover /template/ Border#Tile"><Setter Property="CornerRadius" Value="14"/><Setter Property="Background" Value="{DynamicResource RowHighlightBrush}"/></Style>
         <Style Selector="ToggleButton.Workspace:pointerover /template/ Border#Pill"><Setter Property="Opacity" Value="1"/></Style>
         <Style Selector="ToggleButton.Workspace:checked /template/ Border#Tile"><Setter Property="CornerRadius" Value="14"/><Setter Property="Background" Value="{DynamicResource AccentFillColorDefaultBrush}"/></Style>

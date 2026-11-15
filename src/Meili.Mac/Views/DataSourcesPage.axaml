@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:lucide="using:Meili.Mac.Views.Controls"
+    xmlns:ds="using:Meili.Mac.Views.Controls"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Meili.Shared.ViewModels"
              xmlns:sp="using:ScottPlot.Avalonia"
@@ -32,7 +33,7 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:SourceRowViewModel">
-                        <Border Classes="Card" Margin="0,0,8,8" Padding="18,14" VerticalAlignment="Stretch">
+                        <ds:AppCard Classes="Card" Margin="0,0,8,8" Padding="18,14" VerticalAlignment="Stretch">
                             <StackPanel>
                                 <DockPanel LastChildFill="False">
                                     <lucide:LucideIcon DockPanel.Dock="Left" Kind="{Binding StateIcon, Converter={x:Static local:MacConverters.HealthGlyph}}" Width="16" Height="16"
@@ -55,19 +56,19 @@
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Grid.Column="0">
                                         <TextBlock Classes="Caption" Text="{DynamicResource Ds_Latency}" />
-                                        <TextBlock Classes="CardTitle" FontFamily="{StaticResource NumberFont}" Text="{Binding LatencyText}" />
+                                        <TextBlock Classes="CardTitle" FontFamily="{DynamicResource NumberFont}" Text="{Binding LatencyText}" />
                                     </StackPanel>
                                     <StackPanel Grid.Column="1">
                                         <TextBlock Classes="Caption" Text="{DynamicResource Ds_Success}" />
-                                        <TextBlock Classes="CardTitle" FontFamily="{StaticResource NumberFont}" Text="{Binding SuccessText}" />
+                                        <TextBlock Classes="CardTitle" FontFamily="{DynamicResource NumberFont}" Text="{Binding SuccessText}" />
                                     </StackPanel>
                                     <StackPanel Grid.Column="2">
                                         <TextBlock Classes="Caption" Text="{DynamicResource Ds_Failures}" />
-                                        <TextBlock Classes="CardTitle" FontFamily="{StaticResource NumberFont}" Text="{Binding FailureText}" />
+                                        <TextBlock Classes="CardTitle" FontFamily="{DynamicResource NumberFont}" Text="{Binding FailureText}" />
                                     </StackPanel>
                                     <StackPanel Grid.Column="3">
                                         <TextBlock Classes="Caption" Text="{DynamicResource Ds_LastUsed}" />
-                                        <TextBlock Classes="CardTitle" FontFamily="{StaticResource NumberFont}" Text="{Binding LastUsedText}" />
+                                        <TextBlock Classes="CardTitle" FontFamily="{DynamicResource NumberFont}" Text="{Binding LastUsedText}" />
                                     </StackPanel>
                                 </Grid>
                                 <Border Margin="0,12,0,0" Padding="10,6" CornerRadius="4" BorderThickness="1" BorderBrush="{DynamicResource DegradedBrush}"
@@ -86,13 +87,13 @@
                                     </StackPanel>
                                 </Border>
                             </StackPanel>
-                        </Border>
+                        </ds:AppCard>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
 
             <TextBlock Classes="SectionTitle" Text="{DynamicResource Ds_Failover}" />
-            <Border Classes="Card" Padding="18,10">
+            <ds:AppCard Classes="Card" Padding="18,10">
                 <ItemsControl ItemsSource="{Binding Failover}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="vm:FailoverRowViewModel">
@@ -107,7 +108,7 @@
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
-            </Border>
+            </ds:AppCard>
         </StackPanel>
     </ScrollViewer>
 </UserControl>

@@ -38,4 +38,5 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Meili.App.Tests" />
   </ItemGroup>
+  <ItemGroup><Resource Include="../Meili.Shared/Assets/Fonts/**" Link="Assets/Fonts/%(Filename)%(Extension)" /></ItemGroup>
 </Project>

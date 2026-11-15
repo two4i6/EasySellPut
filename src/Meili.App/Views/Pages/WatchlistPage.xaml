@@ -6,32 +6,7 @@
       xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
       xmlns:models="clr-namespace:Meili.Core.Models;assembly=Meili.Core">
     <DockPanel>
-        <DockPanel.Resources>
-            <Style x:Key="GroupChip" TargetType="Button">
-                <Setter Property="FontSize" Value="14" />
-                <Setter Property="Padding" Value="12,6" />
-                <Setter Property="Margin" Value="0,0,8,0" />
-                <Setter Property="Cursor" Value="Hand" />
-                <Setter Property="BorderThickness" Value="0" />
-                <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
-                <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="Button">
-                            <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                            </Border>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-                <Style.Triggers>
-                    <DataTrigger Binding="{Binding IsSelected}" Value="True">
-                        <Setter Property="Background" Value="{DynamicResource AccentFillColorDefaultBrush}" />
-                        <Setter Property="Foreground" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}" />
-                    </DataTrigger>
-                </Style.Triggers>
-            </Style>
-        </DockPanel.Resources>
+
 
         <StackPanel DockPanel.Dock="Top" Margin="32,24,32,12">
             <TextBlock Style="{StaticResource PageTitle}" Text="{DynamicResource Wl_Title}" />
@@ -259,7 +234,7 @@
                         </GridViewColumn.Header>
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding PriceText}" FontFamily="{StaticResource NumberFont}" FontSize="16" FontWeight="SemiBold"
+                                <TextBlock Text="{Binding PriceText}" FontFamily="{DynamicResource NumberFont}" FontSize="16" FontWeight="SemiBold"
                                            HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
@@ -290,7 +265,7 @@
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <Border CornerRadius="4" Padding="8,2" Background="{Binding ChangeBackground}" VerticalAlignment="Center" HorizontalAlignment="Right">
-                                    <TextBlock Text="{Binding ChangeText}" FontFamily="{StaticResource NumberFont}" FontSize="14" FontWeight="SemiBold"
+                                    <TextBlock Text="{Binding ChangeText}" FontFamily="{DynamicResource NumberFont}" FontSize="14" FontWeight="SemiBold"
                                                Foreground="{Binding ChangeBrush}" />
                                 </Border>
                             </DataTemplate>
@@ -303,7 +278,7 @@
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <Border CornerRadius="4" Padding="8,2" Background="{Binding ChangeBackground}" VerticalAlignment="Center" HorizontalAlignment="Right">
-                                    <TextBlock Text="{Binding ChangePctText}" FontFamily="{StaticResource NumberFont}" FontSize="14" FontWeight="SemiBold"
+                                    <TextBlock Text="{Binding ChangePctText}" FontFamily="{DynamicResource NumberFont}" FontSize="14" FontWeight="SemiBold"
                                                Foreground="{Binding ChangeBrush}" />
                                 </Border>
                             </DataTemplate>
@@ -315,7 +290,7 @@
                         </GridViewColumn.Header>
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding ExtText}" FontFamily="{StaticResource NumberFont}" FontSize="13" VerticalAlignment="Center" />
+                                <TextBlock Text="{Binding ExtText}" FontFamily="{DynamicResource NumberFont}" FontSize="13" VerticalAlignment="Center" />
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
@@ -325,7 +300,7 @@
                         </GridViewColumn.Header>
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding VolumeText}" FontFamily="{StaticResource NumberFont}" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Right" />
+                                <TextBlock Text="{Binding VolumeText}" FontFamily="{DynamicResource NumberFont}" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Right" />
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>

@@ -44,7 +44,7 @@
                     <Button Margin="0,0,0,8"  Classes="DrawTool" Command="{Binding ClearDrawingsCommand}" AutomationProperties.Name="{DynamicResource Ch_ClearAllShort}"><StackPanel Spacing="4" HorizontalAlignment="Center"><lucide:LucideIcon Kind="Trash" Width="20" Height="20"/><TextBlock Text="{DynamicResource Ch_ClearAllShort}" FontSize="12" HorizontalAlignment="Center"/></StackPanel></Button>
                 </StackPanel>
             </Border>
-            <Border x:Name="ChartInspector" DockPanel.Dock="Right" Width="280" BorderThickness="1,0,0,0" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" IsVisible="{Binding ShowInspector}">
+            <controls:AppDrawer x:Name="ChartInspector" ReturnFocusTarget="{Binding ElementName=InspectorToggle}" AutomationProperties.Name="{DynamicResource Ch_Indicators}" DockPanel.Dock="Right" Width="280" BorderThickness="1,0,0,0" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" IsOpen="{Binding ShowInspector, Mode=TwoWay}">
                 <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="12">
                         <TextBlock Classes="CardTitle" Text="{DynamicResource Ch_Indicators}" Margin="0,0,0,12"/>
@@ -117,14 +117,14 @@
                         </StackPanel>
                     </StackPanel>
                 </ScrollViewer>
-            </Border>
+            </controls:AppDrawer>
             <platform:WebChartControl x:Name="Chart" MinHeight="220"/>
         </DockPanel>
         <Border Grid.Row="2" Padding="12,6" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}">
             <StackPanel>
                 <TextBlock Text="{Binding AdjustWarning}" FontSize="12" Margin="0,0,0,6" TextWrapping="Wrap" Foreground="{DynamicResource DegradedBrush}" IsVisible="{Binding AdjustWarning, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                 <StackPanel Orientation="Horizontal">
-                    <ProgressBar IsIndeterminate="True" Width="60" Margin="0,0,8,0" IsVisible="{Binding IsBusy}"/>
+                    <controls:AppLoading Margin="0,0,8,0" IsVisible="{Binding IsBusy}"/>
                     <TextBlock Classes="Caption" Text="{Binding StatusText}" VerticalAlignment="Center" Margin="0,0,16,0"/>
 <TextBlock Classes="Caption" Text="{Binding AdjustText}" Margin="0,0,12,0" VerticalAlignment="Center"/>
                     <TextBlock Classes="Caption Num" Text="{Binding CrosshairText}" VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
