@@ -12,7 +12,7 @@ class UxAuditTests(unittest.TestCase):
         for platform,sub,ext in [('App','Views/Pages','xaml'),('Mac','Views','axaml')]:
             base=ROOT/f'src/Meili.{platform}/{sub}'
             dashboard=(base/f'DashboardPage.{ext}').read_text(encoding="utf-8");self.assertNotIn('Text="{DynamicResource Dash_WelcomeBody}"',dashboard);self.assertIn('OpenChartCommand',dashboard)
-            options=(base/f'OptionsPage.{ext}').read_text(encoding="utf-8");self.assertIn('OptionControlsDisclosure',options)
+            options=(base/f'OptionsPage.{ext}').read_text(encoding="utf-8");self.assertIn('OptionControlsPopover',options)
             for kind in ['LC','SC','LP','SP']:self.assertIn('CommandParameter="'+kind+'"',options)
             alerts=(base/f'AlertsPage.{ext}').read_text(encoding="utf-8");self.assertIn('AdvancedExpanded, Mode=TwoWay',alerts);self.assertIn('UX_RunningOnly',alerts)
             for page in ['Watchlist','Options','News','Alerts','DataSources']:self.assertIn('ux:AppHelp',(base/f'{page}Page.{ext}').read_text(encoding="utf-8"))

@@ -20,7 +20,7 @@ public sealed class UxInteractionTests
             var vm=(OptionsViewModel)page.DataContext;var old=vm.ShowGamma;
             try
             {
-                var disclosure=(AppDisclosure)page.FindName("OptionControlsDisclosure");Assert.False(disclosure.IsExpanded);vm.ShowGamma=!old;disclosure.IsExpanded=true;disclosure.IsExpanded=false;Assert.Equal(!old,vm.ShowGamma);
+                var disclosure=(AppPopover)page.FindName("OptionControlsPopover");Assert.False(disclosure.IsExpanded);vm.ShowGamma=!old;disclosure.IsExpanded=true;await WpfHost.Settle();Assert.Equal(13,UiAudit.Descendants<CheckBox>((DependencyObject)disclosure.PopupContent!).Count());disclosure.IsExpanded=false;Assert.Equal(!old,vm.ShowGamma);
                 var refresh=UiAudit.Descendants<System.Windows.Controls.Primitives.ButtonBase>(page).First(b=>b.Command==vm.RefreshCommand);vm.IsBusy=true;await WpfHost.Settle();Assert.False(refresh.IsEnabled);vm.IsBusy=false;
                 var actions=UiAudit.Descendants<System.Windows.Controls.Primitives.ButtonBase>(page).Where(b=>b.Command==vm.BuildStrategyCommand).ToArray();Assert.Equal(4,actions.Length);vm.SelectedRow=null;await WpfHost.Settle();Assert.All(actions,b=>Assert.False(b.IsEnabled));
             }

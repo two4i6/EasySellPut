@@ -42,7 +42,7 @@
                         <ui:Button Appearance="Secondary" Padding="16,6"
                                    Command="{Binding DeleteCommand}" IsEnabled="{Binding HasSelection}"
                                    Content="{DynamicResource Al_Delete}" FontSize="14" />
-                    </StackPanel></WrapPanel><ux:AppDisclosure x:Name="AlertAdvanced" IsExpanded="{Binding AdvancedExpanded, Mode=TwoWay}" Header="{DynamicResource UX_AlertMore}" HorizontalAlignment="Stretch"><WrapPanel Margin="0,8,0,0"><StackPanel Margin="0,0,16,10" MinWidth="140">
+                    <ux:AppPopover x:Name="AlertAdvanced" IsExpanded="{Binding AdvancedExpanded, Mode=TwoWay}" Header="{DynamicResource UX_AlertMore}" Margin="8,0,0,0"><ux:AppPopover.PopupContent><StackPanel><WrapPanel><StackPanel Margin="0,0,16,10" MinWidth="140">
                         <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Al_Repeat}" Margin="0,0,0,4" />
                         <ds:AppSelect ItemsSource="{Binding RepeatOptions}"
                                   SelectedItem="{Binding SelectedRepeat}"
@@ -60,7 +60,7 @@
                         <CheckBox Content="{DynamicResource Al_Extended}"
                                   IsChecked="{Binding IncludeExtendedHours}" IsEnabled="{Binding IsQuoteKind}"
                                   FontSize="14" VerticalAlignment="Center" />
-                    </StackPanel></WrapPanel></ux:AppDisclosure></StackPanel>
+                    </StackPanel></WrapPanel><TextBlock Text="{Binding StatusText}" FontSize="12" TextWrapping="Wrap"/></StackPanel></ux:AppPopover.PopupContent></ux:AppPopover></StackPanel></WrapPanel></StackPanel>
             </ds:AppCard>
 
             <DockPanel Margin="0,10,0,0" LastChildFill="True">

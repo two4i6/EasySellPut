@@ -6684,19 +6684,35 @@
     {
       "platform": "App",
       "page": "Options",
-      "type": "AppDisclosure",
-      "name": "OptionControlsDisclosure",
+      "type": "AppPopover",
+      "name": "OptionControlsPopover",
       "attributes": {
-        "Name": "OptionControlsDisclosure",
+        "Name": "OptionControlsPopover",
         "Header": "{DynamicResource UX_Columns}",
-        "HorizontalAlignment": "Stretch",
-        "Margin": "0,0,0,8"
+        "Margin": "6,0,0,0"
       },
       "composition": [
         "Page",
         "ScrollViewer",
         "DockPanel",
-        "StackPanel"
+        "StackPanel",
+        "WrapPanel"
+      ],
+      "source": "src/Meili.App/Views/Pages/OptionsPage.xaml"
+    },
+    {
+      "platform": "App",
+      "page": "Options",
+      "type": "AppPopover.PopupContent",
+      "name": null,
+      "attributes": {},
+      "composition": [
+        "Page",
+        "ScrollViewer",
+        "DockPanel",
+        "StackPanel",
+        "WrapPanel",
+        "AppPopover"
       ],
       "source": "src/Meili.App/Views/Pages/OptionsPage.xaml"
     },
@@ -6705,15 +6721,15 @@
       "page": "Options",
       "type": "WrapPanel",
       "name": null,
-      "attributes": {
-        "Margin": "0,8,0,0"
-      },
+      "attributes": {},
       "composition": [
         "Page",
         "ScrollViewer",
         "DockPanel",
         "StackPanel",
-        "AppDisclosure"
+        "WrapPanel",
+        "AppPopover",
+        "AppPopover.PopupContent"
       ],
       "source": "src/Meili.App/Views/Pages/OptionsPage.xaml"
     },
@@ -6733,7 +6749,9 @@
         "ScrollViewer",
         "DockPanel",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
         "WrapPanel"
       ],
       "source": "src/Meili.App/Views/Pages/OptionsPage.xaml"
@@ -6753,7 +6771,9 @@
         "ScrollViewer",
         "DockPanel",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
         "WrapPanel"
       ],
       "source": "src/Meili.App/Views/Pages/OptionsPage.xaml"
@@ -6773,7 +6793,9 @@
         "ScrollViewer",
         "DockPanel",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
         "WrapPanel"
       ],
       "source": "src/Meili.App/Views/Pages/OptionsPage.xaml"
@@ -6794,7 +6816,9 @@
         "ScrollViewer",
         "DockPanel",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
         "WrapPanel"
       ],
       "source": "src/Meili.App/Views/Pages/OptionsPage.xaml"
@@ -6814,7 +6838,9 @@
         "ScrollViewer",
         "DockPanel",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
         "WrapPanel"
       ],
       "source": "src/Meili.App/Views/Pages/OptionsPage.xaml"
@@ -6834,7 +6860,9 @@
         "ScrollViewer",
         "DockPanel",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
         "WrapPanel"
       ],
       "source": "src/Meili.App/Views/Pages/OptionsPage.xaml"
@@ -6854,7 +6882,9 @@
         "ScrollViewer",
         "DockPanel",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
         "WrapPanel"
       ],
       "source": "src/Meili.App/Views/Pages/OptionsPage.xaml"
@@ -6874,7 +6904,9 @@
         "ScrollViewer",
         "DockPanel",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
         "WrapPanel"
       ],
       "source": "src/Meili.App/Views/Pages/OptionsPage.xaml"
@@ -6894,7 +6926,9 @@
         "ScrollViewer",
         "DockPanel",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
         "WrapPanel"
       ],
       "source": "src/Meili.App/Views/Pages/OptionsPage.xaml"
@@ -6915,7 +6949,9 @@
         "ScrollViewer",
         "DockPanel",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
         "WrapPanel"
       ],
       "source": "src/Meili.App/Views/Pages/OptionsPage.xaml"
@@ -6936,7 +6972,9 @@
         "ScrollViewer",
         "DockPanel",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
         "WrapPanel"
       ],
       "source": "src/Meili.App/Views/Pages/OptionsPage.xaml"
@@ -6959,7 +6997,9 @@
         "ScrollViewer",
         "DockPanel",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
         "WrapPanel"
       ],
       "source": "src/Meili.App/Views/Pages/OptionsPage.xaml"
@@ -6979,7 +7019,9 @@
         "ScrollViewer",
         "DockPanel",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
         "WrapPanel"
       ],
       "source": "src/Meili.App/Views/Pages/OptionsPage.xaml"
@@ -7002,7 +7044,9 @@
         "ScrollViewer",
         "DockPanel",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
         "WrapPanel"
       ],
       "source": "src/Meili.App/Views/Pages/OptionsPage.xaml"
@@ -12775,20 +12819,59 @@
     {
       "platform": "App",
       "page": "Alerts",
-      "type": "AppDisclosure",
+      "type": "AppPopover",
       "name": "AlertAdvanced",
       "attributes": {
         "Name": "AlertAdvanced",
         "IsExpanded": "{Binding AdvancedExpanded, Mode=TwoWay}",
         "Header": "{DynamicResource UX_AlertMore}",
-        "HorizontalAlignment": "Stretch"
+        "Margin": "8,0,0,0"
       },
       "composition": [
         "Page",
         "DockPanel",
         "StackPanel",
         "AppCard",
+        "StackPanel",
+        "WrapPanel",
         "StackPanel"
+      ],
+      "source": "src/Meili.App/Views/Pages/AlertsPage.xaml"
+    },
+    {
+      "platform": "App",
+      "page": "Alerts",
+      "type": "AppPopover.PopupContent",
+      "name": null,
+      "attributes": {},
+      "composition": [
+        "Page",
+        "DockPanel",
+        "StackPanel",
+        "AppCard",
+        "StackPanel",
+        "WrapPanel",
+        "StackPanel",
+        "AppPopover"
+      ],
+      "source": "src/Meili.App/Views/Pages/AlertsPage.xaml"
+    },
+    {
+      "platform": "App",
+      "page": "Alerts",
+      "type": "StackPanel",
+      "name": null,
+      "attributes": {},
+      "composition": [
+        "Page",
+        "DockPanel",
+        "StackPanel",
+        "AppCard",
+        "StackPanel",
+        "WrapPanel",
+        "StackPanel",
+        "AppPopover",
+        "AppPopover.PopupContent"
       ],
       "source": "src/Meili.App/Views/Pages/AlertsPage.xaml"
     },
@@ -12797,16 +12880,18 @@
       "page": "Alerts",
       "type": "WrapPanel",
       "name": null,
-      "attributes": {
-        "Margin": "0,8,0,0"
-      },
+      "attributes": {},
       "composition": [
         "Page",
         "DockPanel",
         "StackPanel",
         "AppCard",
         "StackPanel",
-        "AppDisclosure"
+        "WrapPanel",
+        "StackPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
+        "StackPanel"
       ],
       "source": "src/Meili.App/Views/Pages/AlertsPage.xaml"
     },
@@ -12825,7 +12910,11 @@
         "StackPanel",
         "AppCard",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "StackPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
+        "StackPanel",
         "WrapPanel"
       ],
       "source": "src/Meili.App/Views/Pages/AlertsPage.xaml"
@@ -12846,7 +12935,11 @@
         "StackPanel",
         "AppCard",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "StackPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
+        "StackPanel",
         "WrapPanel",
         "StackPanel"
       ],
@@ -12870,7 +12963,11 @@
         "StackPanel",
         "AppCard",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "StackPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
+        "StackPanel",
         "WrapPanel",
         "StackPanel"
       ],
@@ -12891,7 +12988,11 @@
         "StackPanel",
         "AppCard",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "StackPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
+        "StackPanel",
         "WrapPanel"
       ],
       "source": "src/Meili.App/Views/Pages/AlertsPage.xaml"
@@ -12912,7 +13013,11 @@
         "StackPanel",
         "AppCard",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "StackPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
+        "StackPanel",
         "WrapPanel",
         "StackPanel"
       ],
@@ -12934,7 +13039,11 @@
         "StackPanel",
         "AppCard",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "StackPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
+        "StackPanel",
         "WrapPanel",
         "StackPanel"
       ],
@@ -12955,7 +13064,11 @@
         "StackPanel",
         "AppCard",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "StackPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
+        "StackPanel",
         "WrapPanel"
       ],
       "source": "src/Meili.App/Views/Pages/AlertsPage.xaml"
@@ -12976,7 +13089,11 @@
         "StackPanel",
         "AppCard",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "StackPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
+        "StackPanel",
         "WrapPanel",
         "StackPanel"
       ],
@@ -12998,7 +13115,11 @@
         "StackPanel",
         "AppCard",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "StackPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
+        "StackPanel",
         "WrapPanel",
         "StackPanel"
       ],
@@ -13019,7 +13140,11 @@
         "StackPanel",
         "AppCard",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "StackPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
+        "StackPanel",
         "WrapPanel"
       ],
       "source": "src/Meili.App/Views/Pages/AlertsPage.xaml"
@@ -13042,8 +13167,36 @@
         "StackPanel",
         "AppCard",
         "StackPanel",
-        "AppDisclosure",
         "WrapPanel",
+        "StackPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
+        "StackPanel",
+        "WrapPanel",
+        "StackPanel"
+      ],
+      "source": "src/Meili.App/Views/Pages/AlertsPage.xaml"
+    },
+    {
+      "platform": "App",
+      "page": "Alerts",
+      "type": "TextBlock",
+      "name": null,
+      "attributes": {
+        "Text": "{Binding StatusText}",
+        "FontSize": "12",
+        "TextWrapping": "Wrap"
+      },
+      "composition": [
+        "Page",
+        "DockPanel",
+        "StackPanel",
+        "AppCard",
+        "StackPanel",
+        "WrapPanel",
+        "StackPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
         "StackPanel"
       ],
       "source": "src/Meili.App/Views/Pages/AlertsPage.xaml"
@@ -25371,19 +25524,35 @@
     {
       "platform": "Mac",
       "page": "Options",
-      "type": "AppDisclosure",
-      "name": "OptionControlsDisclosure",
+      "type": "AppPopover",
+      "name": "OptionControlsPopover",
       "attributes": {
-        "Name": "OptionControlsDisclosure",
+        "Name": "OptionControlsPopover",
         "Header": "{DynamicResource UX_Columns}",
-        "HorizontalAlignment": "Stretch",
-        "Margin": "0,0,0,8"
+        "Margin": "6,0,0,0"
       },
       "composition": [
         "UserControl",
         "ScrollViewer",
         "DockPanel",
-        "StackPanel"
+        "StackPanel",
+        "WrapPanel"
+      ],
+      "source": "src/Meili.Mac/Views/OptionsPage.axaml"
+    },
+    {
+      "platform": "Mac",
+      "page": "Options",
+      "type": "AppPopover.PopupContent",
+      "name": null,
+      "attributes": {},
+      "composition": [
+        "UserControl",
+        "ScrollViewer",
+        "DockPanel",
+        "StackPanel",
+        "WrapPanel",
+        "AppPopover"
       ],
       "source": "src/Meili.Mac/Views/OptionsPage.axaml"
     },
@@ -25392,15 +25561,15 @@
       "page": "Options",
       "type": "WrapPanel",
       "name": null,
-      "attributes": {
-        "Margin": "0,8,0,0"
-      },
+      "attributes": {},
       "composition": [
         "UserControl",
         "ScrollViewer",
         "DockPanel",
         "StackPanel",
-        "AppDisclosure"
+        "WrapPanel",
+        "AppPopover",
+        "AppPopover.PopupContent"
       ],
       "source": "src/Meili.Mac/Views/OptionsPage.axaml"
     },
@@ -25420,7 +25589,9 @@
         "ScrollViewer",
         "DockPanel",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
         "WrapPanel"
       ],
       "source": "src/Meili.Mac/Views/OptionsPage.axaml"
@@ -25440,7 +25611,9 @@
         "ScrollViewer",
         "DockPanel",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
         "WrapPanel"
       ],
       "source": "src/Meili.Mac/Views/OptionsPage.axaml"
@@ -25460,7 +25633,9 @@
         "ScrollViewer",
         "DockPanel",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
         "WrapPanel"
       ],
       "source": "src/Meili.Mac/Views/OptionsPage.axaml"
@@ -25481,7 +25656,9 @@
         "ScrollViewer",
         "DockPanel",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
         "WrapPanel"
       ],
       "source": "src/Meili.Mac/Views/OptionsPage.axaml"
@@ -25501,7 +25678,9 @@
         "ScrollViewer",
         "DockPanel",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
         "WrapPanel"
       ],
       "source": "src/Meili.Mac/Views/OptionsPage.axaml"
@@ -25521,7 +25700,9 @@
         "ScrollViewer",
         "DockPanel",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
         "WrapPanel"
       ],
       "source": "src/Meili.Mac/Views/OptionsPage.axaml"
@@ -25541,7 +25722,9 @@
         "ScrollViewer",
         "DockPanel",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
         "WrapPanel"
       ],
       "source": "src/Meili.Mac/Views/OptionsPage.axaml"
@@ -25561,7 +25744,9 @@
         "ScrollViewer",
         "DockPanel",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
         "WrapPanel"
       ],
       "source": "src/Meili.Mac/Views/OptionsPage.axaml"
@@ -25581,7 +25766,9 @@
         "ScrollViewer",
         "DockPanel",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
         "WrapPanel"
       ],
       "source": "src/Meili.Mac/Views/OptionsPage.axaml"
@@ -25602,7 +25789,9 @@
         "ScrollViewer",
         "DockPanel",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
         "WrapPanel"
       ],
       "source": "src/Meili.Mac/Views/OptionsPage.axaml"
@@ -25623,7 +25812,9 @@
         "ScrollViewer",
         "DockPanel",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
         "WrapPanel"
       ],
       "source": "src/Meili.Mac/Views/OptionsPage.axaml"
@@ -25644,7 +25835,9 @@
         "ScrollViewer",
         "DockPanel",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
         "WrapPanel"
       ],
       "source": "src/Meili.Mac/Views/OptionsPage.axaml"
@@ -25664,7 +25857,9 @@
         "ScrollViewer",
         "DockPanel",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
         "WrapPanel"
       ],
       "source": "src/Meili.Mac/Views/OptionsPage.axaml"
@@ -25686,7 +25881,9 @@
         "ScrollViewer",
         "DockPanel",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
         "WrapPanel"
       ],
       "source": "src/Meili.Mac/Views/OptionsPage.axaml"
@@ -31159,20 +31356,59 @@
     {
       "platform": "Mac",
       "page": "Alerts",
-      "type": "AppDisclosure",
+      "type": "AppPopover",
       "name": "AlertAdvanced",
       "attributes": {
         "Name": "AlertAdvanced",
         "IsExpanded": "{Binding AdvancedExpanded, Mode=TwoWay}",
         "Header": "{DynamicResource UX_AlertMore}",
-        "HorizontalAlignment": "Stretch"
+        "Margin": "8,0,0,0"
       },
       "composition": [
         "UserControl",
         "DockPanel",
         "StackPanel",
         "AppCard",
+        "StackPanel",
+        "WrapPanel",
         "StackPanel"
+      ],
+      "source": "src/Meili.Mac/Views/AlertsPage.axaml"
+    },
+    {
+      "platform": "Mac",
+      "page": "Alerts",
+      "type": "AppPopover.PopupContent",
+      "name": null,
+      "attributes": {},
+      "composition": [
+        "UserControl",
+        "DockPanel",
+        "StackPanel",
+        "AppCard",
+        "StackPanel",
+        "WrapPanel",
+        "StackPanel",
+        "AppPopover"
+      ],
+      "source": "src/Meili.Mac/Views/AlertsPage.axaml"
+    },
+    {
+      "platform": "Mac",
+      "page": "Alerts",
+      "type": "StackPanel",
+      "name": null,
+      "attributes": {},
+      "composition": [
+        "UserControl",
+        "DockPanel",
+        "StackPanel",
+        "AppCard",
+        "StackPanel",
+        "WrapPanel",
+        "StackPanel",
+        "AppPopover",
+        "AppPopover.PopupContent"
       ],
       "source": "src/Meili.Mac/Views/AlertsPage.axaml"
     },
@@ -31181,16 +31417,18 @@
       "page": "Alerts",
       "type": "WrapPanel",
       "name": null,
-      "attributes": {
-        "Margin": "0,8,0,0"
-      },
+      "attributes": {},
       "composition": [
         "UserControl",
         "DockPanel",
         "StackPanel",
         "AppCard",
         "StackPanel",
-        "AppDisclosure"
+        "WrapPanel",
+        "StackPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
+        "StackPanel"
       ],
       "source": "src/Meili.Mac/Views/AlertsPage.axaml"
     },
@@ -31209,7 +31447,11 @@
         "StackPanel",
         "AppCard",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "StackPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
+        "StackPanel",
         "WrapPanel"
       ],
       "source": "src/Meili.Mac/Views/AlertsPage.axaml"
@@ -31230,7 +31472,11 @@
         "StackPanel",
         "AppCard",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "StackPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
+        "StackPanel",
         "WrapPanel",
         "StackPanel"
       ],
@@ -31254,7 +31500,11 @@
         "StackPanel",
         "AppCard",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "StackPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
+        "StackPanel",
         "WrapPanel",
         "StackPanel"
       ],
@@ -31275,7 +31525,11 @@
         "StackPanel",
         "AppCard",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "StackPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
+        "StackPanel",
         "WrapPanel"
       ],
       "source": "src/Meili.Mac/Views/AlertsPage.axaml"
@@ -31296,7 +31550,11 @@
         "StackPanel",
         "AppCard",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "StackPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
+        "StackPanel",
         "WrapPanel",
         "StackPanel"
       ],
@@ -31318,7 +31576,11 @@
         "StackPanel",
         "AppCard",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "StackPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
+        "StackPanel",
         "WrapPanel",
         "StackPanel"
       ],
@@ -31339,7 +31601,11 @@
         "StackPanel",
         "AppCard",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "StackPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
+        "StackPanel",
         "WrapPanel"
       ],
       "source": "src/Meili.Mac/Views/AlertsPage.axaml"
@@ -31360,7 +31626,11 @@
         "StackPanel",
         "AppCard",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "StackPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
+        "StackPanel",
         "WrapPanel",
         "StackPanel"
       ],
@@ -31382,7 +31652,11 @@
         "StackPanel",
         "AppCard",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "StackPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
+        "StackPanel",
         "WrapPanel",
         "StackPanel"
       ],
@@ -31403,7 +31677,11 @@
         "StackPanel",
         "AppCard",
         "StackPanel",
-        "AppDisclosure",
+        "WrapPanel",
+        "StackPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
+        "StackPanel",
         "WrapPanel"
       ],
       "source": "src/Meili.Mac/Views/AlertsPage.axaml"
@@ -31426,8 +31704,36 @@
         "StackPanel",
         "AppCard",
         "StackPanel",
-        "AppDisclosure",
         "WrapPanel",
+        "StackPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
+        "StackPanel",
+        "WrapPanel",
+        "StackPanel"
+      ],
+      "source": "src/Meili.Mac/Views/AlertsPage.axaml"
+    },
+    {
+      "platform": "Mac",
+      "page": "Alerts",
+      "type": "TextBlock",
+      "name": null,
+      "attributes": {
+        "Text": "{Binding StatusText}",
+        "FontSize": "12",
+        "TextWrapping": "Wrap"
+      },
+      "composition": [
+        "UserControl",
+        "DockPanel",
+        "StackPanel",
+        "AppCard",
+        "StackPanel",
+        "WrapPanel",
+        "StackPanel",
+        "AppPopover",
+        "AppPopover.PopupContent",
         "StackPanel"
       ],
       "source": "src/Meili.Mac/Views/AlertsPage.axaml"

@@ -42,6 +42,8 @@ public sealed class UxInteractionTests
                     Assert.True(double.IsFinite(button.Bounds.Width)&&double.IsFinite(button.Bounds.Height),page+": invalid control bounds");
                 metrics.Add(new{page=page.ToString(),width,height,language,dark,visibleTextCharacters=text.Sum(x=>x.Length),visibleButtons=view.GetVisualDescendants().OfType<Button>().Count(x=>x.IsEffectivelyVisible),collapsed=disclosures.Count(x=>!x.IsExpanded)});
                 MacHost.Save(w,$"ux-{page}-{width}-{language}-{dark}");
+                var popover=view.GetVisualDescendants().OfType<AppPopover>().FirstOrDefault(x=>x is not AppHelp && x.IsEffectivelyVisible);
+                if(popover is not null){popover.IsExpanded=true;await Settle();MacHost.Save(w,$"ux-{page}-popover-{width}-{language}-{dark}");popover.IsExpanded=false;}
                 var disclosure=disclosures.FirstOrDefault(x=>x.IsEffectivelyVisible);
                 if(disclosure is not null){disclosure.IsExpanded=true;await Settle();MacHost.Save(w,$"ux-{page}-expanded-{width}-{language}-{dark}");disclosure.IsExpanded=false;}
             }
@@ -63,10 +65,13 @@ public sealed class UxInteractionTests
             vm.SelectedRow=vm.Rows.FirstOrDefault();MacHost.Pump();if(vm.SelectedRow is not null)Assert.True(remove.IsEnabled);
             vm.BeginAddGroupCommand.Execute(null);await Settle();var draft=page.FindControl<TextBox>("GroupDraftInput")!;Assert.True(draft.IsFocused);
             vm.GroupNameDraft="UX unsaved test";w.KeyPress(Key.Escape,RawInputModifiers.None,PhysicalKey.Escape,null);MacHost.Pump();Assert.False(vm.IsAddingGroup);
-            w.Navigate(AppPage.Options);await Settle();var options=AppServices.Get<OptionsViewModel>();var columns=w.CurrentView!.FindControl<AppDisclosure>("OptionControlsDisclosure")!;
-            var old=options.ShowGamma;options.ShowGamma=!old;columns.IsExpanded=true;columns.IsExpanded=false;MacHost.Pump();Assert.Equal(!old,options.ShowGamma);options.ShowGamma=old;
+            w.Navigate(AppPage.Options);await Settle();var options=AppServices.Get<OptionsViewModel>();var columns=w.CurrentView!.FindControl<AppPopover>("OptionControlsPopover")!;
+            var old=options.ShowGamma;options.ShowGamma=!old;columns.IsExpanded=true;await Settle();
+            var gamma=((Control)columns.PopupContent!).GetVisualDescendants().OfType<CheckBox>().First(x=>Equals(x.Content,LocalizationService.Current["Op_Gamma"]));
+            Assert.Equal(!old,gamma.IsChecked);gamma.SetCurrentValue(ToggleButton.IsCheckedProperty,old);MacHost.Pump();Assert.Equal(old,options.ShowGamma);
+            columns.IsExpanded=false;MacHost.Pump();Assert.Equal(old,options.ShowGamma);
             var refresh=w.CurrentView!.GetVisualDescendants().OfType<Button>().First(b=>b.Command==options.RefreshCommand);options.IsBusy=true;MacHost.Pump();Assert.False(refresh.IsEnabled);options.IsBusy=false;
-            w.Navigate(AppPage.Alerts);await Settle();var alerts=AppServices.Get<AlertsViewModel>();var advanced=w.CurrentView!.FindControl<AppDisclosure>("AlertAdvanced")!;var cooldown=alerts.CooldownText;var note=alerts.NoteText;var symbol=alerts.SymbolText;var threshold=alerts.ThresholdText;
+            w.Navigate(AppPage.Alerts);await Settle();var alerts=AppServices.Get<AlertsViewModel>();var advanced=w.CurrentView!.FindControl<AppPopover>("AlertAdvanced")!;var cooldown=alerts.CooldownText;var note=alerts.NoteText;var symbol=alerts.SymbolText;var threshold=alerts.ThresholdText;
             try
             {
                 alerts.CooldownText="45";alerts.NoteText="UX draft";advanced.IsExpanded=true;advanced.IsExpanded=false;MacHost.Pump();Assert.Equal("45",alerts.CooldownText);Assert.Equal("UX draft",alerts.NoteText);
@@ -82,7 +87,8 @@ public sealed class UxInteractionTests
         MacHost.EnsureComposed();var help=new AppHelp{HelpText="A complete help message"};var panel=new StackPanel{Children={help,new TextBox{Text="Keep this input"}}};var window=new Window{Content=panel,Width=500,Height=300};window.Show();MacHost.Pump();
         try
         {
-            help.Flyout!.ShowAt(help);await Settle();Assert.True(help.Flyout.IsOpen);MacHost.Save(window,"ux-help-open");help.Flyout.Hide();
+            help.Focus(NavigationMethod.Tab);await Settle();Assert.True(ToolTip.GetIsOpen(help));MacHost.Save(window,"ux-help-tooltip");
+            help.IsExpanded=true;await Settle();Assert.True(help.IsHelpOpen);Assert.False(ToolTip.GetIsOpen(help));Assert.IsType<TextBlock>(ToolTip.GetTip(help));MacHost.Save(window,"ux-help-open");help.IsExpanded=false;
             DesignMotion.SetReduced(false);AppMotion.Enter(panel);Assert.NotNull(panel.Transitions);
             DesignMotion.SetReduced(true);Assert.Null(panel.Transitions);Assert.Equal(1,panel.Opacity);
             var native=new NativeControlHost{Opacity=.7};AppMotion.Enter(native);Assert.Equal(.7,native.Opacity);

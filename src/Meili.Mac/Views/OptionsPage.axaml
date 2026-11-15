@@ -74,7 +74,7 @@
                         Command="{Binding SelectWindowCommand}" CommandParameter="{x:Static vm:StrikeWindowKind.Near20}" />
                 <Button x:Name="All" Classes="Chip" Padding="10,6" Margin="0,0,6,0" Content="{DynamicResource Op_RangeAll}"
                         Command="{Binding SelectWindowCommand}" CommandParameter="{x:Static vm:StrikeWindowKind.All}" />
-            </WrapPanel><ux:AppDisclosure x:Name="OptionControlsDisclosure" Header="{DynamicResource UX_Columns}" HorizontalAlignment="Stretch" Margin="0,0,0,8"><WrapPanel Margin="0,8,0,0">
+            <ux:AppPopover x:Name="OptionControlsPopover" Header="{DynamicResource UX_Columns}" Margin="6,0,0,0"><ux:AppPopover.PopupContent><WrapPanel>
                 <TextBlock Classes="Caption" VerticalAlignment="Center" Margin="0,0,10,0" Text="{DynamicResource Op_Columns}" />
                 <CheckBox Margin="0,0,12,0" Content="{DynamicResource Op_Volume}" IsChecked="{Binding ShowVolume}" />
                 <CheckBox Margin="0,0,12,0" Content="{DynamicResource Op_OI}" IsChecked="{Binding ShowOi}" />
@@ -89,7 +89,7 @@
                 <CheckBox Margin="12,0,12,0" Content="{DynamicResource Op_Compact}" IsChecked="{Binding CompactColumns}" ToolTip.Tip="{DynamicResource Op_CompactTip}" />
                 <CheckBox Margin="0,0,12,0" Content="{DynamicResource Op_Smile}" IsChecked="{Binding ShowSmile}" />
                 <CheckBox Margin="0,0,12,0" Content="{DynamicResource Op_Term}" IsChecked="{Binding ShowTerm}" ToolTip.Tip="{DynamicResource Op_TermTip}" IsEnabled="{Binding ShowSmile}" />
-            </WrapPanel></ux:AppDisclosure><WrapPanel Margin="0,0,0,8" IsEnabled="{Binding HasSelectedRow}"><TextBlock Classes="Caption" Text="{DynamicResource UX_SelectedContract}" Margin="0,0,8,0" VerticalAlignment="Center"/><Button Content="{DynamicResource Op_SeedLongCall}" Command="{Binding BuildStrategyCommand}" CommandParameter="LC" Margin="0,0,6,0"/><Button Content="{DynamicResource Op_SeedShortCall}" Command="{Binding BuildStrategyCommand}" CommandParameter="SC" Margin="0,0,6,0"/><Button Content="{DynamicResource Op_SeedLongPut}" Command="{Binding BuildStrategyCommand}" CommandParameter="LP" Margin="0,0,6,0"/><Button Content="{DynamicResource Op_SeedShortPut}" Command="{Binding BuildStrategyCommand}" CommandParameter="SP" Margin="0,0,6,0"/></WrapPanel>
+            </WrapPanel></ux:AppPopover.PopupContent></ux:AppPopover></WrapPanel><WrapPanel Margin="0,0,0,8" IsEnabled="{Binding HasSelectedRow}"><TextBlock Classes="Caption" Text="{DynamicResource UX_SelectedContract}" Margin="0,0,8,0" VerticalAlignment="Center"/><Button Content="{DynamicResource Op_SeedLongCall}" Command="{Binding BuildStrategyCommand}" CommandParameter="LC" Margin="0,0,6,0"/><Button Content="{DynamicResource Op_SeedShortCall}" Command="{Binding BuildStrategyCommand}" CommandParameter="SC" Margin="0,0,6,0"/><Button Content="{DynamicResource Op_SeedLongPut}" Command="{Binding BuildStrategyCommand}" CommandParameter="LP" Margin="0,0,6,0"/><Button Content="{DynamicResource Op_SeedShortPut}" Command="{Binding BuildStrategyCommand}" CommandParameter="SP" Margin="0,0,6,0"/></WrapPanel>
             <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
                 <controls:AppLoading Margin="0,0,8,0" IsVisible="{Binding IsBusy}" />
                 <TextBlock Classes="Caption" Text="{Binding StatusText}" VerticalAlignment="Center" Margin="0,0,16,0" />
