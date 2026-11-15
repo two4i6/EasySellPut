@@ -447,9 +447,10 @@
       document.getElementById('symbol').textContent = state.symbol;
       document.getElementById('fit').textContent = state.language === 'zh-CN' ? '适应' : 'Fit';
       document.getElementById('fit').setAttribute('aria-label',state.language === 'zh-CN' ? '适应图表窗口' : 'Fit chart to window');
-      document.getElementById('help-heading').textContent=state.language === 'zh-CN' ? '操作' : 'Controls';
-      document.getElementById('help-heading').prepend(meiliIcons.svg('Help',14));
-      document.getElementById('hint').textContent = state.language === 'zh-CN' ? '滚轮缩放 · 拖动平移 · 点击画线编辑 · 方向键选择画线，Enter 编辑，Delete 删除'  : 'Scroll to zoom · Drag to pan · Click lines to edit · Arrow keys select, Enter edits, Delete removes' ;
+      const attribution=document.getElementById('attribution');
+      attribution.replaceChildren(meiliIcons.svg('Info',16));
+      attribution.title='TradingView Lightweight Charts™ · Copyright © 2025 TradingView, Inc. · https://www.tradingview.com/';
+      attribution.setAttribute('aria-label',state.language==='zh-CN'?'图表组件信息':'Chart component information');
       document.getElementById('empty').textContent = state.rows.length ? '' : state.labels.empty;
       document.getElementById('error').style.display = 'none';
       chart.applyOptions({layout: {background: {type: 'solid', color: t.background}, textColor: t.text,panes:{separatorColor:t.border,separatorHoverColor:t.accent}}, crosshair:{vertLine:{color:t.muted,labelBackgroundColor:t.accent},horzLine:{color:t.muted,labelBackgroundColor:t.accent}}, grid: {vertLines: {color: t.grid}, horzLines: {color: t.grid}}, localization: {locale: state.language}, timeScale: {timeVisible: state.intraday}});
