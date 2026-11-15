@@ -176,10 +176,10 @@ internal static class Program
         {
             window.Show();
             await Until(() => first.DocumentTitle == "Reader One" && second.DocumentTitle == "Reader Two", "two workspace browser documents");
-            var requestsBeforeResize=server.Count;window.Width=980;await Task.Delay(250);
+            var requestsBeforeResize=server.DocumentCount;window.Width=980;await Task.Delay(250);
             if(!host.IsVertical)throw new Exception("Compact article split did not stack");
             window.Width=1320;await Task.Delay(250);
-            if(host.IsVertical||server.Count!=requestsBeforeResize)throw new Exception("Resizing the reader reloaded its native session");
+            if(host.IsVertical||server.DocumentCount!=requestsBeforeResize)throw new Exception($"Article resize: vertical={host.IsVertical}, documents={requestsBeforeResize}->{server.DocumentCount}");
 #if WINDOWS_READER
             var web = ((DockPanel)first.Content).Children.OfType<WebView2>().Single();
             first.Visibility = Visibility.Collapsed; second.Visibility = Visibility.Visible;
@@ -359,6 +359,8 @@ internal static class Program
         private readonly TcpListener _listener = new(IPAddress.Loopback, 0);
         private readonly CancellationTokenSource _stop = new();
         private int _count;
+        private int _documentCount;
+        public int DocumentCount=>Volatile.Read(ref _documentCount);
         public int Count => Volatile.Read(ref _count);
         public string Url { get; }
         public Pages()
@@ -388,7 +390,7 @@ internal static class Program
                     var line = await reader.ReadLineAsync(_stop.Token);
                     while (!string.IsNullOrEmpty(await reader.ReadLineAsync(_stop.Token))) { }
                     var path = line?.Split(' ').ElementAtOrDefault(1);
-                    Interlocked.Increment(ref _count);
+                    Interlocked.Increment(ref _count);if(path is "/one" or "/two")Interlocked.Increment(ref _documentCount);
                     var body = Encoding.UTF8.GetBytes($"<html><head><title>Reader {(path == "/one" ? "One" : "Two")}</title></head><body>Native engine fixture</body></html>");
                     var header = Encoding.ASCII.GetBytes($"HTTP/1.1 {(path == "/missing" ? "404 Not Found" : "200 OK")}\r\nContent-Type: text/html; charset=utf-8\r\nCache-Control: no-store\r\nContent-Length: {body.Length}\r\nConnection: close\r\n\r\n");
                     await stream.WriteAsync(header, _stop.Token); await stream.WriteAsync(body, _stop.Token);

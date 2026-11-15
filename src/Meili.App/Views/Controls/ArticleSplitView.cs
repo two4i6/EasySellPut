@@ -15,7 +15,8 @@ public sealed class ArticleSplitView : Grid
     {
         _main=main;Children.Add(main);Children.Add(_divider);Children.Add(_article);
         _article.SetResourceReference(Border.BackgroundProperty,"ApplicationBackgroundBrush");
-        _divider.SetResourceReference(GridSplitter.BackgroundProperty,"ControlStrokeColorDefaultBrush");
+        _divider.Background=System.Windows.Media.Brushes.Transparent;
+        _article.SetResourceReference(Border.BorderBrushProperty,"ControlStrokeColorDefaultBrush");
         _divider.HorizontalAlignment=HorizontalAlignment.Stretch;_divider.VerticalAlignment=VerticalAlignment.Stretch;
         SizeChanged+=(_,_)=>{if(_open)LayoutSplit();};
         SetOpen(false);
@@ -32,6 +33,7 @@ public sealed class ArticleSplitView : Grid
         var vertical=ActualWidth>0&&ActualWidth<1100;
         if(!force&&vertical==_vertical)return;
         _vertical=vertical;
+        _article.BorderThickness=vertical?new Thickness(0,1,0,0):new Thickness(1,0,0,0);
         // Keep definition objects stable: native content must never detach on resize.
         if(ColumnDefinitions.Count==0)for(var i=0;i<3;i++)ColumnDefinitions.Add(new ColumnDefinition());
         if(RowDefinitions.Count==0)for(var i=0;i<3;i++)RowDefinitions.Add(new RowDefinition());

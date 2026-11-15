@@ -102,6 +102,7 @@ public sealed class WebTabPane : UserControl, IDisposable
             core.DownloadStarting += (_, e) => { e.Cancel = true; SetStatus("Reader_Blocked"); };
             core.NewWindowRequested += (_, e) => { e.Handled = true; if (NewsReaderPolicy.IsAllowed(e.Uri)) core.Navigate(e.Uri); else SetStatus("Reader_Blocked"); };
             core.NavigationStarting += (_, e) => { e.Cancel = !NewsReaderPolicy.IsAllowed(e.Uri); SetStatus(e.Cancel ? "Reader_Blocked" : "Reader_Loading"); if (!e.Cancel) { _pending = e.Uri; UpdateSource(); if (!_address.IsKeyboardFocusWithin) _address.Text = e.Uri; } };
+            core.DocumentTitleChanged+=(_,_)=>UpdateSource();
             core.HistoryChanged += (_, _) => { _back.IsEnabled = core.CanGoBack; _forward.IsEnabled = core.CanGoForward; };
             core.NavigationCompleted += (_, e) =>{SetStatus(e.IsSuccess && e.HttpStatusCode < 400 ? "" : "Reader_Failed");if(!_presentationActive)_ = SetPresentationActiveAsync(false);};
             core.ProcessFailed += (_, _) => SetStatus("Reader_Failed");

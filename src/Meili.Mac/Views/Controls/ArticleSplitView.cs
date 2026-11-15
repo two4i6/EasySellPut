@@ -17,7 +17,8 @@ public sealed class ArticleSplitView : Grid
     {
         _main=main;Children.Add(main);Children.Add(_divider);Children.Add(_article);
         _article.Bind(Border.BackgroundProperty,new DynamicResourceExtension("ApplicationBackgroundBrush"));
-        _divider.Bind(GridSplitter.BackgroundProperty,new DynamicResourceExtension("ControlStrokeColorDefaultBrush"));
+        _divider.Background=Avalonia.Media.Brushes.Transparent;
+        _article.Bind(Border.BorderBrushProperty,new DynamicResourceExtension("ControlStrokeColorDefaultBrush"));
         _divider.HorizontalAlignment=HorizontalAlignment.Stretch;_divider.VerticalAlignment=VerticalAlignment.Stretch;
         SizeChanged+=(_,_)=>{if(_open)LayoutSplit();};
         SetOpen(false);
@@ -34,6 +35,7 @@ public sealed class ArticleSplitView : Grid
         var vertical=Bounds.Width>0&&Bounds.Width<1100;
         if(!force&&vertical==_vertical)return;
         _vertical=vertical;
+        _article.BorderThickness=vertical?new Avalonia.Thickness(0,1,0,0):new Avalonia.Thickness(1,0,0,0);
         // Keep definition objects stable: native content must never detach on resize.
         if(ColumnDefinitions.Count==0)for(var i=0;i<3;i++)ColumnDefinitions.Add(new ColumnDefinition());
         if(RowDefinitions.Count==0)for(var i=0;i<3;i++)RowDefinitions.Add(new RowDefinition());
