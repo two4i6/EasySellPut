@@ -22,6 +22,9 @@ public sealed class NewsSplitTests
         WpfHost.Run(async()=>
         {
             using var publisher=new NewsReaderFixture();
+            var originalLanguage=LocalizationService.Current.Language;var originalDark=AppServices.Get<ThemeService>().IsDark;
+            ScreenRenderTests.Apply("zh-CN",false);
+            var model=AppServices.Get<ChartsViewModel>();model.SymbolText="AAPL";model.ShowInspector=false;await model.LoadAsync();Assert.NotNull(model.Series);
             var w=new MainWindow{Width=1440,Height=900};w.Show();w.NavigateForSmoke(typeof(Meili.App.Views.Pages.ChartsPage));await ScreenRenderTests.Settle();
             try
             {
@@ -36,11 +39,24 @@ public sealed class NewsSplitTests
                 if(Environment.GetEnvironmentVariable("MEILI_RENDER_DIR") is {Length:>0} dir)
                 {
                     w.Width=Math.Min(1440,System.Windows.SystemParameters.WorkArea.Width);w.Height=Math.Min(900,System.Windows.SystemParameters.WorkArea.Height);w.Left=System.Windows.SystemParameters.WorkArea.Left;w.Top=System.Windows.SystemParameters.WorkArea.Top;w.Activate();w.Topmost=true;await Task.Delay(400);
-                    NewsReaderFixture.Capture(w,System.IO.Path.Combine(dir,"desktop-smoke-news-split-windows.png"));w.Topmost=false;
+                    var chart=UiAudit.Descendants<Meili.App.Views.Controls.WebChartControl>(w).Single();
+                    var renderDeadline=DateTimeOffset.UtcNow.AddSeconds(20);var rendered=false;
+                    while(DateTimeOffset.UtcNow<renderDeadline)
+                    {
+                        if(chart.LastDiagnostic is {Length:>0} diagnostic)
+                        {
+                            using var json=System.Text.Json.JsonDocument.Parse(diagnostic);
+                            if(json.RootElement.TryGetProperty("status",out var status)&&status.GetString()=="rendered"){rendered=true;break;}
+                        }
+                        await Task.Delay(100);
+                    }
+                    Assert.True(rendered,"Article split chart did not finish rendering");await Task.Delay(250);
+                    var captured=NewsReaderFixture.Capture(w,System.IO.Path.Combine(dir,"desktop-smoke-news-split-windows.png"));
+                    System.IO.File.WriteAllText(System.IO.Path.Combine(dir,"news-split-native-capture.json"),System.Text.Json.JsonSerializer.Serialize(new{chartRendered=rendered,articleLoaded=pane.DocumentTitle=="本地演示新闻",captured,reason=captured?"foreground native window":"desktop obscured by another system window"}));w.Topmost=false;
                 }
                 w.CloseNewsArticle();await ScreenRenderTests.Settle();Assert.False(w.NewsSplit.IsOpen);Assert.Empty(UiAudit.Descendants<WebTabPane>(w));
             }
-            finally{w.Close();}
+            finally{w.Close();ScreenRenderTests.Apply(originalLanguage,originalDark);}
         });
     }
 }
