@@ -258,7 +258,7 @@
                     <StackPanel>
                         <ux:AppFormHeader Title="{DynamicResource Set_DataDir}" HelpText="{DynamicResource Set_DataDirDesc}"/>
                         <TextBlock Classes="Body" Text="{Binding DataDirectory}" Margin="0,2,0,2" />
-                        
+
                     </StackPanel>
                 
 </DockPanel>
