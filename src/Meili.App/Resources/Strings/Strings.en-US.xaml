@@ -893,4 +893,20 @@
     <sys:String x:Key="UX_SelectedContract">Selected strike</sys:String>
     <sys:String x:Key="UX_RunningOnly">Alerts run while the app is running</sys:String>
     <sys:String x:Key="UX_CooldownError">Enter a whole number of minutes from 1 to 1440.</sys:String>
+    <sys:String x:Key="QP_Title">Market glance</sys:String>
+    <sys:String x:Key="QP_Intraday">Intraday · 5 min · ET</sys:String>
+    <sys:String x:Key="QP_NoChart">Intraday unavailable</sys:String>
+    <sys:String x:Key="QP_Retry">Some data could not refresh · Retry</sys:String>
+    <sys:String x:Key="QP_Pin">Pin</sys:String>
+    <sys:String x:Key="QP_Watchlist">Watchlist</sys:String>
+    <sys:String x:Key="QP_Open">Open chart</sys:String>
+    <sys:String x:Key="QP_Refresh">Refresh</sys:String>
+    <sys:String x:Key="QP_Close">Close</sys:String>
+    <sys:String x:Key="QP_OpenPrice">Open</sys:String>
+    <sys:String x:Key="QP_High">High</sys:String>
+    <sys:String x:Key="QP_Low">Low</sys:String>
+    <sys:String x:Key="QP_Volume">Volume</sys:String>
+<sys:String x:Key="QP_Previous">Previous page</sys:String>
+    <sys:String x:Key="QP_Next">Next page</sys:String>
+    <sys:String x:Key="QP_More">More</sys:String>
 </ResourceDictionary>

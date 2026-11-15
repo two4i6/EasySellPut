@@ -218,7 +218,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          dotnet test tests/Meili.App.Tests/Meili.App.Tests.csproj -c Release -m:3 --filter 'FullyQualifiedName~ChartThemeTests|FullyQualifiedName~ChartsRefreshTests|FullyQualifiedName~UxInteractionTests' -- RunConfiguration.TreatNoTestsAsError=true
+          dotnet test tests/Meili.App.Tests/Meili.App.Tests.csproj -c Release -m:3 --filter 'FullyQualifiedName~ChartThemeTests|FullyQualifiedName~ChartsRefreshTests|FullyQualifiedName~UxInteractionTests|FullyQualifiedName~QuotePanelTests' -- RunConfiguration.TreatNoTestsAsError=true
           if ($LASTEXITCODE -ne 0) { throw 'Windows chart page integration failed' }
 
 

@@ -893,4 +893,20 @@
     <sys:String x:Key="UX_SelectedContract">所选执行价</sys:String>
     <sys:String x:Key="UX_RunningOnly">应用运行期间提醒生效</sys:String>
     <sys:String x:Key="UX_CooldownError">请输入 1–1440 的整数分钟。</sys:String>
+    <sys:String x:Key="QP_Title">市场速览</sys:String>
+    <sys:String x:Key="QP_Intraday">分时 · 5 分钟 · 美东</sys:String>
+    <sys:String x:Key="QP_NoChart">暂无分时数据</sys:String>
+    <sys:String x:Key="QP_Retry">部分数据未更新 · 可重试</sys:String>
+    <sys:String x:Key="QP_Pin">固定</sys:String>
+    <sys:String x:Key="QP_Watchlist">自选</sys:String>
+    <sys:String x:Key="QP_Open">打开图表</sys:String>
+    <sys:String x:Key="QP_Refresh">刷新</sys:String>
+    <sys:String x:Key="QP_Close">关闭</sys:String>
+    <sys:String x:Key="QP_OpenPrice">开盘</sys:String>
+    <sys:String x:Key="QP_High">最高</sys:String>
+    <sys:String x:Key="QP_Low">最低</sys:String>
+    <sys:String x:Key="QP_Volume">成交量</sys:String>
+<sys:String x:Key="QP_Previous">上一页</sys:String>
+    <sys:String x:Key="QP_Next">下一页</sys:String>
+    <sys:String x:Key="QP_More">更多</sys:String>
 </ResourceDictionary>

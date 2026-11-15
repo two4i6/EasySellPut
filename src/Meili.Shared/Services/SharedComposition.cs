@@ -43,6 +43,7 @@ public static class SharedComposition
         s.AddSingleton<INetworkController>(sp => sp.GetRequiredService<NetworkController>());
         s.AddTransient<SettingsViewModel>();
         s.AddTransient<DashboardViewModel>();
+        s.AddTransient<QuotePanelViewModel>();
         s.AddSingleton<WatchlistViewModel>();
         s.AddSingleton<ChartsViewModel>();
         s.AddSingleton<OptionsViewModel>();

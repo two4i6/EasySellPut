@@ -14,6 +14,8 @@ public partial class App : Application
 {
     private IntPtr _napActivity;
     private MenuBarQuoteController? _menuQuotes;
+    private QuotePanelWindow? _quotePanel;
+    private MacQuoteStatusItem? _quoteStatus;
 
     public override void Initialize() => AvaloniaXamlLoader.Load(this);
 
@@ -69,8 +71,17 @@ public partial class App : Application
         {
             try
             {
+                MacQuoteStatusItem? status=null;
+                status=new MacQuoteStatusItem(async()=>
+                {
+                    _quotePanel??=new QuotePanelWindow(AppServices.Get<QuotePanelViewModel>(),symbol=>{window.ShowFromDock();AppServices.Get<NavigationHub>().Go(AppPage.Charts,symbol);},()=>{window.ShowFromDock();AppServices.Get<NavigationHub>().Go(AppPage.Watchlist);},()=>desktop.TryShutdown());
+                    if(_quotePanel.IsVisible){_quotePanel.HidePanel();return;}
+                    var anchor=status!.Anchor;await _quotePanel.ShowPanelAsync(anchor.X,anchor.Y);
+                });
+                _quoteStatus=status;
+                desktop.Exit+=(_,_)=>_quotePanel?.Close();
                 _menuQuotes=new MenuBarQuoteController(AppServices.Get<Meili.Core.Quotes.QuoteHub>(),AppServices.Get<SymbolContext>(),
-                    AppServices.Get<WatchlistStore>(),AppServices.Get<LocalizationService>(),AppServices.Get<SettingsStore>(),new MacQuoteStatusItem(),
+                    AppServices.Get<WatchlistStore>(),AppServices.Get<LocalizationService>(),AppServices.Get<SettingsStore>(),status,
                     ()=>{window.ShowFromDock();AppServices.Get<NavigationHub>().Go(AppPage.Charts,AppServices.Get<SymbolContext>().Current);},()=>desktop.TryShutdown(),()=>window.Hide());
             }
             catch(Exception ex){AppLog.Error("menu-bar","Could not initialize menu bar quotes",ex);}
@@ -88,6 +99,9 @@ public partial class App : Application
         try
         {
             if(_menuQuotes is null)throw new InvalidOperationException("Native menu bar quote subscriber unavailable");
+            _quoteStatus!.InvokePanel();await Task.Delay(150);
+            if(_quotePanel?.IsVisible!=true)throw new InvalidOperationException("Native status action did not open quote panel");
+            _quotePanel.HidePanel();window.ShowFromDock();
             window.Navigate(AppPage.Settings);
             await Task.Delay(500);
             var settings = AppServices.Get<SettingsViewModel>();
@@ -122,7 +136,7 @@ public partial class App : Application
         catch (Exception ex) { AppLog.Error("package-smoke", "Packaged desktop self-check failed", ex); failures.Add(ex.ToString()); }
         var report = options.SmokeReport ?? Path.Combine(AppServices.DataDirectory.Path, "logs", "smoke.json");
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(report))!);
-        await File.WriteAllTextAsync(report, System.Text.Json.JsonSerializer.Serialize(new { Failures = failures.Count, Errors = failures, Checks = new[] { "real_window", "settings", "bundled_automation", "clipboard", "resources", "sqlite", "packaged_webview_chart", "native_menu_bar_quote" }, Architecture = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString() }));
+        await File.WriteAllTextAsync(report, System.Text.Json.JsonSerializer.Serialize(new { Failures = failures.Count, Errors = failures, Checks = new[] { "real_window", "settings", "bundled_automation", "clipboard", "resources", "sqlite", "packaged_webview_chart", "native_menu_bar_quote", "native_quote_panel" }, Architecture = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString() }));
         window.AllowClose();
         desktop.Shutdown(failures.Count == 0 ? 0 : 1);
     }

@@ -593,6 +593,16 @@
       ],
       "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation.",
       "commands": {}
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/QuotePanelViewModel.cs",
+      "operations": [
+        "get_quotes",
+        "get_bars",
+        "get_watchlists"
+      ],
+      "scope": "Native macOS menu bar / Windows tray and pinned window are desktop-only presentation. Quotes, intraday bars and watchlist remain available through existing CLI/MCP operations; latest-session sparklines add no indicator or new business mutation. Visibility, selection, paging and pinning do not launch competing market loops.",
+      "commands": {}
     }
   ]
 }

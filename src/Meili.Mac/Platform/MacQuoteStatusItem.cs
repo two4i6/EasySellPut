@@ -8,10 +8,12 @@ namespace Meili.Mac.Platform;
 public sealed class MacQuoteStatusItem : IQuoteStatusItem
 {
     private IntPtr _status, _menu, _target;
+    private readonly Action? _openPanel;
     private IReadOnlyList<QuoteMenuEntry> _entries = [];
     private readonly Dictionary<long, Action> _activeActions = [];
-    public MacQuoteStatusItem()
+    public MacQuoteStatusItem(Action? openPanel=null)
     {
+        _openPanel=openPanel;
         if (!OperatingSystem.IsMacOS()) throw new PlatformNotSupportedException();
         try
         {
@@ -21,10 +23,17 @@ public sealed class MacQuoteStatusItem : IQuoteStatusItem
             Native.Bool(_menu, "setAutoenablesItems:", false); Native.Send(_menu, "setDelegate:", _target);
             _status = Native.Length(Native.Send(Native.Class("NSStatusBar"), "systemStatusBar"), Native.Sel("statusItemWithLength:"), -1);
             if (_status == IntPtr.Zero) { Dispose(); throw new InvalidOperationException("Could not create NSStatusItem"); }
-            Native.Send(_status, "retain"); Native.Send(_status, "setMenu:", _menu);
+            Native.Send(_status, "retain");
+            if(openPanel is null)Native.Send(_status,"setMenu:",_menu);
+            else{var button=Native.Send(_status,"button");Native.Send(button,"setTarget:",_target);Native.Send(button,"setAction:",Native.Sel("openPanel:"));}
         }
         catch { Dispose(); throw; }
     }
+    public (double X,double Y) Anchor
+    {
+        get{var frame=Native.Frame(Native.Send(Native.Send(_status,"button"),"window"));var main=Native.Frame(Native.Send(Native.Send(Native.Class("NSScreen"),"screens"),"objectAtIndex:",IntPtr.Zero));return(frame.X+frame.Width/2,main.Height-frame.Y);}
+    }
+    public void InvokePanel()=>Native.Send(Native.Send(_status,"button"),"performClick:",IntPtr.Zero);
     public string Title => Native.Text(Native.Send(Native.Send(_status, "button"), "title"));
     public void Update(MenuBarQuote quote, IReadOnlyList<QuoteMenuEntry> entries, UpDownColorMode colors)
     {
@@ -106,6 +115,7 @@ public sealed class MacQuoteStatusItem : IQuoteStatusItem
         [StructLayout(LayoutKind.Sequential)] internal readonly record struct Rect(double X, double Y, double Width, double Height);
         [DllImport(ObjC, EntryPoint = "objc_msgSend")] private static extern Rect RectMessage(IntPtr obj, IntPtr sel);
         [DllImport(ObjC, EntryPoint = "objc_msgSend_stret")] private static extern void RectMessageX64(out Rect result, IntPtr obj, IntPtr sel);
+        internal static Rect Frame(IntPtr obj) { if (RuntimeInformation.ProcessArchitecture == Architecture.X64) { RectMessageX64(out var rect, obj, Sel("frame")); return rect; } return RectMessage(obj, Sel("frame")); }
         internal static Rect Bounds(IntPtr obj) { if (RuntimeInformation.ProcessArchitecture == Architecture.X64) { RectMessageX64(out var rect, obj, Sel("bounds")); return rect; } return RectMessage(obj, Sel("bounds")); }
         [DllImport(ObjC, EntryPoint = "objc_msgSend")] internal static extern IntPtr Bitmap(IntPtr obj, IntPtr sel, Rect bounds);
         [DllImport(ObjC, EntryPoint = "objc_msgSend")] internal static extern void Cache(IntPtr obj, IntPtr sel, Rect bounds, IntPtr bitmap);
@@ -119,6 +129,7 @@ public sealed class MacQuoteStatusItem : IQuoteStatusItem
         internal static void SetText(IntPtr obj, string selector, string text) { var value = String(text); try { Send(obj, selector, value); } finally { Send(value, "release"); } }
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate void Callback(IntPtr self, IntPtr cmd, IntPtr arg);
         private static readonly Callback ActivateRoot = (self, _, item) => Guard(self, owner => { if (owner._activeActions.TryGetValue(Send(item, "tag").ToInt64(), out var action)) action(); });
+        private static readonly Callback PanelRoot = (self,_,_)=>Guard(self,owner=>owner._openPanel?.Invoke());
         private static readonly Callback MenuRoot = (self, _, _) => Guard(self, owner => owner.PrepareMenu());
         private static void Guard(IntPtr self, Action<MacQuoteStatusItem> action) { try { if (Owners.TryGetValue(self, out var owner)) action(owner); } catch (Exception ex) { AppLog.Error("menu-bar", "Native menu callback failed", ex); } }
         internal static void EnsureClass()
@@ -126,7 +137,7 @@ public sealed class MacQuoteStatusItem : IQuoteStatusItem
             if (TargetClass != IntPtr.Zero) return;
             TargetClass = objc_allocateClassPair(Class("NSObject"), "EasySellPutQuoteStatusActions", 0);
             if (TargetClass == IntPtr.Zero) throw new InvalidOperationException("Cannot allocate status menu target");
-            if (!class_addMethod(TargetClass, Sel("activate:"), Marshal.GetFunctionPointerForDelegate(ActivateRoot), "v@:@") || !class_addMethod(TargetClass, Sel("menuNeedsUpdate:"), Marshal.GetFunctionPointerForDelegate(MenuRoot), "v@:@")) throw new InvalidOperationException("Cannot register status menu actions");
+            if (!class_addMethod(TargetClass,Sel("openPanel:"),Marshal.GetFunctionPointerForDelegate(PanelRoot),"v@:@") || !class_addMethod(TargetClass, Sel("activate:"), Marshal.GetFunctionPointerForDelegate(ActivateRoot), "v@:@") || !class_addMethod(TargetClass, Sel("menuNeedsUpdate:"), Marshal.GetFunctionPointerForDelegate(MenuRoot), "v@:@")) throw new InvalidOperationException("Cannot register status menu actions");
             objc_registerClassPair(TargetClass);
         }
     }

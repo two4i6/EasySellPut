@@ -144,6 +144,14 @@ public sealed class SmokeRunner
             if (!diagnostic.RootElement.TryGetProperty("status", out var status) || status.GetString() != "rendered") throw new InvalidOperationException("Packaged chart unavailable: " + chart?.LastDiagnostic);
             return "real bundled chart rendered";
         });
+        await CheckAsync("quote-panel",async()=>
+        {
+            using var model=new QuotePanelViewModel(AppServices.Get<Meili.Core.Quotes.QuoteHub>(),AppServices.Get<Meili.Core.Abstractions.IMarketDataService>(),AppServices.Get<WatchlistStore>(),AppServices.Get<SymbolContext>(),AppServices.Get<LocalizationService>());
+            var panel=new Meili.App.Views.QuotePanelWindow(model,_=>{},()=>{},()=>{});
+            var pending=panel.ShowPanelAsync();await Task.Delay(150);
+            if(!panel.IsVisible || model.Rows.Count==0)throw new InvalidOperationException("Native quote panel unavailable");
+            panel.HidePanel();await pending;panel.Close();return "native tray/pinned quote panel opened and canceled cleanly";
+        });
         await CheckAsync("keyboard-wizard", () =>
         {
             window.OpenWizardForSmoke("A");
