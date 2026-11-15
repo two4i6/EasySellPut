@@ -47,6 +47,7 @@ footer{grid-column:1 / -1;grid-row:4;padding:6px 12px;display:flex;gap:12px;alig
 #chart-help{position:relative}#help-heading{cursor:pointer;list-style:none;min-height:24px;display:flex;align-items:center;gap:6px}#chart-help[open] #hint{position:absolute;left:0;bottom:32px;width:260px;padding:12px;border:1px solid var(--border);border-radius:6px;background:var(--control);color:var(--text);box-shadow:0 4px 18px #0003;z-index:12;line-height:1.6}
 #event-info{width:100%;font-size:12px}#event-info summary{padding:4px 2px}#event-detail{padding:16px 2px 0}.tooltip-heading{font-size:12px;color:var(--muted);font-weight:500}.tooltip-event:last-of-type{margin-bottom:0}button{transition:border-color .12s}button:active{filter:brightness(.95)}
 @media(prefers-reduced-motion:reduce){button,#event-filters label{transition:none}}
+#event-filters{flex-wrap:nowrap;gap:4px}#event-filters label{padding:4px;gap:3px;white-space:nowrap}
 /* Date groups and compact history rail share the list's own scroll viewport. */
 #timeline[open]{overflow:hidden}
 #timeline>summary,#event-tools,#event-status{flex-shrink:0}
