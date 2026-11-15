@@ -23,7 +23,7 @@ public sealed class ArticleSplitView : Grid
         SizeChanged+=(_,_)=>{if(_open)LayoutSplit();};
         SetOpen(false);
     }
-    public void Open(Control article){_article.Child=article;SetOpen(true);}
+    public void Open(Control article){_article.Child=article;if(!_open)SetOpen(true);}
     public void Close(){_article.Child=null;SetOpen(false);}
     private void SetOpen(bool open)
     {

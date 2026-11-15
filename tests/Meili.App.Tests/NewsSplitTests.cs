@@ -3,6 +3,20 @@ using Meili.App.Services;
 namespace Meili.App.Tests;
 public sealed class NewsSplitTests
 {
+    [Fact] public void Split_layout_uses_actual_available_space_and_keeps_the_reading_ratio()
+    {
+        WpfHost.Run(()=>
+        {
+            var article=new Border();var split=new Meili.App.Views.Controls.ArticleSplitView(new Border());split.Open(article);
+            foreach(var width in new[]{1440,980,1440})
+            {
+                split.Measure(new System.Windows.Size(width,900));split.Arrange(new System.Windows.Rect(0,0,width,900));split.UpdateLayout();
+                Assert.Equal(width<1100,split.IsVertical);
+            }
+            split.ColumnDefinitions[0].Width=new System.Windows.GridLength(3,System.Windows.GridUnitType.Star);split.Open(article);
+            Assert.Equal(new System.Windows.GridLength(3,System.Windows.GridUnitType.Star),split.ColumnDefinitions[0].Width);split.Close();Assert.False(split.IsOpen);
+        });
+    }
     [Fact] public void News_reader_is_inline_compact_reusable_and_closable()
     {
         WpfHost.Run(async()=>
@@ -12,7 +26,7 @@ public sealed class NewsSplitTests
             try
             {
                 w.OpenNewsArticle(publisher.Url,"本地演示新闻");await ScreenRenderTests.Settle();
-                Assert.True(w.NewsSplit!.IsOpen);Assert.False(w.NewsSplit.IsVertical);
+                Assert.True(w.NewsSplit!.IsOpen);Assert.Equal(w.NewsSplit.ActualWidth<1100,w.NewsSplit.IsVertical);
                 var pane=UiAudit.Descendants<WebTabPane>(w).Single();Assert.Empty(UiAudit.Descendants<TextBox>(pane));Assert.Equal(3,UiAudit.Descendants<Button>(pane).Count());
                 var deadline=DateTimeOffset.UtcNow.AddSeconds(20);while(pane.DocumentTitle!="本地演示新闻"&&DateTimeOffset.UtcNow<deadline)await Task.Delay(100);
                 Assert.Equal("本地演示新闻",pane.DocumentTitle);
