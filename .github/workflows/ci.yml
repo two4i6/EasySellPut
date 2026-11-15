@@ -221,6 +221,10 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           global-json-file: global.json
+      - name: Set Full HD capture desktop
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./build/ci-display.ps1
       - name: Install WebView2 runtime
         if: runner.os == 'Windows'
         shell: pwsh
