@@ -239,11 +239,11 @@
       pendingHover = {kind: 'crosshair', key: state.key, index: row ? row.index : -1};
       if (row) showLegend(row);
       showEventTooltip(param);
-      drawingHover=drawingPoint(param);if(drawingHover && drawingHover.time!==draft?.time)sameBarWarning=false;root.style.cursor=state.drawingMode?'crosshair':drawingHit(param.point)>=0?'pointer':'';drawOverlay();
+      drawingHover=drawingPoint(param);if(drawingHover && drawingHover.time!==draft?.time)sameBarWarning=false;root.style.cursor=state.drawingMode?'crosshair':(param.paneIndex===undefined||param.paneIndex===0)&&drawingHit(param.point)>=0?'pointer':'';drawOverlay();
     });
     chart.subscribeClick(param => {
       if (!state.drawingMode) {
-        const drawing=drawingHit(param.point);if(drawing>=0){selectDrawing(drawing);root.focus();return;}
+        const drawing=param.paneIndex===undefined||param.paneIndex===0?drawingHit(param.point):-1;if(drawing>=0){selectDrawing(drawing);root.focus();return;}
         if(selectedDrawing>=0)selectDrawing(-1);
         const hit = (state.events || []).find(e => filters.has(e.event.type) && (e.event.id === param.hoveredObjectId || e.time === param.time));
         hideEventTooltip();

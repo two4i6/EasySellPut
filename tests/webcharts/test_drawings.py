@@ -57,7 +57,10 @@ class DrawingTests(unittest.TestCase):
                 p.keyboard.press('Escape');wait('!meiliChart.inspect().state.drawingMode');p.wait_for_timeout(300);self.assertEqual(p.locator('#drawing-overlay circle').count(),0)
                 mode('draw-trend','TrendLine');move(30,140,True);wait('!!meiliChart.inspect().state.drawingStart');move(75,180,True)
                 wait('meiliChart.inspect().state.drawings.length===1 && !meiliChart.inspect().state.drawingMode')
-                mode('draw-horizontal','HorizontalLine');move(90,195,True);wait('meiliChart.inspect().state.drawings.length===2')
+                mode('draw-horizontal','HorizontalLine');move(90,250,True);wait('meiliChart.inspect().state.drawings.length===2')
+                bounds=p.locator('#chart').bounding_box();height=p.evaluate('meiliChart.inspect().chart.panes()[0].getHeight()')
+                p.mouse.click(bounds['x']+200,bounds['y']+height+point(90,250)['y']);p.wait_for_timeout(80)
+                self.assertFalse(p.locator('#drawing-panel').is_visible())
                 # Select near the segment midpoint, edit exactly, then delete only that line.
                 def select_trend():
                     a=point(30,p.evaluate('meiliChart.inspect().state.drawings[0].price1'));b=point(75,180);bounds=p.locator('#chart').bounding_box()
