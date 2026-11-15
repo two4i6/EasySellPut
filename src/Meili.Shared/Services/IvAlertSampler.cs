@@ -45,7 +45,7 @@ public sealed class IvAlertSampler : IDisposable
 
     public void Start()
     {
-        if(_options.NoAlerts||_started)return;_started=true;_symbolsKey="";_store.Changed+=OnStoreChanged;Reschedule();
+        if(_options.NoAlerts||_started)return;_started=true;_symbolsKey="";_store.Changed+=OnStoreChanged;Ui.Platform.Run(Reschedule);
     }
     public void Stop()
     {
@@ -53,23 +53,31 @@ public sealed class IvAlertSampler : IDisposable
     }
     public void Dispose()=>Stop();
     private string Key()=>string.Join(",",_store.IvSymbols.Select(s=>s.ToUpperInvariant()).Order());
-    private void OnStoreChanged(object? sender,EventArgs e)=>Reschedule();
+    private void OnStoreChanged(object? sender,EventArgs e)=>Ui.Platform.Run(Reschedule);
     private void Reschedule()
     {
         if(!_started)return;var key=Key();if(key==_symbolsKey)return;_symbolsKey=key;
         _cts?.Cancel();_cts?.Dispose();_cts=null;
         if(key.Length==0)return;
-        _cts=new CancellationTokenSource();_ = LoopAsync(_cts.Token);
+        _cts=new CancellationTokenSource();var token=_cts.Token;
+        // Preserve upstream UI-context evaluation and our demand-driven background scheduler.
+        Ui.Platform.Run(()=>_ = LoopAsync(token));
+    }
+    private async Task SampleSafelyAsync(DateTimeOffset now,CancellationToken ct)
+    {
+        try{await SampleAsync(now,ct);}
+        catch(OperationCanceledException)when(ct.IsCancellationRequested){}
+        catch(Exception ex){AppLog.Warn("iv","IV sampling failed: "+ex.Message);}
     }
     private async Task LoopAsync(CancellationToken ct)
     {
         try
         {
-            // Wait for an old canceled sample to release its gate before the new immediate sample.
+            // A new generation waits for a canceled round; all rule/UI changes resume on the UI context.
             await _gate.WaitAsync(ct);_gate.Release();ct.ThrowIfCancellationRequested();
-            await SampleAsync(DateTimeOffset.Now,ct);
+            await SampleSafelyAsync(DateTimeOffset.Now,ct);
             using var timer=new PeriodicTimer(Interval);
-            while(await timer.WaitForNextTickAsync(ct))await SampleAsync(DateTimeOffset.Now,ct);
+            while(await timer.WaitForNextTickAsync(ct))await SampleSafelyAsync(DateTimeOffset.Now,ct);
         }
         catch(OperationCanceledException)when(ct.IsCancellationRequested){}
         catch(Exception ex){AppLog.Warn("iv","Sampling loop failed",ex);}
@@ -99,14 +107,21 @@ public sealed class IvAlertSampler : IDisposable
                     _latest[symbol] = sample;
                 }
                 samples[symbol] = sample;
-                try { _db.AddIvSample(symbol, sample.AsOf ?? now, sample.Basis.ToString(), sample.Iv, sample.Source); }
+                var s = sample;
+                try { await Task.Run(() => _db.AddIvSample(symbol, s.AsOf ?? now, s.Basis.ToString(), s.Iv, s.Source), ct); }
+                catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
                 catch (Exception ex) { AppLog.Warn("iv", "store IV sample failed: " + ex.Message); }
             }
+            // SQLite now awaits the worker pool: reject a generation canceled during that await.
+            ct.ThrowIfCancellationRequested();
             Apply(samples, now);
-            if (now - _lastPrune > TimeSpan.FromDays(1))
+            // Applying a one-shot rule can disable the final rule and cancel our scheduler.
+            // The reading was already committed; still publish it, without another cache wakeup.
+            if (!ct.IsCancellationRequested && now - _lastPrune > TimeSpan.FromDays(1))
             {
-                _lastPrune = now;
-                try { _db.PruneIvSamples(now - Retention); } catch (Exception ex) { AppLog.Warn("iv", "prune failed: " + ex.Message); }
+                try { await Task.Run(() => _db.PruneIvSamples(now - Retention),ct);_lastPrune=now; }
+                catch(OperationCanceledException)when(ct.IsCancellationRequested){} // normal shutdown or last-rule removal
+                catch (Exception ex) { AppLog.Warn("iv", "prune failed: " + ex.Message); }
             }
             LastRun = now;
         }

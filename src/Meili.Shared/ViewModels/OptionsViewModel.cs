@@ -262,7 +262,8 @@ public partial class OptionsViewModel : ObservableObject
         if (!refreshOnly || Rows.Count == 0) StatusText = _loc["Op_Loading"];
         _cts?.Cancel();
         _cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
-        var ct = _cts.Token;
+        var request = _cts;
+        var ct = request.Token;
         try
         {
             // A different symbol's expiration list does not apply: start from its nearest expiry.
@@ -271,9 +272,11 @@ public partial class OptionsViewModel : ObservableObject
             var quoteTask = SafeQuotes(symbol, ct);
             var pricingTask = _pricing.ForAsync(symbol, "options", ct);
             var chain = await chainTask;
+            ct.ThrowIfCancellationRequested();
             _loadedSymbol = symbol;
             _lastChain = chain;
             var quotes = await quoteTask;
+            ct.ThrowIfCancellationRequested();
             var q = quotes.FirstOrDefault(x => x.Symbol.Equals(symbol, StringComparison.OrdinalIgnoreCase));
             // F8: the chain's own underlying price (same moment as the option quotes) drives IV/Greeks.
             var underlying = UnderlyingText.Describe(chain, q, _loc, DateTimeOffset.Now);
@@ -291,11 +294,14 @@ public partial class OptionsViewModel : ObservableObject
             }
             finally { _suppressExpChange = false; }
 
-            _inputs = await pricingTask;
+            var inputs = await pricingTask;
+            ct.ThrowIfCancellationRequested();
+            _inputs = inputs;
             ModelText = PricingText.Model(_inputs.Rate, _loc);
             var settings = _inputs.Enrichment(DateTimeOffset.Now, chain);
             var usedLocal = false;
-            var prevOi = OpenInterestBefore(symbol, chain);
+            var prevOi = await OpenInterestBeforeAsync(symbol, chain);
+            ct.ThrowIfCancellationRequested();
             var calls = new Dictionary<double, EnrichedSide>();
             var puts = new Dictionary<double, EnrichedSide>();
             foreach (var c in chain.Contracts)
@@ -336,16 +342,20 @@ public partial class OptionsViewModel : ObservableObject
             RelabelHeader();
             if (!refreshOnly) _ = LoadInsightsAsync(symbol, chain.Expirations, spot, ct);
         }
+        catch (Exception) when (!ReferenceEquals(_cts, request)) { } // superseded: a newer load owns the table and busy state
         catch (AllSourcesFailedException) { Fail(_loc["Op_AllFailed"], refreshOnly); }
         catch (OperationCanceledException) when (_active && !refreshOnly) { Fail(_loc["Op_Timeout"], refreshOnly); }
         catch (OperationCanceledException) { }
         catch (Exception ex) { AppLog.Warn("options", "load failed", ex); Fail(ex.Message, refreshOnly); }
         finally
         {
-            IsBusy = false;
-            if (_active) _timer.Start();
-            UpdateStatus();
-            TableChanged?.Invoke(this, EventArgs.Empty);
+            if (ReferenceEquals(_cts, request))
+            {
+                IsBusy = false;
+                if (_active) _timer.Start();
+                UpdateStatus();
+                TableChanged?.Invoke(this, EventArgs.Empty);
+            }
         }
     }
 

@@ -141,7 +141,7 @@ public sealed partial class AutomationService
             if (operation == "record_option_snapshot")
             {
                 var chain = await data.GetChainAsync(symbol, a.Date("expiry"), ct); var day = DateOnly.FromDateTime(MarketClock.ToEastern(chain.AsOf ?? now));
-                var previous = insights.SwapOpenInterest(symbol, day, chain.Contracts);
+                var previous = await insights.SwapOpenInterestAsync(symbol, day, chain.Contracts).WaitAsync(ct);
                 if (sample is not null) db.AddIvSample(symbol, sample.AsOf ?? now, sample.Basis.ToString(), sample.Iv, sample.Source);
                 return new { symbol, day, chain.Source, chain.AsOf, oiRecorded = chain.Contracts.Count(c => c.OpenInterest is >= 0), ivRecorded = sample is not null, ivSample = sample, previousContracts = previous.Count };
             }
