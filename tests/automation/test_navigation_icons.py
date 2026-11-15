@@ -25,6 +25,7 @@ class NavigationIconsTests(unittest.TestCase):
                 self.assertNotIn('SymbolIcon',source,str(path));self.assertNotIn('SymbolRegular',source,str(path))
                 if path.suffix=='.'+extension:
                     self.assertNotIn('<Path ',source,str(path))
+                    self.assertNotRegex(source,r'<lucide:LucideIcon[^>]*Style="\{StaticResource (?:Caption|Body|Secondary)\}"')
                     self.assertNotRegex(source,r'(?:Content|Text)="[↵×?↑↓↻→≈+]"')
                 for kind in re.findall(r'(?:Kind="|Kind = ")([A-Za-z]+)',source):self.assertIn(kind,importer.MAP,str(path))
         for asset in ('index.html','workbench.html'):
