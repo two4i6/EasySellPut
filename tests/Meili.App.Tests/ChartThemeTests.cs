@@ -50,7 +50,7 @@ public class ChartThemeTests
                 var tools = UiAudit.Descendants<System.Windows.Controls.Primitives.ButtonBase>(page).Where(b => b.Command == ((ChartsViewModel)page.DataContext).StartDrawingCommand || b.Command == ((ChartsViewModel)page.DataContext).ClearDrawingsCommand).ToArray();
                 Assert.Equal(3,tools.Length);Assert.All(tools,b=>{Assert.Equal(56,b.ActualWidth);Assert.Equal(56,b.ActualHeight);});
                 var symbol=UiAudit.Descendants<SymbolBox>(page).First();
-                var dropdown=UiAudit.Descendants<Wpf.Ui.Controls.Button>(symbol).Single();
+                var dropdown=UiAudit.Descendants<Wpf.Ui.Controls.Button>(symbol).Single(b=>System.Windows.Automation.AutomationProperties.GetAutomationId(b)=="SymbolBoxDropDown");
                 Assert.Equal(32,dropdown.ActualWidth);Assert.Equal(32,dropdown.ActualHeight);
                 var web = UiAudit.Descendants<WebChartControl>(page).Single();
                 using var http = new HttpClient(new HttpClientHandler { UseProxy = false });
