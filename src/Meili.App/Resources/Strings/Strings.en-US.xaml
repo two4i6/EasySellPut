@@ -807,4 +807,11 @@
     <sys:String x:Key="Ch_1d_Short">1D</sys:String>
     <sys:String x:Key="Ch_1w_Short">1W</sys:String>
     <sys:String x:Key="Ch_1mo_Short">1M</sys:String>
+    <sys:String x:Key="Mb_Unavailable">Quote unavailable</sys:String>
+    <sys:String x:Key="Mb_Stale">stale</sys:String>
+    <sys:String x:Key="Mb_Regular">Regular / close price</sys:String>
+    <sys:String x:Key="Mb_OpenChart">Open chart</sys:String>
+    <sys:String x:Key="Mb_Refresh">Refresh quote</sys:String>
+    <sys:String x:Key="Mb_Follows">Follows current symbol · Watchlist</sys:String>
+    <sys:String x:Key="Mb_Hide">Hide window</sys:String>
 </ResourceDictionary>

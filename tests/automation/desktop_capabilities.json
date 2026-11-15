@@ -277,8 +277,8 @@
     },
     {
       "path": "src/Meili.Shared/ViewModels/ShellViewModel.cs",
-      "operations": [],
-      "scope": "Desktop shell navigation/window lifecycle; no standalone business data or calculation.",
+      "operations": ["get_quotes", "get_watchlists"],
+      "scope": "Shell window/navigation actions are UI-only. The macOS shell MenuBarQuoteController presents quotes and watchlist choices through the existing QuoteHub; status-item rendering, current-symbol selection, hide/show and native lifecycle have no MCP window-control tools.",
       "commands": {}
     },
     {

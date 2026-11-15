@@ -807,4 +807,11 @@
     <sys:String x:Key="Ch_1d_Short">日</sys:String>
     <sys:String x:Key="Ch_1w_Short">周</sys:String>
     <sys:String x:Key="Ch_1mo_Short">月</sys:String>
+    <sys:String x:Key="Mb_Unavailable">行情不可用</sys:String>
+    <sys:String x:Key="Mb_Stale">旧</sys:String>
+    <sys:String x:Key="Mb_Regular">常规／收盘价</sys:String>
+    <sys:String x:Key="Mb_OpenChart">打开图表</sys:String>
+    <sys:String x:Key="Mb_Refresh">刷新行情</sys:String>
+    <sys:String x:Key="Mb_Follows">跟随当前标的 · 切换自选</sys:String>
+    <sys:String x:Key="Mb_Hide">隐藏主窗口</sys:String>
 </ResourceDictionary>

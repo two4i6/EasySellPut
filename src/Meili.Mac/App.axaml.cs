@@ -13,6 +13,7 @@ namespace Meili.Mac;
 public partial class App : Application
 {
     private IntPtr _napActivity;
+    private MenuBarQuoteController? _menuQuotes;
 
     public override void Initialize() => AvaloniaXamlLoader.Load(this);
 
@@ -62,18 +63,29 @@ public partial class App : Application
             activatable.Activated += (_, e) => { if (e.Kind == ActivationKind.Reopen) window.ShowFromDock(); };
         window.Show();
         SharedComposition.OnStarted(AppServices.Provider);
+        if(OperatingSystem.IsMacOS())
+        {
+            try
+            {
+                _menuQuotes=new MenuBarQuoteController(AppServices.Get<Meili.Core.Quotes.QuoteHub>(),AppServices.Get<SymbolContext>(),
+                    AppServices.Get<WatchlistStore>(),AppServices.Get<LocalizationService>(),AppServices.Get<SettingsStore>(),new MacQuoteStatusItem(),
+                    ()=>{window.ShowFromDock();AppServices.Get<NavigationHub>().Go(AppPage.Charts,AppServices.Get<SymbolContext>().Current);},()=>desktop.TryShutdown(),()=>window.Hide());
+            }
+            catch(Exception ex){AppLog.Error("menu-bar","Could not initialize menu bar quotes",ex);}
+        }
         if (options.Smoke)
             Dispatcher.UIThread.Post(async () => await PackageSmokeAsync(window, desktop, options), DispatcherPriority.Background);
         // App Nap would delay alert polling by minutes while the window is hidden or covered.
-        if (!options.NoAlerts && OperatingSystem.IsMacOS())
-            _napActivity = MacNative.BeginActivity("Price alert monitoring");
+        if (OperatingSystem.IsMacOS())
+            _napActivity = MacNative.BeginActivity("Menu bar quotes and price alerts");
     }
 
-    private static async Task PackageSmokeAsync(MainWindow window, IClassicDesktopStyleApplicationLifetime desktop, AppLaunchOptions options)
+    private async Task PackageSmokeAsync(MainWindow window, IClassicDesktopStyleApplicationLifetime desktop, AppLaunchOptions options)
     {
         var failures = new List<string>();
         try
         {
+            if(_menuQuotes is null)throw new InvalidOperationException("Native menu bar quote subscriber unavailable");
             window.Navigate(AppPage.Settings);
             await Task.Delay(500);
             var settings = AppServices.Get<SettingsViewModel>();
@@ -100,7 +112,7 @@ public partial class App : Application
         catch (Exception ex) { AppLog.Error("package-smoke", "Packaged desktop self-check failed", ex); failures.Add(ex.ToString()); }
         var report = options.SmokeReport ?? Path.Combine(AppServices.DataDirectory.Path, "logs", "smoke.json");
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(report))!);
-        await File.WriteAllTextAsync(report, System.Text.Json.JsonSerializer.Serialize(new { Failures = failures.Count, Errors = failures, Checks = new[] { "real_window", "settings", "bundled_automation", "clipboard", "resources", "sqlite", "packaged_webview_chart" }, Architecture = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString() }));
+        await File.WriteAllTextAsync(report, System.Text.Json.JsonSerializer.Serialize(new { Failures = failures.Count, Errors = failures, Checks = new[] { "real_window", "settings", "bundled_automation", "clipboard", "resources", "sqlite", "packaged_webview_chart", "native_menu_bar_quote" }, Architecture = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString() }));
         window.AllowClose();
         desktop.Shutdown(failures.Count == 0 ? 0 : 1);
     }
@@ -125,6 +137,7 @@ public partial class App : Application
 
     private void OnExit(int code)
     {
+        _menuQuotes?.Dispose();
         if (_napActivity != IntPtr.Zero) MacNative.EndActivity(_napActivity);
         AppServices.Get<AlertMonitor>().Dispose();   // only stops its subscription; nothing to fail
         try { AppServices.Get<IvAlertSampler>().Dispose(); AppServices.Get<AlertStore>().Flush(); }

@@ -109,6 +109,9 @@ internal static class Program
             Console.WriteLine("PASS: native HTML load, document titles, back, forward, reload, protocol blocking, HTTP error and close/reopen.");
             await ProbeChart(directory);
             await ProbeWorkbench(directory);
+#if !WINDOWS_READER
+            await ProbeMenuBar();
+#endif
             _exitCode = 0;
         }
         catch (Exception ex)
@@ -126,6 +129,37 @@ internal static class Program
         }
         finally { reopened?.Close(); window.Close(); }
     }
+#if !WINDOWS_READER
+    private static async Task ProbeMenuBar()
+    {
+        var loc=LocalizationService.Current;var original=loc.Language;loc.Apply("zh-CN");
+        try
+        {
+            using var item=new MacQuoteStatusItem();
+            var quote=new Quote{Symbol="NVDA",Price=162.85,ChangePercent=1.2,Source="fixture",DelayMinutes=15,AsOf=DateTimeOffset.UtcNow.AddMinutes(-15),FetchedAt=DateTimeOffset.UtcNow};
+            var presentation=MenuBarQuote.Create("NVDA",quote,false,loc,DateTimeOffset.UtcNow);
+            var activated=0;
+            item.Update(presentation,[new QuoteMenuEntry("Fixture quote"),new QuoteMenuEntry("Open chart",()=>activated++)],UpDownColorMode.RedUp);
+            await Task.Delay(300);
+            if(item.Title!=presentation.Title)throw new Exception("Native menu bar title differs from quote");
+            item.PrepareMenu();item.InvokeMenuItem(1);
+            if(activated!=1)throw new Exception("Native menu bar target/action failed");
+            var output=Path.Combine("build","out","ci");Directory.CreateDirectory(output);
+            item.CaptureButton(Path.Combine(output,"desktop-smoke-menu-bar-red.png"));
+            item.Update(presentation,[],UpDownColorMode.GreenUp);await Task.Delay(150);
+            item.CaptureButton(Path.Combine(output,"desktop-smoke-menu-bar-green.png"));
+            item.Update(MenuBarQuote.Create("NVDA",quote,true,loc,DateTimeOffset.UtcNow),[],UpDownColorMode.GreenUp);
+            if(!item.Title.Contains(loc["Mb_Stale"]))throw new Exception("Failed quote did not mark native price stale");
+            item.Update(MenuBarQuote.Create("MSFT",null,false,loc,DateTimeOffset.UtcNow),[],UpDownColorMode.GreenUp);
+            if(item.Title!="MSFT —")throw new Exception("Missing native quote reused the previous symbol's price");
+            Console.WriteLine("PASS: native NSStatusItem title, AppKit menu actions, both color conventions, stale/missing quotes, PNG capture and disposal.");
+        }
+        finally{loc.Apply(original);}
+        using var recreated=new MacQuoteStatusItem();
+        recreated.Update(MenuBarQuote.Create("AAPL",null,false,loc,DateTimeOffset.UtcNow),[],UpDownColorMode.RedUp);
+        if(recreated.Title!="AAPL —")throw new Exception("Menu bar recreation failed");
+    }
+#endif
     private static async Task ProbeChart(string directory)
     {
 #if WINDOWS_READER
