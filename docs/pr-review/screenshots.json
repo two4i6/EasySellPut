@@ -1,0 +1,472 @@
+[
+  {
+    "file": "ai-session-status.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Avalonia headless Skia: actual native controls, no OS chrome",
+    "sha256": "f86455268f8c08228e15fb4923fc4df4e4a28b2d03f29738afa561d574c03f7d"
+  },
+  {
+    "file": "ai-setup.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Avalonia headless Skia: actual native controls, no OS chrome",
+    "sha256": "a7948dc378b7b64ad9a90e10ad35dc9f26a7ef65303a064c1b3c5822a7c4b02f"
+  },
+  {
+    "file": "alerts-advanced.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Avalonia headless Skia: actual native controls, no OS chrome",
+    "sha256": "dcf5dfdc308fef4c59153e866dccaedc3b55a18af9d5ba5dec3679c32b1986d6"
+  },
+  {
+    "file": "background-restored.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Avalonia headless Skia: actual native controls, no OS chrome",
+    "sha256": "570d834bbf4a69d31c61c56fd3686b15b7d86f79a6c15eda7434009916241933"
+  },
+  {
+    "file": "drawing-selected-dark.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Chromium with private C# test host",
+    "sha256": "ef3561e329e69db0ce1f4cae9b079f7b45a1d8ec8658774aa55df37fb133ce95"
+  },
+  {
+    "file": "drawing-selected-light.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Chromium with private C# test host",
+    "sha256": "67752755e534595e754db6e8aee57a3d57906ddf0cbc7a766d7d510b1fc6ccb5"
+  },
+  {
+    "file": "drawing-trend-preview-dark.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Chromium with private C# test host",
+    "sha256": "4bbe5070b636de36b4d38ab35600b3799085c4263ec831105a64b616bf5c9909"
+  },
+  {
+    "file": "event-group-28-dark.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Chromium with private C# test host",
+    "sha256": "367f2f1453c5e225bb93ac094416790f4970b8c56790051b588b24c30a860c25"
+  },
+  {
+    "file": "event-tooltip-dark.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Chromium with private C# test host",
+    "sha256": "0aa8d1e8e3dd0eaf85a0d705288d4a62273aaab0364824dbaf272bfba2de069f"
+  },
+  {
+    "file": "event-tooltip-grouped-dark.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Chromium with private C# test host",
+    "sha256": "3ea17640ef595405ac65c932fbe9dbe72417ce01f2c2e3a339654538b744aafd"
+  },
+  {
+    "file": "event-tooltip-light.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Chromium with private C# test host",
+    "sha256": "bcf409877815618519ca55e22636a1de3d1ff5a3544ba2cb3a2ee872881afeb1"
+  },
+  {
+    "file": "mac-components-en-US-False.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Avalonia headless Skia: actual native controls, no OS chrome",
+    "sha256": "349432f196cc2cab83aa0e947b8dbbd7ce52b1817bbc49ea6d1e539e38ffedaf"
+  },
+  {
+    "file": "mac-components-select-en-US-False.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Avalonia headless Skia: actual native controls, no OS chrome",
+    "sha256": "c4358c72576c791fc3e0e00232e628548631af3483507a86aa96c0fc23956e0e"
+  },
+  {
+    "file": "mac-components-select-zh-CN-True.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Avalonia headless Skia: actual native controls, no OS chrome",
+    "sha256": "8aea4028324aff1f14121756e901b311a552e43cdc81f3bccf9ac9fd8e47d6e7"
+  },
+  {
+    "file": "mac-components-zh-CN-True.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Avalonia headless Skia: actual native controls, no OS chrome",
+    "sha256": "54ecd871281201c020eb74305feae08437a8848844362047f709c77aa6a8d889"
+  },
+  {
+    "file": "news-history-dark.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Chromium with private C# test host",
+    "sha256": "153f49e6df8207f5e9a5cb7588818fff4acd8ca3535542bd64238312da8297cf"
+  },
+  {
+    "file": "news-history-light.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Chromium with private C# test host",
+    "sha256": "108834f5d2cfa6ad763ace86f2032834967745c4b827d5489b41e062fb195357"
+  },
+  {
+    "file": "news-history-navigated-dark.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Chromium with private C# test host",
+    "sha256": "fe51ea88ec6144ee6f1cda542587c5d80a500ef15ea5e82b36cf7c2d03461472"
+  },
+  {
+    "file": "options-columns.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Avalonia headless Skia: actual native controls, no OS chrome",
+    "sha256": "1b956de65e18353361532b58e3802591c69d35624dbefe54c5ebea9a0d4d8054"
+  },
+  {
+    "file": "page-alerts-dark.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Avalonia headless Skia: actual native controls, no OS chrome",
+    "sha256": "22f8a4cd202b2f2b22b5b40ff8bac28f6ddcc7b5daca1c1893072eb76223fdf0"
+  },
+  {
+    "file": "page-alerts-light.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Avalonia headless Skia: actual native controls, no OS chrome",
+    "sha256": "0cd4d845639931ddd80be05310db68fd1ce6155cbf165d2f9a981eb3872514c9"
+  },
+  {
+    "file": "page-charts-dark.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Avalonia headless Skia: actual native controls, no OS chrome",
+    "sha256": "ec452aac67056ec304e07194eec03b11b6b18dac4b43ba4f33450db0ce6b08ac"
+  },
+  {
+    "file": "page-charts-light.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Avalonia headless Skia: actual native controls, no OS chrome",
+    "sha256": "e4eeaa9024d89c1d3d4c4fba4012e384226ee1f420c9571a02db6fe78e0b820c"
+  },
+  {
+    "file": "page-dashboard-dark.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Avalonia headless Skia: actual native controls, no OS chrome",
+    "sha256": "c0b7b949da6af54c099054a8f9d3c7b776fc2ffbfd7431057f53db62151cdc89"
+  },
+  {
+    "file": "page-dashboard-light.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Avalonia headless Skia: actual native controls, no OS chrome",
+    "sha256": "3329cb434f98296ede236dd678323a5c21e08fa59193f04ec6ef7de449275a17"
+  },
+  {
+    "file": "page-datasources-dark.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Avalonia headless Skia: actual native controls, no OS chrome",
+    "sha256": "21ee8a35e802959b73bdea66fd3da1b6d4a33ea02e1851fb76c9706232b81d96"
+  },
+  {
+    "file": "page-datasources-light.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Avalonia headless Skia: actual native controls, no OS chrome",
+    "sha256": "f4aeb19e311af0029af4393d9bb4fb5d1fbbaece9cbb4605c9f80f6e2f13ca67"
+  },
+  {
+    "file": "page-news-dark.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Avalonia headless Skia: actual native controls, no OS chrome",
+    "sha256": "e6107a7e3ae45ef009b85b60fe22fc89d85cf4ea66bfba580fefb01505333b48"
+  },
+  {
+    "file": "page-news-light.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Avalonia headless Skia: actual native controls, no OS chrome",
+    "sha256": "7e64b22aeaacc965da582101938d313e0274b9945fe3b5d2f741331f66b4aacd"
+  },
+  {
+    "file": "page-options-dark.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Avalonia headless Skia: actual native controls, no OS chrome",
+    "sha256": "e44866bc15e2c8bed6eb49ec132a9bd3f52cc5dad651bce737e770c0103828bf"
+  },
+  {
+    "file": "page-options-light.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Avalonia headless Skia: actual native controls, no OS chrome",
+    "sha256": "1c8be7f8f0725f77753201b0014e563985387da3873615b71b6847e994f5f565"
+  },
+  {
+    "file": "page-settings-dark.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Avalonia headless Skia: actual native controls, no OS chrome",
+    "sha256": "676e3cfd68cc84dd2e63175f6956704e64d3f656239cb216cbae7d87b960f0bf"
+  },
+  {
+    "file": "page-settings-light.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Avalonia headless Skia: actual native controls, no OS chrome",
+    "sha256": "edd275cdf391ec407b9e0b35c298a3cd12c90b5109e9fa2f4b17b4ccfca97314"
+  },
+  {
+    "file": "page-strategy-dark.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Avalonia headless Skia: actual native controls, no OS chrome",
+    "sha256": "2d22b8b8f0ab9ff0cefa9ff63256d51eedfc5f4898f61fbe46a45024f028ce66"
+  },
+  {
+    "file": "page-strategy-light.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Avalonia headless Skia: actual native controls, no OS chrome",
+    "sha256": "4c37e24c6b72e04cf7e28f15a76e8d53cc82476be48edb0953ae34814c1dfbf6"
+  },
+  {
+    "file": "page-watchlist-dark.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Avalonia headless Skia: actual native controls, no OS chrome",
+    "sha256": "57d38de58c38a835f677f674fc218d5a5cb08fa608b3d1faa34774681ee97771"
+  },
+  {
+    "file": "page-watchlist-light.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Avalonia headless Skia: actual native controls, no OS chrome",
+    "sha256": "035d822dcd5c862e95eff9680625acb5a02f95121d47157facf68efd00811b39"
+  },
+  {
+    "file": "sessions-dark.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Chromium with private C# test host",
+    "sha256": "15a334a065fee0a57cae327fd534cff21f6056fbfad731a399d5800c1129c772"
+  },
+  {
+    "file": "sessions-light.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Chromium with private C# test host",
+    "sha256": "531974a2f5f379d7caefbc7d250fe75127ef3ab3c758eb69718ce064f379065e"
+  },
+  {
+    "file": "timeline-default-dark.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Chromium with private C# test host",
+    "sha256": "3b7e5ff3abc89dac2bdaa300e288f2634195b9e313dae41275dea7ec49b57ae2"
+  },
+  {
+    "file": "timeline-selected-dark.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Chromium with private C# test host",
+    "sha256": "962add1a1ff5c7d6f90d2dc1bd221c1e8bb9bfdba6e1e7e54a012e475ad4753f"
+  },
+  {
+    "file": "update-available.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Avalonia headless Skia: actual native controls, no OS chrome",
+    "sha256": "1f1d3534bc2ff74cfd1146e78b33753e3a07a4004e16e53ab2d123f0592b04e6"
+  },
+  {
+    "file": "update-ready.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Avalonia headless Skia: actual native controls, no OS chrome",
+    "sha256": "83583bc704b0ef727563fe403d0693af44b97770bf45a2373a1c9591d1f227e2"
+  },
+  {
+    "file": "update-rejected.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Avalonia headless Skia: actual native controls, no OS chrome",
+    "sha256": "bc73a55bbd81192506cb2f1911079cfda547fe5f527958acbcbefc86b61d671f"
+  },
+  {
+    "file": "watchlist-group-draft.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Avalonia headless Skia: actual native controls, no OS chrome",
+    "sha256": "8d4fec77a2b68e1188482e56af665e07379d632910eae8b85e33c295e6d53cd3"
+  },
+  {
+    "file": "workbench-dark.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Chromium with private C# test host",
+    "sha256": "13a5d237e4dbbb9bfbc1fa75ab4eeb6db68e3814ed9bd5a6cfe1bf60f5cd80e4"
+  },
+  {
+    "file": "workbench-light.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Chromium with private C# test host",
+    "sha256": "9d7749a420e3c7676a382455e750dc34e7f89e4f41fe34df1226eaed96e0d6e1"
+  }
+]
