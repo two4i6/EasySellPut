@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:lucide="using:Meili.Mac.Views.Controls"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Meili.Shared.ViewModels"
              xmlns:sp="using:ScottPlot.Avalonia"
              xmlns:local="using:Meili.Mac.Views"
@@ -65,7 +66,7 @@
                 <TextBlock DockPanel.Dock="Left" Classes="SectionTitle" Margin="0" VerticalAlignment="Center" Text="{DynamicResource Dash_Market}" />
                 <Button DockPanel.Dock="Right" Command="{Binding RefreshCommand}" Padding="12,6">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="↻" Margin="0,0,6,0" />
+                        <lucide:LucideIcon Kind="Refresh"  Margin="0,0,6,0" />
                         <TextBlock Text="{DynamicResource Dash_Refresh}" />
                     </StackPanel>
                 </Button>

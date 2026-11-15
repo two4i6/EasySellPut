@@ -106,7 +106,7 @@ public sealed class WebChartSession : IDisposable
                     var body = Encoding.UTF8.GetBytes($"{{\"version\":{state.Version},\"data\":{state.Json}}}");
                     await Reply(stream, 200, "application/json", body, ct); return;
                 }
-                var file = route switch { "index.html" => _strategy is null ? "index.html" : "workbench.html", "workbench.js" when _strategy is not null => "workbench.js", "chart.js" when _strategy is null => "chart.js", "library.js" => "vendor/lightweight-charts.js", _ => null };
+                var file = route switch { "index.html" => _strategy is null ? "index.html" : "workbench.html", "workbench.js" when _strategy is not null => "workbench.js", "chart.js" when _strategy is null => "chart.js", "icons.js" => "icons.js", "library.js" => "vendor/lightweight-charts.js", _ => null };
                 if (file is not null)
                 {
                     await Reply(stream, 200, file.EndsWith("html", StringComparison.Ordinal) ? "text/html; charset=utf-8" : "text/javascript; charset=utf-8", Asset(file), ct); return;

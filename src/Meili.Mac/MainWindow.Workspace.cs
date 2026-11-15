@@ -21,7 +21,7 @@ public partial class MainWindow
         try { _workspace = new WebWorkspace(AppServices.DataDirectory.Path); }
         catch (Exception ex) when (ex is System.IO.IOException or System.Text.Json.JsonException or ArgumentException)
         { Meili.Core.Diagnostics.AppLog.Warn("web-workspace", "Workspace could not be loaded", ex); AddWebsite.IsEnabled = false; ShowBanner(_loc["Web_Edit"], _loc["Web_Failed"]); }
-        RebuildWebsiteRail(); ApplyWorkspaceMotion();
+        SetupStatusIcons(); RebuildBuiltinRail(); RebuildWebsiteRail(); ApplyWorkspaceMotion();
         _loc.LanguageChanged += WorkspaceLanguageChanged; Closed += (_, _) => _loc.LanguageChanged -= WorkspaceLanguageChanged;
         Activated += (_, _) => ApplyWorkspaceMotion();
         AddHandler(KeyDownEvent, (_, e) =>
@@ -31,7 +31,36 @@ public partial class MainWindow
             if (e.Key == Key.L && _activeWebsite is { } id) { _webTabs[id].FocusAddress(); e.Handled = true; }
         }, RoutingStrategies.Tunnel);
     }
-    private void WorkspaceLanguageChanged(object? sender, EventArgs e) => RebuildWebsiteRail();
+    private void WorkspaceLanguageChanged(object? sender, EventArgs e) { RebuildBuiltinRail(); RebuildWebsiteRail(); }
+    private void RebuildBuiltinRail()
+    {
+        BuiltinRail.Children.Clear();
+        foreach(var page in PageOrder.Where(p => p is not (AppPage.Dashboard or AppPage.Settings)))
+        {
+            var tile = new ToggleButton { Tag = page }; tile.Classes.Add("Workspace");
+            tile.Content = CreateNavigationIcon(NavigationIcons.For(page),tile);
+            var title = _loc[TitleKey(page)]; ToolTip.SetTip(tile,title+" · ⌘"+(PageOrder.ToList().IndexOf(page)+1));
+            AutomationProperties.SetName(tile,title);AutomationProperties.SetAutomationId(tile,"Navigate-"+page);
+            tile.Click += (_,_) => Navigate(page);BuiltinRail.Children.Add(tile);
+        }
+        SelectBuiltinPage();
+    }
+    private void SelectBuiltinPage()
+    {
+        HomeWorkspace.IsChecked = _activeWebsite is null && CurrentPage == AppPage.Dashboard;
+        SettingsButton.IsChecked = _activeWebsite is null && CurrentPage == AppPage.Settings;
+        foreach(var tile in BuiltinRail.Children.OfType<ToggleButton>())tile.IsChecked=_activeWebsite is null && Equals(tile.Tag,CurrentPage);
+    }
+    private static Viewbox CreateNavigationIcon(string data, Avalonia.Controls.Primitives.TemplatedControl owner, double size=24) => Meili.Mac.Views.Controls.LucideIcon.View(data,owner,size);
+    private void SetupStatusIcons()
+    {
+        AddWebsite.Content=CreateNavigationIcon(NavigationIcons.Add,AddWebsite);
+        SettingsButton.Content=CreateNavigationIcon(NavigationIcons.Settings,SettingsButton,18);
+        LanguageButton.Content=CreateNavigationIcon(NavigationIcons.Language,LanguageButton,18);
+        ThemeButton.Content=CreateNavigationIcon(NavigationIcons.Theme,ThemeButton,18);
+        MotionButton.Content=CreateNavigationIcon(NavigationIcons.Motion,MotionButton,18);
+    }
+    private void OnSettings(object? sender,RoutedEventArgs e) => Navigate(AppPage.Settings);
     private void RebuildWebsiteRail()
     {
         WebsiteRail.Children.Clear();
@@ -57,17 +86,16 @@ public partial class MainWindow
         }
         _activeWebsite = tab.Id; PageHost.Content = null; WebTabHost.IsVisible = true;
         foreach (var (id, view) in _webTabs) view.IsVisible = id == tab.Id;
-        HomeWorkspace.IsChecked = false;
-        _syncingNav = true; Nav.SelectedIndex = -1; _syncingNav = false;
+        SelectBuiltinPage();
         foreach (var button in WebsiteRail.Children.OfType<ToggleButton>()) button.IsChecked = Equals(button.Tag, tab.Id);
         ApplyWorkspaceMotion();
     }
     private void ShowMarketWorkspace()
     {
-        _activeWebsite = null; WebTabHost.IsVisible = false; HomeWorkspace.IsChecked = true;
+        _activeWebsite = null; WebTabHost.IsVisible = false; SelectBuiltinPage();
         foreach (var button in WebsiteRail.Children.OfType<ToggleButton>()) button.IsChecked = false;
     }
-    private void OnHomeWorkspace(object? sender, RoutedEventArgs e) => Navigate(CurrentPage);
+    private void OnHomeWorkspace(object? sender, RoutedEventArgs e) => Navigate(AppPage.Dashboard);
     private void OnAddWebsite(object? sender, RoutedEventArgs e) { AddWebsite.IsChecked = false; _ = EditWebsite(null); }
     private void OnToggleMotion(object? sender, RoutedEventArgs e)
     {

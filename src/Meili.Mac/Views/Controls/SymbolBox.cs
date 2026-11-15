@@ -52,8 +52,7 @@ public sealed class SymbolBox : UserControl
         _box.TextChanged += OnBoxTextChanged;
         _box.AddHandler(KeyDownEvent, OnBoxKeyDown, Avalonia.Interactivity.RoutingStrategies.Tunnel);
 
-        var chevron = new Button { Content = new Avalonia.Controls.Shapes.Path { Data = Geometry.Parse("M 2,4 L 6,8 L 10,4"), Width = 12, Height = 12, Stretch = Stretch.Uniform, StrokeThickness = 1.6 }, Classes = { "Subtle", "Icon" }, Width = 32, Height = 32, MinWidth = 32, MinHeight = 32, Padding = new Thickness(0), HorizontalContentAlignment = HorizontalAlignment.Center, VerticalContentAlignment = VerticalAlignment.Center, Margin = new Thickness(4, 0, 0, 0), Focusable = false };
-        ((Avalonia.Controls.Shapes.Path)chevron.Content!).Bind(Avalonia.Controls.Shapes.Shape.StrokeProperty, chevron.GetResourceObservable("TextFillColorPrimaryBrush").ToBinding());
+        var chevron = new Button { Content = new LucideIcon { Kind = "ChevronDown", Width = 14, Height = 14 }, Classes = { "Subtle", "Icon" }, Width = 32, Height = 32, MinWidth = 32, MinHeight = 32, Padding = new Thickness(0), HorizontalContentAlignment = HorizontalAlignment.Center, VerticalContentAlignment = VerticalAlignment.Center, Margin = new Thickness(4, 0, 0, 0), Focusable = false };
         chevron[!ToolTip.TipProperty] = chevron.GetResourceObservable("Sb_ShowWatchlist").ToBinding();
         chevron.Click += (_, _) => { _box.Focus(); _ = RefreshAsync(showAll: true, open: true); };
 

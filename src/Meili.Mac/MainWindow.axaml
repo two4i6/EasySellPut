@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:lucide="using:Meili.Mac.Views.Controls"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="using:Meili.Mac.Views.Controls"
         xmlns:vm="using:Meili.Shared.ViewModels"
         x:Class="Meili.Mac.MainWindow"
@@ -30,42 +31,25 @@
         <Style Selector="ToggleButton.Workspace:checked /template/ Border#Pill"><Setter Property="Height" Value="32"/><Setter Property="Opacity" Value="1"/></Style>
         <Style Selector="ToggleButton.Workspace:focus-visible /template/ Border#Tile"><Setter Property="BorderThickness" Value="2"/><Setter Property="BorderBrush" Value="{DynamicResource TextFillColorPrimaryBrush}"/></Style>
         <Style Selector="Window.ReducedMotion ToggleButton.Workspace /template/ Border"><Setter Property="Transitions" Value="{x:Null}"/></Style>
+        <Style Selector="Button.StatusAction, ToggleButton.StatusAction"><Setter Property="Width" Value="28"/><Setter Property="Height" Value="24"/><Setter Property="MinWidth" Value="28"/><Setter Property="MinHeight" Value="24"/><Setter Property="Padding" Value="0"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Background" Value="Transparent"/><Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/></Style>
+        <Style Selector="Button.StatusAction:pointerover, ToggleButton.StatusAction:pointerover"><Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}"/></Style>
+        <Style Selector="ToggleButton.StatusAction:checked"><Setter Property="Background" Value="{DynamicResource RowHighlightBrush}"/><Setter Property="Foreground" Value="{DynamicResource AccentTextFillColorPrimaryBrush}"/></Style>
     </Window.Styles>
-    <Grid RowDefinitions="*,Auto" ColumnDefinitions="64,164,*">
+    <Grid RowDefinitions="*,Auto" ColumnDefinitions="64,*">
         <Border Grid.Column="0" Background="{DynamicResource LayerFillColorDefaultBrush}" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="0,0,1,0">
             <DockPanel>
-                <ToggleButton x:Name="MotionButton" DockPanel.Dock="Bottom" Classes="Workspace" Content="≈" Margin="0,8" Click="OnToggleMotion" ToolTip.Tip="{DynamicResource Web_Motion}" AutomationProperties.Name="{DynamicResource Web_Motion}"/>
-                <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"><StackPanel HorizontalAlignment="Center" Margin="0,8" Spacing="4">
-                    <ToggleButton x:Name="HomeWorkspace" Classes="Workspace" Click="OnHomeWorkspace" IsChecked="True" ToolTip.Tip="{DynamicResource Web_Market}" AutomationProperties.Name="{DynamicResource Web_Market}"><Image Source="avares://MeiliMac/Assets/app-64.png" Width="28" Height="28"/></ToggleButton>
+                <ScrollViewer x:Name="SidebarScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"><StackPanel HorizontalAlignment="Center" Margin="0,8" Spacing="4">
+                    <ToggleButton x:Name="HomeWorkspace" Classes="Workspace" Click="OnHomeWorkspace" IsChecked="True" ToolTip.Tip="{DynamicResource Nav_Dashboard}" AutomationProperties.Name="{DynamicResource Nav_Dashboard}"><Image Source="avares://MeiliMac/Assets/app-64.png" Width="28" Height="28"/></ToggleButton>
+                    <Border Height="1" Margin="16,4" Background="{DynamicResource ControlStrokeColorDefaultBrush}"/>
+                    <StackPanel x:Name="BuiltinRail" Spacing="4"/>
                     <Border Height="1" Margin="16,4" Background="{DynamicResource ControlStrokeColorDefaultBrush}"/>
                     <StackPanel x:Name="WebsiteRail" Spacing="4"/>
-                    <ToggleButton x:Name="AddWebsite" Classes="Workspace" Content="+" Click="OnAddWebsite" ToolTip.Tip="{DynamicResource Web_Add}" AutomationProperties.Name="{DynamicResource Web_Add}"/>
+                    <ToggleButton x:Name="AddWebsite" Classes="Workspace" Click="OnAddWebsite" ToolTip.Tip="{DynamicResource Web_Add}" AutomationProperties.Name="{DynamicResource Web_Add}"/>
                 </StackPanel></ScrollViewer>
             </DockPanel>
         </Border>
-        <!-- Navigation (⌘1…⌘9 in this order) -->
-        <DockPanel Grid.Row="0" Grid.Column="1" Background="{DynamicResource SidebarBackgroundBrush}">
-            <StackPanel x:Name="ShellUtilities" DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="12,8" Spacing="6" Background="{DynamicResource SidebarBackgroundBrush}">
-                <Button x:Name="LanguageButton" Classes="Subtle Icon" Width="40" MinWidth="40" FontWeight="SemiBold"
-                        Content="{DynamicResource Title_LanguageButton}" ToolTip.Tip="{DynamicResource Title_ToggleLanguage}"
-                        Click="OnToggleLanguage" />
-                <Button x:Name="ThemeButton" Classes="Subtle Icon" Width="40" MinWidth="40"
-                        ToolTip.Tip="{DynamicResource Title_ToggleTheme}" AutomationProperties.Name="{DynamicResource Title_ToggleTheme}" Click="OnToggleTheme">
-                    <Grid x:Name="ThemeGlyph" Width="16" Height="16">
-                        <Ellipse Stroke="{DynamicResource TextFillColorPrimaryBrush}" StrokeThickness="1.25"/>
-                        <Path Data="M8,0.625 A7.375,7.375 0 0 0 8,15.375 Z" Fill="{DynamicResource TextFillColorPrimaryBrush}"/>
-                    </Grid>
-                </Button>
-            </StackPanel>
-            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="12,12,8,12" Spacing="8">
-                <TextBlock Text="{DynamicResource Mac_AppShort}" FontWeight="SemiBold" VerticalAlignment="Center" />
-            </StackPanel>
-            <StackPanel DockPanel.Dock="Top" Margin="16,12,8,8"><TextBlock FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{DynamicResource Web_Channels}"/></StackPanel>
-            <ListBox x:Name="Nav" Classes="Nav" SelectionMode="Single" SelectionChanged="OnNavSelected" />
-        </DockPanel>
-
         <!-- Page host -->
-        <Panel Grid.Row="0" Grid.Column="2">
+        <Panel Grid.Row="0" Grid.Column="1">
             <ContentControl x:Name="PageHost" /><Grid x:Name="WebTabHost" IsVisible="False"/>
 
             <!-- In-app alert / error banner (always shown, even when notifications are off) -->
@@ -94,10 +78,17 @@
         </Panel>
 
         <!-- Status bar -->
-        <Border x:Name="BottomStatusBar" Grid.Row="1" Grid.ColumnSpan="3" Padding="16,6" BorderThickness="0,1,0,0"
+        <Border x:Name="BottomStatusBar" Grid.Row="1" Grid.ColumnSpan="2" Padding="16,6" BorderThickness="0,1,0,0"
                 BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
                 Background="{DynamicResource LayerFillColorDefaultBrush}">
             <DockPanel LastChildFill="False">
+                <StackPanel x:Name="ShellUtilities" DockPanel.Dock="Right" Orientation="Horizontal" Spacing="2" Margin="12,0,0,0" VerticalAlignment="Center">
+                    <ToggleButton x:Name="SettingsButton" Classes="StatusAction" Click="OnSettings" ToolTip.Tip="{DynamicResource Nav_Settings}" AutomationProperties.Name="{DynamicResource Nav_Settings}"/>
+                    <Button x:Name="LanguageButton" Classes="StatusAction" Click="OnToggleLanguage" ToolTip.Tip="{DynamicResource Title_ToggleLanguage}" AutomationProperties.Name="{DynamicResource Title_ToggleLanguage}"/>
+                    <Button x:Name="ThemeButton" Classes="StatusAction" Click="OnToggleTheme" ToolTip.Tip="{DynamicResource Title_ToggleTheme}" AutomationProperties.Name="{DynamicResource Title_ToggleTheme}"/>
+                    <ToggleButton x:Name="MotionButton" Classes="StatusAction" Click="OnToggleMotion" ToolTip.Tip="{DynamicResource Web_Motion}" AutomationProperties.Name="{DynamicResource Web_Motion}"/>
+                </StackPanel>
+
                 <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
                     <Ellipse Width="8" Height="8" Margin="0,0,8,0" Fill="{Binding SessionBrush}" />
                     <TextBlock Classes="Caption" Text="{Binding SessionText}" FontWeight="SemiBold" Margin="0,0,14,0" />
@@ -105,7 +96,7 @@
                 </StackPanel>
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
                     <Button x:Name="McpStatusIndicator" Command="{Binding CopyMcpSetupCommand}" Height="20" MinHeight="0" MinWidth="0" Padding="4,0" Margin="0,0,12,0" Background="Transparent" BorderThickness="0" ToolTip.Tip="{Binding McpStatusTip}" AutomationProperties.AutomationId="McpStatusIndicator" AutomationProperties.Name="{DynamicResource Set_AiUniversal}" Cursor="Hand">
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"><Ellipse Width="6" Height="6" Margin="0,0,6,0" Fill="{Binding McpStatusBrush}"/><TextBlock Classes="Caption" Text="{Binding McpStatusText}" TextWrapping="NoWrap"/><Path Width="10" Height="10" Margin="6,0,0,0" Stroke="{DynamicResource TextFillColorSecondaryBrush}" StrokeThickness="1" Data="M3,1 L9,1 L9,7 M1,3 L7,3 L7,9 L1,9 Z"/></StackPanel>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"><Ellipse Width="6" Height="6" Margin="0,0,6,0" Fill="{Binding McpStatusBrush}"/><TextBlock Classes="Caption" Text="{Binding McpStatusText}" TextWrapping="NoWrap"/><lucide:LucideIcon Kind="Copy" Width="10" Height="10" Margin="6,0,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}"/></StackPanel>
                     </Button>
                     <Ellipse Width="8" Height="8" Margin="0,0,6,0" Fill="{Binding SourcesBrush}" />
                     <TextBlock Classes="Caption" Text="{Binding SourcesText}" Margin="0,0,0,0" ToolTip.Tip="{Binding NetworkText}" />

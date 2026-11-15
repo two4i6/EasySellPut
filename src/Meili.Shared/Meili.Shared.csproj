@@ -16,7 +16,9 @@
     <ProjectReference Include="..\Meili.Analytics\Meili.Analytics.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Assets/NavigationIcons/LICENSE" LogicalName="NavigationIcons/LICENSE" />
     <EmbeddedResource Include="WebCharts/index.html" LogicalName="WebCharts/index.html" />
+    <EmbeddedResource Include="WebCharts/icons.js" LogicalName="WebCharts/icons.js" />
     <EmbeddedResource Include="WebCharts/chart.js" LogicalName="WebCharts/chart.js" />
     <EmbeddedResource Include="WebCharts/workbench.html" LogicalName="WebCharts/workbench.html" />
     <EmbeddedResource Include="WebCharts/workbench.js" LogicalName="WebCharts/workbench.js" />

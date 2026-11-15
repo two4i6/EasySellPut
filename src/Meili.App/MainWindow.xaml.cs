@@ -299,7 +299,7 @@ public partial class MainWindow : FluentWindow
     }
 
     private void UpdateThemeIcon() =>
-        ThemeIcon.Symbol = _theme.IsDark ? SymbolRegular.WeatherSunny24 : SymbolRegular.WeatherMoon24;
+        ThemeButton.Content = CreateNavigationIcon(NavigationIcons.Theme,ThemeButton,18);
 
     private void RestorePlacement()
     {

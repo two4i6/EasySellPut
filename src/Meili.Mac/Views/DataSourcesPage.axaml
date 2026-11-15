@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:lucide="using:Meili.Mac.Views.Controls"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Meili.Shared.ViewModels"
              xmlns:sp="using:ScottPlot.Avalonia"
              xmlns:local="using:Meili.Mac.Views"
@@ -34,7 +35,7 @@
                         <Border Classes="Card" Margin="0,0,8,8" Padding="18,14" VerticalAlignment="Stretch">
                             <StackPanel>
                                 <DockPanel LastChildFill="False">
-                                    <TextBlock DockPanel.Dock="Left" Text="{Binding StateIcon, Converter={x:Static local:MacConverters.HealthGlyph}}" FontSize="16"
+                                    <lucide:LucideIcon DockPanel.Dock="Left" Kind="{Binding StateIcon, Converter={x:Static local:MacConverters.HealthGlyph}}" Width="16" Height="16"
                                                Foreground="{Binding StateBrush}" VerticalAlignment="Center" Margin="0,0,8,0" />
                                     <TextBlock DockPanel.Dock="Left" Text="{Binding DisplayName}" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"
                                                Foreground="{DynamicResource TextFillColorPrimaryBrush}" />

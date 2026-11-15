@@ -78,7 +78,7 @@ public sealed class ButtonAlignmentTests
             }
             var languageButton=window.FindControl<Button>("LanguageButton")!;
             var themeButton=window.FindControl<Button>("ThemeButton")!;
-            Assert.Equal(new Size(40,32),languageButton.Bounds.Size);Assert.Equal(languageButton.Bounds.Size,themeButton.Bounds.Size);
+            Assert.Equal(new Size(28,24),languageButton.Bounds.Size);Assert.Equal(languageButton.Bounds.Size,themeButton.Bounds.Size);
             var utilities=window.FindControl<StackPanel>("ShellUtilities")!;
             window.MouseMove(languageButton.TranslatePoint(new Point(20,16),window)!.Value);MacHost.Pump();
             if(Environment.GetEnvironmentVariable("MEILI_RENDER_DIR") is {Length:>0} dir)

@@ -149,9 +149,9 @@
   const eventNames = () => state.language === 'zh-CN'
     ? {news:'新闻',earnings:'财报',ex_dividend:'除息'}
     : {news:'News',earnings:'Earnings',ex_dividend:'Ex-dividend'};
-  const eventStyle = type => ({news:{shape:'circle',color:state.theme.colors[0],symbol:'●'},
-    earnings:{shape:'square',color:state.theme.colors[2],symbol:'■'},
-    ex_dividend:{shape:'arrowDown',color:state.theme.colors[1],symbol:'▼'}}[type]);
+  const eventStyle = type => ({news:{shape:'circle',color:state.theme.colors[0],icon:'News'},
+    earnings:{shape:'square',color:state.theme.colors[2],icon:'CalendarClock'},
+    ex_dividend:{shape:'arrowDown',color:state.theme.colors[1],icon:'Dividend'}}[type]);
   const hideEventTooltip = () => {document.getElementById('event-tooltip').hidden = true;};
   function showEventTooltip(param) {
     const items = (state.events || []).filter(item => filters.has(item.event.type) && finite(item.time)
@@ -164,7 +164,7 @@
     const limit=Math.max(1,Math.min(5,Math.floor((root.clientHeight-80)/150)));
     for (const item of items.slice(0,limit)) {
       const e=item.event, row=append(box,'div','','tooltip-event');
-      const heading=append(row,'div',eventStyle(e.type).symbol+' '+names[e.type],'tooltip-type');heading.style.color=eventStyle(e.type).color;
+      const heading=append(row,'div',names[e.type],'tooltip-type');heading.prepend(meiliIcons.svg(eventStyle(e.type).icon,14),document.createTextNode(' '));heading.style.color=eventStyle(e.type).color;
       const when=e.published ? new Intl.DateTimeFormat(state.language,{timeZone:'America/New_York',dateStyle:'medium',timeStyle:'short'}).format(new Date(e.published))+' ET'
         : e.date ? e.date+(e.endDate?' – '+e.endDate:'') : (zh?'时间未知':'Time unknown');
       append(row,'div',when,'tooltip-meta');
@@ -177,7 +177,7 @@
       if(alignment[item.alignment])append(row,'div',alignment[item.alignment],'tooltip-meta');
     }
     append(box,'div',items.length>limit ? (zh?`另有 ${items.length-limit} 项 · 点击图表查看详情`:`${items.length-limit} more · Click chart for details`)
-      : (zh?'点击展开 ↗︎':'Click to expand ↗︎'),'tooltip-meta');
+      : (zh?'点击展开':'Click to expand'),'tooltip-meta');
     box.hidden=false;
     const width=box.offsetWidth, height=box.offsetHeight;
     box.style.left=Math.max(8,Math.min(param.point.x+16,root.clientWidth-width-8))+'px';
@@ -225,6 +225,7 @@
     for(const [color,label] of [[state.theme.sessionPre,zh?'盘前':'Pre'],[state.theme.sessionPost,zh?'盘后':'Post']]){
       const item=document.createElement('span'),swatch=document.createElement('i');swatch.style.background=color;swatch.setAttribute('aria-hidden','true');item.append(swatch,document.createTextNode(label));summary.append(item);
     }
+    summary.append(meiliIcons.svg('Info',14));
     const note=document.createElement('div');note.className='session-note';note.textContent=legend.title;legend.append(note);
   }
   function build() {
@@ -322,7 +323,7 @@
       box.dataset.language=state.language;box.replaceChildren();
       for (const type of Object.keys(names)) {
         const label = text('label',''), input=document.createElement('input');input.type='checkbox';input.checked=filters.has(type);input.dataset.type=type;
-        input.addEventListener('change',()=>{input.checked?filters.add(type):filters.delete(type);renderEvents();});label.append(input);const glyph=text('span',eventStyle(type).symbol);glyph.style.color=eventStyle(type).color;glyph.setAttribute('aria-hidden','true');label.append(glyph,document.createTextNode(names[type]));box.append(label);
+        input.addEventListener('change',()=>{input.checked?filters.add(type):filters.delete(type);renderEvents();});label.append(input);const glyph=text('span','');glyph.append(meiliIcons.svg(eventStyle(type).icon,12));glyph.style.color=eventStyle(type).color;glyph.setAttribute('aria-hidden','true');const tick=text('span','','filter-check');tick.append(meiliIcons.svg('Check',12));label.append(glyph,document.createTextNode(names[type]),tick);box.append(label);
       }
     }
     for(const label of box.querySelectorAll('label')) {const input=label.querySelector('input');label.classList.toggle('active',input.checked);label.querySelector('span').style.color=eventStyle(input.dataset.type).color;}
@@ -359,7 +360,7 @@
       nav.append(jump);if(focusedDay===day)jump.focus({preventScroll:true});
       for(const item of items.sort((a,b)=>(b.event.published?Date.parse(b.event.published):-Infinity)-(a.event.published?Date.parse(a.event.published):-Infinity))) {
       const e=item.event,b=text('button','');b.type='button';b.dataset.eventId=e.id;b.setAttribute('aria-pressed',String(e.id===selectedEvent));b.setAttribute('aria-controls','event-detail');
-      const icon=text('span',eventStyle(e.type).symbol,'event-type-icon');icon.style.color=eventStyle(e.type).color;icon.setAttribute('aria-hidden','true');b.append(icon);
+      const icon=text('span','','event-type-icon');icon.append(meiliIcons.svg(eventStyle(e.type).icon,16));icon.style.color=eventStyle(e.type).color;icon.setAttribute('aria-hidden','true');b.append(icon);
       b.append(text('span',e.type==='news'?e.title:names[e.type],'event-title'));
       b.setAttribute('aria-label',[names[e.type],e.title,date(e)].filter(Boolean).join(' · '));
       const meta=text('span','','event-row-meta');meta.append(text('span',e.published?new Intl.DateTimeFormat(state.language,{timeZone:'America/New_York',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(e.published))+' ET':date(e,true)));
@@ -378,11 +379,11 @@
     document.getElementById('event-content').classList.toggle('has-selection',!!selectedEvent);
     const item=visible.find(e=>e.event.id===selectedEvent);if(!item)return;
     const e=item.event;
-    const close=text('button','×','event-close');close.setAttribute('aria-label',zh?'收起详情':'Close details');close.title=zh?'收起详情':'Close details';close.type='button';close.id='event-close';close.addEventListener('click',()=>{const id=selectedEvent;selectedEvent=null;renderEvents();list.querySelector('[data-event-id="'+id+'"]')?.focus({preventScroll:true});});
+    const close=text('button','','event-close');close.append(meiliIcons.svg('Close',18));close.setAttribute('aria-label',zh?'收起详情':'Close details');close.title=zh?'收起详情':'Close details';close.type='button';close.id='event-close';close.addEventListener('click',()=>{const id=selectedEvent;selectedEvent=null;renderEvents();list.querySelector('[data-event-id="'+id+'"]')?.focus({preventScroll:true});});
     detail.append(close,text('p',e.type==='news'?e.title:names[e.type],'event-detail-title'),text('p',date(e)+(e.type!=='news'?' · '+labels[e.confirmation]:''),'event-caption'));
     if(e.publisher||e.source)detail.append(text('p',e.publisher||e.source,'event-caption'));
     if(e.summary)detail.append(text('p',e.summary,'event-summary'));
-    if(e.type==='news' && e.url){const b=text('button',zh?'原文 ↗︎':'Original ↗︎','event-read');b.type='button';b.id='event-read';b.addEventListener('click',()=>post({kind:'open-event',key:state.key,id:e.id}).catch(error));detail.append(b);}
+    if(e.type==='news' && e.url){const b=text('button',zh?'原文':'Original','event-read');b.type='button';b.id='event-read';b.append(meiliIcons.svg('ExternalLink',14));b.addEventListener('click',()=>post({kind:'open-event',key:state.key,id:e.id}).catch(error));detail.append(b);}
     const metadata=document.createElement('details');metadata.className='event-metadata';metadata.open=!!keepMetadataOpen;
     metadata.append(text('summary',zh?'来源与时间':'Source & time'),text('p',labels[e.precision]+' · '+labels[e.confirmation]),text('p',(zh?'来源：':'Source: ')+(e.publisher?e.publisher+' / ':'')+e.source),text('p',labels[item.alignment]));
     if(e.published)metadata.append(text('p',(zh?'原始时间：':'Original time: ')+e.published));
@@ -420,7 +421,8 @@
       document.getElementById('symbol').textContent = state.symbol;
       document.getElementById('fit').textContent = state.language === 'zh-CN' ? '适应' : 'Fit';
       document.getElementById('fit').setAttribute('aria-label',state.language === 'zh-CN' ? '适应图表窗口' : 'Fit chart to window');
-      document.getElementById('help-heading').textContent=state.language === 'zh-CN' ? '? 操作' : '? Controls';
+      document.getElementById('help-heading').textContent=state.language === 'zh-CN' ? '操作' : 'Controls';
+      document.getElementById('help-heading').prepend(meiliIcons.svg('Help',14));
       document.getElementById('hint').textContent = state.language === 'zh-CN' ? '滚轮缩放 · 拖动平移 · 点击画线编辑 · 方向键选择画线，Enter 编辑，Delete 删除'  : 'Scroll to zoom · Drag to pan · Click lines to edit · Arrow keys select, Enter edits, Delete removes' ;
       document.getElementById('empty').textContent = state.rows.length ? '' : state.labels.empty;
       document.getElementById('error').style.display = 'none';

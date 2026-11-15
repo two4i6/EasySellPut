@@ -84,14 +84,29 @@ public sealed class SmokeRunner
             {
                 int before;
                 lock (Errors) before = Errors.Count;
-                window.NavigateForSmoke(page);
+                var rail=(System.Windows.Controls.StackPanel)window.FindName("BuiltinRail");
+                var home=(System.Windows.Controls.Primitives.ToggleButton)window.FindName("HomeWorkspace");
+                var target=Enum.Parse<AppPage>(page.Name.Replace("Page",""));
+                var settingsButton=(System.Windows.Controls.Primitives.ToggleButton)window.FindName("SettingsButton");
+                var button=target==AppPage.Dashboard?home:target==AppPage.Settings?settingsButton:rail.Children.OfType<System.Windows.Controls.Primitives.ToggleButton>().Single(b=>Equals(b.Tag,target));
+                button.BringIntoView();button.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
                 await Task.Delay(1500);
                 await window.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
                 string[] newErrors;
                 lock (Errors) newErrors = Errors.Skip(before).ToArray();
                 if (newErrors.Length > 0) throw new InvalidOperationException(string.Join(" | ", newErrors));
                 if (window.CurrentPageType != page) throw new InvalidOperationException($"navigation ended on {window.CurrentPageType?.Name ?? "none"}");
-                return "loaded";
+                var workspace=(System.Windows.Controls.Grid)window.FindName("WorkspaceGrid");
+                if(workspace.ColumnDefinitions.Count!=2 || workspace.ColumnDefinitions[0].ActualWidth!=64 || window.FindName("ChannelNav") is not null)throw new InvalidOperationException("The wide navigation column returned");
+                if(rail.Children.OfType<System.Windows.Controls.Primitives.ToggleButton>().Append(home).Append(settingsButton).Count(b=>b.IsChecked==true)!=1 || button.IsChecked!=true)throw new InvalidOperationException("Navigation rail selection is inconsistent");
+                foreach(var name in new[]{"SettingsButton","LanguageButton","ThemeButton","MotionButton"})
+                {
+                    var action=(System.Windows.Controls.Primitives.ButtonBase)window.FindName(name);
+                    if(action.ActualWidth!=28 || action.ActualHeight!=24)throw new InvalidOperationException("Status action bounds: "+name);
+                    var icon=(System.Windows.Controls.Viewbox)action.Content;var center=icon.TranslatePoint(new Point(icon.ActualWidth/2,icon.ActualHeight/2),action);
+                    if(Math.Abs(center.X-action.ActualWidth/2)>.6 || Math.Abs(center.Y-action.ActualHeight/2)>.6)throw new InvalidOperationException("Off-center status icon: "+name);
+                }
+                return "loaded via single-rail button";
             });
         }
         if (Directory.Exists(Path.Combine(AppContext.BaseDirectory, "automation"))) await CheckAsync("ai-connection", async () =>

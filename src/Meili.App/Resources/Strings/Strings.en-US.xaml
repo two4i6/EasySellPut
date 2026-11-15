@@ -839,7 +839,7 @@
     <sys:String x:Key="Upd_Check">Check for updates</sys:String>
     <sys:String x:Key="Upd_Download">Download update</sys:String>
     <sys:String x:Key="Upd_Install">Install and restart</sys:String>
-    <sys:String x:Key="Upd_History">Release history ↗</sys:String>
+    <sys:String x:Key="Upd_History">Release history</sys:String>
     <sys:String x:Key="Upd_Notes">What’s new</sys:String>
     <sys:String x:Key="Upd_Cancel">Cancel</sys:String>
     <sys:String x:Key="Upd_Idle">Check for a new version</sys:String>

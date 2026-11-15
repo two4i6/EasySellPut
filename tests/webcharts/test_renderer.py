@@ -44,7 +44,7 @@ class RendererTests(unittest.TestCase):
                     if self.path.endswith('?after='+str(cls.version)): self.send_response(204); self.end_headers(); return
                     body=json.dumps(dict(version=cls.version,data=cls.state)).encode(); mime='application/json'
                 else:
-                    file={'/index.html':'index.html','/chart.js':'chart.js','/library.js':'vendor/lightweight-charts.js'}.get(route)
+                    file={'/index.html':'index.html','/chart.js':'chart.js','/icons.js':'icons.js','/library.js':'vendor/lightweight-charts.js'}.get(route)
                     if file is None: self.send_error(404); return
                     body=(ASSETS/file).read_bytes(); mime='text/html' if route.endswith('.html') else 'text/javascript'
                 self.send_response(200);self.send_header('Content-Type',mime);self.send_header('Content-Length',str(len(body)));self.end_headers();self.wfile.write(body)
@@ -65,6 +65,22 @@ class RendererTests(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.browser.close();cls.playwright.stop();cls.server.shutdown();cls.server.server_close()
+    def test_pinned_icons_keep_canvas_and_native_svg_primitives(self):
+        manifest=json.loads((ROOT/'src/Meili.Shared/Assets/NavigationIcons/provenance.json').read_text())
+        self.assertIn(manifest['version'],(ASSETS/'icons.js').read_text())
+        import importlib.util
+        spec=importlib.util.spec_from_file_location('icon_importer',ROOT/'build/import-navigation-icons.py')
+        importer=importlib.util.module_from_spec(spec);spec.loader.exec_module(importer)
+        result=self.page.evaluate("""names=>names.map(name=>{
+            const e=meiliIcons.svg(name,18);document.body.append(e);const b=e.getBBox(),r=e.getBoundingClientRect();
+            const result={name,box:[b.x,b.y,b.width,b.height],frame:[r.width,r.height],stroke:e.getAttribute('stroke-width'),view:e.getAttribute('viewBox')};e.remove();return result;
+        })""",list(importer.MAP))
+        for icon in result:
+            self.assertEqual(icon['frame'],[18,18],icon['name']);self.assertEqual(icon['view'],'0 0 24 24');self.assertEqual(icon['stroke'],'2')
+            x,y,w,h=icon['box'];self.assertGreaterEqual(x,-.1);self.assertGreaterEqual(y,-.1);self.assertLessEqual(x+w,24.1);self.assertLessEqual(y+h,24.1)
+        self.assertEqual(self.page.locator('#right-tools svg[data-lucide]').count(),3)
+        self.assertEqual(self.page.locator('#right-tools button > span').count(),3)
+
     def test_full_chart_indicators_gaps_and_attribution(self):
         p=self.page
         result=p.evaluate('''() => {const {chart,series}=meiliChart.inspect();return {panes:chart.panes().length,candles:series.candles.data().filter(p=>Number.isFinite(p.open)).length,gap:series.candles.data().find(p=>p.time===meiliChart.inspect().state.rows[70].time)??null,incomplete:series.incomplete.data().find(p=>p.time===meiliChart.inspect().state.rows[70].time),warmup:series.ma.data().find(p=>p.time===meiliChart.inspect().state.rows[0].time)??null,ma:series.ma.data().at(-1).value,rsi:series.rsi.data().at(-1).value};}''')

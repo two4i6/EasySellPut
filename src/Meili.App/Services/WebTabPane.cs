@@ -29,7 +29,7 @@ public sealed class WebTabPane : UserControl, IDisposable
         var controls = new Control[] { _back, _forward, _reload, _address, _external, _edit };
         for (var i = 0; i < controls.Length; i++) { toolbar.ColumnDefinitions.Add(new ColumnDefinition { Width = i == 3 ? new GridLength(1, GridUnitType.Star) : GridLength.Auto }); Grid.SetColumn(controls[i], i); toolbar.Children.Add(controls[i]); controls[i].Margin = new Thickness(0, 0, i == 5 ? 0 : 6, 0); }
         foreach (var b in new[] { _back, _forward, _reload, _external, _edit }) { b.Width = 32; b.Height = 32; b.Padding = new Thickness(0); b.HorizontalContentAlignment = HorizontalAlignment.Center; b.VerticalContentAlignment = VerticalAlignment.Center; }
-        _back.Content = "←"; _forward.Content = "→"; _reload.Content = "↻"; _external.Content = "↗"; _edit.Content = "⋯";
+        _back.Content = new Meili.App.Views.Controls.LucideIcon { Kind = "ArrowLeft" }; _forward.Content = new Meili.App.Views.Controls.LucideIcon { Kind = "ArrowRight" }; _reload.Content = new Meili.App.Views.Controls.LucideIcon { Kind = "Refresh" }; _external.Content = new Meili.App.Views.Controls.LucideIcon { Kind = "ExternalLink" }; _edit.Content = new Meili.App.Views.Controls.LucideIcon { Kind = "More" };
         DockPanel.SetDock(toolbar, Dock.Top); root.Children.Add(toolbar); DockPanel.SetDock(_status, Dock.Top); root.Children.Add(_status); root.Children.Add(_web); Content = root;
         _status.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorSecondaryBrush");
         _back.Click += (_, _) => { if (_ready && _web.CanGoBack) _web.GoBack(); }; _forward.Click += (_, _) => { if (_ready && _web.CanGoForward) _web.GoForward(); }; _reload.Click += (_, _) => { if (_ready) _web.Reload(); };

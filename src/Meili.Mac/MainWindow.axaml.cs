@@ -21,7 +21,6 @@ public partial class MainWindow : Window
         AppPage.News, AppPage.Alerts, AppPage.DataSources, AppPage.Settings,
     ];
 
-    private static readonly string[] Glyphs = ["⌂", "☆", "▤", "▦", "↗", "≡", "⚑", "⇄", "⚙"];
 
     private readonly SettingsStore _settings = AppServices.Get<SettingsStore>();
     private readonly MacTheme _theme = AppServices.Get<MacTheme>();
@@ -33,14 +32,11 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _bannerTimer = new(DispatcherPriority.Background) { Interval = TimeSpan.FromSeconds(12) };
     private bool _allowClose;
     private bool _asking;
-    private bool _syncingNav;
 
     public MainWindow()
     {
         InitializeComponent();
         DataContext = AppServices.Get<ShellViewModel>();
-        foreach (var (page, i) in PageOrder.Select((p, i) => (p, i)))
-            Nav.Items.Add(NavItem(page, Glyphs[i]));
         SetupWorkspace();
         RestorePlacement();
         var hub = AppServices.Get<NavigationHub>();
@@ -67,32 +63,13 @@ public partial class MainWindow : Window
 
     public static string TitleKey(AppPage page) => "Nav_" + page;
 
-    private static ListBoxItem NavItem(AppPage page, string glyph)
-    {
-        var text = new TextBlock { VerticalAlignment = VerticalAlignment.Center };
-        text[!TextBlock.TextProperty] = text.GetResourceObservable(TitleKey(page)).ToBinding();
-        return new ListBoxItem
-        {
-            Tag = page,
-            Content = new StackPanel
-            {
-                Orientation = Orientation.Horizontal,
-                Spacing = 10,
-                Children = { new TextBlock { Text = glyph, Width = 18, TextAlignment = Avalonia.Media.TextAlignment.Center }, text },
-            },
-        };
-    }
-
     public void Navigate(AppPage page)
     {
         if (!_pages.TryGetValue(page, out var view))
             _pages[page] = view = CreatePage(page);
-        ShowMarketWorkspace();
         CurrentPage = page;
+        ShowMarketWorkspace();
         PageHost.Content = view;
-        _syncingNav = true;
-        Nav.SelectedIndex = PageOrder.ToList().IndexOf(page);
-        _syncingNav = false;
     }
 
     private static Control CreatePage(AppPage page) => page switch
@@ -107,12 +84,6 @@ public partial class MainWindow : Window
         AppPage.DataSources => new DataSourcesPage(),
         _ => new SettingsPage(),
     };
-
-    private void OnNavSelected(object? sender, SelectionChangedEventArgs e)
-    {
-        if (_syncingNav || Nav.SelectedItem is not ListBoxItem { Tag: AppPage page }) return;
-        Navigate(page);
-    }
 
     private void OnNavigateRequested(NavigationRequest e)
     {

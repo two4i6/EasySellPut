@@ -9,3 +9,6 @@ tests/**/Fixtures/** -text
 
 # Preserve the verified upstream TradingView distribution bytes.
 src/Meili.Shared/WebCharts/vendor/** -text
+
+# Preserve the pinned Lucide SVG and license bytes used by integrity checks.
+src/Meili.Shared/Assets/NavigationIcons/** -text

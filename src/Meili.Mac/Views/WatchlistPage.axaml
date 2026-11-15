@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:lucide="using:Meili.Mac.Views.Controls"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Meili.Shared.ViewModels"
              xmlns:models="using:Meili.Core.Models"
              xmlns:local="using:Meili.Mac.Views"
@@ -51,8 +52,8 @@
             <DockPanel Margin="0,0,0,8">
                 <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding ExportCommand}" Content="{DynamicResource Wl_Export}" />
                 <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding RefreshCommand}" Content="{DynamicResource Wl_Refresh}" />
-                <Button Classes="Icon" DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding MoveDownCommand}" Content="↓" ToolTip.Tip="{DynamicResource Wl_MoveDown}" />
-                <Button Classes="Icon" DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding MoveUpCommand}" Content="↑" ToolTip.Tip="{DynamicResource Wl_MoveUp}" />
+                <Button Classes="Icon" DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding MoveDownCommand}" ToolTip.Tip="{DynamicResource Wl_MoveDown}" ><lucide:LucideIcon Kind="ArrowDown"/></Button>
+                <Button Classes="Icon" DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding MoveUpCommand}" ToolTip.Tip="{DynamicResource Wl_MoveUp}" ><lucide:LucideIcon Kind="ArrowUp"/></Button>
                 <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding RemoveSelectedCommand}" Content="{DynamicResource Wl_Remove}" />
                 <Button DockPanel.Dock="Right" Margin="8,0,0,0" Classes="Accent" Command="{Binding AddCommand}" Content="{DynamicResource Wl_Add}" />
                 <Panel>

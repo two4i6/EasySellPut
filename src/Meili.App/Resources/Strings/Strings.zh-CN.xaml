@@ -839,7 +839,7 @@
     <sys:String x:Key="Upd_Check">检查更新</sys:String>
     <sys:String x:Key="Upd_Download">下载更新</sys:String>
     <sys:String x:Key="Upd_Install">安装并重启</sys:String>
-    <sys:String x:Key="Upd_History">版本历史 ↗</sys:String>
+    <sys:String x:Key="Upd_History">版本历史</sys:String>
     <sys:String x:Key="Upd_Notes">更新内容</sys:String>
     <sys:String x:Key="Upd_Cancel">取消</sys:String>
     <sys:String x:Key="Upd_Idle">手动检查新版本</sys:String>

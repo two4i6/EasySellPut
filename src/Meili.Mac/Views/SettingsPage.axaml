@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:lucide="using:Meili.Mac.Views.Controls"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Meili.Shared.ViewModels"
              xmlns:sp="using:ScottPlot.Avalonia"
              xmlns:local="using:Meili.Mac.Views"
@@ -32,13 +33,13 @@
                             <Button Classes="Accent" Content="{DynamicResource Upd_Download}" Command="{Binding DownloadUpdateCommand}" IsVisible="{Binding ShowDownloadUpdate}" Margin="0,0,8,0"/>
                             <Button Classes="Accent" Content="{DynamicResource Upd_Install}" Command="{Binding InstallUpdateCommand}" IsVisible="{Binding ShowInstallUpdate}" Margin="0,0,8,0"/>
                             <Button Classes="Subtle" Content="{DynamicResource Upd_OpenDownload}" Command="{Binding OpenUpdateFolderCommand}" IsVisible="{Binding ShowUpdateFolder}" Margin="0,0,8,0"/>
-                            <Button Classes="Subtle" Content="{DynamicResource Upd_History}" Command="{Binding OpenUpdateHistoryCommand}"/>
+                            <Button Classes="Subtle" Command="{Binding OpenUpdateHistoryCommand}"><StackPanel Orientation="Horizontal"><TextBlock Text="{DynamicResource Upd_History}" VerticalAlignment="Center"/><lucide:LucideIcon Kind="ExternalLink" Width="14" Height="14" Margin="6,0,0,0"/></StackPanel></Button>
                         </WrapPanel>
                         <StackPanel Margin="0,0,12,0"><TextBlock Classes="CardTitle" Text="{DynamicResource Upd_Title}"/><TextBlock Classes="Caption" Text="{Binding UpdateVersionLine}" Margin="0,4,0,0"/></StackPanel>
                     </DockPanel>
                     <TextBlock Classes="Caption" Text="{Binding UpdateStatusText}" TextWrapping="Wrap"/>
                     <DockPanel IsVisible="{Binding ShowUpdateProgress}">
-                        <Button Classes="Subtle Icon" Width="24" Height="24" MinWidth="24" MinHeight="24" DockPanel.Dock="Right" Content="×" Command="{Binding CancelUpdateCommand}" AutomationProperties.Name="{DynamicResource Upd_Cancel}" ToolTip.Tip="{DynamicResource Upd_Cancel}" Margin="8,0,0,0"/>
+                        <Button Classes="Subtle Icon" Width="24" Height="24" MinWidth="24" MinHeight="24" DockPanel.Dock="Right" Command="{Binding CancelUpdateCommand}" AutomationProperties.Name="{DynamicResource Upd_Cancel}" ToolTip.Tip="{DynamicResource Upd_Cancel}" Margin="8,0,0,0"><lucide:LucideIcon Kind="Close"/></Button>
                         <ProgressBar Minimum="0" Maximum="100" Value="{Binding UpdateProgress}" IsIndeterminate="{Binding IsUpdateIndeterminate}" Height="4" MinHeight="0" VerticalAlignment="Center"/>
                     </DockPanel>
                     <Expander Header="{DynamicResource Upd_Notes}" IsVisible="{Binding HasUpdateNotes}" HorizontalAlignment="Stretch"><TextBlock Text="{Binding UpdateNotes}" FontSize="14" FontWeight="Normal" TextWrapping="Wrap" Margin="0,8,0,0"/></Expander>
@@ -217,15 +218,15 @@
                     <Button Content="{DynamicResource Set_AiUniversal}" Command="{Binding CopyUniversalSetupCommand}" IsEnabled="{Binding CanConnectAi}" HorizontalAlignment="Left" Margin="0,0,0,8"/>
                     <WrapPanel Margin="0,0,0,8">
                         <TextBlock Classes="Caption" Text="{DynamicResource Set_AiStepCopy}" Margin="0,0,12,0"/>
-                        <TextBlock Classes="Caption" Text="→" Margin="0,0,12,0"/>
+                        <lucide:LucideIcon Kind="ArrowRight"   Margin="0,0,12,0"/>
                         <TextBlock Classes="Caption" Text="{Binding AiTerminalLabel}" Margin="0,0,12,0"/>
-                        <TextBlock Classes="Caption" Text="→" Margin="0,0,12,0"/>
+                        <lucide:LucideIcon Kind="ArrowRight"   Margin="0,0,12,0"/>
                         <TextBlock Classes="Caption" Text="{DynamicResource Set_AiStepSession}"/>
                     </WrapPanel>
                     <WrapPanel>
                         <Border Width="280" Padding="12" Margin="0,0,12,8" CornerRadius="6" BorderThickness="1" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" Background="{DynamicResource ControlFillColorSecondaryBrush}">
                             <StackPanel>
-                                <DockPanel Margin="0,0,0,12"><Button DockPanel.Dock="Right" Classes="Icon" Content="?" Width="24" Height="24" MinWidth="24" MinHeight="24" Command="{Binding OpenAiHelpCommand}" CommandParameter="codex" AutomationProperties.Name="{DynamicResource Set_AiHelp}" ToolTip.Tip="{DynamicResource Set_AiHelp}" Margin="8,0,0,0"/><TextBlock DockPanel.Dock="Right" Classes="Caption" Text="{Binding CodexAvailability}" VerticalAlignment="Center"/><TextBlock Classes="CardTitle" FontSize="16" Text="Codex"/></DockPanel>
+                                <DockPanel Margin="0,0,0,12"><Button DockPanel.Dock="Right" Classes="Icon" Width="24" Height="24" MinWidth="24" MinHeight="24" Command="{Binding OpenAiHelpCommand}" CommandParameter="codex" AutomationProperties.Name="{DynamicResource Set_AiHelp}" ToolTip.Tip="{DynamicResource Set_AiHelp}" Margin="8,0,0,0"><lucide:LucideIcon Kind="Help"/></Button><TextBlock DockPanel.Dock="Right" Classes="Caption" Text="{Binding CodexAvailability}" VerticalAlignment="Center"/><TextBlock Classes="CardTitle" FontSize="16" Text="Codex"/></DockPanel>
                                 <WrapPanel>
                                     <Button x:Name="ConnectCodex" Content="{DynamicResource Set_AiCodex}" Command="{Binding CopyCodexCommand}" IsEnabled="{Binding CanConnectAi}" AutomationProperties.AutomationId="ConnectCodex" Margin="0,0,8,0"/>
                                     <Button Content="{DynamicResource Set_AiPrompt}" Command="{Binding CopyAiPromptCommand}" CommandParameter="codex" IsEnabled="{Binding CanConnectAi}"/>
@@ -234,7 +235,7 @@
                         </Border>
                         <Border Width="280" Padding="12" Margin="0,0,12,8" CornerRadius="6" BorderThickness="1" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" Background="{DynamicResource ControlFillColorSecondaryBrush}">
                             <StackPanel>
-                                <DockPanel Margin="0,0,0,12"><Button DockPanel.Dock="Right" Classes="Icon" Content="?" Width="24" Height="24" MinWidth="24" MinHeight="24" Command="{Binding OpenAiHelpCommand}" CommandParameter="claude-code" AutomationProperties.Name="{DynamicResource Set_AiHelp}" ToolTip.Tip="{DynamicResource Set_AiHelp}" Margin="8,0,0,0"/><TextBlock DockPanel.Dock="Right" Classes="Caption" Text="{Binding ClaudeAvailability}" VerticalAlignment="Center"/><TextBlock Classes="CardTitle" FontSize="16" Text="Claude Code"/></DockPanel>
+                                <DockPanel Margin="0,0,0,12"><Button DockPanel.Dock="Right" Classes="Icon" Width="24" Height="24" MinWidth="24" MinHeight="24" Command="{Binding OpenAiHelpCommand}" CommandParameter="claude-code" AutomationProperties.Name="{DynamicResource Set_AiHelp}" ToolTip.Tip="{DynamicResource Set_AiHelp}" Margin="8,0,0,0"><lucide:LucideIcon Kind="Help"/></Button><TextBlock DockPanel.Dock="Right" Classes="Caption" Text="{Binding ClaudeAvailability}" VerticalAlignment="Center"/><TextBlock Classes="CardTitle" FontSize="16" Text="Claude Code"/></DockPanel>
                                 <WrapPanel>
                                     <Button x:Name="ConnectClaude" Content="{DynamicResource Set_AiClaude}" Command="{Binding CopyClaudeCommand}" IsEnabled="{Binding CanConnectAi}" AutomationProperties.AutomationId="ConnectClaude" Margin="0,0,8,0"/>
                                     <Button Content="{DynamicResource Set_AiPrompt}" Command="{Binding CopyAiPromptCommand}" CommandParameter="claude-code" IsEnabled="{Binding CanConnectAi}"/>

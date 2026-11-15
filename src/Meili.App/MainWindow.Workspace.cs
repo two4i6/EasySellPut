@@ -15,26 +15,16 @@ public partial class MainWindow
     private WebWorkspace? _workspace;
     private string? _activeWebsite;
     private readonly Dictionary<string, WebTabPane> _webTabs = [];
-    private bool _syncingChannels;
-    private static readonly AppPage[] ChannelPages = Enum.GetValues<AppPage>();
+    private static readonly AppPage[] BuiltinPages = Enum.GetValues<AppPage>();
     private void SetupWorkspace()
     {
-        var glyphs = new[] { "⌂", "☆", "▤", "▦", "↗", "≡", "⚑", "⇄", "⚙" };
-        foreach (var page in ChannelPages)
-        {
-            var item = new ListBoxItem { Tag = page, Style = (Style)FindResource("WorkspaceChannel"), Margin = new Thickness(6, 2, 6, 2), Padding = new Thickness(12, 8, 12, 8) };
-            var row = new StackPanel { Orientation = Orientation.Horizontal };
-            var glyph = new TextBlock { Text = glyphs[Array.IndexOf(ChannelPages, page)], Width = 22, FontSize = 14, VerticalAlignment = VerticalAlignment.Center };
-            glyph.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorSecondaryBrush");
-            var title = new TextBlock { VerticalAlignment = VerticalAlignment.Center }; title.SetResourceReference(TextBlock.TextProperty, "Nav_" + page);
-            row.Children.Add(glyph); row.Children.Add(title); item.Content = row; ChannelNav.Items.Add(item);
-        }
+        SetupStatusIcons(); RebuildBuiltinRail();
         try { _workspace = new WebWorkspace(AppServices.DataDirectory.Path); }
         catch (Exception ex) when (ex is IOException or System.Text.Json.JsonException or ArgumentException)
         { Meili.Core.Diagnostics.AppLog.Warn("web-workspace", "Workspace could not be loaded", ex); AddWebsite.IsEnabled = false; AddWebsite.ToolTip = _loc["Web_Failed"]; }
         _loc.LanguageChanged += WorkspaceLanguageChanged;
         RebuildWebsiteRail(); MotionButton.IsChecked = _workspace?.ReduceMotion == true;
-        AnimateTile(HomeWorkspace); AnimateTile(AddWebsite); AnimateTile(MotionButton);
+        AnimateTile(HomeWorkspace); AnimateTile(AddWebsite);
         PreviewKeyDown += (_, e) =>
         {
             if ((Keyboard.Modifiers & ModifierKeys.Control) == 0) return;
@@ -43,7 +33,38 @@ public partial class MainWindow
         };
         Closed += (_, _) => { _loc.LanguageChanged -= WorkspaceLanguageChanged; foreach (var pane in _webTabs.Values) pane.Dispose(); _webTabs.Clear(); };
     }
-    private void WorkspaceLanguageChanged(object? sender, EventArgs e) => RebuildWebsiteRail();
+    private void WorkspaceLanguageChanged(object? sender, EventArgs e) { RebuildBuiltinRail(); RebuildWebsiteRail(); }
+    private void RebuildBuiltinRail()
+    {
+        BuiltinRail.Children.Clear();
+        foreach(var page in BuiltinPages.Where(p => p is not (AppPage.Dashboard or AppPage.Settings)))
+        {
+            var tile = new ToggleButton { Tag=page, Style=(Style)FindResource("WorkspaceTile") };
+            tile.Content=CreateNavigationIcon(NavigationIcons.For(page),tile);
+            var title=_loc["Nav_"+page];tile.ToolTip=title+" · Ctrl+"+(Array.IndexOf(BuiltinPages,page)+1);
+            System.Windows.Automation.AutomationProperties.SetName(tile,title);System.Windows.Automation.AutomationProperties.SetAutomationId(tile,"Navigate-"+page);
+            tile.Click += (_,_) => { ShowMarketWorkspace();RootNavigation.Navigate(PageType(page));SyncMarketNavigation(); };
+            AnimateTile(tile);BuiltinRail.Children.Add(tile);
+        }
+        SelectBuiltinPage();
+    }
+    private void SelectBuiltinPage()
+    {
+        var page=Array.Find(BuiltinPages,p=>PageType(p)==_currentPage?.GetType());
+        HomeWorkspace.IsChecked=_activeWebsite is null && page==AppPage.Dashboard;
+        SettingsButton.IsChecked=_activeWebsite is null && page==AppPage.Settings;
+        foreach(var tile in BuiltinRail.Children.OfType<ToggleButton>())tile.IsChecked=_activeWebsite is null && Equals(tile.Tag,page);
+    }
+    private static Viewbox CreateNavigationIcon(string data,Control owner,double size=24) => Meili.App.Views.Controls.LucideIcon.View(data,owner,size);
+    private void SetupStatusIcons()
+    {
+        AddWebsite.Content=CreateNavigationIcon(NavigationIcons.Add,AddWebsite);
+        SettingsButton.Content=CreateNavigationIcon(NavigationIcons.Settings,SettingsButton,18);
+        LanguageButton.Content=CreateNavigationIcon(NavigationIcons.Language,LanguageButton,18);
+        ThemeButton.Content=CreateNavigationIcon(NavigationIcons.Theme,ThemeButton,18);
+        MotionButton.Content=CreateNavigationIcon(NavigationIcons.Motion,MotionButton,18);
+    }
+    private void OnSettings(object sender,RoutedEventArgs e) { ShowMarketWorkspace();RootNavigation.Navigate(PageType(AppPage.Settings));SyncMarketNavigation(); }
     private void RebuildWebsiteRail()
     {
         WebsiteRail.Children.Clear();
@@ -95,26 +116,17 @@ public partial class MainWindow
         // Detach the native page router: chart WebViews/activation loops receive their normal Unloaded lifecycle.
         NativePageHost.Children.Remove(RootNavigation); WebTabHost.Visibility = Visibility.Visible;
         foreach (var (id, view) in _webTabs) view.Visibility = id == tab.Id ? Visibility.Visible : Visibility.Collapsed;
-        HomeWorkspace.IsChecked = false; _syncingChannels = true; ChannelNav.SelectedIndex = -1; _syncingChannels = false;
+        SelectBuiltinPage();
         foreach (var button in WebsiteRail.Children.OfType<ToggleButton>()) button.IsChecked = Equals(button.Tag, tab.Id);
     }
     private void ShowMarketWorkspace()
     {
-        _activeWebsite = null; WebTabHost.Visibility = Visibility.Collapsed; HomeWorkspace.IsChecked = true;
+        _activeWebsite = null; WebTabHost.Visibility = Visibility.Collapsed; SelectBuiltinPage();
         if (!NativePageHost.Children.Contains(RootNavigation)) NativePageHost.Children.Add(RootNavigation);
         foreach (var button in WebsiteRail.Children.OfType<ToggleButton>()) button.IsChecked = false;
     }
-    private void SyncMarketNavigation()
-    {
-        ShowMarketWorkspace(); _syncingChannels = true;
-        ChannelNav.SelectedIndex = Array.FindIndex(ChannelPages, p => PageType(p) == _currentPage?.GetType()); _syncingChannels = false;
-    }
-    private void OnChannelSelected(object sender, SelectionChangedEventArgs e)
-    {
-        if (_syncingChannels || ChannelNav.SelectedItem is not ListBoxItem { Tag: AppPage page }) return;
-        ShowMarketWorkspace(); RootNavigation.Navigate(PageType(page));
-    }
-    private void OnHomeWorkspace(object sender, RoutedEventArgs e) => SyncMarketNavigation();
+    private void SyncMarketNavigation() { ShowMarketWorkspace(); SelectBuiltinPage(); }
+    private void OnHomeWorkspace(object sender, RoutedEventArgs e) { ShowMarketWorkspace(); RootNavigation.Navigate(PageType(AppPage.Dashboard)); SyncMarketNavigation(); }
     private void OnAddWebsite(object sender, RoutedEventArgs e) { AddWebsite.IsChecked = false; EditWebsite(null); }
     private void OnToggleMotion(object sender, RoutedEventArgs e)
     {

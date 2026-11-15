@@ -54,7 +54,7 @@
       let qty=row.querySelector('input');if(!qty){qty=element('input');qty.type='number';qty.min='1';qty.step='1';qty.dataset.mutation='true';qty.addEventListener('change',()=>{const quantity=Number(qty.value);if(!Number.isInteger(quantity)||quantity<1||quantity>Number(qty.max)){qty.value=state.legs.find(l=>l.id===leg.id)?.quantity??'1';message(label('Unavailable'));return;}send({kind:'edit-leg',id:leg.id,field:'quantity',quantity});});row.children[2].append(qty);}
       qty.max=leg.type==='Stock'?'1000000':'1000';qty.setAttribute('aria-label',label('Quantity'));if(document.activeElement!==qty)qty.value=leg.quantity;
       row.children[3].textContent=leg.premium;
-      row.children[4].replaceChildren(button('×',()=>send({kind:'edit-leg',id:leg.id,field:'remove'})));row.children[4].firstChild.setAttribute('aria-label',label('Remove'));
+      row.children[4].replaceChildren(button('',()=>send({kind:'edit-leg',id:leg.id,field:'remove'})));row.children[4].firstChild.append(meiliIcons.svg('Trash',16));row.children[4].firstChild.setAttribute('aria-label',label('Remove'));
       body.append(row);existing.delete(leg.id);
     }
     for(const row of existing.values())row.remove();text('legsEmpty',state.legs.length?'':label('Empty'));$('legsEmpty').hidden=state.legs.length>0;

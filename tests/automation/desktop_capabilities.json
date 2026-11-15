@@ -310,7 +310,7 @@
         "get_quotes",
         "get_watchlists"
       ],
-      "scope": "Shell window/navigation actions are UI-only. Discord-style workspace rails, local web-workspace.json bookmarks/order/motion preferences, unprivileged browser tab navigation and tab management are desktop presentation, not market operations; intentionally no CLI/MCP arbitrary-URL browser execution, session/cookie access or window controls. The macOS shell MenuBarQuoteController presents quotes and watchlist choices through the existing QuoteHub; status-item rendering, current-symbol selection, hide/show and native lifecycle have no MCP window-control tools.",
+      "scope": "Shell window/navigation actions are UI-only. The single Discord-style rail for built-in pages and websites, local web-workspace.json bookmarks/order/motion preferences, unprivileged browser tab navigation and tab management are desktop presentation, not market operations; intentionally no CLI/MCP arbitrary-URL browser execution, session/cookie access or window controls. The macOS shell MenuBarQuoteController presents quotes and watchlist choices through the existing QuoteHub; status-item rendering, current-symbol selection, hide/show and native lifecycle have no MCP window-control tools.",
       "commands": {
         "CopyMcpSetupAsync": {
           "uiOnly": "Copies harness-neutral read-only MCP and skill setup instructions to the clipboard; local diagnostic status is not market health or authorization."
