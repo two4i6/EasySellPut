@@ -1,6 +1,6 @@
 {
   "base": "1227a79756ecd673279f888ae982692c6361f449",
-  "head": "e9d4c5a7d5150383b3370ef4123a620387c766cc",
+  "head": "045f680286c5a87fd566bc3d64873c5b25311380",
   "files": [
     {
       "path": ".gitattributes",
@@ -405,6 +405,12 @@
       "deleted": 0
     },
     {
+      "path": "docs/46-图表单行状态栏.md",
+      "oldPath": null,
+      "added": 9,
+      "deleted": 0
+    },
+    {
       "path": "docs/mcp-config.example.json",
       "oldPath": null,
       "added": 8,
@@ -420,6 +426,12 @@
       "path": "docs/mcp-config.windows.example.json",
       "oldPath": null,
       "added": 11,
+      "deleted": 0
+    },
+    {
+      "path": "docs/pr-review/current-diff-inventory.json",
+      "oldPath": null,
+      "added": 2820,
       "deleted": 0
     },
     {
@@ -449,7 +461,7 @@
     {
       "path": "docs/pr-review/screenshots.json",
       "oldPath": null,
-      "added": 472,
+      "added": 522,
       "deleted": 0
     },
     {
@@ -472,6 +484,12 @@
     },
     {
       "path": "docs/pr-review/screenshots/background-restored.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/desktop-smoke-news-split-full-desktop.png",
       "oldPath": null,
       "added": null,
       "deleted": null
@@ -538,6 +556,30 @@
     },
     {
       "path": "docs/pr-review/screenshots/mac-components-zh-CN-True.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/mac-update-notification-dialog-en-US-True.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/mac-update-notification-dialog-zh-CN-False.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/mac-update-notification-footer-en-US-True.png",
+      "oldPath": null,
+      "added": null,
+      "deleted": null
+    },
+    {
+      "path": "docs/pr-review/screenshots/mac-update-notification-footer-zh-CN-False.png",
       "oldPath": null,
       "added": null,
       "deleted": null
@@ -821,13 +863,13 @@
     {
       "path": "src/Meili.App/Resources/Strings/Strings.en-US.xaml",
       "oldPath": null,
-      "added": 204,
+      "added": 205,
       "deleted": 5
     },
     {
       "path": "src/Meili.App/Resources/Strings/Strings.zh-CN.xaml",
       "oldPath": null,
-      "added": 203,
+      "added": 204,
       "deleted": 4
     },
     {
@@ -983,7 +1025,7 @@
     {
       "path": "src/Meili.App/Views/Pages/ChartsPage.xaml",
       "oldPath": null,
-      "added": 135,
+      "added": 137,
       "deleted": 183
     },
     {
@@ -1433,8 +1475,8 @@
     {
       "path": "src/Meili.Mac/Views/ChartsPage.axaml",
       "oldPath": null,
-      "added": 124,
-      "deleted": 110
+      "added": 127,
+      "deleted": 111
     },
     {
       "path": "src/Meili.Mac/Views/ChartsPage.axaml.cs",
@@ -2171,7 +2213,7 @@
     {
       "path": "src/Meili.Shared/WebCharts/chart.js",
       "oldPath": null,
-      "added": 530,
+      "added": 531,
       "deleted": 0
     },
     {
@@ -2195,7 +2237,7 @@
     {
       "path": "src/Meili.Shared/WebCharts/index.html",
       "oldPath": null,
-      "added": 87,
+      "added": 86,
       "deleted": 0
     },
     {
@@ -2250,6 +2292,12 @@
       "path": "tests/Meili.App.Tests/BackgroundLifecycleTests.cs",
       "oldPath": null,
       "added": 25,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.App.Tests/ChartFooterTests.cs",
+      "oldPath": null,
+      "added": 40,
       "deleted": 0
     },
     {
@@ -2424,6 +2472,12 @@
       "path": "tests/Meili.Mac.Tests/ButtonAlignmentTests.cs",
       "oldPath": null,
       "added": 93,
+      "deleted": 0
+    },
+    {
+      "path": "tests/Meili.Mac.Tests/ChartFooterTests.cs",
+      "oldPath": null,
+      "added": 40,
       "deleted": 0
     },
     {
@@ -2783,7 +2837,7 @@
     {
       "path": "tests/webcharts/test_renderer.py",
       "oldPath": null,
-      "added": 157,
+      "added": 159,
       "deleted": 0
     },
     {
