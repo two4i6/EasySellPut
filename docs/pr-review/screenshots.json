@@ -468,5 +468,55 @@
     "fixture": true,
     "renderer": "Chromium with private C# test host",
     "sha256": "9d7749a420e3c7676a382455e750dc34e7f89e4f41fe34df1226eaed96e0d6e1"
+  },
+  {
+    "file": "desktop-smoke-news-split-full-desktop.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Windows native WebView2 / desktop GDI capture: CI 43752210963 / e2f4e54",
+    "sha256": "2def589d5c114a458cd51a13e35d2aebecf4fcfbe18cdc4f12aaa0c409c8b41b"
+  },
+  {
+    "file": "mac-update-notification-dialog-zh-CN-False.png",
+    "width": 520,
+    "height": 353,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Avalonia headless Skia: native controls; natural-size dialog or actual Full HD main window",
+    "sha256": "2d49907449538497126e84764d317e9b5c1234aa93b74d5089603e39a0054ad2"
+  },
+  {
+    "file": "mac-update-notification-dialog-en-US-True.png",
+    "width": 520,
+    "height": 345,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Avalonia headless Skia: native controls; natural-size dialog or actual Full HD main window",
+    "sha256": "855c68f81ec8fd75963ba5d65d99abc2564c680122af86c2a31ba992ac923524"
+  },
+  {
+    "file": "mac-update-notification-footer-zh-CN-False.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Avalonia headless Skia: native controls; natural-size dialog or actual Full HD main window",
+    "sha256": "435e16cee7945998a8dce9dcb42ac5ddc291492665f9f17755a4e0e703e43ab5"
+  },
+  {
+    "file": "mac-update-notification-footer-en-US-True.png",
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1,
+    "upscaled": false,
+    "fixture": true,
+    "renderer": "Avalonia headless Skia: native controls; natural-size dialog or actual Full HD main window",
+    "sha256": "1362a983b2842abda48a75bcd9d57a404ae7c319689833058027ecb5d05aba2c"
   }
 ]
