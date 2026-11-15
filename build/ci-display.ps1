@@ -19,23 +19,22 @@ public static class CiDisplay {
     public static extern bool EnumDisplaySettings(string device, int mode, ref Mode value);
     [DllImport("user32.dll", CharSet=CharSet.Unicode)]
     public static extern int ChangeDisplaySettings(ref Mode mode, uint flags);
+    [DllImport("user32.dll")]
+    public static extern int GetSystemMetrics(int index);
 }
 '@
 $current = New-Object CiDisplay+Mode
 $current.Size = 220
-if (-not [CiDisplay]::EnumDisplaySettings($null, -1, [ref]$current)) {
-    throw 'Cannot inspect the native test desktop.'
-}
+# Hosted runner sessions may expose no enumerated display device. A minimal
+# DEVMODE request is still valid; GetSystemMetrics records the actual pixels.
+$null = [CiDisplay]::EnumDisplaySettings($null, -1, [ref]$current)
 $current.Width = 1920
 $current.Height = 1080
 $current.Fields = 0x180000 # DM_PELSWIDTH | DM_PELSHEIGHT
 $result = [CiDisplay]::ChangeDisplaySettings([ref]$current, 0)
-$actual = New-Object CiDisplay+Mode
-$actual.Size = 220
-if (-not [CiDisplay]::EnumDisplaySettings($null, -1, [ref]$actual)) {
-    throw 'Cannot inspect the configured native test desktop.'
-}
-Write-Host "Native desktop: $($actual.Width)x$($actual.Height); display result: $result"
-if ($actual.Width -ne 1920 -or $actual.Height -ne 1080) {
+$width = [CiDisplay]::GetSystemMetrics(0)
+$height = [CiDisplay]::GetSystemMetrics(1)
+Write-Host "Native desktop: ${width}x${height}; display result: $result"
+if ($width -ne 1920 -or $height -ne 1080) {
     Write-Warning 'Runner did not accept Full HD. Keep actual dimensions in evidence; never upscale.'
 }
