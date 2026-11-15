@@ -14,8 +14,9 @@ public sealed class AppLoading : Border
         ClipToBounds=true;_bar.ClipToBounds=true;Width=48;Height=16;VerticalAlignment=VerticalAlignment.Center;Child=new Grid{Children={_bar,_rest}};
         _rest.SetResourceReference(BackgroundProperty,"BrandBrush");
         SetResourceReference(AutomationProperties.NameProperty,"Reader_Loading");
-        Loaded+=(_,_)=>{DesignMotion.Changed+=MotionChanged;Refresh();};Unloaded+=(_,_)=>DesignMotion.Changed-=MotionChanged;
+        Loaded+=(_,_)=>{DesignMotion.Changed+=MotionChanged;Refresh();};Unloaded+=(_,_)=>{DesignMotion.Changed-=MotionChanged;_bar.IsIndeterminate=false;};
+        IsVisibleChanged+=(_,_)=>Refresh();
     }
     private void MotionChanged(object? sender,EventArgs e)=>Refresh();
-    private void Refresh(){_bar.IsIndeterminate=!DesignMotion.Reduced;_bar.Visibility=DesignMotion.Reduced?Visibility.Collapsed:Visibility.Visible;_rest.Visibility=DesignMotion.Reduced?Visibility.Visible:Visibility.Collapsed;}
+    private void Refresh(){_bar.IsIndeterminate=IsLoaded&&IsVisible&&!DesignMotion.Reduced;_bar.Visibility=DesignMotion.Reduced?Visibility.Collapsed:Visibility.Visible;_rest.Visibility=DesignMotion.Reduced?Visibility.Visible:Visibility.Collapsed;}
 }

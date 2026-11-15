@@ -92,7 +92,7 @@ public partial class WatchlistViewModel : ObservableObject
         _active = false;
         _hub.Updated -= OnBatch;
         _hub.Unsubscribe(Owner);
-        _searchDebounce.Stop();
+        _searchDebounce.Stop();_flash.Stop();foreach(var row in Rows)row.IsFlashing=false;
         _refreshCts?.Cancel();
         _searchCts?.Cancel();
     }

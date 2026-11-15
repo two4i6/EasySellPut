@@ -17,8 +17,9 @@ public sealed class AppLoading : Border
         _rest[!BackgroundProperty]=this.GetResourceObservable("BrandBrush").ToBinding();
         this[!AutomationProperties.NameProperty]=this.GetResourceObservable("Reader_Loading").ToBinding();
         AttachedToVisualTree+=(_,_)=>{DesignMotion.Changed+=MotionChanged;Refresh();};
-        DetachedFromVisualTree+=(_,_)=>DesignMotion.Changed-=MotionChanged;
+        DetachedFromVisualTree+=(_,_)=>{DesignMotion.Changed-=MotionChanged;_bar.IsIndeterminate=false;};
+        PropertyChanged+=(_,e)=>{if(e.Property==IsVisibleProperty)Refresh();};
     }
     private void MotionChanged(object? sender,EventArgs e)=>Refresh();
-    private void Refresh(){_bar.IsIndeterminate=!DesignMotion.Reduced;_bar.IsVisible=!DesignMotion.Reduced;_rest.IsVisible=DesignMotion.Reduced;}
+    private void Refresh(){_bar.IsIndeterminate=VisualRoot is not null&&IsEffectivelyVisible&&!DesignMotion.Reduced;_bar.IsVisible=!DesignMotion.Reduced;_rest.IsVisible=DesignMotion.Reduced;}
 }

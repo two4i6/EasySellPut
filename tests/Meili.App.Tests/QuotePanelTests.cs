@@ -11,7 +11,7 @@ public sealed class QuotePanelTests
     {
         WpfHost.Run(async()=>
         {
-            ScreenRenderTests.Apply("en-US",true);var data=new FakeMarketDataService();var hub=new QuoteHub(data);var settings=new SettingsStore(Path.Combine(Path.GetTempPath(),"quote-panel-"+Guid.NewGuid()));var watch=new WatchlistStore(settings);var context=new SymbolContext();context.Set("AAPL");
+            ScreenRenderTests.Apply("en-US",true);var data=new QuotePanelMarketData();var hub=new QuoteHub(data);var settings=new SettingsStore(Path.Combine(Path.GetTempPath(),"quote-panel-"+Guid.NewGuid()));var watch=new WatchlistStore(settings);var context=new SymbolContext();context.Set("AAPL");
             using var model=new QuotePanelViewModel(hub,data,watch,context,LocalizationService.Current);var panel=new QuotePanelWindow(model,_=>{},()=>{},()=>{});
             try{await panel.ShowPanelAsync();await WpfHost.Settle();Assert.True(panel.IsVisible);Assert.Equal(6,model.Rows.Count);Assert.Equal(6,hub.SubscribedSymbols.Count);
             var workspace=Environment.GetEnvironmentVariable("GITHUB_WORKSPACE");var directory=Environment.GetEnvironmentVariable("MEILI_RENDER_DIR")??(workspace is null?null:Path.Combine(workspace,"build","out","ci"));

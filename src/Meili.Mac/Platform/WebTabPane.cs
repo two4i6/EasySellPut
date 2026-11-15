@@ -37,6 +37,8 @@ public sealed class WebTabPane : UserControl
         DetachedFromVisualTree += (_, _) => _loc.LanguageChanged -= Relabel;
         _address.Text = url; _web.Navigate(url); Update();
     }
+    public bool IsPresentationPolling=>_web.IsPresentationPolling;
+    public void SetPresentationActive(bool active)=>_web.SetPresentationActive(active);
     public void ReloadPage() => _web.Reload();
     public void FocusAddress() { _address.Focus(); _address.SelectAll(); }
     private void NavigateAddress()

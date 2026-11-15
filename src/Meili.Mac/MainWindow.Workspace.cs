@@ -58,6 +58,7 @@ public partial class MainWindow
         SettingsButton.Content=CreateNavigationIcon(NavigationIcons.Settings,SettingsButton,18);
         LanguageButton.Content=CreateNavigationIcon(NavigationIcons.Language,LanguageButton,18);
         ThemeButton.Content=CreateNavigationIcon(NavigationIcons.Theme,ThemeButton,18);
+        BackgroundButton.Content=CreateNavigationIcon(NavigationIcons.Minus,BackgroundButton,18);
         MotionButton.Content=CreateNavigationIcon(NavigationIcons.Motion,MotionButton,18);
     }
     private void OnSettings(object? sender,RoutedEventArgs e) => Navigate(AppPage.Settings);
@@ -85,7 +86,7 @@ public partial class MainWindow
             WebTabHost.Children.Add(pane);
         }
         _activeWebsite = tab.Id; PageHost.Content = null; WebTabHost.IsVisible = true;
-        foreach (var (id, view) in _webTabs) view.IsVisible = id == tab.Id;
+        foreach (var (id, view) in _webTabs){view.IsVisible = id == tab.Id;view.SetPresentationActive(IsVisible && WindowState!=WindowState.Minimized && id==tab.Id);}
         SelectBuiltinPage();
         foreach (var button in WebsiteRail.Children.OfType<ToggleButton>()) button.IsChecked = Equals(button.Tag, tab.Id);
         ApplyWorkspaceMotion();

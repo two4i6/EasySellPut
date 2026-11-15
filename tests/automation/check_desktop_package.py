@@ -44,7 +44,7 @@ def check(archive,rid,destination):
     if rid.startswith('osx-'):assert_self_contained(cli)
     report=destination.parent/'desktop-smoke.json'
     with tempfile.TemporaryDirectory(prefix='meili desktop data ') as data:
-        result=subprocess.run([str(gui),'--smoke-offline','--no-alerts','--data-dir',data,'--smoke-report',str(report.resolve())],timeout=180)
+        result=subprocess.run([str(gui),'--smoke-offline','--background','--no-alerts','--data-dir',data,'--smoke-report',str(report.resolve())],timeout=180)
         assert result.returncode==0, report.read_text(encoding='utf-8') if report.exists() else 'GUI exited without report'
         evidence=json.loads(report.read_text(encoding='utf-8'));assert evidence['Failures']==0,evidence
     # Exercise the CLI taken from the extracted GUI bundle, not a developer build.
@@ -59,7 +59,7 @@ def check(archive,rid,destination):
         data=target/'data' if rid.startswith('win-') else scratch/'user profile'
         subprocess.run(['dotnet',str(host),'--update-transaction',str(archive),str(target),str(data),str(scratch/'stage')],check=True,timeout=180)
         updated_report=destination.parent/'desktop-smoke-after-update.json'
-        result=subprocess.run([str(gui),'--smoke-offline','--no-alerts','--data-dir',str(data),'--smoke-report',str(updated_report.resolve())],timeout=180)
+        result=subprocess.run([str(gui),'--smoke-offline','--background','--no-alerts','--data-dir',str(data),'--smoke-report',str(updated_report.resolve())],timeout=180)
         assert result.returncode==0,updated_report.read_text(encoding='utf-8') if updated_report.exists() else 'Updated GUI exited without report'
         assert (data/'updater-user-data.marker').read_text()=='retain exact user data'
         if rid.startswith('osx-'):subprocess.run(['codesign','--verify','--deep','--strict',str(target)],check=True)

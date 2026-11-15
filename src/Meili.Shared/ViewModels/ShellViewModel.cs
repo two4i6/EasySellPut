@@ -7,9 +7,11 @@ using Meili.Core.Time;
 
 namespace Meili.Shared.ViewModels;
 
-public partial class ShellViewModel : ObservableObject
+public partial class ShellViewModel : ObservableObject, IDisposable
 {
     private static readonly TimeZoneInfo Beijing = FindBeijing();
+    private readonly IUiTimer _clock;
+    private bool _presentationVisible=true,_disposed;
     private readonly LocalizationService _loc;
     private readonly DataDirectoryInfo _dataDir;
 
@@ -34,13 +36,20 @@ public partial class ShellViewModel : ObservableObject
         _loc = loc; _connection = connection ?? McpConnectionSetup.Bundled(AppContext.BaseDirectory, dataDir.Path);
         _health = data.Health;
         _dataDir = dataDir;
-        var timer = Ui.Timer(TimeSpan.FromSeconds(1));
-        timer.Tick += (_, _) => Tick();
+        var timer = _clock = Ui.Timer(TimeSpan.FromSeconds(1));
+        timer.Tick += ClockTick;
         timer.Start();
-        _loc.LanguageChanged += (_, _) => { RefreshMcpStatus(); Tick(); };
-        Ui.Platform.ColorsChanged += (_, _) => { RefreshMcpStatus(); Tick(); };     // 0.4.1: status-bar dots follow a theme switch at once
+        _loc.LanguageChanged += OnLabels;
+        Ui.Platform.ColorsChanged += OnLabels;     // 0.4.1: status-bar dots follow a theme switch at once
         Tick();
     }
+
+    internal int McpScanCount{get;private set;}
+    public bool IsClockRunning=>_clock.IsEnabled;
+    private void ClockTick(object? sender,EventArgs e)=>Tick();
+    private void OnLabels(object? sender,EventArgs e){if(_presentationVisible){RefreshMcpStatus();Tick();}}
+    public void SetPresentationVisible(bool visible){if(_disposed)return;_presentationVisible=visible;if(visible){_nextMcpScan=default;Tick();if(!_clock.IsEnabled)_clock.Start();}else _clock.Stop();}
+    public void Dispose(){if(_disposed)return;_disposed=true;_clock.Stop();_clock.Tick-=ClockTick;_loc.LanguageChanged-=OnLabels;Ui.Platform.ColorsChanged-=OnLabels;}
 
     /// <summary>Set by <see cref="NetworkController"/> to describe the effective proxy.</summary>
     public string NetworkDescription { get => _networkDescription; set { _networkDescription = value; Tick(); } }
@@ -48,6 +57,7 @@ public partial class ShellViewModel : ObservableObject
 
     private void Tick()
     {
+        if(!_presentationVisible||_disposed)return;
         var now = DateTimeOffset.Now;
         if (now >= _nextMcpScan) { RefreshMcpStatus(); _nextMcpScan = now.AddSeconds(5); }
         var et = MarketClock.ToEastern(now);
@@ -73,6 +83,7 @@ public partial class ShellViewModel : ObservableObject
 
     public void RefreshMcpStatus()
     {
+        McpScanCount++;
         var status = McpSessions.Read(_dataDir.Path);
         var count = status.Connections.Count; var writable = status.Connections.Any(c => !c.ReadOnly);
         McpStatusText = !status.Available ? _loc["Status_McpUnknown"] : count == 0 ? _loc["Status_McpIdle"] : string.Format(_loc[writable ? "Status_McpWritable" : "Status_McpConnected"], count);

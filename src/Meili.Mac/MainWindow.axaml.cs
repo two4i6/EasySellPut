@@ -38,6 +38,7 @@ public partial class MainWindow : Window
         InitializeComponent();
         DataContext = AppServices.Get<ShellViewModel>();
         SetupWorkspace();
+        SetupBackgroundLifecycle();
         RestorePlacement();
         var hub = AppServices.Get<NavigationHub>();
         EventHandler<NavigationRequest> onRequest = (_, e) => Dispatcher.UIThread.Post(() => { if (!_closed) OnNavigateRequested(e); });
@@ -69,7 +70,7 @@ public partial class MainWindow : Window
             _pages[page] = view = CreatePage(page);
         CurrentPage = page;
         ShowMarketWorkspace();
-        PageHost.Content = view;
+        PageHost.Content = _presentationSuspended?null:view;
     }
 
     private static Control CreatePage(AppPage page) => page switch

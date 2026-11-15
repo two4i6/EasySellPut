@@ -24,4 +24,5 @@
   <ItemGroup>
     <None Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
+  <ItemGroup><Compile Include="../Fixtures/QuotePanelMarketData.cs" Link="QuotePanelMarketData.cs" /></ItemGroup>
 </Project>

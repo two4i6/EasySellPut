@@ -176,6 +176,7 @@ jobs:
             build/out/ci/tests/**/*_Sequence.xml
             build/out/ci/tests/**/*.dmp
             build/out/ci/render/**/*.png
+            build/out/ci/render/**/*.json
           if-no-files-found: warn
           retention-days: 14
 
@@ -214,12 +215,14 @@ jobs:
           dotnet run --project tests/Meili.NewsBrowser.Smoke/Meili.NewsBrowser.Smoke.csproj -c Release -p:BuildInParallel=false
           if ($LASTEXITCODE -ne 0) { throw 'Native news reader smoke failed' }
 
-      - name: Windows chart page data and theme integration
+      - name: Windows complete offline desktop regression
         if: runner.os == 'Windows'
+        env:
+          MEILI_RENDER_DIR: ${{ github.workspace }}/build/out/ci/desktop-render
         shell: pwsh
         run: |
-          dotnet test tests/Meili.App.Tests/Meili.App.Tests.csproj -c Release -m:3 --filter 'FullyQualifiedName~ChartThemeTests|FullyQualifiedName~ChartsRefreshTests|FullyQualifiedName~UxInteractionTests|FullyQualifiedName~QuotePanelTests' -- RunConfiguration.TreatNoTestsAsError=true
-          if ($LASTEXITCODE -ne 0) { throw 'Windows chart page integration failed' }
+          dotnet test tests/Meili.App.Tests/Meili.App.Tests.csproj -c Release -m:3 --filter 'Category!=Live' --logger 'trx;LogFileName=Windows.trx' --results-directory build/out/ci/tests -- RunConfiguration.TreatNoTestsAsError=true
+          if ($LASTEXITCODE -ne 0) { throw 'Windows desktop regression failed' }
 
 
       - uses: actions/setup-python@v5
@@ -254,7 +257,11 @@ jobs:
         if: always()
         with:
           name: desktop-package-evidence-${{ matrix.os }}
-          path: build/out/ci/desktop-smoke*
+          path: |
+            build/out/ci/desktop-smoke*
+            build/out/ci/desktop-render/**/*.png
+            build/out/ci/desktop-render/**/*.json
+            build/out/ci/tests/**/*.trx
           if-no-files-found: warn
           retention-days: 14
 

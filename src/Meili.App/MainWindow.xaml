@@ -111,6 +111,7 @@
                     <ToggleButton x:Name="SettingsButton" Style="{StaticResource StatusToggle}" Click="OnSettings" ToolTip="{DynamicResource Nav_Settings}" AutomationProperties.Name="{DynamicResource Nav_Settings}"/>
                     <Button x:Name="LanguageButton" Style="{StaticResource StatusAction}" Click="OnToggleLanguage" ToolTip="{DynamicResource Title_ToggleLanguage}" AutomationProperties.Name="{DynamicResource Title_ToggleLanguage}"/>
                     <Button x:Name="ThemeButton" Style="{StaticResource StatusAction}" Click="OnToggleTheme" ToolTip="{DynamicResource Title_ToggleTheme}" AutomationProperties.Name="{DynamicResource Title_ToggleTheme}"/>
+                    <Button x:Name="BackgroundButton" Style="{StaticResource StatusAction}" Click="OnBackground" ToolTip="{DynamicResource Bg_Run}" AutomationProperties.Name="{DynamicResource Bg_Run}"/>
                     <ToggleButton x:Name="MotionButton" Style="{StaticResource StatusToggle}" Click="OnToggleMotion" ToolTip="{DynamicResource Web_Motion}" AutomationProperties.Name="{DynamicResource Web_Motion}"/>
                 </StackPanel>
 

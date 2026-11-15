@@ -19674,6 +19674,27 @@
     {
       "platform": "App",
       "page": "Shell",
+      "type": "Button",
+      "name": "BackgroundButton",
+      "attributes": {
+        "Name": "BackgroundButton",
+        "Style": "{StaticResource StatusAction}",
+        "Click": "OnBackground",
+        "ToolTip": "{DynamicResource Bg_Run}",
+        "AutomationProperties.Name": "{DynamicResource Bg_Run}"
+      },
+      "composition": [
+        "FluentWindow",
+        "Grid",
+        "Border",
+        "DockPanel",
+        "StackPanel"
+      ],
+      "source": "src/Meili.App/MainWindow.xaml"
+    },
+    {
+      "platform": "App",
+      "page": "Shell",
       "type": "ToggleButton",
       "name": "MotionButton",
       "attributes": {
@@ -38003,6 +38024,27 @@
         "Click": "OnToggleTheme",
         "ToolTip.Tip": "{DynamicResource Title_ToggleTheme}",
         "AutomationProperties.Name": "{DynamicResource Title_ToggleTheme}"
+      },
+      "composition": [
+        "Window",
+        "Grid",
+        "Border",
+        "DockPanel",
+        "StackPanel"
+      ],
+      "source": "src/Meili.Mac/MainWindow.axaml"
+    },
+    {
+      "platform": "Mac",
+      "page": "Shell",
+      "type": "Button",
+      "name": "BackgroundButton",
+      "attributes": {
+        "Name": "BackgroundButton",
+        "Classes": "StatusAction",
+        "Click": "OnBackground",
+        "ToolTip.Tip": "{DynamicResource Bg_Run}",
+        "AutomationProperties.Name": "{DynamicResource Bg_Run}"
       },
       "composition": [
         "Window",

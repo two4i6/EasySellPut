@@ -28,6 +28,7 @@ public sealed class NotificationService : IAlertNotifier, IDisposable
     private bool _disposed;
 
     public event EventHandler? ExitRequested;
+    public bool HasTrayIcon=>_tray is not null;
 
     public NotificationService(LocalizationService loc, AppLaunchOptions options, DataDirectoryInfo dataDir, NavigationHub nav, QuoteHub quotes, SymbolContext symbols)
     {
@@ -204,7 +205,8 @@ public sealed class NotificationService : IAlertNotifier, IDisposable
             else Application.Current?.Shutdown();
         };
         var quotes=new MenuItem{Header=_loc["QP_Title"],FontSize=14};quotes.Click+=async(_,_)=>await ShowQuotePanelAsync();
-        return new ContextMenu { Items = { quotes, show, exit }, FontSize = 14 };
+        var background=new MenuItem{Header=_loc["Bg_Run"],FontSize=14};background.Click+=(_,_)=>{if(Application.Current?.MainWindow is Meili.App.MainWindow main)main.RunInBackground();};
+        return new ContextMenu { Items = { quotes, show, background, exit }, FontSize = 14 };
     }
 
     private void OnToastActivated(ToastNotificationActivatedEventArgsCompat e)

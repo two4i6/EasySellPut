@@ -62,6 +62,7 @@ public partial class MainWindow
         SettingsButton.Content=CreateNavigationIcon(NavigationIcons.Settings,SettingsButton,18);
         LanguageButton.Content=CreateNavigationIcon(NavigationIcons.Language,LanguageButton,18);
         ThemeButton.Content=CreateNavigationIcon(NavigationIcons.Theme,ThemeButton,18);
+        BackgroundButton.Content=CreateNavigationIcon(NavigationIcons.Minus,BackgroundButton,18);
         MotionButton.Content=CreateNavigationIcon(NavigationIcons.Motion,MotionButton,18);
     }
     private void OnSettings(object sender,RoutedEventArgs e) { ShowMarketWorkspace();RootNavigation.Navigate(PageType(AppPage.Settings));SyncMarketNavigation(); }
@@ -115,14 +116,14 @@ public partial class MainWindow
         _activeWebsite = tab.Id;
         // Detach the native page router: chart WebViews/activation loops receive their normal Unloaded lifecycle.
         NativePageHost.Children.Remove(RootNavigation); WebTabHost.Visibility = Visibility.Visible;
-        foreach (var (id, view) in _webTabs) view.Visibility = id == tab.Id ? Visibility.Visible : Visibility.Collapsed;
+        foreach (var (id, view) in _webTabs){view.Visibility = id == tab.Id ? Visibility.Visible : Visibility.Collapsed;_ = view.SetPresentationActiveAsync(IsVisible && WindowState!=WindowState.Minimized && id==tab.Id);}
         SelectBuiltinPage();
         foreach (var button in WebsiteRail.Children.OfType<ToggleButton>()) button.IsChecked = Equals(button.Tag, tab.Id);
     }
     private void ShowMarketWorkspace()
     {
         _activeWebsite = null; WebTabHost.Visibility = Visibility.Collapsed; SelectBuiltinPage();
-        if (!NativePageHost.Children.Contains(RootNavigation)) NativePageHost.Children.Add(RootNavigation);
+        if (!_presentationSuspended && !NativePageHost.Children.Contains(RootNavigation)) NativePageHost.Children.Add(RootNavigation);
         foreach (var button in WebsiteRail.Children.OfType<ToggleButton>()) button.IsChecked = false;
     }
     private void SyncMarketNavigation() { ShowMarketWorkspace(); SelectBuiltinPage(); }

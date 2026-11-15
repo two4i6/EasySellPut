@@ -20,6 +20,8 @@ public sealed class QuotePanelWindow : Window
     private readonly TextBlock _title=new(),_name=new(),_price=new(),_change=new(),_source=new(),_asof=new(),_extended=new(),_date=new(),_status=new(),_page=new(),_empty=new();
     private readonly QuoteSparkline _chart=new(){Height=96};private readonly TextBlock[] _metrics=[new(),new(),new(),new()];
     private readonly Button _refresh,_previous,_next,_chartButton;private readonly ToggleButton _pin;
+    private readonly DesktopActivity _activity=AppServices.Get<DesktopActivity>();
+    private readonly string _activityOwner="quote-panel-window-"+Guid.NewGuid();
     public QuotePanelViewModel Model=>_model;
     public QuotePanelWindow(QuotePanelViewModel model,Action<string> open,Action watchlist,Action quit)
     {
@@ -43,15 +45,15 @@ public sealed class QuotePanelWindow : Window
         var content=new Grid{RowDefinitions=new RowDefinitions("Auto,Auto,*,Auto,Auto")};content.Children.Add(header);Grid.SetRow(hero,1);content.Children.Add(hero);Grid.SetRow(list,2);content.Children.Add(list);Grid.SetRow(_status,3);content.Children.Add(_status);Grid.SetRow(footer,4);content.Children.Add(footer);Caption(_status);
         Content=new AppCard{Padding=new Thickness(16),Child=content,CornerRadius=new CornerRadius(16)};
         KeyDown+=(_,e)=>{if(e.Key==Key.Escape){HidePanel();e.Handled=true;}};Deactivated+=(_,_)=>{if(_pin.IsChecked!=true && !more.ContextMenu.IsOpen)HidePanel();};
-        Closed+=(_,_)=>{_model.Changed-=OnChanged;_model.Dispose();};_model.Changed+=OnChanged;UpdateView();
+        Closed+=(_,_)=>{_activity.SetVisible(_activityOwner,false);_model.Changed-=OnChanged;_model.Dispose();};_model.Changed+=OnChanged;UpdateView();
     }
     public async Task ShowPanelAsync(double? anchorX=null,double? anchorY=null)
     {
         var area=Screens.Primary?.WorkingArea;var scale=Screens.Primary?.Scaling??1;
         if(area is { } a){Height=Math.Min(760,a.Height/scale-20);var x=anchorX is { } ax?(int)(ax*scale-Width*scale):a.Right-(int)(Width*scale)-12;var y=anchorY is { } ay?(int)(ay*scale)+8:a.Y+8;Position=new PixelPoint(Math.Clamp(x,a.X+8,Math.Max(a.X+8,a.Right-(int)(Width*scale)-8)),Math.Clamp(y,a.Y+8,Math.Max(a.Y+8,a.Bottom-(int)(Height*scale)-8)));}
-        Show();Activate();AppMotion.Enter(_title);await _model.ActivateAsync();
+        _activity.SetVisible(_activityOwner,true);Show();Activate();AppMotion.Enter(_title);await _model.ActivateAsync();
     }
-    public void HidePanel(){Hide();_model.Deactivate();}
+    public void HidePanel(){_activity.SetVisible(_activityOwner,false);Hide();_model.Deactivate();}
     private void OpenSelected(){if(_model.Selected is { } row){HidePanel();_open(row.Symbol);}}
     private void OnChanged(object? sender,EventArgs e)=>UpdateView();
     private IBrush Brush(string key)=>this.TryFindResource(key,out var value)&&value is IBrush b?b:Brushes.Gray;
@@ -79,7 +81,7 @@ public sealed class QuotePanelWindow : Window
         {
             _owner=owner;Button=new Button{HorizontalAlignment=HorizontalAlignment.Stretch,HorizontalContentAlignment=HorizontalAlignment.Stretch,Padding=new Thickness(8,6)};
             var grid=new Grid{ColumnDefinitions=new ColumnDefinitions("*,108,90,80")};var symbol=new TextBlock{Text=row.Symbol,FontSize=15,FontWeight=FontWeight.SemiBold};owner.Caption(_name);_name.TextTrimming=TextTrimming.CharacterEllipsis;var identity=new StackPanel{Children={symbol,_name}};grid.Children.Add(identity);
-            owner.Caption(_date);_date.FontSize=10;var mini=new StackPanel{Children={_spark,_date}};Grid.SetColumn(mini,1);grid.Children.Add(mini);_price.FontSize=16;_price.FontWeight=FontWeight.SemiBold;_price.VerticalAlignment=VerticalAlignment.Center;_price.HorizontalAlignment=HorizontalAlignment.Right;Grid.SetColumn(_price,2);grid.Children.Add(_price);_change.FontSize=14;_change.VerticalAlignment=VerticalAlignment.Center;_change.HorizontalAlignment=HorizontalAlignment.Right;Grid.SetColumn(_change,3);grid.Children.Add(_change);Button.Content=grid;Button.Click+=(_,_)=>owner._model.Select(row.Symbol);Button.DoubleTapped+=(_,_)=>{owner._model.Select(row.Symbol);owner.OpenSelected();};
+            owner.Caption(_date);var mini=new StackPanel{Children={_spark,_date}};Grid.SetColumn(mini,1);grid.Children.Add(mini);_price.FontSize=16;_price.FontWeight=FontWeight.SemiBold;_price.VerticalAlignment=VerticalAlignment.Center;_price.HorizontalAlignment=HorizontalAlignment.Right;Grid.SetColumn(_price,2);grid.Children.Add(_price);_change.FontSize=14;_change.VerticalAlignment=VerticalAlignment.Center;_change.HorizontalAlignment=HorizontalAlignment.Right;Grid.SetColumn(_change,3);grid.Children.Add(_change);Button.Content=grid;Button.Click+=(_,_)=>owner._model.Select(row.Symbol);Button.DoubleTapped+=(_,_)=>{owner._model.Select(row.Symbol);owner.OpenSelected();};
         }
         public void Update(PanelQuoteRow row,bool selected){_name.Text=row.Name;_price.Text=row.Price;_price.FontSize=row.Price.Length>10?13:16;_change.Text=row.Change;_price.Foreground=_change.Foreground=_owner.Brush(row.BrushKey);_spark.Data=row.Graph;_spark.LineBrush=_owner.Brush(row.BrushKey);_spark.InvalidateVisual();_date.Text=(row.Graph.Day?.ToString("MM-dd")??"—")+(row.Failed||row.GraphFailed?" · !":row.Quote?.DelayMinutes is >0?" · "+row.Quote.DelayMinutes+"m":row.Quote?.IsRealtime==true?" · RT":" · ?");Button.Background=selected?_owner.Brush("RowHighlightBrush"):Brushes.Transparent;Button.BorderBrush=selected?_owner.Brush("ControlStrokeColorDefaultBrush"):Brushes.Transparent;ToolTip.SetTip(Button,row.Name+"\n"+(row.Quote is { } q?FreshnessText.SourceAndTiming(q,_owner._loc,DateTimeOffset.UtcNow)+" · "+FreshnessText.AsOf(q.AsOf,_owner._loc):_owner._loc["Mb_Unavailable"])+"\n"+_owner.GraphLabel(row));}
     }

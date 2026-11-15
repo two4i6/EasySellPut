@@ -18,6 +18,8 @@ public sealed class WebTabPane : UserControl, IDisposable
     private readonly LocalizationService _loc = LocalizationService.Current;
     private string _pending;
     private bool _ready, _initializing, _disposed;
+    private bool _presentationActive=true;private int _presentationRevision;
+    public bool IsSuspended=>_ready&&!_disposed&&_web.CoreWebView2.IsSuspended;
     private string _statusKey = "";
     public event Action? EditRequested;
     public string Address => _pending;
@@ -39,6 +41,21 @@ public sealed class WebTabPane : UserControl, IDisposable
         Loaded += async (_, _) => { if (!_initializing) { _initializing = true; await InitializeAsync(); } };
     }
     public void ReloadPage() { if (_ready) _web.Reload(); }
+    public async Task SetPresentationActiveAsync(bool active)
+    {
+        _presentationActive=active;var revision=++_presentationRevision;if(_disposed)return;
+        _web.Visibility=active?Visibility.Visible:Visibility.Collapsed;
+        if(!_ready)return;
+        try
+        {
+            if(active){_web.CoreWebView2.Resume();return;}
+            await System.Windows.Threading.Dispatcher.Yield(System.Windows.Threading.DispatcherPriority.Background);
+            if(_disposed||revision!=_presentationRevision||_presentationActive)return;
+            await _web.CoreWebView2.TrySuspendAsync();
+            if(!_disposed&&_presentationActive)_web.CoreWebView2.Resume();
+        }
+        catch(Exception ex){if(!_disposed)AppLog.Warn("web-workspace","Browser suspension unavailable",ex);}
+    }
     public void FocusAddress() { _address.Focus(); _address.SelectAll(); }
     private void SetStatus(string key) { _statusKey = key; _status.Text = key.Length == 0 ? "" : _loc[key]; _status.Visibility = key.Length == 0 ? Visibility.Collapsed : Visibility.Visible; }
     private void Relabel(object? sender, EventArgs e)
@@ -64,9 +81,9 @@ public sealed class WebTabPane : UserControl, IDisposable
             core.NewWindowRequested += (_, e) => { e.Handled = true; if (NewsReaderPolicy.IsAllowed(e.Uri)) core.Navigate(e.Uri); else SetStatus("Reader_Blocked"); };
             core.NavigationStarting += (_, e) => { e.Cancel = !NewsReaderPolicy.IsAllowed(e.Uri); SetStatus(e.Cancel ? "Reader_Blocked" : "Reader_Loading"); if (!e.Cancel) { _pending = e.Uri; if (!_address.IsKeyboardFocusWithin) _address.Text = e.Uri; } };
             core.HistoryChanged += (_, _) => { _back.IsEnabled = core.CanGoBack; _forward.IsEnabled = core.CanGoForward; };
-            core.NavigationCompleted += (_, e) => SetStatus(e.IsSuccess && e.HttpStatusCode < 400 ? "" : "Reader_Failed");
+            core.NavigationCompleted += (_, e) =>{SetStatus(e.IsSuccess && e.HttpStatusCode < 400 ? "" : "Reader_Failed");if(!_presentationActive)_ = SetPresentationActiveAsync(false);};
             core.ProcessFailed += (_, _) => SetStatus("Reader_Failed");
-            _ready = true; _back.IsEnabled = _forward.IsEnabled = false; core.Navigate(_pending);
+            _ready = true; _back.IsEnabled = _forward.IsEnabled = false; core.Navigate(_pending);await SetPresentationActiveAsync(_presentationActive);
         }
         catch (Exception ex) { AppLog.Warn("web-workspace", "Browser initialization failed", ex); if (!_disposed) SetStatus(ex is WebView2RuntimeNotFoundException ? "Reader_Runtime" : "Reader_Failed"); }
     }

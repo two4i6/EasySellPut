@@ -39,6 +39,11 @@ public sealed class SmokeRunner
     public async Task<int> RunAsync(MainWindow window, AppLaunchOptions options)
     {
         var sw = Stopwatch.StartNew();
+        if(options.StartInBackground)await CheckAsync("background-startup",async()=>
+        {
+            if(!window.PresentationSuspended)throw new InvalidOperationException("Background startup did not suspend presentation");
+            AppServices.Get<NotificationService>().Restore(window);await Task.Delay(250);return "background startup retained a native restore path";
+        });
         await CheckAsync("data-dir", () =>
         {
             var dir = AppServices.DataDirectory.Path;
@@ -142,7 +147,13 @@ public sealed class SmokeRunner
             while (chart?.LastDiagnostic is null && DateTimeOffset.UtcNow < deadline) await Task.Delay(100);
             using var diagnostic = JsonDocument.Parse(chart?.LastDiagnostic ?? "{}");
             if (!diagnostic.RootElement.TryGetProperty("status", out var status) || status.GetString() != "rendered") throw new InvalidOperationException("Packaged chart unavailable: " + chart?.LastDiagnostic);
-            return "real bundled chart rendered";
+            window.RunInBackground();await Task.Delay(200);
+            if(chart?.Session is not null||AppServices.Get<ShellViewModel>().IsClockRunning||!window.PresentationSuspended)throw new InvalidOperationException("Hidden chart/chrome still active");
+            AppServices.Get<NotificationService>().Restore(window);await Task.Delay(350);
+            if(chart?.Session is null||!AppServices.Get<ShellViewModel>().IsClockRunning)throw new InvalidOperationException("Background restore failed");
+            deadline=DateTimeOffset.UtcNow.AddSeconds(25);while(chart.LastDiagnostic is null&&DateTimeOffset.UtcNow<deadline)await Task.Delay(100);
+            using var restored=JsonDocument.Parse(chart.LastDiagnostic??"{}");if(!restored.RootElement.TryGetProperty("status",out var restoredStatus)||restoredStatus.GetString()!="rendered")throw new InvalidOperationException("Restored native chart did not render");
+            return "real bundled chart rendered, released in background and restored";
         });
         await CheckAsync("quote-panel",async()=>
         {

@@ -22,5 +22,7 @@ class UxAuditTests(unittest.TestCase):
             self.assertNotIn('Classes="accent"',path.read_text(encoding="utf-8"));self.assertNotIn('Classes="Accent"',path.read_text(encoding="utf-8"))
         for file in ['index.html','workbench.html']:self.assertIn('src="motion.js"',(ROOT/'src/Meili.Shared/WebCharts'/file).read_text(encoding="utf-8"))
         motion=(ROOT/'src/Meili.Shared/WebCharts/motion.js').read_text(encoding="utf-8");self.assertIn('prefers-reduced-motion',motion);self.assertIn('data-reduced-motion',motion)
-        self.assertIn('UxInteractionTests',(ROOT/'.github/workflows/ci.yml').read_text(encoding="utf-8"))
+        workflow=(ROOT/'.github/workflows/ci.yml').read_text(encoding="utf-8")
+        windows=workflow.split('- name: Windows complete offline desktop regression',1)[1].split('- uses:',1)[0]
+        self.assertIn('tests/Meili.App.Tests/Meili.App.Tests.csproj',windows);self.assertIn("--filter 'Category!=Live'",windows);self.assertNotIn('FullyQualifiedName~',windows)
 if __name__=='__main__':unittest.main()

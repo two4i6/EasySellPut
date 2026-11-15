@@ -834,7 +834,8 @@
           "indicators": {
             "maPeriod": 10
           }
-        }
+        },
+        "closeAction": "MinimizeToTray"
       },
       "expect": {
         "/data/language": {
@@ -848,12 +849,16 @@
         },
         "/data/charts/indicators/rsiPeriod": {
           "equals": 14
+        },
+        "/data/closeAction": {
+          "equals": "MinimizeToTray"
         }
       },
       "compare": [
         "/data/language",
         "/data/pricing",
-        "/data/charts"
+        "/data/charts",
+        "/data/closeAction"
       ]
     },
     {

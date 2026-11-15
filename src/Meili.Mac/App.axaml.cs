@@ -13,6 +13,7 @@ namespace Meili.Mac;
 public partial class App : Application
 {
     private IntPtr _napActivity;
+    private AlertStore? _wakeStore;private bool _alertsEnabled,_exiting;
     private MenuBarQuoteController? _menuQuotes;
     private QuotePanelWindow? _quotePanel;
     private MacQuoteStatusItem? _quoteStatus;
@@ -65,7 +66,7 @@ public partial class App : Application
         // Dock icon click with no visible window: bring the hidden main window back (Mac convention).
         if (TryGetFeature(typeof(IActivatableLifetime)) is IActivatableLifetime activatable)
             activatable.Activated += (_, e) => { if (e.Kind == ActivationKind.Reopen) window.ShowFromDock(); };
-        window.Show();
+        if(options.StartInBackground)window.PrepareBackgroundStartup();else window.Show();
         SharedComposition.OnStarted(AppServices.Provider);
         if(OperatingSystem.IsMacOS())
         {
@@ -79,18 +80,19 @@ public partial class App : Application
                     var anchor=status!.Anchor;await _quotePanel.ShowPanelAsync(anchor.X,anchor.Y);
                 });
                 _quoteStatus=status;
-                desktop.Exit+=(_,_)=>_quotePanel?.Close();
                 _menuQuotes=new MenuBarQuoteController(AppServices.Get<Meili.Core.Quotes.QuoteHub>(),AppServices.Get<SymbolContext>(),
                     AppServices.Get<WatchlistStore>(),AppServices.Get<LocalizationService>(),AppServices.Get<SettingsStore>(),status,
-                    ()=>{window.ShowFromDock();AppServices.Get<NavigationHub>().Go(AppPage.Charts,AppServices.Get<SymbolContext>().Current);},()=>desktop.TryShutdown(),()=>window.Hide());
+                    ()=>{window.ShowFromDock();AppServices.Get<NavigationHub>().Go(AppPage.Charts,AppServices.Get<SymbolContext>().Current);},()=>desktop.TryShutdown(),()=>window.RunInBackground());
             }
             catch(Exception ex){AppLog.Error("menu-bar","Could not initialize menu bar quotes",ex);}
         }
         if (options.Smoke)
             Dispatcher.UIThread.Post(async () => await PackageSmokeAsync(window, desktop, options), DispatcherPriority.Background);
-        // App Nap would delay alert polling by minutes while the window is hidden or covered.
-        if (OperatingSystem.IsMacOS())
-            _napActivity = MacNative.BeginActivity("Menu bar quotes and price alerts");
+        _alertsEnabled=!options.NoAlerts;
+        if(OperatingSystem.IsMacOS())
+        {
+            _wakeStore=AppServices.Get<AlertStore>();_wakeStore.Changed+=OnAlertDemandChanged;UpdateAlertActivity();
+        }
     }
 
     private async Task PackageSmokeAsync(MainWindow window, IClassicDesktopStyleApplicationLifetime desktop, AppLaunchOptions options)
@@ -98,6 +100,11 @@ public partial class App : Application
         var failures = new List<string>();
         try
         {
+            if(options.StartInBackground)
+            {
+                if(!window.PresentationSuspended||window.IsVisible)throw new InvalidOperationException("Background startup showed the main window");
+                window.ShowFromDock();await Task.Delay(200);
+            }
             if(_menuQuotes is null)throw new InvalidOperationException("Native menu bar quote subscriber unavailable");
             _quoteStatus!.InvokePanel();await Task.Delay(150);
             if(_quotePanel?.IsVisible!=true)throw new InvalidOperationException("Native status action did not open quote panel");
@@ -129,6 +136,13 @@ public partial class App : Application
             while (chart?.LastDiagnostic is null && DateTimeOffset.UtcNow < deadline) await Task.Delay(100);
             using var diagnostic = System.Text.Json.JsonDocument.Parse(chart?.LastDiagnostic ?? "{}");
             if (!diagnostic.RootElement.TryGetProperty("status", out var status) || status.GetString() != "rendered") throw new InvalidOperationException("Packaged WebView chart did not render: " + chart?.LastDiagnostic);
+            var suspendedPage=window.CurrentView;window.RunInBackground();await Task.Delay(200);
+            if(chart?.Session is not null||shell.IsClockRunning||!window.PresentationSuspended)throw new InvalidOperationException("Hidden window retained chart/chrome work");
+            window.ShowFromDock();await Task.Delay(250);
+            if(!ReferenceEquals(window.CurrentView,suspendedPage)||chart?.Session is null||!shell.IsClockRunning)throw new InvalidOperationException("Background restore lost navigation");
+            deadline=DateTimeOffset.UtcNow.AddSeconds(25);while(chart.LastDiagnostic is null&&DateTimeOffset.UtcNow<deadline)await Task.Delay(100);
+            using var restored=System.Text.Json.JsonDocument.Parse(chart.LastDiagnostic??"{}");
+            if(!restored.RootElement.TryGetProperty("status",out var restoredStatus)||restoredStatus.GetString()!="rendered")throw new InvalidOperationException("Restored native chart did not render");
             window.Navigate(AppPage.Settings);
             var db = AppServices.Get<Meili.Data.Cache.MarketDb>();
             if (db.ReadSchemaVersion() != Meili.Data.Cache.MarketDb.SchemaVersion) throw new InvalidOperationException("Native SQLite unavailable");
@@ -136,8 +150,8 @@ public partial class App : Application
         catch (Exception ex) { AppLog.Error("package-smoke", "Packaged desktop self-check failed", ex); failures.Add(ex.ToString()); }
         var report = options.SmokeReport ?? Path.Combine(AppServices.DataDirectory.Path, "logs", "smoke.json");
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(report))!);
-        await File.WriteAllTextAsync(report, System.Text.Json.JsonSerializer.Serialize(new { Failures = failures.Count, Errors = failures, Checks = new[] { "real_window", "settings", "bundled_automation", "clipboard", "resources", "sqlite", "packaged_webview_chart", "native_menu_bar_quote", "native_quote_panel" }, Architecture = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString() }));
-        window.AllowClose();
+        await File.WriteAllTextAsync(report, System.Text.Json.JsonSerializer.Serialize(new { Failures = failures.Count, Errors = failures, Checks = new[] { "real_window", "settings", "bundled_automation", "clipboard", "resources", "sqlite", "packaged_webview_chart", "native_menu_bar_quote", "native_quote_panel", "background_restore" }, Architecture = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString(), BackgroundStartupVerified=options.StartInBackground }));
+        window.RunInBackground();window.AllowClose();
         desktop.Shutdown(failures.Count == 0 ? 0 : 1);
     }
 
@@ -159,10 +173,19 @@ public partial class App : Application
         }
     }
 
+    private void OnAlertDemandChanged(object? sender,EventArgs e)=>Dispatcher.UIThread.Post(UpdateAlertActivity);
+    private void UpdateAlertActivity()
+    {
+        if(_exiting||_wakeStore is null)return;
+        var needed=_alertsEnabled&&(_wakeStore.EnabledSymbols.Count>0||_wakeStore.IvSymbols.Count>0);
+        if(needed&&_napActivity==IntPtr.Zero)_napActivity=MacNative.BeginActivity("Active price and IV alerts");
+        else if(!needed&&_napActivity!=IntPtr.Zero){MacNative.EndActivity(_napActivity);_napActivity=IntPtr.Zero;}
+    }
     private void OnExit(int code)
     {
+        if(_exiting)return;_exiting=true;_quotePanel?.Close();_quotePanel=null;if(_wakeStore is not null)_wakeStore.Changed-=OnAlertDemandChanged;
         _menuQuotes?.Dispose();
-        if (_napActivity != IntPtr.Zero) MacNative.EndActivity(_napActivity);
+        if (_napActivity != IntPtr.Zero){MacNative.EndActivity(_napActivity);_napActivity=IntPtr.Zero;}
         AppServices.Get<AlertMonitor>().Dispose();   // only stops its subscription; nothing to fail
         try { AppServices.Get<IvAlertSampler>().Dispose(); AppServices.Get<AlertStore>().Flush(); }
         catch (Exception ex) { AppLog.Warn("app", "alert state flush failed", ex); }

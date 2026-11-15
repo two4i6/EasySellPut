@@ -1,3 +1,4 @@
+using Avalonia;
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using Avalonia.Controls;
@@ -14,12 +15,24 @@ public sealed class NewsWebView : NativeControlHost
     private string? _pending;
     private readonly DispatcherTimer _stateTimer = new() { Interval = TimeSpan.FromMilliseconds(250) };
     private bool _lastBack, _lastForward;
+    private bool _presentationActive=true;private Window? _owner;
+    internal bool IsPresentationPolling=>_stateTimer.IsEnabled;
 
     public NewsWebView()
     {
         // WebKit title/history can change after didFinishNavigation (including client-rendered headlines).
         // Poll only while the native view exists; no KVO observer lifetime or extra native library is needed.
+        AttachedToVisualTree+=(_,_)=>{_owner=TopLevel.GetTopLevel(this) as Window;if(_owner is not null)_owner.PropertyChanged+=OnOwnerChanged;SyncPresentation();};
+        DetachedFromVisualTree+=(_,_)=>{if(_owner is not null)_owner.PropertyChanged-=OnOwnerChanged;_owner=null;_stateTimer.Stop();};
         _stateTimer.Tick += (_, _) => { if (_view != IntPtr.Zero) Update(StatusKey); };
+    }
+    private void OnOwnerChanged(object? sender,AvaloniaPropertyChangedEventArgs e){if(e.Property==Window.IsVisibleProperty||e.Property==Window.WindowStateProperty)SyncPresentation();}
+    public void SetPresentationActive(bool active){_presentationActive=active;SyncPresentation();}
+    private void SyncPresentation()
+    {
+        var active=_presentationActive&&IsEffectivelyVisible&&(_owner is null||_owner.IsVisible&&_owner.WindowState!=WindowState.Minimized);
+        if(active&&_view!=IntPtr.Zero){if(!_stateTimer.IsEnabled)_stateTimer.Start();}else _stateTimer.Stop();
+        if(_view!=IntPtr.Zero)Native.Send(_view,"setHidden:",active?IntPtr.Zero:new IntPtr(1));
     }
     // Only the bundled chart host supplies a stricter same-document navigation policy.
     internal Func<string, bool>? NavigationPolicy { get; init; }
@@ -65,7 +78,7 @@ public sealed class NewsWebView : NativeControlHost
             AppLog.Info("news-reader", "WKWebView initialized");
             Native.Send(_view, "setNavigationDelegate:", _delegate);
             Native.Send(_view, "setUIDelegate:", _delegate);
-            _stateTimer.Start();
+            SyncPresentation();
             if (_pending is not null) Navigate(_pending);
             return new PlatformHandle(_view, "NSView");
         }

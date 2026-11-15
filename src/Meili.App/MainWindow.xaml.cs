@@ -28,6 +28,7 @@ public partial class MainWindow : FluentWindow
         InitializeComponent();
         DataContext = AppServices.Get<ShellViewModel>();
         SetupWorkspace();
+        SetupBackgroundLifecycle();
         RestorePlacement();
         RootNavigation.Loaded += (_, _) =>
         {
@@ -277,6 +278,8 @@ public partial class MainWindow : FluentWindow
         try
         {
             SavePlacement();
+            // Without a tray (including --no-alerts), retain a taskbar restore path.
+            if(!_notify.HasTrayIcon){ShowInTaskbar=true;WindowState=WindowState.Minimized;return;}
             WindowState = WindowState.Normal;
             ShowInTaskbar = false;
             Hide();

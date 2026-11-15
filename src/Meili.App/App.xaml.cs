@@ -62,8 +62,8 @@ public partial class App : Application
             window.ContentRendered += (_, _) => perf.Mark("first-render");
             Dispatcher.BeginInvoke(() => perf.Mark("idle"), DispatcherPriority.ApplicationIdle);
         }
-        window.Show();
-        perf?.Mark("window-shown");
+        if(options.StartInBackground)window.PrepareBackgroundStartup();else window.Show();
+        perf?.Mark(options.StartInBackground?"background-ready":"window-shown");
         AppComposition.OnStarted(AppServices.Provider);
         if (options.Smoke)
             Dispatcher.BeginInvoke(async () =>
@@ -72,7 +72,7 @@ public partial class App : Application
                 try { code = await new SmokeRunner().RunAsync(window, options); }
                 catch (Exception ex) { SmokeRunner.RecordError(ex); code = 2; }
                 perf?.Mark("smoke-done");   // memory after every page was opened once
-                Shutdown(code);
+                window.RunInBackground();await Task.Delay(100);Shutdown(code);
             }, DispatcherPriority.ApplicationIdle);
     }
 

@@ -174,16 +174,20 @@ internal static class Program
 #if WINDOWS_READER
             var web = ((DockPanel)first.Content).Children.OfType<WebView2>().Single();
             first.Visibility = Visibility.Collapsed; second.Visibility = Visibility.Visible;
+            await first.SetPresentationActiveAsync(false);await Until(()=>first.IsSuspended,"hidden WebView2 suspension");
 #else
             var web = ((DockPanel)first.Content!).Children.OfType<NewsWebView>().Single();
             first.IsVisible = false; second.IsVisible = true;
+            first.SetPresentationActive(false);if(first.IsPresentationPolling)throw new Exception("Hidden WebKit polling continued");
 #endif
             await Task.Delay(250);
             var before = server.Count;
 #if WINDOWS_READER
             first.Visibility = Visibility.Visible; second.Visibility = Visibility.Collapsed;
+            await first.SetPresentationActiveAsync(true);if(first.IsSuspended)throw new Exception("WebView2 did not resume");
 #else
             first.IsVisible = true; second.IsVisible = false;
+            first.SetPresentationActive(true);if(!first.IsPresentationPolling)throw new Exception("WebKit presentation polling did not resume");
 #endif
             await Task.Delay(350);
             if (server.Count != before || first.DocumentTitle != "Reader One") throw new Exception("Switching tabs reloaded the web session");

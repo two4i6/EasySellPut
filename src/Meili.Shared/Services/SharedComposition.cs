@@ -30,6 +30,7 @@ public static class SharedComposition
         s.AddSingleton<IMarketDataService>(sp => new Meili.Data.Cache.CachedMarketData(
             sp.GetRequiredService<DataServices>().Router, sp.GetRequiredService<Meili.Data.Cache.MarketDb>()));
         s.AddSingleton(sp => new Meili.Core.Quotes.QuoteHub(sp.GetRequiredService<IMarketDataService>()));
+        s.AddSingleton<DesktopActivity>();
         s.AddSingleton<QuotePump>();
         s.AddSingleton<SymbolSearchService>();
         s.AddSingleton(sp => new Meili.Core.Pricing.RiskFreeRateProvider(sp.GetRequiredService<IMarketDataService>(),
