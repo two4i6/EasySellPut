@@ -265,10 +265,27 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
+  release-policy:
+    name: Main-only release policy
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate release workflow structure and negative-path policy
+        run: |
+          python3 -m pip install PyYAML==6.0.3
+          python3 build/release/check-workflows.py
+          python3 -m unittest discover -s tests/automation -p 'test_release_policy.py' -v
+
   required:
     name: CLI and MCP required
     if: always()
-    needs: [automation, desktop, news-browser]
+    needs: [automation, desktop, news-browser, release-policy]
     runs-on: ubuntu-24.04
     steps:
       - name: All platform and desktop checks must pass
@@ -276,7 +293,9 @@ jobs:
           AUTOMATION_RESULT: ${{ needs.automation.result }}
           DESKTOP_RESULT: ${{ needs.desktop.result }}
           BROWSER_RESULT: ${{ needs.news-browser.result }}
+          RELEASE_POLICY_RESULT: ${{ needs.release-policy.result }}
         run: |
           test "$AUTOMATION_RESULT" = success
           test "$DESKTOP_RESULT" = success
           test "$BROWSER_RESULT" = success
+          test "$RELEASE_POLICY_RESULT" = success

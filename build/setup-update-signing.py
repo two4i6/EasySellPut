@@ -12,7 +12,7 @@ def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--key',type=pathlib.Path,required=True,help='Private key backup outside this checkout')
     parser.add_argument('--initialize',action='store_true',help='First release only: generate a key and pin its public half')
-    parser.add_argument('--upload',action='store_true',help='Upload through your local gh login with Actions-secret permission')
+    parser.add_argument('--upload',action='store_true',help='Upload to the main-only release Environment using your local gh login')
     parser.add_argument('--repo',default='two4i6/EasySellPut')
     args=parser.parse_args();original=args.key.expanduser().absolute();key=original.resolve()
     if key.is_relative_to(ROOT.resolve()) or original.is_symlink():raise SystemExit('Keep the private key outside the repository in a regular user-owned file.')
@@ -33,7 +33,7 @@ def main():
     normalize=lambda value:value.replace(b'\r\n',b'\n').strip()
     if normalize(PUBLIC.read_bytes())!=normalize(public) and not args.initialize:raise SystemExit('This private key does not match the pinned public key.')
     if args.upload:
-        subprocess.run(['gh','secret','set','UPDATE_SIGNING_KEY','--repo',args.repo],input=key.read_bytes(),check=True)
+        subprocess.run(['gh','secret','set','UPDATE_SIGNING_KEY','--repo',args.repo,'--env','release'],input=key.read_bytes(),check=True)
     PUBLIC.write_bytes(public)
     print('Public key pinned. Private key stays in your chosen backup file; keep it secure.')
     print('Commit the public key and wait for native CI before preparing the signed release draft.')
