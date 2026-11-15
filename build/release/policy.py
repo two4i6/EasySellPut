@@ -53,6 +53,18 @@ def gh_json(endpoint):
     return json.loads(subprocess.check_output(['gh', 'api', endpoint], text=True))
 
 
+def resolve_tag(repository, tag):
+    require(re.fullmatch(r'v\d+\.\d+\.\d+', tag) is not None, 'Invalid release tag')
+    obj = gh_json(f'repos/{repository}/git/ref/tags/{tag}')['object']
+    for _ in range(5):
+        require(re.fullmatch('[0-9a-f]{40}', obj.get('sha', '')) is not None, 'Invalid tag object')
+        if obj.get('type') == 'commit':
+            return obj['sha']
+        require(obj.get('type') == 'tag', 'Tag does not resolve to a commit')
+        obj = gh_json(f'repos/{repository}/git/tags/' + obj['sha'])['object']
+    raise ValueError('Too many nested annotated tags')
+
+
 def current_main(repository):
     return gh_json('repos/' + repository + '/git/ref/heads/main')['object']['sha']
 

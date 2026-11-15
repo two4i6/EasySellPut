@@ -44,6 +44,15 @@ class ReleasePolicyTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 policy.validate_jobs(jobs)
 
+    def test_tag_resolution_uses_tag_namespace_and_handles_annotated_tags(self):
+        annotated = 'b' * 40
+        with mock.patch.object(policy, 'gh_json', side_effect=[{'object': {'type': 'tag', 'sha': annotated}}, {'object': {'type': 'commit', 'sha': self.sha}}]) as api:
+            self.assertEqual(policy.resolve_tag('owner/repo', 'v0.7.0'), self.sha)
+        self.assertEqual(api.call_args_list[0].args[0], 'repos/owner/repo/git/ref/tags/v0.7.0')
+        self.assertNotIn('/commits/', api.call_args_list[0].args[0], 'A same-named branch must not substitute for a tag')
+        with mock.patch.object(policy, 'gh_json', return_value={'object': {'type': 'tag', 'sha': annotated}}), self.assertRaisesRegex(ValueError, 'nested'):
+            policy.resolve_tag('owner/repo', 'v0.7.0')
+
     def test_artifact_identity_expiry_duplicates_and_all_nine_targets(self):
         self.assertEqual(len(policy.validate_artifacts(self.artifacts)), 9)
         for artifacts in [self.artifacts[:-1], self.artifacts + [self.artifacts[0]],
@@ -179,7 +188,7 @@ class ReleasePolicyTests(unittest.TestCase):
                 if command[0] == 'openssl':
                     return real_run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs)
                 raise AssertionError('Unexpected external command')
-            with mock.patch.dict(os.environ, {'GITHUB_REF': 'refs/heads/main', 'GITHUB_REPOSITORY': 'owner/repo'}), mock.patch('sys.stdout'), mock.patch.object(publish, 'ROOT', root), mock.patch.object(publish, 'current_main', return_value=self.sha), mock.patch.object(publish, 'gh_json', return_value={'sha': self.sha}), mock.patch.object(publish, 'select', return_value=plan), mock.patch.object(publish.subprocess, 'check_output', return_value=json.dumps({'isDraft': True, 'isPrerelease': False})), mock.patch.object(publish.subprocess, 'run', side_effect=invoke):
+            with mock.patch.dict(os.environ, {'GITHUB_REF': 'refs/heads/main', 'GITHUB_REPOSITORY': 'owner/repo'}), mock.patch('sys.stdout'), mock.patch.object(publish, 'ROOT', root), mock.patch.object(publish, 'current_main', return_value=self.sha), mock.patch.object(publish, 'resolve_tag', return_value=self.sha), mock.patch.object(publish, 'select', return_value=plan), mock.patch.object(publish.subprocess, 'check_output', return_value=json.dumps({'isDraft': True, 'isPrerelease': False})), mock.patch.object(publish.subprocess, 'run', side_effect=invoke):
                 with mock.patch.object(sys, 'argv', ['publish.py', '--version', '0.7.0']):
                     publish.main()
                 self.assertFalse(edits, 'Verification alone must never publish')

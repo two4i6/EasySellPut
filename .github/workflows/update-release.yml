@@ -205,7 +205,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP'],'release-notes.md').write_text(notes+'\n\nSource: '+os.environ['TESTED_SHA']+'\nCI run: '+os.environ['RUN_ID']+'\n',encoding='utf-8')
           PY
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then echo 'Version already exists; bump Version for a new release. No overwrite.'; exit 1; fi
-          existing=$(gh api "repos/$GITHUB_REPOSITORY/commits/$TAG" --jq .sha 2>/dev/null || true)
+          existing=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG" --jq .object.sha 2>/dev/null || true)
           if test -n "$existing"; then
             test "$existing" = "$TESTED_SHA" || { echo 'Existing tag differs from tested main.'; exit 1; }
           else

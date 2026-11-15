@@ -8,7 +8,7 @@ import pathlib
 import re
 import subprocess
 import tempfile
-from policy import current_main, gh_json, require, select
+from policy import current_main, require, resolve_tag, select
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 
@@ -55,7 +55,7 @@ def main():
     release = json.loads(subprocess.check_output(['gh', 'release', 'view', tag, '--repo', repo, '--json', 'isDraft,isPrerelease'], text=True))
     require(release['isDraft'] and not release['isPrerelease'], 'Only a stable draft may be published')
     # Validate the actual tag, not the editable targetCommitish label.
-    sha = gh_json(f'repos/{repo}/commits/{tag}')['sha']
+    sha = resolve_tag(repo, tag)
     require(sha == current_main(repo), 'Draft must target the current main commit')
     public_key = ROOT / 'src/Meili.Application/Updates/update-public-key.pem'
     with tempfile.TemporaryDirectory(prefix='verify release ') as temp:
