@@ -65,3 +65,5 @@ MCP 增加可选 prompts：market_brief、option_research、strategy_review、co
 本轮还在隔离临时 Claude 配置中测试官方 Claude Code 2.1.325 的实际注册/回读，未修改真实用户客户端配置、未发起 AI 对话。跨平台最终运行结果以原生 CI 为准。
 
 参考：[Codex CLI](https://developers.openai.com/codex/cli/)、[Codex Skills](https://developers.openai.com/codex/skills/)、[Claude Code MCP](https://code.claude.com/docs/en/mcp)、[Claude Code Skills](https://code.claude.com/docs/en/skills)。
+
+Windows 自验证通过 ProcessStartInfo.ArgumentList 直接启动已知自带可执行文件，再使用官方 SDK StreamClientTransport 完成协议；避免 SDK 2.4 的 cmd 包装破坏含空格的安装路径。标准错误被有界读取，取消/退出会关闭标准输入并限时回收子进程，不改变实际客户端 stdio 配置。原生解压包 smoke 保留路径空格与 shell 元字符场景；路径断言比较 Windows 规范路径，兼容 8.3 短路径。

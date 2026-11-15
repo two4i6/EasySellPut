@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using Meili.Automation;
 using ModelContextProtocol.Client;
+using ModelContextProtocol.Protocol;
 
 namespace Meili.Cli;
 
@@ -42,16 +43,34 @@ internal static class AiConnectionCommand
         var skill = AiSkillInstaller.Check(client, root);
         progress("[2/4] Verifying local MCP handshake, read-only tools and data directory…");
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(ct); deadline.CancelAfter(TimeSpan.FromSeconds(30));
-        await using (var mcp = await McpClient.CreateAsync(new StdioClientTransport(new() { Command = executable, Arguments = connection.Arguments, InheritEnvironmentVariables = true }), new McpClientOptions { ClientInfo = new() { Name = McpSessions.SetupClientName, Version = "2.0" } }, cancellationToken: deadline.Token))
+        // SDK 2.4 StdioClientTransport wraps Windows commands in cmd /c; quoted app paths
+        // then lose the required outer quote pair. Start our known executable directly,
+        // with literal ArgumentList tokens, and retain the SDK's stream protocol transport.
+        var probeStart = new ProcessStartInfo(executable) { UseShellExecute = false, RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true, CreateNoWindow = true };
+        foreach (var argument in connection.Arguments) probeStart.ArgumentList.Add(argument);
+        using var probe = new Process { StartInfo = probeStart }; probe.Start();
+        var probeErrors = Read(probe.StandardError);
+        try
         {
-            var tools = await mcp.ListToolsAsync(cancellationToken: deadline.Token);
-            if (!OperationCatalog.All.Where(o => !o.Writes).Select(o => o.Name).ToHashSet().SetEquals(tools.Select(t => t.Name))) throw new AiSetupException("mcp_verification_failed", "MCP tool discovery did not match the read-only catalog.", "Keep the app and bundled CLI from the same desktop package; download a complete package and retry.");
-            var result = await mcp.CallToolAsync("get_settings", cancellationToken: deadline.Token);
-            var settings = WireJson.Element(result.StructuredContent);
-            if (!settings.TryGetProperty("data", out var settingsData) || !settingsData.TryGetProperty("dataDirectory", out var directoryData)
-                || !directoryData.TryGetProperty("path", out var resolved) || !string.Equals(Path.GetFullPath(resolved.GetString() ?? ""), Path.GetFullPath(data), OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
-                throw new AiSetupException("mcp_verification_failed", "MCP resolved a different data directory.", "Copy a fresh setup command from the desktop app using the intended data directory.");
-            if (result.IsError == true) throw new AiSetupException("mcp_verification_failed", "MCP settings check failed.", "Check access to the selected data directory and try connect --check again.");
+            await using (var mcp = await McpClient.CreateAsync(new StreamClientTransport(probe.StandardInput.BaseStream, probe.StandardOutput.BaseStream), new McpClientOptions { ClientInfo = new() { Name = McpSessions.SetupClientName, Version = "2.0" } }, cancellationToken: deadline.Token))
+            {
+                var tools = await mcp.ListToolsAsync(cancellationToken: deadline.Token);
+                if (!OperationCatalog.All.Where(o => !o.Writes).Select(o => o.Name).ToHashSet().SetEquals(tools.Select(t => t.Name))) throw new AiSetupException("mcp_verification_failed", "MCP tool discovery did not match the read-only catalog.", "Keep the app and bundled CLI from the same desktop package; download a complete package and retry.");
+                var result = await mcp.CallToolAsync("get_settings", cancellationToken: deadline.Token);
+                var settings = WireJson.Element(result.StructuredContent);
+                if (!settings.TryGetProperty("data", out var settingsData) || !settingsData.TryGetProperty("dataDirectory", out var directoryData)
+                    || !directoryData.TryGetProperty("path", out var resolved) || !string.Equals(Path.GetFullPath(resolved.GetString() ?? ""), Path.GetFullPath(data), OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
+                    throw new AiSetupException("mcp_verification_failed", "MCP resolved a different data directory.", "Copy a fresh setup command from the desktop app using the intended data directory.");
+                if (result.IsError == true) throw new AiSetupException("mcp_verification_failed", "MCP settings check failed.", "Check access to the selected data directory and try connect --check again.");
+            }
+        }
+        finally
+        {
+            try { probe.StandardInput.Close(); } catch (ObjectDisposedException) {/* expected: SDK stream disposal may already close stdin. */}
+            using var shutdown = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            try { await probe.WaitForExitAsync(shutdown.Token); }
+            catch (OperationCanceledException) { if (!probe.HasExited) probe.Kill(entireProcessTree: true); await probe.WaitForExitAsync(CancellationToken.None); }
+            await probeErrors;
         }
         if (check) return new { client, status = "checked", clientVersion = version.Output.Trim(), skill, connection = matches ? "already_configured" : current.Code == 0 ? "replace_requested" : "register", dataDirectory = data, readOnly = true, changesApplied = false };
         progress("[3/4] Installing companion skill…");
