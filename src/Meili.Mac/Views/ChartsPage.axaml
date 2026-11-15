@@ -124,7 +124,7 @@
           <StackPanel>
             <TextBlock Text="{Binding AdjustWarning}" FontSize="12" Margin="0,0,0,4" TextWrapping="Wrap" Foreground="{DynamicResource DegradedBrush}" IsVisible="{Binding AdjustWarning, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
             <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*">
-              
+
               <controls:AppHelp x:Name="ChartControlsHelp" Grid.Column="0" HelpText="{DynamicResource Ch_ControlHelp}" Margin="0,0,8,0"/>
               <controls:AppLoading Grid.Column="1" Margin="0,0,8,0" IsVisible="{Binding IsBusy}"/>
               <TextBlock x:Name="ChartSourceStatus" Grid.Column="2" Classes="Caption" Text="{Binding StatusText}" ToolTip.Tip="{Binding StatusText}" MaxWidth="180" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" VerticalAlignment="Center" Margin="0,0,12,0"/>
