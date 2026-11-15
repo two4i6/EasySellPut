@@ -3,7 +3,7 @@
                     xmlns:sys="clr-namespace:System;assembly=mscorlib"
                     xmlns:svc="clr-namespace:Meili.App.Services"
                     xmlns:p="clr-namespace:System.Windows.Controls.Primitives;assembly=PresentationFramework">
-    <ResourceDictionary.MergedDictionaries><ResourceDictionary Source="../DesignSystem/Tokens.xaml" /><ResourceDictionary Source="../DesignSystem/Components.xaml" /></ResourceDictionary.MergedDictionaries>
+    <ResourceDictionary.MergedDictionaries><ResourceDictionary Source="../DesignSystem/Components.xaml" /></ResourceDictionary.MergedDictionaries>
     <svc:InverseBoolConverter x:Key="InverseBool" />
     <svc:BoolToVisConverter x:Key="BoolToVis" />
     <svc:BoolToVisConverter x:Key="InverseBoolToVis" Invert="True" />

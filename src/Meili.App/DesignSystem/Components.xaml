@@ -1,4 +1,5 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:ds="clr-namespace:Meili.App.Views.Controls" xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+    <ResourceDictionary.MergedDictionaries><ResourceDictionary Source="Tokens.xaml"/></ResourceDictionary.MergedDictionaries>
     <!-- One button template for all page actions; shell rail/status controls use their compact variants. -->
     <Style x:Key="AppButton" TargetType="Button">
         <Setter Property="ds:ComponentMotion.Enabled" Value="True"/>

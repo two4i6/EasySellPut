@@ -21,6 +21,12 @@ class DesignSystemTests(unittest.TestCase):
                 self.assertNotRegex(source,r'<ControlTemplate TargetType="(?:Button|ToggleButton|TextBox|ComboBox)"')
                 self.assertNotRegex(source,r'(?:Background|Foreground|BorderBrush)="#[0-9A-Fa-f]{6}')
 
+    def test_wpf_components_load_their_own_metric_dependencies(self):
+        # WPF StaticResource cannot rely on a later parent/sibling dictionary during template materialization.
+        components=(ROOT/'src/Meili.App/DesignSystem/Components.xaml').read_text()
+        self.assertIn('<ResourceDictionary Source="Tokens.xaml"/>',components)
+        self.assertLess(components.index('Source="Tokens.xaml"'),components.index('<Style '))
+
     def test_components_are_used_by_both_desktops(self):
         for platform,sub,ext in [('App','Views/Pages','xaml'),('Mac','Views','axaml')]:
             root=ROOT/f'src/Meili.{platform}'
