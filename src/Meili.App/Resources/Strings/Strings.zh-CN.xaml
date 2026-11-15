@@ -856,7 +856,7 @@
     <sys:String x:Key="Upd_Timeout">更新操作超时，请稍后重试</sys:String>
     <sys:String x:Key="Upd_Unverified">更新验证失败，未安装；请重试或查看版本页面</sys:String>
     <sys:String x:Key="Upd_McpActive">请先关闭 AI 工具中的 MCP 连接，再重试安装</sys:String>
-    <sys:String x:Key="Upd_Failed">操作失败；请检查网络、安装目录权限或查看本地日志后重试</sys:String>
+    <sys:String x:Key="Upd_Failed">操作失败；请检查网络、磁盘空间、安装目录权限或查看本地日志后重试</sys:String>
     <sys:String x:Key="Upd_Installed">更新已安装</sys:String>
     <sys:String x:Key="Upd_PreviousFailed">上次更新未完成，旧版本/备份与数据已保留，请查看本地日志</sys:String>
     <sys:String x:Key="Upd_ConfirmTitle">安装更新</sys:String>

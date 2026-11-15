@@ -76,7 +76,12 @@ public sealed class UpdateCoordinator(SettingsStore settings, string dataDirecto
         catch
         {
             CancelHelper();
-            if (!process.HasExited) process.Kill(entireProcessTree: true); // Parent is still alive: installation has not begun.
+            if(!process.HasExited)
+            {
+                using var cleanup=new CancellationTokenSource(TimeSpan.FromSeconds(5));
+                try{await process.WaitForExitAsync(cleanup.Token);}
+                catch(OperationCanceledException){if(!process.HasExited)process.Kill(entireProcessTree:true);}
+            } // Parent is still alive: installation has not begun.
             throw;
         }
     }

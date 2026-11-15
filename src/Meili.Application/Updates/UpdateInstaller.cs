@@ -116,6 +116,10 @@ public static class UpdateInstaller
     }
     public static async Task<UpdateInstallResult> ApplyAsync(UpdateInstallPlan plan, CancellationToken ct)
     {
+        if(string.IsNullOrWhiteSpace(plan.ReadyFile))throw new InvalidDataException("Missing installer handoff marker.");
+        using var cancellation=CancellationTokenSource.CreateLinkedTokenSource(ct);
+        await using var cancelWatch=new Timer(_=>{if(File.Exists(plan.ReadyFile+".cancel"))cancellation.Cancel();},null,TimeSpan.Zero,TimeSpan.FromMilliseconds(100));
+        ct=cancellation.Token;
         if(plan.ParentPid<=0 || plan.ParentStartTicks<=0)throw new InvalidDataException("Invalid desktop process identity.");
         if (plan.Rid != UpdateClient.RuntimeId) throw new InvalidDataException("Update architecture does not match this process.");
         var windows = OperatingSystem.IsWindows();
@@ -174,7 +178,8 @@ public static class UpdateInstaller
         }
         catch (Exception ex)
         {
-            AppLog.Error("updater", "Update installation failed", ex);
+            if(ex is OperationCanceledException)AppLog.Info("updater","Update cancelled before replacement completed.");
+            else AppLog.Error("updater", "Update installation failed", ex);
             var result = new UpdateInstallResult(swapped ? "restart_required" : ex is OperationCanceledException ? "cancelled" : "failed", manifest.Version, Directory.Exists(backup) ? backup : null, "Update did not finish. The previous application/data were retained; inspect local update diagnostics.", Directory.Exists(stage) ? stage : null);
             try
             {

@@ -856,7 +856,7 @@
     <sys:String x:Key="Upd_Timeout">Update timed out. Try again later.</sys:String>
     <sys:String x:Key="Upd_Unverified">Update verification failed. Nothing installed. Retry or open the release page.</sys:String>
     <sys:String x:Key="Upd_McpActive">Disconnect active MCP sessions in your AI client before installing.</sys:String>
-    <sys:String x:Key="Upd_Failed">Action failed. Check network/folder permissions or local logs, then retry.</sys:String>
+    <sys:String x:Key="Upd_Failed">Action failed. Check network, free disk space, folder permissions or local logs, then retry.</sys:String>
     <sys:String x:Key="Upd_Installed">Update installed</sys:String>
     <sys:String x:Key="Upd_PreviousFailed">Last update did not finish. The previous app/backup and data were retained; check local logs.</sys:String>
     <sys:String x:Key="Upd_ConfirmTitle">Install update</sys:String>
