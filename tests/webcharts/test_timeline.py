@@ -59,7 +59,7 @@ class TimelineTests(unittest.TestCase):
                 const calendar=s.events[0];
                 s.events.push({...calendar,event:{...calendar.event,id:'undated',published:null,date:null,title:'未提供发布时间 · 测试新闻'}});
                 s.events.push({...calendar,event:{...calendar.event,id:'date-range',type:'earnings',published:null,date:'2026-12-31',endDate:'2027-01-03',precision:'date_range',confirmation:'estimated'}});
-                meiliChart.render(s);document.getElementById('timeline').open=true;}""")
+                meiliChart.render(s);}""")
             p.wait_for_timeout(100)
             self.assertEqual(p.locator('.event-day').count(),14)
             self.assertEqual(p.locator('#event-history button').count(),14)
@@ -110,12 +110,12 @@ class TimelineTests(unittest.TestCase):
             self.process.stdin.write('dark\nzh-CN\n');self.process.stdin.flush()
             self.wait('meiliChart.inspect().state.language === "zh-CN" && meiliChart.inspect().state.theme.dark')
             p.set_viewport_size(dict(width=1280,height=900))
-            p.evaluate("document.getElementById('timeline').open=false")
 
     def test_timeline_filters_marker_click_metadata_reader_theme_and_compact_layout(self):
         p=self.page
         self.assertEqual(p.evaluate('meiliChart.inspect().eventMarkers.markers().length'),2)
         self.assertEqual(p.evaluate('meiliChart.inspect().series.candles.data().length'),120)
+        self.assertEqual(p.locator('#timeline').evaluate('(e)=>e.tagName'),'ASIDE')
         p.locator('#event-heading').click()
         self.assertEqual(p.locator('#event-list button').count(),4)
         chart_bounds=p.locator('#chart').bounding_box()
@@ -123,11 +123,18 @@ class TimelineTests(unittest.TestCase):
         self.assertGreater(chart_bounds['height'],700)
         self.assertGreater(p.evaluate('meiliChart.inspect().chart.panes()[0].getHeight()'),2*p.evaluate('meiliChart.inspect().chart.panes()[1].getHeight()'))
         self.assertGreaterEqual(event_bounds['x'],chart_bounds['x']+chart_bounds['width']-1)
-        self.assertLessEqual(event_bounds['width'],301)
+        self.assertLessEqual(event_bounds['width'],341)
         self.assertFalse(p.locator('#event-detail').is_visible())
         self.assertFalse(p.locator('#event-status').is_visible())
         self.assertFalse(p.locator('#event-scope').is_visible())
         self.assertIn('预计',p.locator('#event-list button',has_text='财报').inner_text())
+        p.locator('[data-view="news"]').click()
+        self.assertEqual(p.locator('#event-list button').count(),2)
+        self.assertEqual(p.locator('[data-view="news"]').get_attribute('aria-pressed'),'true')
+        p.locator('[data-view="calendar"]').focus();p.keyboard.press('Enter')
+        self.assertEqual(p.locator('#event-list button').count(),2)
+        self.assertEqual(p.locator('#event-heading').inner_text(),'日历')
+        p.locator('[data-view="all"]').click()
         self.capture('timeline-default-dark')
         # Fit after opening the sidebar so the fixture's early news bar is visible.
         p.locator('#fit').click();p.wait_for_timeout(200)
@@ -209,7 +216,7 @@ class TimelineTests(unittest.TestCase):
         p.set_viewport_size(dict(width=480,height=800));p.wait_for_timeout(150)
         self.assertLessEqual(p.locator('body').evaluate('(e)=>e.scrollWidth'),480)
         self.assertTrue(p.locator('#attribution').is_visible());self.assertFalse(self.errors)
-        self.assertGreaterEqual(p.locator('#timeline').bounding_box()['y'],p.locator('#chart').bounding_box()['y']+p.locator('#chart').bounding_box()['height']-1)
+        self.assertGreaterEqual(p.locator('#timeline').bounding_box()['x'],p.locator('#chart').bounding_box()['x']+p.locator('#chart').bounding_box()['width']-1)
         self.assertTrue(p.locator('#event-close').is_visible())
         self.capture('timeline-compact')
         p.locator('#fit').click();p.wait_for_timeout(200)

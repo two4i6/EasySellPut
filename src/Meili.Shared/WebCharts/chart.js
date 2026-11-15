@@ -137,7 +137,7 @@
       if (!state.drawingMode) {
         const hit = (state.events || []).find(e => filters.has(e.event.type) && (e.event.id === param.hoveredObjectId || e.time === param.time));
         hideEventTooltip();
-        if (hit) {selectedEvent = hit.event.id; document.getElementById('timeline').open = true; renderEvents();}
+        if (hit) {selectedEvent = hit.event.id; renderEvents();}
         return;
       }
       if (!param.point || typeof param.time !== 'number') return;
@@ -155,8 +155,6 @@
     return `${value('year')}-${value('month')}-${value('day')}`;
   }
   function historyPosition() {
-    const panel=document.getElementById('timeline'), content=document.getElementById('event-content');
-    if(panel.open)content.style.height=Math.max(60,panel.getBoundingClientRect().bottom-content.getBoundingClientRect().top-12)+'px';
     const list=document.getElementById('event-list'), nav=document.getElementById('event-history');
     const days=[...list.querySelectorAll('.event-day')];
     if (!days.length || !list.clientHeight) return;
@@ -173,7 +171,12 @@
   let historyFrame=0;
   const scheduleHistory=()=>{if(!historyFrame)historyFrame=requestAnimationFrame(()=>{historyFrame=0;historyPosition();});};
   document.getElementById('event-list').addEventListener('scroll',scheduleHistory,{passive:true});
-  document.getElementById('timeline').addEventListener('toggle',scheduleHistory);
+  for(const button of document.querySelectorAll('#right-tools button')) button.addEventListener('click',()=>{
+    filters.clear();
+    for(const type of button.dataset.view==='news'?['news']:button.dataset.view==='calendar'?['earnings','ex_dividend']:['news','earnings','ex_dividend'])filters.add(type);
+    for(const input of document.querySelectorAll('#event-filters input'))input.checked=filters.has(input.dataset.type);
+    selectedEvent=null;renderEvents();document.getElementById('event-list').scrollTop=0;
+  });
   window.addEventListener('resize',scheduleHistory);
   const historySize=new ResizeObserver(scheduleHistory);
   historySize.observe(document.getElementById('timeline'));historySize.observe(document.getElementById('event-tools'));
@@ -185,7 +188,16 @@
       {estimated:'Estimated',source_confirmed:'Source confirmed',unverified:'Unverified',reported_published:'Reported publication',timestamp:'Timestamp',date:'Date only',date_range:'Date range',unknown:'Time unknown',outside_chart:'Outside chart',next_bar:'Aligned to next bar',same_day:'Same day bar',period_bucket:'Period bucket',exact:'Exact',available:'Available',empty:'No recent news',not_reported:'Not reported',unavailable:'Unavailable'};
     const text = (tag,value,css) => {const node=document.createElement(tag);node.textContent=value;if(css)node.className=css;return node;};
     const date = (e,compact=false) => e.published ? new Intl.DateTimeFormat(state.language,{timeZone:'America/New_York',dateStyle:compact?'short':'medium',timeStyle:'short'}).format(new Date(e.published))+' ET' : e.date ? e.date+(e.endDate ? ' – '+e.endDate : '') : labels.unknown;
-    document.getElementById('event-heading').textContent = zh ? '动态' : 'Activity';
+    const view=filters.size===3?'all':filters.size===1&&filters.has('news')?'news':filters.size===2&&!filters.has('news')?'calendar':null;
+    const viewNames=zh?{all:'动态',news:'新闻',calendar:'日历'}:{all:'Activity',news:'News',calendar:'Calendar'};
+    document.getElementById('event-heading').textContent=viewNames[view]||(zh?'筛选动态':'Filtered activity');
+    document.getElementById('event-symbol').textContent=state.symbol;
+    document.getElementById('timeline').setAttribute('aria-label',zh?'市场侧栏':'Market sidebar');
+    document.getElementById('right-tools').setAttribute('aria-label',zh?'侧栏视图':'Sidebar views');
+    for(const button of document.querySelectorAll('#right-tools button')){
+      button.setAttribute('aria-pressed',String(button.dataset.view===view));
+      button.title=viewNames[button.dataset.view];button.setAttribute('aria-label',button.title);button.querySelector('span').textContent=button.title;
+    }
     document.getElementById('event-heading').setAttribute('aria-label',zh?'事件与新闻':'Events and news');
     const box = document.getElementById('event-filters');
     if (box.dataset.language !== state.language) {
@@ -342,7 +354,7 @@
       else {chart.timeScale().fitContent();userRange = null;}
       if (state.rows.length) showLegend(state.rows[state.rows.length - 1]);
       document.title = 'EasySellPut Charts · ' + state.symbol;
-      diagnostic({status:'rendered',sessionBands:sessionBands.length,sessionPanes:sessionLayers.length,historyGroups:document.querySelectorAll('.event-day').length,historyStops:document.getElementById('event-history').children.length,events:(state.events||[]).length,eventMarkers:eventMarkers.markers().length,key:state.key,rows:state.rows.length,candles:series.candles.data().filter(p=>finite(p.open)).length,panes:chart.panes().length,lastMa:series.ma?.data().at(-1)?.value ?? null,background:t.background,up:series.candles.options().upColor,range:chart.timeScale().getVisibleLogicalRange()});
+      diagnostic({status:'rendered',sidebarPermanent:document.getElementById('timeline').tagName==='ASIDE',sidebarViews:document.querySelectorAll('#right-tools button').length,sessionBands:sessionBands.length,sessionPanes:sessionLayers.length,historyGroups:document.querySelectorAll('.event-day').length,historyStops:document.getElementById('event-history').children.length,events:(state.events||[]).length,eventMarkers:eventMarkers.markers().length,key:state.key,rows:state.rows.length,candles:series.candles.data().filter(p=>finite(p.open)).length,panes:chart.panes().length,lastMa:series.ma?.data().at(-1)?.value ?? null,background:t.background,up:series.candles.options().upColor,range:chart.timeScale().getVisibleLogicalRange()});
     } finally {applying = false;}
   }
   document.getElementById('fit').addEventListener('click',()=>{if(chart){userRange=null;chart.timeScale().fitContent();chart.priceScale('right').applyOptions({autoScale:true});}});
