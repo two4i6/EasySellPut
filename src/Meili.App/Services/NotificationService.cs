@@ -53,7 +53,7 @@ public sealed class NotificationService : IAlertNotifier, IDisposable
             _tray = new TaskbarIcon
             {
                 ToolTipText = _loc["App_Title"],
-                IconSource = new BitmapImage(new Uri("pack://application:,,,/Assets/app.ico")),
+                IconSource = new BitmapImage(new Uri("pack://application:,,,/MeiliTerminal;component/Assets/app.ico")),
                 ContextMenu = BuildMenu(),
                 NoLeftClickDelay = true,
             };

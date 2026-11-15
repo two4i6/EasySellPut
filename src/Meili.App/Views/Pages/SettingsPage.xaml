@@ -213,7 +213,7 @@
             <ds:AppCard Padding="20">
                 <StackPanel>
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                        <Image Source="pack://application:,,,/Assets/app-64.png" Width="40" Height="40" Margin="0,0,12,0" />
+                        <Image Source="pack://application:,,,/MeiliTerminal;component/Assets/app-64.png" Width="40" Height="40" Margin="0,0,12,0" />
                         <StackPanel VerticalAlignment="Center">
                             <TextBlock Style="{StaticResource CardTitle}" FontSize="16" Text="{DynamicResource App_Title}" />
                             <TextBlock Style="{StaticResource Caption}">

@@ -25,7 +25,7 @@
 
         <ui:TitleBar x:Name="TitleBar" Grid.Row="0" Title="{DynamicResource App_Title}" Height="44">
             <ui:TitleBar.Icon>
-                <ui:ImageIcon Source="pack://application:,,,/Assets/app-64.png" Width="18" Height="18" />
+                <ui:ImageIcon Source="pack://application:,,,/MeiliTerminal;component/Assets/app-64.png" Width="18" Height="18" />
             </ui:TitleBar.Icon>
         </ui:TitleBar>
 
@@ -33,7 +33,7 @@
             <Border Grid.Column="0" Background="{DynamicResource LayerFillColorDefaultBrush}" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="0,0,1,0">
                 <DockPanel>
                     <ScrollViewer x:Name="SidebarScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"><StackPanel HorizontalAlignment="Center" Margin="0,8">
-                        <ToggleButton x:Name="HomeWorkspace" Style="{StaticResource WorkspaceTile}" Click="OnHomeWorkspace" IsChecked="True" ToolTip="{DynamicResource Nav_Dashboard}" AutomationProperties.Name="{DynamicResource Nav_Dashboard}"><Image Source="pack://application:,,,/Assets/app-64.png" Width="28" Height="28"/></ToggleButton>
+                        <ToggleButton x:Name="HomeWorkspace" Style="{StaticResource WorkspaceTile}" Click="OnHomeWorkspace" IsChecked="True" ToolTip="{DynamicResource Nav_Dashboard}" AutomationProperties.Name="{DynamicResource Nav_Dashboard}"><Image Source="pack://application:,,,/MeiliTerminal;component/Assets/app-64.png" Width="28" Height="28"/></ToggleButton>
                         <Border Height="1" Margin="16,8" Background="{DynamicResource ControlStrokeColorDefaultBrush}"/>
                         <StackPanel x:Name="BuiltinRail"/>
                         <Border Height="1" Margin="16,8" Background="{DynamicResource ControlStrokeColorDefaultBrush}"/>

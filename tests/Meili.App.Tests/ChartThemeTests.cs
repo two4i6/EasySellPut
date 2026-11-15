@@ -136,6 +136,14 @@ public class ChartThemeTests
             try
             {
                 ScreenRenderTests.Apply("zh-CN", true);
+                if(pageType==typeof(StrategyPage))
+                {
+                    // Other tests retain manual drafts in the singleton model. Build a
+                    // known, renderable preset before asserting the detailed plot theme.
+                    var vm=AppServices.Get<StrategyViewModel>();vm.SymbolText="MSFT";await vm.LoadAsync();
+                    vm.SelectedPreset=vm.Presets.First(p=>p.Kind==Meili.Analytics.StrategyKind.CoveredCall);
+                    vm.ApplyPresetCommand.Execute(null);Assert.True(vm.HasCurve);
+                }
                 var page = (Page)Activator.CreateInstance(pageType)!;
                 if (page is StrategyPage strategyPage) strategyPage.ShowDetailedAnalysis();
                 using var host = new OffscreenHost(page, 1280, 800);
