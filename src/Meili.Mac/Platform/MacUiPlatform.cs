@@ -55,6 +55,11 @@ public sealed class MacUiPlatform : IUiPlatform
         await clipboard.SetTextAsync(text);
     }
 
+    public void ExitForUpdate()
+    {
+        if(Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)throw new NotSupportedException();
+        (desktop.MainWindow as MainWindow)?.AllowClose();desktop.Shutdown();
+    }
     public void OpenUrl(string url) => Open(url);
 
     public void OpenFolder(string path) => Open(path);

@@ -21,6 +21,13 @@ public static class Program
         Console.CancelKeyPress += (_, e) => { e.Cancel = true; stop.Cancel(); };
         try
         {
+            if(args.FirstOrDefault()=="update")
+            {
+                if(args.Skip(1).SequenceEqual(new[]{"--help"})){Console.WriteLine("update check|download [--data-dir PATH] [--json]\nReads signed stable GitHub Releases. Download verifies signature/size/SHA-256; installation requires desktop confirmation. update apply --plan PATH is the internal desktop handoff, never an MCP tool.");return 0;}
+                var updateResult=await UpdateCommand.RunAsync(args,stop.Token);
+                if(json)Console.WriteLine(WireJson.Element(WireJson.Success(updateResult)).GetRawText());else if(args.ElementAtOrDefault(1)!="apply")PrintHuman(WireJson.Element(updateResult));
+                return 0;
+            }
             if(args.FirstOrDefault()=="connect")
             {
                 if(args.Skip(1).SequenceEqual(new[]{"--help"}))
@@ -83,6 +90,7 @@ public static class Program
         }
         catch (Exception e) // expected: return structured errors and a nonzero CLI exit or MCP isError
         {
+            if(args.FirstOrDefault()=="update")Meili.Core.Diagnostics.AppLog.Error("updater","Update command failed",e);
             Console.Error.WriteLine($"{WireJson.Code(e)}: {WireJson.Element(WireJson.Error(e)).GetProperty("error").GetProperty("message").GetString()}");
             if (!json) Console.Error.WriteLine("Next: "+WireJson.Recovery(e));
             if (json) Console.WriteLine(JsonSerializer.Serialize(WireJson.Error(e), WireJson.Options));
@@ -266,7 +274,7 @@ public static class Program
     private static string Kebab(string s) => string.Concat(s.Select(c => char.IsUpper(c) ? "-" + char.ToLowerInvariant(c) : c.ToString()));
     private static void PrintHelp(string? operation)
     {
-        Console.WriteLine("EasySellPut — local CLI + stdio MCP\nUsage: easysellput <command> [options] [--json] [--data-dir PATH] [--timeout 60]\n       easysellput mcp serve [--allow-writes] [--data-dir PATH]\nSetup: connect codex|claude-code [--check] [--json] (verifies MCP, installs skill and registers the client)\n       install-skill --client codex|claude-code [--project PATH] [--json] (CLI only; preserves custom skills; known bundled upgrades are backed up)\nAliases: quote, bars, search, expirations, options, fundamentals, financials, news, events, chart, option-analysis, insights, presets, sources, price, indicators\nGroups: watchlist list/add/remove/create-group/rename-group/delete-group; strategy list/save/delete/analyze; alerts list/history/save/delete/enable; settings show\nUse any operation name below directly. --input FILE accepts an argument JSON object.\nNumbers use invariant decimal units. --help after an operation prints its JSON schema.\nExit: 0 success, 1 failure, 2 arguments, 3 permission, 4 conflict, 130 cancelled/timeout.");
+        Console.WriteLine("EasySellPut — local CLI + stdio MCP\nUsage: easysellput <command> [options] [--json] [--data-dir PATH] [--timeout 60]\n       easysellput mcp serve [--allow-writes] [--data-dir PATH]\nMaintenance: update check|download [--json] (signed stable desktop updates; installation is desktop-confirmed)\nSetup: connect codex|claude-code [--check] [--json] (verifies MCP, installs skill and registers the client)\n       install-skill --client codex|claude-code [--project PATH] [--json] (CLI only; preserves custom skills; known bundled upgrades are backed up)\nAliases: quote, bars, search, expirations, options, fundamentals, financials, news, events, chart, option-analysis, insights, presets, sources, price, indicators\nGroups: watchlist list/add/remove/create-group/rename-group/delete-group; strategy list/save/delete/analyze; alerts list/history/save/delete/enable; settings show\nUse any operation name below directly. --input FILE accepts an argument JSON object.\nNumbers use invariant decimal units. --help after an operation prints its JSON schema.\nExit: 0 success, 1 failure, 2 arguments, 3 permission, 4 conflict, 130 cancelled/timeout.");
         foreach (var op in OperationCatalog.All.Where(o => operation is null || o.Name == operation))
         {
             Console.WriteLine($"\n{op.Name}{(op.Writes ? " [writes local data]" : "")}: {op.Description}");

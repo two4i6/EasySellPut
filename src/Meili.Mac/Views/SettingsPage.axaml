@@ -5,9 +5,45 @@
              xmlns:local="using:Meili.Mac.Views"
              x:Class="Meili.Mac.Views.SettingsPage"
              x:DataType="vm:SettingsViewModel">
+    <UserControl.Styles>
+        <Style Selector="Border.UpdateCard Expander">
+            <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
+        </Style>
+        <Style Selector="Border.UpdateCard Expander /template/ ToggleButton#ExpanderHeader">
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}"/>
+        </Style>
+        <Style Selector="Border.UpdateCard Expander /template/ ToggleButton#ExpanderHeader:pointerover /template/ Border#ToggleButtonBackground">
+            <Setter Property="Background" Value="{DynamicResource RowHighlightBrush}"/>
+        </Style>
+    </UserControl.Styles>
     <ScrollViewer Classes="PageScroller">
         <StackPanel MaxWidth="1000">
             <TextBlock Classes="PageTitle" Text="{DynamicResource Nav_Settings}" />
+
+            <Border x:Name="UpdatePanel" Classes="Card UpdateCard" Padding="16" Margin="0,16,0,0">
+                <StackPanel Spacing="8">
+                    <DockPanel LastChildFill="True">
+                        <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center">
+                            <Button Content="{DynamicResource Upd_Check}" Command="{Binding CheckUpdatesCommand}" Margin="0,0,8,0"/>
+                            <Button Classes="Accent" Content="{DynamicResource Upd_Download}" Command="{Binding DownloadUpdateCommand}" IsVisible="{Binding ShowDownloadUpdate}" Margin="0,0,8,0"/>
+                            <Button Classes="Accent" Content="{DynamicResource Upd_Install}" Command="{Binding InstallUpdateCommand}" IsVisible="{Binding ShowInstallUpdate}" Margin="0,0,8,0"/>
+                            <Button Classes="Subtle" Content="{DynamicResource Upd_OpenDownload}" Command="{Binding OpenUpdateFolderCommand}" IsVisible="{Binding ShowUpdateFolder}" Margin="0,0,8,0"/>
+                            <Button Classes="Subtle" Content="{DynamicResource Upd_History}" Command="{Binding OpenUpdateHistoryCommand}"/>
+                        </WrapPanel>
+                        <StackPanel Margin="0,0,12,0"><TextBlock Classes="CardTitle" Text="{DynamicResource Upd_Title}"/><TextBlock Classes="Caption" Text="{Binding UpdateVersionLine}" Margin="0,4,0,0"/></StackPanel>
+                    </DockPanel>
+                    <TextBlock Classes="Caption" Text="{Binding UpdateStatusText}" TextWrapping="Wrap"/>
+                    <DockPanel IsVisible="{Binding ShowUpdateProgress}">
+                        <Button Classes="Subtle Icon" Width="24" Height="24" MinWidth="24" MinHeight="24" DockPanel.Dock="Right" Content="×" Command="{Binding CancelUpdateCommand}" AutomationProperties.Name="{DynamicResource Upd_Cancel}" ToolTip.Tip="{DynamicResource Upd_Cancel}" Margin="8,0,0,0"/>
+                        <ProgressBar Minimum="0" Maximum="100" Value="{Binding UpdateProgress}" IsIndeterminate="{Binding IsUpdateIndeterminate}" Height="4" MinHeight="0" VerticalAlignment="Center"/>
+                    </DockPanel>
+                    <Expander Header="{DynamicResource Upd_Notes}" IsVisible="{Binding HasUpdateNotes}" HorizontalAlignment="Stretch"><TextBlock Text="{Binding UpdateNotes}" FontSize="14" FontWeight="Normal" TextWrapping="Wrap" Margin="0,8,0,0"/></Expander>
+                </StackPanel>
+            </Border>
 
             <!-- Appearance -->
             <TextBlock Classes="SectionTitle" Text="{DynamicResource Set_Appearance}" />

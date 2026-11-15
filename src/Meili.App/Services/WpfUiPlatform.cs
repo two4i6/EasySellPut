@@ -43,6 +43,10 @@ public sealed class WpfUiPlatform : IUiPlatform
 
     public Task CopyTextAsync(string text) { Clipboard.SetText(text); return Task.CompletedTask; }
 
+    public void ExitForUpdate()
+    {
+        if(Application.Current.MainWindow is MainWindow window)window.RequestExit();else Application.Current.Shutdown();
+    }
     public void OpenUrl(string url) => Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
 
     public void OpenFolder(string path) =>

@@ -22,6 +22,8 @@ public interface IUiPlatform
 
     Task<bool> ConfirmAsync(string title, string message);
 
+    void ExitForUpdate() => throw new NotSupportedException("Application shutdown is unavailable.");
+
     void OpenUrl(string url);
 
     void OpenNewsArticle(string url, string title);

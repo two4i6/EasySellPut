@@ -255,17 +255,21 @@
       ],
       "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation.",
       "commands": {
-        "OpenAiHelp": {"uiOnly": "Opens one of two fixed official client installation guides; no arbitrary URL, client process or configuration editing is exposed through MCP."},
-        "CopyAiPromptAsync": {"uiOnly": "Copies a client-specific starter prompt; it does not execute setup, query data or modify another client configuration."},
+        "OpenAiHelp": {
+          "uiOnly": "Opens the fixed official client installation page with an explicit user action."
+        },
+        "CopyAiPromptAsync": {
+          "uiOnly": "Copies a localized client-specific starter question; no data/network operation."
+        },
         "ApplyProxyAsync": {
           "uiOnly": "Proxy endpoints/credentials and live connection reconfiguration stay local desktop configuration; no arbitrary network destinations are accepted by MCP."
         },
         "OpenDataFolder": {
           "uiOnly": "Opening a native file manager is desktop-only; get_settings returns the resolved data directory."
         },
-        "CopyAiPromptAsync": {"uiOnly":"Copies a localized client-specific starter question; no data/network operation."},
-        "OpenAiHelp": {"uiOnly":"Opens the fixed official client installation page with an explicit user action."},
-        "CopyUniversalSetupAsync": {"uiOnly":"Copies the same harness-neutral read-only MCP and skill setup prompt as the status bar; clipboard only."},
+        "CopyUniversalSetupAsync": {
+          "uiOnly": "Copies the same harness-neutral read-only MCP and skill setup prompt as the status bar; clipboard only."
+        },
         "CopyCodexAsync": {
           "uiOnly": "Copies a user-executed Codex setup command: preflight the client and local read-only MCP, install/upgrade the unedited bundled skill, then register and verify read-only MCP. The application does not execute it or alter client configuration."
         },
@@ -277,14 +281,39 @@
         },
         "CopyClaudeAsync": {
           "uiOnly": "Copies a user-executed Claude Code setup command: preflight the client and local read-only MCP, install/upgrade the unedited bundled skill, then register and verify read-only stdio MCP. The application does not execute it or alter client configuration."
+        },
+        "CheckUpdatesAsync": {
+          "uiOnly": "Explicit desktop software maintenance: reads signed official releases, verifies/downloads packages, or confirms an external installer and normal restart. Replacing executable code is not a market/business MCP operation; CLI update check/download provides local maintenance access without MCP self-modification."
+        },
+        "DownloadUpdateAsync": {
+          "uiOnly": "Explicit desktop software maintenance: reads signed official releases, verifies/downloads packages, or confirms an external installer and normal restart. Replacing executable code is not a market/business MCP operation; CLI update check/download provides local maintenance access without MCP self-modification."
+        },
+        "InstallUpdateAsync": {
+          "uiOnly": "Explicit desktop software maintenance: reads signed official releases, verifies/downloads packages, or confirms an external installer and normal restart. Replacing executable code is not a market/business MCP operation; CLI update check/download provides local maintenance access without MCP self-modification."
+        },
+        "CancelUpdate": {
+          "uiOnly": "Explicit desktop software maintenance: reads signed official releases, verifies/downloads packages, or confirms an external installer and normal restart. Replacing executable code is not a market/business MCP operation; CLI update check/download provides local maintenance access without MCP self-modification."
+        },
+        "OpenUpdateHistory": {
+          "uiOnly": "Explicit desktop software maintenance: reads signed official releases, verifies/downloads packages, or confirms an external installer and normal restart. Replacing executable code is not a market/business MCP operation; CLI update check/download provides local maintenance access without MCP self-modification."
+        },
+        "OpenUpdateFolder": {
+          "uiOnly": "Opens the already verified local download folder for explicit manual installation/recovery; never accepts arbitrary URLs or exposes executable replacement through MCP."
         }
       }
     },
     {
       "path": "src/Meili.Shared/ViewModels/ShellViewModel.cs",
-      "operations": ["get_quotes", "get_watchlists"],
+      "operations": [
+        "get_quotes",
+        "get_watchlists"
+      ],
       "scope": "Shell window/navigation actions are UI-only. The macOS shell MenuBarQuoteController presents quotes and watchlist choices through the existing QuoteHub; status-item rendering, current-symbol selection, hide/show and native lifecycle have no MCP window-control tools.",
-      "commands": {"CopyMcpSetupAsync": {"uiOnly": "Copies harness-neutral read-only MCP and skill setup instructions to the clipboard; local diagnostic status is not market health or authorization."}}
+      "commands": {
+        "CopyMcpSetupAsync": {
+          "uiOnly": "Copies harness-neutral read-only MCP and skill setup instructions to the clipboard; local diagnostic status is not market health or authorization."
+        }
+      }
     },
     {
       "path": "src/Meili.Shared/ViewModels/StrategyLegRow.cs",

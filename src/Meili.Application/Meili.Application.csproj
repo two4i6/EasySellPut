@@ -6,4 +6,6 @@
     <ProjectReference Include="../Meili.Analytics/Meili.Analytics.csproj" />
   </ItemGroup>
   <ItemGroup><EmbeddedResource Include="../../skills/easysellput-local/SKILL.md" LogicalName="EasySellPut.Skill" /></ItemGroup>
+  <ItemGroup><EmbeddedResource Include="Updates/update-public-key.pem" LogicalName="EasySellPut.UpdatePublicKey" /></ItemGroup>
+  <ItemGroup><InternalsVisibleTo Include="Meili.Automation.Tests" /></ItemGroup>
 </Project>

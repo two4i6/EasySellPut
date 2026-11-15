@@ -49,6 +49,20 @@ def check(archive,rid,destination):
         evidence=json.loads(report.read_text(encoding='utf-8'));assert evidence['Failures']==0,evidence
     # Exercise the CLI taken from the extracted GUI bundle, not a developer build.
     subprocess.run([sys.executable,str(pathlib.Path(__file__).with_name('cli_mcp_smoke.py')),'--executable',str(cli)],check=True,timeout=180)
+    # Exercise the actual managed updater on the extracted package, then launch that replaced GUI.
+    repository=pathlib.Path(__file__).resolve().parents[2]
+    subprocess.run(['dotnet','build',str(repository/'tests/Meili.Automation.Host/Meili.Automation.Host.csproj'),'-c','Release','-m:3','-v','quiet'],check=True,cwd=repository,timeout=180)
+    host=repository/'tests/Meili.Automation.Host/bin/Release/net10.0/Meili.Automation.Host.dll'
+    with tempfile.TemporaryDirectory(prefix='update transaction ',dir=destination.parent) as temporary:
+        scratch=pathlib.Path(temporary)
+        target=root if rid.startswith('win-') else root/'EasySellPut.app'
+        data=target/'data' if rid.startswith('win-') else scratch/'user profile'
+        subprocess.run(['dotnet',str(host),'--update-transaction',str(archive),str(target),str(data),str(scratch/'stage')],check=True,timeout=180)
+        updated_report=destination.parent/'desktop-smoke-after-update.json'
+        result=subprocess.run([str(gui),'--smoke-offline','--no-alerts','--data-dir',str(data),'--smoke-report',str(updated_report.resolve())],timeout=180)
+        assert result.returncode==0,updated_report.read_text(encoding='utf-8') if updated_report.exists() else 'Updated GUI exited without report'
+        assert (data/'updater-user-data.marker').read_text()=='retain exact user data'
+        if rid.startswith('osx-'):subprocess.run(['codesign','--verify','--deep','--strict',str(target)],check=True)
     print('PASS: desktop checksum, resources, architecture, real GUI startup/clipboard and bundled CLI/MCP')
 
 if __name__=='__main__':

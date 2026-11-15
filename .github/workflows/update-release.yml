@@ -1,0 +1,81 @@
+name: Prepare signed update draft
+on:
+  workflow_dispatch:
+    inputs:
+      ci_run_id:
+        description: Successful CI run containing all four native Desktop artifacts
+        required: true
+        type: string
+      notes:
+        description: User-facing release notes (review the draft before publishing)
+        required: true
+        type: string
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: signed-update-draft
+  cancel-in-progress: false
+jobs:
+  draft:
+    runs-on: ubuntu-24.04
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RUN_ID: ${{ inputs.ci_run_id }}
+      RELEASE_NOTES: ${{ inputs.notes }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Select a successful trusted push run
+        id: tested
+        shell: bash
+        run: |
+          python -c 'import os; n=os.environ["RUN_ID"]; assert n.isdecimal() and len(n)<21, "Invalid CI run id"'
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID" > "$RUNNER_TEMP/update-run.json"
+          python - <<'PY'
+          import json, os, re
+          from pathlib import Path
+          run=json.loads(Path(os.environ['RUNNER_TEMP'],'update-run.json').read_text())
+          assert run['conclusion']=='success' and run['event']=='push', 'Use a successful CI push run'
+          assert run['head_repository']['full_name']==os.environ['GITHUB_REPOSITORY']
+          assert run['head_branch'] in ('main','work') and run['path']=='.github/workflows/ci.yml'
+          assert re.fullmatch('[0-9a-f]{40}',run['head_sha'])
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f:f.write('sha='+run['head_sha']+'\n')
+          PY
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.tested.outputs.sha }}
+          persist-credentials: false
+      - name: Download the tested desktop packages
+        run: gh run download "$RUN_ID" --pattern 'Desktop-*' --dir "$RUNNER_TEMP/update-packages"
+      - name: Validate all architectures and assemble the signed index
+        id: manifest
+        run: python build/prepare-update-release.py --packages "$RUNNER_TEMP/update-packages" --output "$RUNNER_TEMP/update-release"
+      - name: Sign and verify the index
+        env:
+          UPDATE_SIGNING_KEY: ${{ secrets.UPDATE_SIGNING_KEY }}
+        shell: bash
+        run: |
+          test -n "$UPDATE_SIGNING_KEY" || { echo 'Configure the UPDATE_SIGNING_KEY secret before preparing a release.'; exit 1; }
+          umask 077
+          key="$RUNNER_TEMP/update-release-key.pem"
+          trap 'rm -f "$key"' EXIT
+          printf '%s\n' "$UPDATE_SIGNING_KEY" > "$key"
+          openssl dgst -sha256 -sign "$key" -out "$RUNNER_TEMP/update-release/EasySellPut-update.json.sig" "$RUNNER_TEMP/update-release/EasySellPut-update.json"
+          openssl dgst -sha256 -verify src/Meili.Application/Updates/update-public-key.pem -signature "$RUNNER_TEMP/update-release/EasySellPut-update.json.sig" "$RUNNER_TEMP/update-release/EasySellPut-update.json"
+      - name: Create a reviewable draft (never publish automatically)
+        env:
+          TAG: v${{ steps.manifest.outputs.version }}
+          TESTED_SHA: ${{ steps.tested.outputs.sha }}
+        shell: bash
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then echo 'This release already exists; it will not be overwritten.'; exit 1; fi
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          Path(os.environ['RUNNER_TEMP'],'update-notes.md').write_text(os.environ['RELEASE_NOTES'],encoding='utf-8')
+          PY
+          existing=$(gh api "repos/$GITHUB_REPOSITORY/commits/$TAG" --jq .sha 2>/dev/null || true)
+          if test -n "$existing" && test "$existing" != "$TESTED_SHA"; then echo 'Existing version ref differs from the tested commit.'; exit 1; fi
+          gh release create "$TAG" --target "$TESTED_SHA" --title "EasySellPut $TAG" --draft --notes-file "$RUNNER_TEMP/update-notes.md" "$RUNNER_TEMP/update-release/"*

@@ -1,6 +1,8 @@
 using Meili.Automation;
 using Meili.Automation.Tests;
 
+if(args.Length==5 && args[0]=="--update-transaction"){await UpdateFixture.RunAsync(args[1],args[2],args[3],args[4]);return 0;}
+
 if (args.SequenceEqual(new[] { "--connection-fixtures" }))
 {
     var values = new[] {
