@@ -52,8 +52,9 @@ public sealed class SymbolBox : UserControl
 
         var chevron = new Wpf.Ui.Controls.Button
         {
-            Appearance = Wpf.Ui.Controls.ControlAppearance.Transparent, Padding = new Thickness(8, 4, 8, 4), Margin = new Thickness(4, 0, 0, 0),
-            Icon = new Wpf.Ui.Controls.SymbolIcon { Symbol = Wpf.Ui.Controls.SymbolRegular.ChevronDown24, FontSize = 14 },
+            Appearance = Wpf.Ui.Controls.ControlAppearance.Transparent, Width = 32, Height = 32, Padding = new Thickness(0),
+            HorizontalContentAlignment = HorizontalAlignment.Center, VerticalContentAlignment = VerticalAlignment.Center, Margin = new Thickness(4, 0, 0, 0),
+            Content = new Wpf.Ui.Controls.SymbolIcon { Symbol = Wpf.Ui.Controls.SymbolRegular.ChevronDown24, FontSize = 14 },
             Focusable = false,
         };
         chevron.SetResourceReference(ToolTipProperty, "Sb_ShowWatchlist");

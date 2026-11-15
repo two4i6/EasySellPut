@@ -13,12 +13,17 @@
     <Grid RowDefinitions="*,Auto" ColumnDefinitions="168,*">
         <!-- Navigation (⌘1…⌘9 in this order) -->
         <DockPanel Grid.Row="0" Grid.Column="0" Background="{DynamicResource SidebarBackgroundBrush}">
-            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="12,8" Spacing="6">
-                <Button x:Name="LanguageButton" Classes="Subtle" MinWidth="40" FontWeight="SemiBold"
+            <StackPanel x:Name="ShellUtilities" DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="12,8" Spacing="6" Background="{DynamicResource SidebarBackgroundBrush}">
+                <Button x:Name="LanguageButton" Classes="Subtle Icon" Width="40" MinWidth="40" FontWeight="SemiBold"
                         Content="{DynamicResource Title_LanguageButton}" ToolTip.Tip="{DynamicResource Title_ToggleLanguage}"
                         Click="OnToggleLanguage" />
-                <Button x:Name="ThemeButton" Classes="Subtle" MinWidth="40" Content="◐"
-                        ToolTip.Tip="{DynamicResource Title_ToggleTheme}" Click="OnToggleTheme" />
+                <Button x:Name="ThemeButton" Classes="Subtle Icon" Width="40" MinWidth="40"
+                        ToolTip.Tip="{DynamicResource Title_ToggleTheme}" AutomationProperties.Name="{DynamicResource Title_ToggleTheme}" Click="OnToggleTheme">
+                    <Grid x:Name="ThemeGlyph" Width="16" Height="16">
+                        <Ellipse Stroke="{DynamicResource TextFillColorPrimaryBrush}" StrokeThickness="1.25"/>
+                        <Path Data="M8,0.625 A7.375,7.375 0 0 0 8,15.375 Z" Fill="{DynamicResource TextFillColorPrimaryBrush}"/>
+                    </Grid>
+                </Button>
             </StackPanel>
             <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="12,12,8,12" Spacing="8">
                 <Image Source="avares://MeiliMac/Assets/app-64.png" Width="22" Height="22" />

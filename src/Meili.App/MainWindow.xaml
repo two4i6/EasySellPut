@@ -28,12 +28,12 @@
             </ui:TitleBar.Icon>
             <ui:TitleBar.TrailingContent>
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,8,0">
-                    <ui:Button x:Name="LanguageButton" Appearance="Transparent" Padding="10,4" MinWidth="40" Height="32"
+                    <ui:Button x:Name="LanguageButton" Appearance="Transparent" Padding="0" Width="40" MinWidth="40" Height="32" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                FontSize="14" FontWeight="SemiBold"
                                Content="{DynamicResource Title_LanguageButton}"
                                ToolTip="{DynamicResource Title_ToggleLanguage}"
                                Click="OnToggleLanguage" />
-                    <ui:Button x:Name="ThemeButton" Appearance="Transparent" Padding="8,4" Height="32" Margin="4,0,0,0"
+                    <ui:Button x:Name="ThemeButton" Appearance="Transparent" Padding="0" Width="40" MinWidth="40" Height="32" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="4,0,0,0"
                                ToolTip="{DynamicResource Title_ToggleTheme}" Click="OnToggleTheme">
                         <ui:SymbolIcon x:Name="ThemeIcon" Symbol="WeatherMoon24" FontSize="18" />
                     </ui:Button>

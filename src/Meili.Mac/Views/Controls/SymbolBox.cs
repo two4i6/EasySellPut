@@ -52,7 +52,7 @@ public sealed class SymbolBox : UserControl
         _box.TextChanged += OnBoxTextChanged;
         _box.AddHandler(KeyDownEvent, OnBoxKeyDown, Avalonia.Interactivity.RoutingStrategies.Tunnel);
 
-        var chevron = new Button { Content = "⌄", Classes = { "Subtle" }, Padding = new Thickness(8, 0), Margin = new Thickness(4, 0, 0, 0), Focusable = false };
+        var chevron = new Button { Content = "⌄", Classes = { "Subtle", "Icon" }, Margin = new Thickness(4, 0, 0, 0), Focusable = false };
         chevron[!ToolTip.TipProperty] = chevron.GetResourceObservable("Sb_ShowWatchlist").ToBinding();
         chevron.Click += (_, _) => { _box.Focus(); _ = RefreshAsync(showAll: true, open: true); };
 

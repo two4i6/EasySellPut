@@ -111,11 +111,11 @@
                         <TextBlock Text="{DynamicResource Wl_Refresh}" FontSize="14" />
                     </StackPanel>
                 </ui:Button>
-                <ui:Button DockPanel.Dock="Right" Appearance="Secondary" Padding="12,6" Margin="8,0,0,0"
+                <ui:Button DockPanel.Dock="Right" Appearance="Secondary" Padding="0" Width="32" Height="32" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="8,0,0,0"
                            Command="{Binding MoveDownCommand}" ToolTip="{DynamicResource Wl_MoveDown}">
                     <ui:SymbolIcon Symbol="ArrowDown24" FontSize="16" />
                 </ui:Button>
-                <ui:Button DockPanel.Dock="Right" Appearance="Secondary" Padding="12,6" Margin="8,0,0,0"
+                <ui:Button DockPanel.Dock="Right" Appearance="Secondary" Padding="0" Width="32" Height="32" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="8,0,0,0"
                            Command="{Binding MoveUpCommand}" ToolTip="{DynamicResource Wl_MoveUp}">
                     <ui:SymbolIcon Symbol="ArrowUp24" FontSize="16" />
                 </ui:Button>
