@@ -123,6 +123,12 @@ public sealed class WebChartTests : IDisposable
         request.Content.Headers.ContentType=new("application/json");
         request.Headers.Add("Origin",session.Origin);Assert.Equal(HttpStatusCode.NoContent,(await client.SendAsync(request)).StatusCode);
         Assert.Equal(DrawingKind.HorizontalLine,_vm.DrawMode);Assert.Empty(_vm.Drawings);
+        // The UI model can switch range before the next serialized WebView snapshot is published.
+        _vm.Range=ChartRangeKind.Minute5;
+        using var staleRequest=new HttpRequestMessage(HttpMethod.Post,new Uri(session.PageUri,"event")){Content=new ByteArrayContent(JsonSerializer.SerializeToUtf8Bytes(new{kind="drawing",key,index=10,price=110}))};
+        staleRequest.Content.Headers.ContentType=new("application/json");staleRequest.Headers.Add("Origin",session.Origin);
+        Assert.Equal(HttpStatusCode.NoContent,(await client.SendAsync(staleRequest)).StatusCode);Assert.Empty(_vm.Drawings);
+
     }
     public void Dispose() { _vm.Deactivate(); if (Directory.Exists(_directory)) Directory.Delete(_directory, true); }
 }

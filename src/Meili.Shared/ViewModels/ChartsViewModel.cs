@@ -396,7 +396,7 @@ public partial class ChartsViewModel : ObservableObject
     /// <summary>B5: a click on the price chart while drawing. Returns true when the click was used for drawing.</summary>
     public bool AddDrawingPoint(DateTimeOffset time, double price)
     {
-        if (DrawMode is not { } mode || Series is null || IsBusy) return false;
+        if (DrawMode is not { } mode || Series is null) return false;
         if (mode == DrawingKind.TrendLine && _trendStart is null)
         {
             _trendStart = (time, price);
@@ -418,6 +418,7 @@ public partial class ChartsViewModel : ObservableObject
         return true;
     }
 
+    public string ChartKey => $"{Series?.Symbol}|{Range}|{Series?.Source}|{Series?.Adjustment}";
     public long DrawingEpoch { get; private set; }
     public (DateTimeOffset Time, double Price)? DrawingStart => _trendStart;
     public string DrawingRevision => Series is null ? "" : _drawings.Revision(Series.Symbol);

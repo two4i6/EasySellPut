@@ -45,7 +45,7 @@ public static class WebChartSnapshot
         var compare = vm.CompareLine is { } line ? line.Time.Select((t, i) => new { time = t.ToUnixTimeSeconds(), value = Finite(line.Close[i]) }).ToArray() : [];
         return JsonSerializer.Serialize(new
         {
-            schemaVersion = 1, key = $"{vm.Series?.Symbol}|{vm.Range}|{vm.Series?.Source}|{vm.Series?.Adjustment}",
+            schemaVersion = 1, key = vm.ChartKey,
             symbol = vm.Series?.Symbol ?? vm.SymbolText, preserveView = vm.PreserveView,
             language = LocalizationService.Current.Language, intraday = vm.Series?.Interval.IsIntraday() ?? false,
             events = ChartEventAlignment.Map(vm), timelineStatus = vm.Timeline is not null && vm.Timeline.Symbol == vm.Series?.Symbol ? vm.Timeline.Status : "loading",

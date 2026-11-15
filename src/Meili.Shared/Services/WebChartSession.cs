@@ -162,7 +162,7 @@ public sealed class WebChartSession : IDisposable
             if (_strategy is { } strategy) { StrategyWorkbench.Dispatch(strategy, message); return; }
             var current = Volatile.Read(ref _state);
             using var state = JsonDocument.Parse(current.Json);
-            if (message.GetProperty("key").GetString() != state.RootElement.GetProperty("key").GetString()) return;
+            if (message.GetProperty("key").GetString() != state.RootElement.GetProperty("key").GetString() || message.GetProperty("key").GetString() != _vm!.ChartKey) return;
             if (kind == "open-event") { _vm!.OpenTimelineEvent(message.GetProperty("id").GetString()!); return; }
             if (kind is "drawing" or "drawing-cancel" && message.TryGetProperty("epoch", out var epoch) && (epoch.ValueKind != JsonValueKind.Number || !epoch.TryGetInt64(out var epochValue) || epochValue != _vm!.DrawingEpoch)) return;
             if (kind == "drawing-cancel") { if (!message.TryGetProperty("mode", out var mode) || mode.ValueKind == JsonValueKind.String && mode.GetString() == _vm!.DrawMode?.ToString()) _vm!.CancelDrawing(); return; }
