@@ -862,4 +862,24 @@
     <sys:String x:Key="Upd_ConfirmTitle">安装更新</sys:String>
     <sys:String x:Key="Upd_Confirm">安装 v{0} 并重启？请先保存未保存的编辑，并关闭 AI 工具的 MCP 连接。应用和自带 CLI/MCP 会一同更新，用户数据会保留。</sys:String>
     <sys:String x:Key="Upd_OpenDownload">打开下载文件夹</sys:String>
+    <sys:String x:Key="Web_Add">添加网页</sys:String>
+    <sys:String x:Key="Web_Edit">管理网页</sys:String>
+    <sys:String x:Key="Web_Name">名称</sys:String>
+    <sys:String x:Key="Web_Address">网址</sys:String>
+    <sys:String x:Key="Web_Save">保存</sys:String>
+    <sys:String x:Key="Web_Cancel">取消</sys:String>
+    <sys:String x:Key="Web_Remove">移除网页</sys:String>
+    <sys:String x:Key="Web_Up">上移</sys:String>
+    <sys:String x:Key="Web_Down">下移</sys:String>
+    <sys:String x:Key="Web_Invalid">输入 1–40 字名称和有效的 HTTP/HTTPS 网址。</sys:String>
+    <sys:String x:Key="Web_Failed">无法保存，请重新打开应用以读取最新配置。</sys:String>
+    <sys:String x:Key="Web_Limit">最多可添加 12 个网页。</sys:String>
+    <sys:String x:Key="Web_Motion">减少动态效果</sys:String>
+    <sys:String x:Key="Web_Market">市场工作区</sys:String>
+    <sys:String x:Key="Web_Channels">市场</sys:String>
+    <sys:String x:Key="Web_Tools">工具</sys:String>
+    <sys:String x:Key="Web_Empty">你的网页</sys:String>
+    <sys:String x:Key="Web_Removed">网页已移除</sys:String>
+    <sys:String x:Key="Web_Privacy">仅保存名称和网址；网页会话在退出后清除。</sys:String>
+    <sys:String x:Key="Web_ConfirmRemove">再次点击移除</sys:String>
 </ResourceDictionary>

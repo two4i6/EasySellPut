@@ -10,9 +10,41 @@
         Background="{DynamicResource ApplicationBackgroundBrush}"
         FontFamily="{StaticResource AppFont}" FontSize="14"
         Icon="avares://MeiliMac/Assets/app-256.png">
-    <Grid RowDefinitions="*,Auto" ColumnDefinitions="168,*">
+    <Window.Styles>
+        <Style Selector="ToggleButton.Workspace">
+            <Setter Property="Width" Value="56"/><Setter Property="Height" Value="52"/><Setter Property="Padding" Value="0"/>
+            <Setter Property="FontSize" Value="18"/><Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Template"><ControlTemplate><Grid>
+                <Border Name="Pill" Width="4" Height="8" HorizontalAlignment="Left" VerticalAlignment="Center" CornerRadius="2" Background="{DynamicResource TextFillColorPrimaryBrush}" Opacity="0"/>
+                <Border Name="Tile" Width="44" Height="44" CornerRadius="22" Background="{DynamicResource ControlFillColorSecondaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <ContentPresenter Content="{TemplateBinding Content}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                </Border>
+            </Grid></ControlTemplate></Setter>
+        </Style>
+        <Style Selector="ToggleButton.Workspace /template/ Border#Tile"><Setter Property="Transitions"><Transitions><CornerRadiusTransition Property="CornerRadius" Duration="0:0:0.16" Easing="CubicEaseOut"/><BrushTransition Property="Background" Duration="0:0:0.16" Easing="CubicEaseOut"/></Transitions></Setter></Style>
+        <Style Selector="ToggleButton.Workspace /template/ Border#Pill"><Setter Property="Transitions"><Transitions><DoubleTransition Property="Height" Duration="0:0:0.16" Easing="CubicEaseOut"/><DoubleTransition Property="Opacity" Duration="0:0:0.12"/></Transitions></Setter></Style>
+        <Style Selector="ToggleButton.Workspace:pointerover /template/ Border#Tile"><Setter Property="CornerRadius" Value="14"/><Setter Property="Background" Value="{DynamicResource RowHighlightBrush}"/></Style>
+        <Style Selector="ToggleButton.Workspace:pointerover /template/ Border#Pill"><Setter Property="Opacity" Value="1"/></Style>
+        <Style Selector="ToggleButton.Workspace:checked /template/ Border#Tile"><Setter Property="CornerRadius" Value="14"/><Setter Property="Background" Value="{DynamicResource AccentFillColorDefaultBrush}"/></Style>
+        <Style Selector="ToggleButton.Workspace:checked"><Setter Property="Foreground" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}"/></Style>
+        <Style Selector="ToggleButton.Workspace:checked /template/ Border#Pill"><Setter Property="Height" Value="32"/><Setter Property="Opacity" Value="1"/></Style>
+        <Style Selector="ToggleButton.Workspace:focus-visible /template/ Border#Tile"><Setter Property="BorderThickness" Value="2"/><Setter Property="BorderBrush" Value="{DynamicResource TextFillColorPrimaryBrush}"/></Style>
+        <Style Selector="Window.ReducedMotion ToggleButton.Workspace /template/ Border"><Setter Property="Transitions" Value="{x:Null}"/></Style>
+    </Window.Styles>
+    <Grid RowDefinitions="*,Auto" ColumnDefinitions="64,164,*">
+        <Border Grid.Column="0" Background="{DynamicResource LayerFillColorDefaultBrush}" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="0,0,1,0">
+            <DockPanel>
+                <ToggleButton x:Name="MotionButton" DockPanel.Dock="Bottom" Classes="Workspace" Content="≈" Margin="0,8" Click="OnToggleMotion" ToolTip.Tip="{DynamicResource Web_Motion}" AutomationProperties.Name="{DynamicResource Web_Motion}"/>
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"><StackPanel HorizontalAlignment="Center" Margin="0,8" Spacing="4">
+                    <ToggleButton x:Name="HomeWorkspace" Classes="Workspace" Click="OnHomeWorkspace" IsChecked="True" ToolTip.Tip="{DynamicResource Web_Market}" AutomationProperties.Name="{DynamicResource Web_Market}"><Image Source="avares://MeiliMac/Assets/app-64.png" Width="28" Height="28"/></ToggleButton>
+                    <Border Height="1" Margin="16,4" Background="{DynamicResource ControlStrokeColorDefaultBrush}"/>
+                    <StackPanel x:Name="WebsiteRail" Spacing="4"/>
+                    <ToggleButton x:Name="AddWebsite" Classes="Workspace" Content="+" Click="OnAddWebsite" ToolTip.Tip="{DynamicResource Web_Add}" AutomationProperties.Name="{DynamicResource Web_Add}"/>
+                </StackPanel></ScrollViewer>
+            </DockPanel>
+        </Border>
         <!-- Navigation (⌘1…⌘9 in this order) -->
-        <DockPanel Grid.Row="0" Grid.Column="0" Background="{DynamicResource SidebarBackgroundBrush}">
+        <DockPanel Grid.Row="0" Grid.Column="1" Background="{DynamicResource SidebarBackgroundBrush}">
             <StackPanel x:Name="ShellUtilities" DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="12,8" Spacing="6" Background="{DynamicResource SidebarBackgroundBrush}">
                 <Button x:Name="LanguageButton" Classes="Subtle Icon" Width="40" MinWidth="40" FontWeight="SemiBold"
                         Content="{DynamicResource Title_LanguageButton}" ToolTip.Tip="{DynamicResource Title_ToggleLanguage}"
@@ -26,15 +58,15 @@
                 </Button>
             </StackPanel>
             <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="12,12,8,12" Spacing="8">
-                <Image Source="avares://MeiliMac/Assets/app-64.png" Width="22" Height="22" />
                 <TextBlock Text="{DynamicResource Mac_AppShort}" FontWeight="SemiBold" VerticalAlignment="Center" />
             </StackPanel>
+            <StackPanel DockPanel.Dock="Top" Margin="16,12,8,8"><TextBlock FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{DynamicResource Web_Channels}"/></StackPanel>
             <ListBox x:Name="Nav" Classes="Nav" SelectionMode="Single" SelectionChanged="OnNavSelected" />
         </DockPanel>
 
         <!-- Page host -->
-        <Panel Grid.Row="0" Grid.Column="1">
-            <ContentControl x:Name="PageHost" />
+        <Panel Grid.Row="0" Grid.Column="2">
+            <ContentControl x:Name="PageHost" /><Grid x:Name="WebTabHost" IsVisible="False"/>
 
             <!-- In-app alert / error banner (always shown, even when notifications are off) -->
             <Border x:Name="Banner" IsVisible="False" Classes="InfoBar" Margin="24,12" MaxWidth="640"
@@ -62,7 +94,7 @@
         </Panel>
 
         <!-- Status bar -->
-        <Border x:Name="BottomStatusBar" Grid.Row="1" Grid.ColumnSpan="2" Padding="16,6" BorderThickness="0,1,0,0"
+        <Border x:Name="BottomStatusBar" Grid.Row="1" Grid.ColumnSpan="3" Padding="16,6" BorderThickness="0,1,0,0"
                 BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
                 Background="{DynamicResource LayerFillColorDefaultBrush}">
             <DockPanel LastChildFill="False">

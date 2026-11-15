@@ -862,4 +862,24 @@
     <sys:String x:Key="Upd_ConfirmTitle">Install update</sys:String>
     <sys:String x:Key="Upd_Confirm">Install v{0} and restart? Save unfinished edits and disconnect AI MCP sessions first. The app and bundled CLI/MCP update together; user data is retained.</sys:String>
     <sys:String x:Key="Upd_OpenDownload">Open download folder</sys:String>
+    <sys:String x:Key="Web_Add">Add website</sys:String>
+    <sys:String x:Key="Web_Edit">Manage website</sys:String>
+    <sys:String x:Key="Web_Name">Name</sys:String>
+    <sys:String x:Key="Web_Address">Address</sys:String>
+    <sys:String x:Key="Web_Save">Save</sys:String>
+    <sys:String x:Key="Web_Cancel">Cancel</sys:String>
+    <sys:String x:Key="Web_Remove">Remove website</sys:String>
+    <sys:String x:Key="Web_Up">Move up</sys:String>
+    <sys:String x:Key="Web_Down">Move down</sys:String>
+    <sys:String x:Key="Web_Invalid">Enter a 1–40 character name and a valid HTTP/HTTPS address.</sys:String>
+    <sys:String x:Key="Web_Failed">Could not save. Reopen the app to reload the latest configuration.</sys:String>
+    <sys:String x:Key="Web_Limit">You can add up to 12 websites.</sys:String>
+    <sys:String x:Key="Web_Motion">Reduce motion</sys:String>
+    <sys:String x:Key="Web_Market">Market workspace</sys:String>
+    <sys:String x:Key="Web_Channels">MARKET</sys:String>
+    <sys:String x:Key="Web_Tools">TOOLS</sys:String>
+    <sys:String x:Key="Web_Empty">YOUR WEBSITES</sys:String>
+    <sys:String x:Key="Web_Removed">Website removed</sys:String>
+    <sys:String x:Key="Web_Privacy">Only names and addresses are saved; web sessions clear on exit.</sys:String>
+    <sys:String x:Key="Web_ConfirmRemove">Click again to remove</sys:String>
 </ResourceDictionary>

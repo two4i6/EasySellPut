@@ -107,6 +107,7 @@ internal static class Program
             reopened.OpenArticle(server.Url + "one", "Reopened");
             await Until(() => reopened.Title == "Reader One", "reader recreation after disposal");
             Console.WriteLine("PASS: native HTML load, document titles, back, forward, reload, protocol blocking, HTTP error and close/reopen.");
+            await ProbeWebTabs(server);
             await ProbeChart(directory);
             await ProbeWorkbench(directory);
 #if !WINDOWS_READER
@@ -160,6 +161,63 @@ internal static class Program
         if(recreated.Title!="AAPL —")throw new Exception("Menu bar recreation failed");
     }
 #endif
+    private static async Task ProbeWebTabs(Pages server)
+    {
+        var first = new WebTabPane(server.Url + "one");
+        var second = new WebTabPane(server.Url + "two");
+        var host = new Grid(); host.Children.Add(first); host.Children.Add(second);
+        var window = new Window { Width = 1100, Height = 760, Content = host };
+        try
+        {
+            window.Show();
+            await Until(() => first.DocumentTitle == "Reader One" && second.DocumentTitle == "Reader Two", "two workspace browser documents");
+#if WINDOWS_READER
+            var web = ((DockPanel)first.Content).Children.OfType<WebView2>().Single();
+            first.Visibility = Visibility.Collapsed; second.Visibility = Visibility.Visible;
+#else
+            var web = ((DockPanel)first.Content!).Children.OfType<NewsWebView>().Single();
+            first.IsVisible = false; second.IsVisible = true;
+#endif
+            await Task.Delay(250);
+            var before = server.Count;
+#if WINDOWS_READER
+            first.Visibility = Visibility.Visible; second.Visibility = Visibility.Collapsed;
+#else
+            first.IsVisible = true; second.IsVisible = false;
+#endif
+            await Task.Delay(350);
+            if (server.Count != before || first.DocumentTitle != "Reader One") throw new Exception("Switching tabs reloaded the web session");
+#if WINDOWS_READER
+            web.CoreWebView2.Navigate(server.Url + "two");
+#else
+            web.Navigate(server.Url + "two");
+#endif
+            await Until(() => first.DocumentTitle == "Reader Two", "workspace tab navigation");
+#if WINDOWS_READER
+            web.GoBack();
+#else
+            web.Back();
+#endif
+            await Until(() => first.DocumentTitle == "Reader One", "workspace tab retained back history");
+#if WINDOWS_READER
+            if (web.CoreWebView2.Settings.IsWebMessageEnabled || web.CoreWebView2.Settings.AreHostObjectsAllowed) throw new Exception("Workspace page has native privileges");
+            web.CoreWebView2.Navigate("file:///private/blocked.html");
+#else
+            web.Navigate("file:///private/blocked.html");
+#endif
+            await Task.Delay(250);
+            if (!first.Address.StartsWith(server.Url, StringComparison.Ordinal)) throw new Exception("Unsafe workspace navigation was accepted");
+            Console.WriteLine("PASS: workspace tabs load in native engine, retain hidden sessions/history, and reject native protocols without host privileges.");
+        }
+        finally
+        {
+            window.Close();
+#if WINDOWS_READER
+            first.Dispose(); second.Dispose();
+#endif
+        }
+    }
+
     private static async Task ProbeChart(string directory)
     {
 #if WINDOWS_READER

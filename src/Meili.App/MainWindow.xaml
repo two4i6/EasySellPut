@@ -41,11 +41,29 @@
             </ui:TitleBar.TrailingContent>
         </ui:TitleBar>
 
-        <ui:NavigationView x:Name="RootNavigation" Grid.Row="1"
+        <Grid Grid.Row="1" x:Name="WorkspaceGrid"><Grid.ColumnDefinitions><ColumnDefinition Width="64"/><ColumnDefinition Width="164"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+            <Border Grid.Column="0" Background="{DynamicResource LayerFillColorDefaultBrush}" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="0,0,1,0">
+                <DockPanel>
+                    <ToggleButton x:Name="MotionButton" DockPanel.Dock="Bottom" Style="{StaticResource WorkspaceTile}" Content="≈" Margin="0,8" Click="OnToggleMotion" ToolTip="{DynamicResource Web_Motion}" AutomationProperties.Name="{DynamicResource Web_Motion}"/>
+                    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"><StackPanel HorizontalAlignment="Center" Margin="0,8">
+                        <ToggleButton x:Name="HomeWorkspace" Style="{StaticResource WorkspaceTile}" Click="OnHomeWorkspace" IsChecked="True" ToolTip="{DynamicResource Web_Market}" AutomationProperties.Name="{DynamicResource Web_Market}"><Image Source="pack://application:,,,/Assets/app-64.png" Width="28" Height="28"/></ToggleButton>
+                        <Border Height="1" Margin="16,8" Background="{DynamicResource ControlStrokeColorDefaultBrush}"/>
+                        <StackPanel x:Name="WebsiteRail"/>
+                        <ToggleButton x:Name="AddWebsite" Style="{StaticResource WorkspaceTile}" Content="+" Click="OnAddWebsite" ToolTip="{DynamicResource Web_Add}" AutomationProperties.Name="{DynamicResource Web_Add}"/>
+                    </StackPanel></ScrollViewer>
+                </DockPanel>
+            </Border>
+            <DockPanel Grid.Column="1" Background="{DynamicResource SidebarBackgroundBrush}">
+                <TextBlock DockPanel.Dock="Top" Text="EasySellPut" FontWeight="SemiBold" Margin="16,20,8,20"/>
+                <TextBlock DockPanel.Dock="Top" Text="{DynamicResource Web_Channels}" Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontSize="12" FontWeight="SemiBold" Margin="16,4,8,8"/>
+                <ListBox x:Name="ChannelNav" Background="Transparent" BorderThickness="0" SelectionChanged="OnChannelSelected"/>
+            </DockPanel>
+            <Grid Grid.Column="2" x:Name="NativePageHost">
+        <ui:NavigationView x:Name="RootNavigation"
                            PaneDisplayMode="Left"
-                           OpenPaneLength="168"
+                           OpenPaneLength="0" CompactPaneLength="0" IsPaneOpen="True"
                            IsBackButtonVisible="Collapsed"
-                           IsPaneToggleVisible="True"
+                           IsPaneToggleVisible="False"
                            FrameMargin="0"
                            Transition="FadeInWithSlide">
             <ui:NavigationView.MenuItems>
@@ -80,6 +98,9 @@
                 </ui:NavigationViewItem>
             </ui:NavigationView.FooterMenuItems>
         </ui:NavigationView>
+            </Grid>
+            <Grid Grid.Column="2" x:Name="WebTabHost" Visibility="Collapsed"/>
+        </Grid>
 
         <!-- D2: keyboard wizard — type a symbol anywhere, Enter opens its K-line, Esc closes -->
         <Border x:Name="Wizard" Grid.Row="1" Panel.ZIndex="10" Visibility="Collapsed"

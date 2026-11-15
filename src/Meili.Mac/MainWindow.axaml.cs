@@ -41,6 +41,7 @@ public partial class MainWindow : Window
         DataContext = AppServices.Get<ShellViewModel>();
         foreach (var (page, i) in PageOrder.Select((p, i) => (p, i)))
             Nav.Items.Add(NavItem(page, Glyphs[i]));
+        SetupWorkspace();
         RestorePlacement();
         var hub = AppServices.Get<NavigationHub>();
         EventHandler<NavigationRequest> onRequest = (_, e) => Dispatcher.UIThread.Post(() => { if (!_closed) OnNavigateRequested(e); });
@@ -86,6 +87,7 @@ public partial class MainWindow : Window
     {
         if (!_pages.TryGetValue(page, out var view))
             _pages[page] = view = CreatePage(page);
+        ShowMarketWorkspace();
         CurrentPage = page;
         PageHost.Content = view;
         _syncingNav = true;
@@ -133,7 +135,7 @@ public partial class MainWindow : Window
 
     // ---------------- menu actions ----------------
 
-    public void RefreshCurrent() => CommandOf(CurrentView?.DataContext, "RefreshCommand", "RecheckCommand")?.Execute(null);
+    public void RefreshCurrent() { if (_activeWebsite is { } id) _webTabs[id].ReloadPage(); else CommandOf(CurrentView?.DataContext, "RefreshCommand", "RecheckCommand")?.Execute(null); }
 
     public void ExportCurrent() => CommandOf(CurrentView?.DataContext, "ExportCommand")?.Execute(null);
 
@@ -195,7 +197,7 @@ public partial class MainWindow : Window
 
     private void OnWindowTextInput(object? sender, TextInputEventArgs e)
     {
-        if (Wizard.IsVisible || FocusManager?.GetFocusedElement() is TextBox or ComboBox) return;
+        if (_activeWebsite is not null || Wizard.IsVisible || FocusManager?.GetFocusedElement() is TextBox or ComboBox) return;
         if (e.Text is not { Length: 1 } t || !(char.IsAsciiLetterOrDigit(t[0]) || t[0] is '^' or '.')) return;
         ShowFromDock();
         Wizard.IsVisible = true;
