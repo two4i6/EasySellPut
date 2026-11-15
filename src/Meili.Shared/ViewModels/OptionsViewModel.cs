@@ -342,7 +342,10 @@ public partial class OptionsViewModel : ObservableObject
             RelabelHeader();
             if (!refreshOnly) _ = LoadInsightsAsync(symbol, chain.Expirations, spot, ct);
         }
-        catch (Exception) when (!ReferenceEquals(_cts, request)) { } // superseded: a newer load owns the table and busy state
+        catch (Exception ex) when (!ReferenceEquals(_cts, request))
+        {
+            if (ex is not OperationCanceledException) AppLog.Warn("options", "superseded load failed", ex);
+        }
         catch (AllSourcesFailedException) { Fail(_loc["Op_AllFailed"], refreshOnly); }
         catch (OperationCanceledException) when (_active && !refreshOnly) { Fail(_loc["Op_Timeout"], refreshOnly); }
         catch (OperationCanceledException) { }

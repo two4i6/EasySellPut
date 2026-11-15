@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:lucide="using:Meili.Mac.Views.Controls"
+        xmlns:chrome="using:Avalonia.Controls.Chrome"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="using:Meili.Mac.Views.Controls"
         xmlns:vm="using:Meili.Shared.ViewModels"
@@ -8,9 +9,15 @@
         Title="{DynamicResource App_Title}"
         Width="1320" Height="840" MinWidth="980" MinHeight="620"
         WindowStartupLocation="CenterScreen"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaTitleBarHeightHint="{StaticResource WindowHeaderHeight}"
+        WindowDecorationsTheme="{StaticResource AppWindowDecorations}"
         Background="{DynamicResource ApplicationBackgroundBrush}"
         FontFamily="{DynamicResource AppFont}" FontSize="{StaticResource BodyFontSize}"
         Icon="avares://MeiliMac/Assets/app-256.png">
+    <Window.Resources>
+        <ResourceDictionary><ResourceDictionary.MergedDictionaries><ResourceInclude Source="avares://MeiliMac/DesignSystem/WindowChrome.axaml"/></ResourceDictionary.MergedDictionaries></ResourceDictionary>
+    </Window.Resources>
     <Window.Styles>
         <Style Selector="ToggleButton.Workspace">
             <Setter Property="Width" Value="56"/><Setter Property="Height" Value="52"/><Setter Property="Padding" Value="0"/>
@@ -35,6 +42,16 @@
         <Style Selector="Button.StatusAction:pointerover, ToggleButton.StatusAction:pointerover"><Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}"/></Style>
         <Style Selector="ToggleButton.StatusAction:checked"><Setter Property="Background" Value="{DynamicResource RowHighlightBrush}"/><Setter Property="Foreground" Value="{DynamicResource AccentTextFillColorPrimaryBrush}"/></Style>
     </Window.Styles>
+    <DockPanel>
+    <!-- Native caption buttons remain above this band; content never enters their hit area. -->
+    <Border x:Name="WindowHeader" DockPanel.Dock="Top" Height="{StaticResource WindowHeaderHeight}"
+            Background="{DynamicResource ApplicationBackgroundBrush}"
+            chrome:WindowDecorationProperties.ElementRole="TitleBar">
+        <TextBlock Text="{DynamicResource App_Title}" Classes="Caption"
+                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                   Margin="160,0" HorizontalAlignment="Center" VerticalAlignment="Center"
+                   IsHitTestVisible="False"/>
+    </Border>
     <Grid RowDefinitions="*,Auto" ColumnDefinitions="64,*">
         <Border Grid.Column="0" Background="{DynamicResource LayerFillColorDefaultBrush}" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="0,0,1,0">
             <DockPanel>
@@ -107,4 +124,5 @@
             </DockPanel>
         </Border>
     </Grid>
+    </DockPanel>
 </Window>

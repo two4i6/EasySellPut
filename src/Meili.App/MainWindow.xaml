@@ -23,7 +23,11 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <ui:TitleBar x:Name="TitleBar" Grid.Row="0" Title="{DynamicResource App_Title}" Height="44">
+        <ui:TitleBar x:Name="TitleBar" Grid.Row="0" Title="{DynamicResource App_Title}" Height="{StaticResource WindowHeaderHeight}"
+                     Background="{DynamicResource ApplicationBackgroundBrush}"
+                     Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                     ButtonsForeground="{DynamicResource TextFillColorPrimaryBrush}"
+                     FontFamily="{DynamicResource AppFont}" FontSize="{StaticResource CaptionFontSize}">
             <ui:TitleBar.Icon>
                 <ui:ImageIcon Source="pack://application:,,,/MeiliTerminal;component/Assets/app-64.png" Width="18" Height="18" />
             </ui:TitleBar.Icon>

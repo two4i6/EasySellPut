@@ -91,6 +91,7 @@ public static class DesignTokens
     public const double MotionStandardMs = 180;
     public const double MotionEnterMs = 220;
     public const double FormFieldWidth = 260;
+    public const double WindowHeaderHeight = 36;
     public static IEnumerable<(string Key,uint Argb)> ComponentBrushes(bool dark) => dark ? DarkBrushes : LightBrushes;
     private static readonly (string Key,uint Argb)[] LightBrushes =
     [

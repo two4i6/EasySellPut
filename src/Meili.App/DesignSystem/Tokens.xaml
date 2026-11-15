@@ -20,6 +20,7 @@
     <sys:Double x:Key="MotionStandardMs">180</sys:Double>
     <sys:Double x:Key="MotionEnterMs">220</sys:Double>
     <sys:Double x:Key="FormFieldWidth">260</sys:Double>
+    <sys:Double x:Key="WindowHeaderHeight">36</sys:Double>
     <sys:TimeSpan x:Key="MotionFastDuration">0:0:0.120</sys:TimeSpan>
     <sys:TimeSpan x:Key="MotionStandardDuration">0:0:0.180</sys:TimeSpan>
     <sys:TimeSpan x:Key="MotionEnterDuration">0:0:0.220</sys:TimeSpan>

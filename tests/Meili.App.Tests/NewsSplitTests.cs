@@ -51,6 +51,7 @@ public sealed class NewsSplitTests
                         await Task.Delay(100);
                     }
                     Assert.True(rendered,"Article split chart did not finish rendering");await Task.Delay(250);
+                    System.IO.Directory.CreateDirectory(dir);
                     var captured=NewsReaderFixture.Capture(w,System.IO.Path.Combine(dir,"desktop-smoke-news-split-windows.png"));
                     System.IO.File.WriteAllText(System.IO.Path.Combine(dir,"news-split-native-capture.json"),System.Text.Json.JsonSerializer.Serialize(new{chartRendered=rendered,articleLoaded=pane.DocumentTitle=="本地演示新闻",captured,reason=captured?"foreground native window":"desktop obscured by another system window"}));w.Topmost=false;
                 }

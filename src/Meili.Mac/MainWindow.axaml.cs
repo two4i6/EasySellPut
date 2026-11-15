@@ -36,6 +36,14 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        // Follow actual platform support: do not leave a second band below server decorations.
+        PropertyChanged += (_, e) =>
+        {
+            if (e.Property == IsExtendedIntoWindowDecorationsProperty || e.Property == WindowStateProperty)
+                UpdateWindowHeader();
+        };
+        Opened += (_, _) => UpdateWindowHeader();
+        UpdateWindowHeader();
         DataContext = AppServices.Get<ShellViewModel>();
         SetupWorkspace();
         SetupNewsSplit();
@@ -55,6 +63,9 @@ public partial class MainWindow : Window
         Closing += OnClosing;
         Navigate(StartPageFromArgs() ?? AppPage.Dashboard);
     }
+
+    private void UpdateWindowHeader() => WindowHeader.IsVisible =
+        IsExtendedIntoWindowDecorations && WindowState != WindowState.FullScreen;
 
     private bool _closed;
     internal AppPage CurrentPage { get; private set; }

@@ -108,6 +108,11 @@ public partial class App : Application
                 if(!window.PresentationSuspended||window.IsVisible)throw new InvalidOperationException("Background startup showed the main window");
                 window.ShowFromDock();await Task.Delay(200);
             }
+            var caption=window.FindControl<Border>("WindowHeader")!;
+            if(!window.IsExtendedIntoWindowDecorations||!caption.IsVisible||Math.Abs(caption.Bounds.Height-DesignTokens.WindowHeaderHeight)>1)
+                throw new InvalidOperationException("Native integrated title band unavailable");
+            if(window.CurrentView?.TranslatePoint(default,window)?.Y<caption.Bounds.Bottom)
+                throw new InvalidOperationException("Native title band overlaps page content");
             if(_menuQuotes is null)throw new InvalidOperationException("Native menu bar quote subscriber unavailable");
             _quoteStatus!.InvokePanel();await Task.Delay(150);
             if(_quotePanel?.IsVisible!=true)throw new InvalidOperationException("Native status action did not open quote panel");
