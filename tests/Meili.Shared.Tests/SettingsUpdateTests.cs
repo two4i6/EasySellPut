@@ -9,7 +9,7 @@ public sealed class SettingsUpdateTests : IDisposable
     private readonly string _directory = Path.Combine(Path.GetTempPath(), "update-vm-" + Guid.NewGuid().ToString("N"));
     private sealed class Theme : IThemeController { public void Apply(AppThemeMode mode) { } public void ApplyUpDownColors(UpDownColorMode mode) { } }
     private sealed class Services : IServiceProvider { public object? GetService(Type type) => null; }
-    private SettingsViewModel Create(FakeUpdates updates) => new(new(_directory), new LocalizationService(), new Theme(), new(_directory, DataDirectorySource.CommandLine), new Services(), updater: updates);
+    private UpdateViewModel Create(FakeUpdates updates) => new(new(_directory), new LocalizationService(), new(_directory, DataDirectorySource.CommandLine), updates);
     [Fact]
     public async Task Check_download_and_confirm_are_separate_and_only_successful_preflight_requests_exit()
     {

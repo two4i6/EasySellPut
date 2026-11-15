@@ -21,24 +21,25 @@ public sealed class UpdatePanelTests
         var theme = AppServices.Get<MacTheme>(); loc.Apply(language); theme.Apply(dark ? AppThemeMode.Dark : AppThemeMode.Light);
         var directory = Path.Combine(MacHost.DataDir, "update-panel-" + Guid.NewGuid().ToString("N")); Directory.CreateDirectory(directory);
         var updates = new FakeUpdates(); var vm = new SettingsViewModel(new(directory), loc, theme, new(directory, DataDirectorySource.CommandLine), AppServices.Provider, updater: updates);
+        var state = vm.Updates;
         var window = new MainWindow { Width = 1100, Height = 760 };
         try
         {
             window.Show(); window.Navigate(AppPage.Settings); var page = (SettingsPage)window.CurrentView!; page.DataContext = vm; MacHost.Pump();
             var panel = page.FindControl<Border>("UpdatePanel")!; Assert.Equal(0, updates.Checks);
-            await vm.CheckUpdatesCommand.ExecuteAsync(null); MacHost.Pump();
-            Assert.True(vm.CanDownloadUpdate); Assert.False(vm.ShowInstallUpdate);
+            await state.CheckUpdatesCommand.ExecuteAsync(null); MacHost.Pump();
+            Assert.True(state.CanDownloadUpdate); Assert.False(state.ShowInstallUpdate);
             var notes = panel.GetVisualDescendants().OfType<Expander>().Single(); Assert.False(notes.IsExpanded); notes.IsExpanded = true; MacHost.Pump();
             Save(panel, $"update-available-{language}-{dark}");
-            updates.WaitForCancel = true; var downloading = vm.DownloadUpdateCommand.ExecuteAsync(null); MacHost.Pump();
-            Assert.True(vm.IsUpdating); Assert.InRange(vm.UpdateProgress, 1, 100); Save(panel, $"update-downloading-{language}-{dark}");
-            vm.CancelUpdateCommand.Execute(null); await downloading;
-            updates.WaitForCancel = false; await vm.DownloadUpdateCommand.ExecuteAsync(null); MacHost.Pump();
-            Assert.True(vm.CanInstallUpdate); Assert.Equal(0, updates.Installs); Save(panel, $"update-ready-{language}-{dark}");
-            updates.CheckError = new InvalidDataException("fixture signature rejection"); await vm.CheckUpdatesCommand.ExecuteAsync(null); MacHost.Pump();
-            Assert.False(vm.ShowInstallUpdate); Assert.Equal(loc["Upd_Unverified"], vm.UpdateStatusText); Save(panel, $"update-unverified-{language}-{dark}");
-            updates.CheckError = null; updates.Status = "no_release"; await vm.CheckUpdatesCommand.ExecuteAsync(null); MacHost.Pump();
-            Assert.Equal(loc["Upd_NoRelease"], vm.UpdateStatusText); Save(panel, $"update-no-release-{language}-{dark}");
+            updates.WaitForCancel = true; var downloading = state.DownloadUpdateCommand.ExecuteAsync(null); MacHost.Pump();
+            Assert.True(state.IsUpdating); Assert.InRange(state.UpdateProgress, 1, 100); Save(panel, $"update-downloading-{language}-{dark}");
+            state.CancelUpdateCommand.Execute(null); await downloading;
+            updates.WaitForCancel = false; await state.DownloadUpdateCommand.ExecuteAsync(null); MacHost.Pump();
+            Assert.True(state.CanInstallUpdate); Assert.Equal(0, updates.Installs); Save(panel, $"update-ready-{language}-{dark}");
+            updates.CheckError = new InvalidDataException("fixture signature rejection"); await state.CheckUpdatesCommand.ExecuteAsync(null); MacHost.Pump();
+            Assert.False(state.ShowInstallUpdate); Assert.Equal(loc["Upd_Unverified"], state.UpdateStatusText); Save(panel, $"update-unverified-{language}-{dark}");
+            updates.CheckError = null; updates.Status = "no_release"; await state.CheckUpdatesCommand.ExecuteAsync(null); MacHost.Pump();
+            Assert.Equal(loc["Upd_NoRelease"], state.UpdateStatusText); Save(panel, $"update-no-release-{language}-{dark}");
             window.Width = 980; MacHost.Pump(); MacHost.Save(window, $"update-settings-compact-{language}-{dark}");
         }
         finally { window.Close(); loc.Apply(original); theme.Apply(AppThemeMode.System); Directory.Delete(directory, true); }

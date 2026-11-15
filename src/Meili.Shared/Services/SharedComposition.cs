@@ -42,6 +42,7 @@ public static class SharedComposition
         s.AddSingleton<IvAlertSampler>();
         s.AddSingleton<NetworkController>();
         s.AddSingleton<INetworkController>(sp => sp.GetRequiredService<NetworkController>());
+        s.AddSingleton<UpdateViewModel>();
         s.AddTransient<SettingsViewModel>();
         s.AddTransient<DashboardViewModel>();
         s.AddTransient<QuotePanelViewModel>();
@@ -62,5 +63,6 @@ public static class SharedComposition
         sp.GetRequiredService<AlertMonitor>().Start();
         sp.GetRequiredService<IvAlertSampler>().Start();
         sp.GetRequiredService<QuotePump>().Start();
+        sp.GetRequiredService<UpdateViewModel>().StartNotifications();
     }
 }

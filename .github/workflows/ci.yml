@@ -152,7 +152,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y fontconfig fonts-dejavu-core fonts-noto-core fonts-noto-cjk
-      - name: Test layout & themes
+      - name: Test layout, themes & update reminders
         env:
           FONTCONFIG_FILE: ${{ github.workspace }}/build/ci-fonts.conf
           MEILI_RENDER_DIR: ${{ github.workspace }}/build/out/ci/render
@@ -245,7 +245,7 @@ jobs:
           dotnet run --project tests/Meili.NewsBrowser.Smoke/Meili.NewsBrowser.Smoke.csproj -c Release -p:BuildInParallel=false
           if ($LASTEXITCODE -ne 0) { throw 'Native news reader smoke failed' }
 
-      - name: Test Windows desktop
+      - name: Test Windows desktop & update reminders
         if: runner.os == 'Windows'
         env:
           MEILI_RENDER_DIR: ${{ github.workspace }}/build/out/ci/desktop-render

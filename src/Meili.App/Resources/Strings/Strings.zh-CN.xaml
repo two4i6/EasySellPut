@@ -911,4 +911,9 @@
     <sys:String x:Key="QP_More">更多</sys:String>
     <sys:String x:Key="Bg_Run">后台运行</sys:String>
     <sys:String x:Key="Reader_Close">关闭阅读分屏</sys:String>
+    <sys:String x:Key="Upd_BadgeAvailable">v{0} 可更新</sys:String>
+    <sys:String x:Key="Upd_BadgeReady">v{0} 待安装</sys:String>
+    <sys:String x:Key="Upd_PromptTitle">新版本 v{0}</sys:String>
+    <sys:String x:Key="Upd_Later">稍后</sys:String>
+    <sys:String x:Key="Upd_ViewUpdate">查看更新</sys:String>
 </ResourceDictionary>

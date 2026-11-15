@@ -86,9 +86,10 @@ public partial class SettingsViewModel : ObservableObject
     public SettingsViewModel(SettingsStore store, LocalizationService loc, IThemeController theme, DataDirectoryInfo dataDir, IServiceProvider sp, McpConnectionSetup? connection = null, IUpdateCoordinator? updater = null)
     {
         _store = store; _loc = loc; _theme = theme;
-        _updater = updater ?? new UpdateCoordinator(store,dataDir.Path,AppContext.BaseDirectory);
+        Updates = updater is not null ? new UpdateViewModel(store, loc, dataDir, updater)
+            : sp.GetService(typeof(UpdateViewModel)) as UpdateViewModel ?? new UpdateViewModel(store, loc, dataDir);
         _connection = connection ?? McpConnectionSetup.Bundled(AppContext.BaseDirectory, dataDir.Path);
-        _loc.LanguageChanged += (_, _) => { RefreshUpdateBindings(); OnPropertyChanged(nameof(AiConnectionStatus)); OnPropertyChanged(nameof(CodexAvailability)); OnPropertyChanged(nameof(ClaudeAvailability)); OnPropertyChanged(nameof(AiTerminalLabel)); };
+        _loc.LanguageChanged += (_, _) => { OnPropertyChanged(nameof(AiConnectionStatus)); OnPropertyChanged(nameof(CodexAvailability)); OnPropertyChanged(nameof(ClaudeAvailability)); OnPropertyChanged(nameof(AiTerminalLabel)); };
         _network = sp.GetService(typeof(INetworkController)) as INetworkController;
         var s = store.Current;
         LanguageIndex = s.Language == "en-US" ? 1 : 0;
@@ -102,7 +103,6 @@ public partial class SettingsViewModel : ObservableObject
         RateModeIndex = s.Pricing.RateMode == RiskFreeRateMode.Fixed ? 1 : 0;
         FixedRateText = s.Pricing.FixedRatePercent.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture);
         _ready = true;
-        ReadUpdateResult();
     }
 
     partial void OnLanguageIndexChanged(int value)
@@ -177,84 +177,6 @@ public partial class SettingsViewModel : ObservableObject
     [RelayCommand]
     private void OpenDataFolder() => Ui.Platform.OpenFolder(DataDirectory);
 
-    private readonly IUpdateCoordinator _updater;
-    private UpdateRelease? _updateRelease;
-    private string? _updateArchive;
-    private string _updateState="Upd_Idle";
-    private CancellationTokenSource? _updateStop;
-    [ObservableProperty] public partial bool IsUpdating {get;set;}
-    [ObservableProperty] public partial double UpdateProgress {get;set;}
-    public string UpdateVersionLine=>"v"+Version+(_updateRelease is null?"":"  →  v"+_updateRelease.Manifest.Version);
-    public string UpdateStatusText=>_loc[_updateState];
-    public string UpdateNotes=>_updateRelease?.Notes??"";
-    public bool HasUpdateNotes=>!string.IsNullOrWhiteSpace(UpdateNotes);
-    public bool ShowDownloadUpdate=>_updateRelease is not null&&_updateArchive is null;
-    public bool ShowInstallUpdate=>_updateArchive is not null;
-    public bool ShowUpdateProgress=>IsUpdating;
-    public bool ShowUpdateFolder=>_updateArchive is not null&&(!_updater.CanInstall||_updateState=="Upd_Failed");
-    public bool IsUpdateIndeterminate=>_updateState!="Upd_Downloading";
-    public bool CanCheckUpdates=>!IsUpdating;
-    public bool CanDownloadUpdate=>!IsUpdating&&ShowDownloadUpdate;
-    public bool CanInstallUpdate=>!IsUpdating&&ShowInstallUpdate&&_updater.CanInstall;
-    partial void OnIsUpdatingChanged(bool value)=>RefreshUpdateBindings();
-    private void RefreshUpdateBindings()
-    {
-        foreach(var property in new[]{nameof(UpdateVersionLine),nameof(UpdateStatusText),nameof(UpdateNotes),nameof(HasUpdateNotes),nameof(ShowDownloadUpdate),nameof(ShowInstallUpdate),nameof(ShowUpdateProgress),nameof(ShowUpdateFolder),nameof(IsUpdateIndeterminate),nameof(CanCheckUpdates),nameof(CanDownloadUpdate),nameof(CanInstallUpdate)})OnPropertyChanged(property);
-        CheckUpdatesCommand.NotifyCanExecuteChanged();DownloadUpdateCommand.NotifyCanExecuteChanged();InstallUpdateCommand.NotifyCanExecuteChanged();
-    }
-    [RelayCommand(CanExecute=nameof(CanCheckUpdates))]
-    private Task CheckUpdatesAsync()=>RunUpdateAsync("Upd_Checking",async ct=>
-    {
-        _updateArchive=null;_updateRelease=null;
-        var result=await _updater.CheckAsync(ct);_updateRelease=result.Release;
-        _updateState=result.Status switch{"available"=>"Upd_Available","current"=>"Upd_Current","no_release"=>"Upd_NoRelease",_=>"Upd_Failed"};
-    });
-    [RelayCommand(CanExecute=nameof(CanDownloadUpdate))]
-    private Task DownloadUpdateAsync()=>RunUpdateAsync("Upd_Downloading",async ct=>
-    {
-        UpdateProgress=0;
-        _updateArchive=await _updater.DownloadAsync(_updateRelease!,new Progress<double>(value=>UpdateProgress=value),ct);
-        _updateState=_updater.CanInstall?"Upd_Ready":"Upd_Manual";
-    });
-    [RelayCommand(CanExecute=nameof(CanInstallUpdate))]
-    private async Task InstallUpdateAsync()
-    {
-        if(!CanInstallUpdate)return;
-        if(!await Ui.Platform.ConfirmAsync(_loc["Upd_ConfirmTitle"],string.Format(_loc["Upd_Confirm"],_updateRelease!.Manifest.Version)))return;
-        await RunUpdateAsync("Upd_Preparing",async ct=>
-        {
-            await _updater.PrepareInstallAsync(_updateRelease!,_updateArchive!,ct);
-            _updateState="Upd_Restarting";RefreshUpdateBindings();Ui.Platform.ExitForUpdate();
-        });
-    }
-    [RelayCommand]
-    private void CancelUpdate()=>_updateStop?.Cancel();
-    [RelayCommand]
-    private void OpenUpdateFolder(){if(_updateArchive is not null)Ui.Platform.OpenFolder(Path.GetDirectoryName(_updateArchive)!);}
-    [RelayCommand]
-    private void OpenUpdateHistory()=>Ui.Platform.OpenUrl("https://github.com/"+UpdateClient.Repository+"/releases");
-    private async Task RunUpdateAsync(string state,Func<CancellationToken,Task> work)
-    {
-        if(IsUpdating)return;
-        using var stop=new CancellationTokenSource();_updateStop=stop;_updateState=state;IsUpdating=true;
-        try{await work(stop.Token);}
-        catch(OperationCanceledException){_updateState=stop.IsCancellationRequested?"Upd_Cancelled":"Upd_Timeout";}
-        catch(Exception ex)
-        {
-            Meili.Core.Diagnostics.AppLog.Warn("updater","Update action failed",ex);
-            _updateState=ex is System.Security.Cryptography.CryptographicException or InvalidDataException?"Upd_Unverified":ex is InvalidOperationException && ex.Message=="update_mcp_active"?"Upd_McpActive":"Upd_Failed";
-        }
-        finally{_updateStop=null;IsUpdating=false;RefreshUpdateBindings();}
-    }
-    private void ReadUpdateResult()
-    {
-        try
-        {
-            var file=new FileInfo(UpdateInstaller.ResultFile(DataDirectory));if(!file.Exists||file.Length>8192||file.LinkTarget is not null)return;
-            var result=System.Text.Json.JsonSerializer.Deserialize<UpdateInstallResult>(File.ReadAllText(file.FullName),UpdateInstaller.Json);
-            if(result?.Status=="installed"&&result.Version==Version)_updateState="Upd_Installed";
-            else if(result?.Status is "failed" or "restart_required")_updateState="Upd_PreviousFailed";
-        }
-        catch(Exception ex){Meili.Core.Diagnostics.AppLog.Warn("updater","Previous update status unavailable",ex);}
-    }
+    /// <summary>One desktop update state shared with the footer and notification dialog.</summary>
+    public UpdateViewModel Updates { get; }
 }

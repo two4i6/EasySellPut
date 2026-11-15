@@ -30,6 +30,7 @@ public partial class MainWindow : FluentWindow
         SetupWorkspace();
         SetupNewsSplit();
         SetupBackgroundLifecycle();
+        SetupUpdateNotifications();
         RestorePlacement();
         RootNavigation.Loaded += (_, _) =>
         {

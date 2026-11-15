@@ -10,7 +10,7 @@
         <StackPanel MaxWidth="1000">
             <TextBlock Style="{StaticResource PageTitle}" Text="{DynamicResource Nav_Settings}" />
 
-            <Border x:Name="UpdatePanel" Padding="16" Margin="0,16,0,0" CornerRadius="8" BorderThickness="1" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
+            <Border x:Name="UpdatePanel" DataContext="{Binding Updates}" Padding="16" Margin="0,16,0,0" CornerRadius="8" BorderThickness="1" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
                 <StackPanel>
                     <DockPanel LastChildFill="True">
                         <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center">

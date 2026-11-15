@@ -27,7 +27,7 @@
         <StackPanel MaxWidth="1000">
             <TextBlock Classes="PageTitle" Text="{DynamicResource Nav_Settings}" />
 
-            <ds:AppCard x:Name="UpdatePanel" Classes="Card UpdateCard" Padding="16" Margin="0,16,0,0">
+            <ds:AppCard x:Name="UpdatePanel" DataContext="{Binding Updates}" x:DataType="vm:UpdateViewModel" Classes="Card UpdateCard" Padding="16" Margin="0,16,0,0">
                 <StackPanel Spacing="8">
                     <DockPanel LastChildFill="True">
                         <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center">

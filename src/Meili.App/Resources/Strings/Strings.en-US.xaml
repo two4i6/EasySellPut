@@ -911,4 +911,9 @@
     <sys:String x:Key="QP_More">More</sys:String>
     <sys:String x:Key="Bg_Run">Run in background</sys:String>
     <sys:String x:Key="Reader_Close">Close article pane</sys:String>
+    <sys:String x:Key="Upd_BadgeAvailable">v{0} available</sys:String>
+    <sys:String x:Key="Upd_BadgeReady">v{0} ready</sys:String>
+    <sys:String x:Key="Upd_PromptTitle">Version {0} is available</sys:String>
+    <sys:String x:Key="Upd_Later">Later</sys:String>
+    <sys:String x:Key="Upd_ViewUpdate">View update</sys:String>
 </ResourceDictionary>
