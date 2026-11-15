@@ -52,14 +52,17 @@ def check_connections(command, data):
             project=root/('project '+client)
             def connect(*extra,code=0,env=None):
                 result=subprocess.run([*command,'connect',client,'--project',str(project),'--data-dir',str(selected_data),'--json',*extra],capture_output=True,text=True,timeout=90,env=env or environment)
-                assert result.returncode==code,(client,extra,result.returncode,result.stdout,result.stderr)
+                if result.returncode!=code:
+                    diagnostic=subprocess.run([*command,'connect',client,'--project',str(project),'--data-dir',str(selected_data),'--check'],capture_output=True,text=True,timeout=90,env=env or environment)
+                    raise AssertionError((client,extra,result.returncode,result.stdout,result.stderr,'safe preflight diagnostics',diagnostic.stdout,diagnostic.stderr))
                 return json.loads(result.stdout)
             checked=connect('--check')['data'];assert checked['status']=='checked' and checked['changesApplied'] is False
             assert not project.exists()
             first=connect()['data'];assert first['status']=='configured' and first['readOnly'] is True
             installed=project/folder/'skills/easysellput-local/SKILL.md';assert installed.exists()
             state=root/('registered-'+client+'.json');value=json.loads(state.read_text(encoding='utf-8'))
-            assert value['args']==['mcp','serve','--data-dir',str(selected_data)],value
+            assert value['args'][:3]==['mcp','serve','--data-dir'],value
+            assert os.path.normcase(os.path.realpath(value['args'][3]))==os.path.normcase(os.path.realpath(selected_data)),(value,str(selected_data))
             assert connect()['data']['status']=='already_configured'
             value['command']='another executable';state.write_text(json.dumps(value),encoding='utf-8');before=state.read_bytes()
             conflict=connect(code=4);assert conflict['error']['code']=='connection_conflict' and conflict['error']['recovery']
