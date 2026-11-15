@@ -1,5 +1,8 @@
 ---
 name: easysellput-local
+metadata:
+  version: "2.0"
+  mcp-server: easysellput
 description: Use the local EasySellPut MCP server for US equity quotes, OHLCV and chart indicators, company financials/news/events, option chains and IV/Greeks, volatility history, strategy presets/payoffs/what-if analysis, and explicitly requested local watchlist/strategy/alert/preferences changes. Use when the user asks to research or analyze these through EasySellPut; not for placing orders or controlling desktop windows.
 ---
 
@@ -10,6 +13,39 @@ description: Use the local EasySellPut MCP server for US equity quotes, OHLCV an
 Use the connected MCP server named `easysellput`. Discover its available tools and schemas; client-specific prefixes vary. Do not guess tool names, optional fields, providers, or the user's data directory. If disconnected, direct the user to EasySellPut Settings > Connect AI tools and its client-specific setup command, then reconnect/restart the client session. Do not silently fall back to invented data or an unknown executable.
 
 This skill describes a workflow, not extra permissions. The normal connection is read-only. Do not enable `--allow-writes`, change client configuration, or launch a second alert monitor without the user's explicit request. The desktop owns continuous monitoring and native notifications. No tool places brokerage orders.
+
+## Start from the user's task
+
+Choose the smallest useful workflow. If the client exposes MCP prompts, discover prompts/list and use market_brief, option_research, strategy_review or connection_check as a starting recipe. Read easysellput://guides/workflows for the recipes or easysellput://capabilities for the currently permitted schemas. Client support and name prefixes vary; these are optional conveniences, not a reason to stop when normal tools are available.
+
+| User intent | First useful calls | Deliverable |
+| --- | --- | --- |
+| “Compare NVDA and AMD” | Batch `get_quotes`, then relevant fundamentals/news/events | Compact comparison with source, as-of, delay and missing symbols. |
+| “What changed in this chart?” | `get_chart_analysis` over a bounded date range, optionally `get_market_events` | Trend/indicator facts with warm-up gaps, adjustment basis and original event dates. Correlation is not causation. |
+| “Find an expiry / inspect puts” | `get_expirations`, then `analyze_option_chain` for the chosen expiry | Listed contracts, bid/ask spread, IV/Greeks provenance and absent quotes. No invented expiry or premium. |
+| “Review my position” | `get_saved_strategies` if applicable, then `get_pricing_assumptions`, `analyze_strategy` | Recorded-entry payoff/Greeks with quantities, multipliers, horizon and unbounded risk. |
+| “What if price or IV changes?” | `strategy_what_if` using the actual explicit legs | Scenario assumptions, position and per-leg values; distinguish pre-expiry valuation from settlement. |
+| “Add to watchlist / save / alert” | Read the affected local store, then the matching authorized write tool | The requested local change only, with a clear saved/conflict result. Alerts are monitored by the desktop. |
+| “It cannot connect” | Separate client registration, local MCP, market providers and insufficient historical data | Identify the failed layer; do not reset settings or claim a source probe proves full service health. |
+
+Use the user's symbol/position and discover valid inputs instead of asking for information already returned by tools. Ask only for material missing inputs such as expiry, position size, actual entry premium or valuation horizon. A bounded factual comparison can proceed without guessing the user's investment preferences. Do not ask a long checklist before doing safe reads.
+
+### Inputs and efficient execution
+
+- Quote comparison input: `{ "symbols": ["NVDA", "AMD"] }` to `get_quotes`. Batch symbols instead of issuing one request per ticker.
+- Expiry discovery input: `{ "symbol": "NVDA" }` to `get_expirations`. Select an actual returned expiration; do not invent a future date.
+- Pricing context input: `{ "symbol": "NVDA" }` to `get_pricing_assumptions`. Carry the actual returned annual rate/yield into explicit pricing calls.
+- For bars/charts, choose from/to using the user's requested horizon and current date, not a stale date copied from documentation. Respect each tool's limit and offset, and request another page only when it affects the answer. Indicator warm-up can require earlier bars; do not interpret nulls as zero.
+- Independent factual reads may run in parallel; calls depending on an expiry, strategy id, quote or other returned value must wait for it. Avoid refreshing the same snapshot repeatedly. The service performs provider routing/failover; never invent a source-selection field absent from the live schema.
+- Tool schemas are authoritative: numbers are numbers, booleans are booleans, symbols is an array, and enum casing varies between option rights and explicit leg types. Rates/IV are decimal fractions, option premiums are per share, stock legs use shares, and option contracts normally use multiplier 100 unless supplied otherwise.
+
+### Report and recover
+
+Lead with the finding, then the few figures that support it. Use a small comparison table where it helps. Include source/as-of and decision-critical delay, cache, missing values or model assumptions once; put extra detail after the answer rather than reciting every tool call. Model values, Reg-T estimates and probability are not executable quotes, broker requirements or forecasts.
+
+Read error.recovery when present. For invalid_arguments, inspect the actual schema and correct the specific field; do not replay the same invalid call. For data_source_error, keep the unavailable result explicit and make at most one bounded retry when useful. For permission_denied, continue with available reads and ask about the specific requested change; never enable write mode or use direct file edits automatically. For data_conflict, reload and reconcile before a fresh write. For cancellation, reduce scope instead of looping. Distinguish a tool transport failure from a successful response with missing market data.
+
+If the server is absent, use the desktop's client-specific setup command. It checks the installed client, verifies the local read-only server, installs/upgrades the unchanged bundled skill and verifies registration. A configured client still needs a new session/reconnection. Do not execute installation/configuration commands unless the user requested setup; do not install the Codex/Claude application or request credentials as part of research. If a custom skill or different server entry conflicts, preserve it and ask the user to review the concrete conflict.
 
 ## Market research
 

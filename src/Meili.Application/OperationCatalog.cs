@@ -25,6 +25,37 @@ public static partial class OperationCatalog
             if (k == "offset") copy["minimum"] = 0;
             if (k == "limit") { copy["minimum"] = 1; copy["maximum"] = name == "search_symbols" || name == "get_news" ? 50 : name == "get_market_events" ? 100 : 500; }
             if (k == "symbols") { copy["minItems"] = 1; copy["maxItems"] = 100; }
+            if(string.IsNullOrWhiteSpace(copy["description"]?.GetValue<string>()))copy["description"]=k switch
+            {
+                "symbol"=>"US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+                "query"=>"Ticker or company-name search text; use returned ticker symbols in subsequent tools.",
+                "expiry"=>"Listed option expiration YYYY-MM-DD; discover actual dates with get_expirations.",
+                "spot"=>"Underlying price per share. Use an observed quote or explicitly label a hypothetical scenario.",
+                "strike"=>"Option strike per share in the underlying quote currency.",
+                "minStrike" or "maxStrike"=>"Inclusive strike filter in underlying quote currency; not an option premium.",
+                "right"=>"Option right; use the exact call/put enum spelling in this schema.",
+                "legs"=>"Explicit position legs. Preserve entry premiums, side, expiry, quantity and multiplier; never fabricate quotes.",
+                "rate"=>"Annual continuously compounded rate as a decimal fraction, e.g. 0.04 = 4%; obtain pricing assumptions before valuation.",
+                "dividendYield"=>"Annual dividend yield as a decimal fraction, e.g. 0.02 = 2%; preserve provenance and unavailable-yield fallback.",
+                "volatility"=>"Annualized IV as a decimal fraction, e.g. 0.25 = 25%; state observed versus assumed/model-derived origin.",
+                "volatilityShift"=>"Additive decimal IV shift: 0.05 means five volatility points, not 5 percent relative change.",
+                "horizonDays"=>"Calendar days forward from the explicit valuation time; see schema bounds.",
+                "quantity"=>"Number of option contracts for a preset. Explicit stock legs use shares and multiplier 1.",
+                "wingSteps"=>"Preset wing width in listed strike steps, not a raw dollar distance.",
+                "groupId"=>"Existing local watchlist group id returned by get_watchlists; never substitute its display name.",
+                "id"=>"Existing alert rule id from get_alerts; omit only when save_alert creates a new rule.",
+                "name"=>name.Contains("strategy",StringComparison.Ordinal)?"Local strategy name; saving an existing name replaces it. Read saved strategies first.":"Local watchlist group display name.",
+                "enabled"=>"Whether this local alert rule is enabled. Desktop owns continuous monitoring.",
+                "note"=>"Optional user note for this alert; treated as literal text.",
+                "threshold"=>"Alert trigger threshold in the selected kind's units; inspect the kind and existing rule before updating.",
+                "includeExtendedHours"=>"Whether the desktop rule may evaluate valid pre/after-market quotes.",
+                "low" or "high"=>"Underlying-price bound for the payoff/scenario plot, not an option premium.",
+                "price1" or "price2"=>"Drawing anchor price in the underlying quote currency; not a screen coordinate.",
+                "indicators"=>"Optional shared indicator parameter overrides; observe nested bounds and null warm-up values.",
+                "compareSymbol"=>"Optional comparison ticker. Rebase only on shared timestamps and retain missing-basis uncertainty.",
+                "kind"=>name.Contains("alert",StringComparison.Ordinal)?"Alert trigger category; select the exact enum value in the schema.":"Strategy/drawing category; select the exact schema enum and required matching fields.",
+                _=>$"{k} argument for {name}; observe this field's schema type, bounds and operation semantics."
+            };
             props[k] = copy; if (key.EndsWith('!')) required.Add(k);
         }
         return new(name, description, writes, JsonSerializer.SerializeToElement(new JsonObject { ["type"] = "object", ["properties"] = props, ["required"] = required, ["additionalProperties"] = false }));

@@ -1,4 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Meili.Automation;
 using Meili.Shared.Services;
 using Meili.Core.Settings;
 using Meili.Core.Time;
@@ -18,18 +20,25 @@ public partial class ShellViewModel : ObservableObject
     [ObservableProperty] public partial string DataDirText { get; set; } = "";
     [ObservableProperty] public partial string SourcesText { get; set; } = "";
     [ObservableProperty] public partial object? SourcesBrush { get; set; }
+    [ObservableProperty] public partial string McpStatusText { get; set; } = "";
+    [ObservableProperty] public partial string McpStatusTip { get; set; } = "";
+    [ObservableProperty] public partial object? McpStatusBrush { get; set; }
+    private DateTimeOffset _nextMcpScan;
+    private readonly McpConnectionSetup _connection;
+    private int _mcpCopyState;
+    private DateTimeOffset _mcpCopyUntil;
     private readonly Meili.Data.Routing.HealthTracker _health;
 
-    public ShellViewModel(LocalizationService loc, DataDirectoryInfo dataDir, Meili.Data.DataServices data)
+    public ShellViewModel(LocalizationService loc, DataDirectoryInfo dataDir, Meili.Data.DataServices data, McpConnectionSetup? connection = null)
     {
-        _loc = loc;
+        _loc = loc; _connection = connection ?? McpConnectionSetup.Bundled(AppContext.BaseDirectory, dataDir.Path);
         _health = data.Health;
         _dataDir = dataDir;
         var timer = Ui.Timer(TimeSpan.FromSeconds(1));
         timer.Tick += (_, _) => Tick();
         timer.Start();
-        _loc.LanguageChanged += (_, _) => Tick();
-        Ui.Platform.ColorsChanged += (_, _) => Tick();     // 0.4.1: status-bar dots follow a theme switch at once
+        _loc.LanguageChanged += (_, _) => { RefreshMcpStatus(); Tick(); };
+        Ui.Platform.ColorsChanged += (_, _) => { RefreshMcpStatus(); Tick(); };     // 0.4.1: status-bar dots follow a theme switch at once
         Tick();
     }
 
@@ -40,6 +49,7 @@ public partial class ShellViewModel : ObservableObject
     private void Tick()
     {
         var now = DateTimeOffset.Now;
+        if (now >= _nextMcpScan) { RefreshMcpStatus(); _nextMcpScan = now.AddSeconds(5); }
         var et = MarketClock.ToEastern(now);
         var bj = TimeZoneInfo.ConvertTime(now, Beijing);
         ClockText = $"{_loc["Status_Eastern"]} {et:MM-dd HH:mm:ss}   ·   {_loc["Status_Beijing"]} {bj:HH:mm:ss}";
@@ -59,6 +69,25 @@ public partial class ShellViewModel : ObservableObject
         var bad = states.Count(s => s == Meili.Data.Routing.HealthState.Down);
         SourcesText = string.Format(_loc["Status_Sources"], ok, states.Count);
         SourcesBrush = Ui.Platform.Resource(bad > 0 ? "DegradedBrush" : ok > 0 ? "HealthyBrush" : "UnknownBrush");
+    }
+
+    public void RefreshMcpStatus()
+    {
+        var status = McpSessions.Read(_dataDir.Path);
+        var count = status.Connections.Count; var writable = status.Connections.Any(c => !c.ReadOnly);
+        McpStatusText = !status.Available ? _loc["Status_McpUnknown"] : count == 0 ? _loc["Status_McpIdle"] : string.Format(_loc[writable ? "Status_McpWritable" : "Status_McpConnected"], count);
+        McpStatusTip = count == 0 ? _loc["Status_McpHint"] : string.Join("\n", status.Connections.Select(c => c.Client + " · " + _loc[c.ReadOnly ? "Status_McpReadOnly" : "Status_McpWriteMode"]));
+        if (DateTimeOffset.UtcNow < _mcpCopyUntil) McpStatusText = _loc[_mcpCopyState == 1 ? "Status_McpCopied" : _mcpCopyState == 2 ? "Status_McpCopyFailed" : "Set_AiMissing"];
+        McpStatusTip += "\n" + _loc["Status_McpCopyHint"];
+        McpStatusBrush = Ui.Platform.Resource(!status.Available || writable ? "DegradedBrush" : count > 0 ? "HealthyBrush" : "UnknownBrush");
+    }
+    [RelayCommand]
+    private async Task CopyMcpSetupAsync()
+    {
+        if (!File.Exists(_connection.Executable) || (!_connection.Windows && _connection.Executable.Contains("/AppTranslocation/", StringComparison.Ordinal))) _mcpCopyState = 3;
+        else try { await Ui.Platform.CopyTextAsync(_connection.ConfigurationPrompt(_loc.Language == "zh-CN")); _mcpCopyState = 1; }
+            catch (Exception ex) { Meili.Core.Diagnostics.AppLog.Warn("mcp-setup", "Clipboard unavailable", ex); _mcpCopyState = 2; }
+        _mcpCopyUntil = DateTimeOffset.UtcNow.AddSeconds(5); RefreshMcpStatus();
     }
 
     private static TimeZoneInfo FindBeijing()

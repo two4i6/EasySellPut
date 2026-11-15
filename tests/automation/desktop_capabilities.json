@@ -255,14 +255,19 @@
       ],
       "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation.",
       "commands": {
+        "OpenAiHelp": {"uiOnly": "Opens one of two fixed official client installation guides; no arbitrary URL, client process or configuration editing is exposed through MCP."},
+        "CopyAiPromptAsync": {"uiOnly": "Copies a client-specific starter prompt; it does not execute setup, query data or modify another client configuration."},
         "ApplyProxyAsync": {
           "uiOnly": "Proxy endpoints/credentials and live connection reconfiguration stay local desktop configuration; no arbitrary network destinations are accepted by MCP."
         },
         "OpenDataFolder": {
           "uiOnly": "Opening a native file manager is desktop-only; get_settings returns the resolved data directory."
         },
+        "CopyAiPromptAsync": {"uiOnly":"Copies a localized client-specific starter question; no data/network operation."},
+        "OpenAiHelp": {"uiOnly":"Opens the fixed official client installation page with an explicit user action."},
+        "CopyUniversalSetupAsync": {"uiOnly":"Copies the same harness-neutral read-only MCP and skill setup prompt as the status bar; clipboard only."},
         "CopyCodexAsync": {
-          "uiOnly": "Copies a user-executed Codex setup command: install the companion skill, then register read-only MCP. The application does not execute it or alter client configuration."
+          "uiOnly": "Copies a user-executed Codex setup command: preflight the client and local read-only MCP, install/upgrade the unedited bundled skill, then register and verify read-only MCP. The application does not execute it or alter client configuration."
         },
         "CopyMcpTomlAsync": {
           "uiOnly": "Copies read-only stdio connection templates to the desktop clipboard; does not execute commands or edit AI client configuration. No new market/business operation."
@@ -271,7 +276,7 @@
           "uiOnly": "Copies read-only stdio connection templates to the desktop clipboard; does not execute commands or edit AI client configuration. No new market/business operation."
         },
         "CopyClaudeAsync": {
-          "uiOnly": "Copies a user-executed Claude Code setup command: install the companion skill, then register read-only stdio MCP. The application does not execute it or alter client configuration."
+          "uiOnly": "Copies a user-executed Claude Code setup command: preflight the client and local read-only MCP, install/upgrade the unedited bundled skill, then register and verify read-only stdio MCP. The application does not execute it or alter client configuration."
         }
       }
     },
@@ -279,7 +284,7 @@
       "path": "src/Meili.Shared/ViewModels/ShellViewModel.cs",
       "operations": ["get_quotes", "get_watchlists"],
       "scope": "Shell window/navigation actions are UI-only. The macOS shell MenuBarQuoteController presents quotes and watchlist choices through the existing QuoteHub; status-item rendering, current-symbol selection, hide/show and native lifecycle have no MCP window-control tools.",
-      "commands": {}
+      "commands": {"CopyMcpSetupAsync": {"uiOnly": "Copies harness-neutral read-only MCP and skill setup instructions to the clipboard; local diagnostic status is not market health or authorization."}}
     },
     {
       "path": "src/Meili.Shared/ViewModels/StrategyLegRow.cs",

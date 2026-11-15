@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Real-process CLI and MCP protocol checks; standard library only, no network calls."""
-import argparse, json, os, pathlib, queue, subprocess, tempfile, threading
+import argparse, json, os, pathlib, queue, subprocess, tempfile, threading, time
+from connection_smoke import check_connections
 
 
 def run(command, data, *args, code=0):
@@ -14,6 +15,7 @@ def run(command, data, *args, code=0):
 class Mcp:
     def __init__(self, command, data, writes=False, response_timeout=15):
         self.process = subprocess.Popen([*command, 'mcp', 'serve', '--data-dir', data, *(['--allow-writes'] if writes else [])], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1)
+        self.data = pathlib.Path(data)
         self.response_timeout = response_timeout
         self.messages = queue.Queue()
         self.errors = []
@@ -59,10 +61,22 @@ class Mcp:
         assert json.loads(result['content'][0]['text']) == result['structuredContent'], result
         return result
 
+    def check_live_status(self, writes):
+        deadline=time.monotonic()+8
+        while time.monotonic()<deadline:
+            records=[json.loads(p.read_text(encoding='utf-8')) for p in (self.data/'.mcp-runtime').glob('*.json')]
+            own=[r for r in records if r['processId']==self.process.pid]
+            if own:
+                assert own[0]['client']=='EasySellPut smoke' and own[0]['readOnly'] is not writes, own
+                return
+            time.sleep(.1)
+        raise AssertionError('Initialized MCP process never published live diagnostics')
+
     def close(self):
         self.process.stdin.close()
         try:
             status = self.process.wait(timeout=10)
+            assert not list((self.data/'.mcp-runtime').glob('*.json')), 'Session lease did not clean up'
             assert status == 0, (status, ''.join(self.errors))
         except subprocess.TimeoutExpired:
             self.process.terminate()
@@ -90,6 +104,7 @@ def main():
             skill.write_text('user custom skill',encoding='utf-8')
             assert install(4)['error']['code']=='skill_conflict'
             assert skill.read_text(encoding='utf-8')=='user custom skill'
+        check_connections(command,data)
         catalog = run(command, data, '--help')['data']
         assert 'install-skill' not in {op['name'] for op in catalog['operations']}
         operations = {op['name']: op for op in catalog['operations']}
@@ -126,6 +141,7 @@ def main():
         server = Mcp(command, data)
         try:
             tools = server.request('tools/list')['result']['tools']
+            server.check_live_status(False)
             assert {tool['name'] for tool in tools} == readonly
             assert all(tool['inputSchema'] == operations[tool['name']]['inputSchema'] for tool in tools)
             assert all(t['annotations']['readOnlyHint'] for t in tools)
@@ -136,10 +152,26 @@ def main():
             actual = server.call('calculate_option', {'right': 'call', 'spot': 100, 'strike': 100, 'years': 1, 'rate': 0.05, 'volatility': 0.2})
             assert actual['structuredContent']['data'] == price['data']
             assert server.call('calculate_indicators', {'closes': [1, 2, 3, 4], 'period': 3})['structuredContent']['data']['sma'] == [None, None, 2, 3]
+            prompts=server.request('prompts/list')['result']['prompts']
+            assert {p['name'] for p in prompts}=={'market_brief','option_research','strategy_review','connection_check'}
+            for prompt in prompts:
+                response=server.request('prompts/get',{'name':prompt['name'],'arguments':{'symbol':'NVDA'}})
+                assert response['result']['messages'][0]['role']=='user'
+            assert 'error' in server.request('prompts/get',{'name':'market_brief','arguments':{'symbol':'invalid/name'}})
+            assert 'error' in server.request('prompts/get',{'name':'market_brief','arguments':{'symbol':123}})
+            resources=server.request('resources/list')['result']['resources']
+            assert len(resources)==3
+            for resource in resources:
+                body=server.request('resources/read',{'uri':resource['uri']})['result']['contents'][0]
+                assert body['text'] and body['mimeType']
+                if resource['uri']=='easysellput://capabilities':
+                    allowed=json.loads(body['text']);assert allowed['readOnly'] is True
+                    assert {op['name'] for op in allowed['operations']}==readonly
+            assert 'error' in server.request('resources/read',{'uri':'file:///private/not-allowed'})
             assert server.call('get_settings', {'invented': True})['isError']
             assert server.call('not_a_tool', {})['isError']
             denied = server.call('create_watchlist_group', {'name': 'forbidden'})
-            assert denied['isError'] and denied['structuredContent']['error']['code'] == 'permission_denied'
+            assert denied['isError'] and denied['structuredContent']['error']['code'] == 'permission_denied' and denied['structuredContent']['error']['recovery']
             # A cancellation notification for a completed request must not break the session.
             server.send({'jsonrpc': '2.0', 'method': 'notifications/cancelled', 'params': {'requestId': server.next_id, 'reason': 'smoke'}})
             assert server.request('ping')['result'] == {}
@@ -148,6 +180,7 @@ def main():
         writer = Mcp(command, data, writes=True)
         try:
             write_tools = writer.request('tools/list')['result']['tools']
+            writer.check_live_status(True)
             assert {tool['name'] for tool in write_tools} == set(operations)
             assert not writer.call('rename_watchlist_group', {'groupId': group, 'name': 'MCP'}).get('isError', False)
             # A second process writes, then the long-running MCP host must read the new snapshot.

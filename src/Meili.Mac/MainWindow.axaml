@@ -57,7 +57,7 @@
         </Panel>
 
         <!-- Status bar -->
-        <Border Grid.Row="1" Grid.ColumnSpan="2" Padding="16,6" BorderThickness="0,1,0,0"
+        <Border x:Name="BottomStatusBar" Grid.Row="1" Grid.ColumnSpan="2" Padding="16,6" BorderThickness="0,1,0,0"
                 BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
                 Background="{DynamicResource LayerFillColorDefaultBrush}">
             <DockPanel LastChildFill="False">
@@ -67,6 +67,9 @@
                     <TextBlock Classes="Caption" Text="{Binding ClockText}" />
                 </StackPanel>
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button x:Name="McpStatusIndicator" Command="{Binding CopyMcpSetupCommand}" Height="20" MinHeight="0" MinWidth="0" Padding="4,0" Margin="0,0,12,0" Background="Transparent" BorderThickness="0" ToolTip.Tip="{Binding McpStatusTip}" AutomationProperties.AutomationId="McpStatusIndicator" AutomationProperties.Name="{DynamicResource Set_AiUniversal}" Cursor="Hand">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"><Ellipse Width="6" Height="6" Margin="0,0,6,0" Fill="{Binding McpStatusBrush}"/><TextBlock Classes="Caption" Text="{Binding McpStatusText}" TextWrapping="NoWrap"/><Path Width="10" Height="10" Margin="6,0,0,0" Stroke="{DynamicResource TextFillColorSecondaryBrush}" StrokeThickness="1" Data="M3,1 L9,1 L9,7 M1,3 L7,3 L7,9 L1,9 Z"/></StackPanel>
+                    </Button>
                     <Ellipse Width="8" Height="8" Margin="0,0,6,0" Fill="{Binding SourcesBrush}" />
                     <TextBlock Classes="Caption" Text="{Binding SourcesText}" Margin="0,0,0,0" ToolTip.Tip="{Binding NetworkText}" />
 

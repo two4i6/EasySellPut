@@ -21,7 +21,7 @@ public sealed class AiConnectionTests : IDisposable
         await vm.CopyClaudeCommand.ExecuteAsync(null);Assert.Equal(setup.ClaudeSetupCommand,ui.ClipboardText);Assert.DoesNotContain("--allow-writes",ui.ClipboardText);
         await vm.CopyMcpJsonCommand.ExecuteAsync(null);Assert.Equal(setup.Json,ui.ClipboardText);
         await vm.CopyMcpTomlCommand.ExecuteAsync(null);Assert.Equal(setup.Toml,ui.ClipboardText);
-        loc.Apply("en-US");Assert.Equal(loc["Set_AiCopied"],vm.AiConnectionStatus);
+        loc.Apply("en-US");Assert.Equal(loc["Set_AiTemplateCopied"],vm.AiConnectionStatus);
     }
     [Fact]
     public async Task Clipboard_failure_is_shown_without_claiming_success()
@@ -45,6 +45,26 @@ public sealed class AiConnectionTests : IDisposable
         var vm=new SettingsViewModel(new(_path),loc,new Theme(),new(_path,DataDirectorySource.CommandLine),new Services(),new(Path.Combine(_path,"absent"),_path,false));
         Assert.False(vm.CanConnectAi);Assert.Equal(loc["Set_AiMissing"],vm.AiConnectionStatus);
         await vm.CopyCodexCommand.ExecuteAsync(null);Assert.Null(((FakeUiPlatform)Ui.Platform).ClipboardText);
+    }
+    [Fact]
+    public async Task Status_click_copies_the_same_harness_neutral_prompt_as_settings_and_reports_failure()
+    {
+        Directory.CreateDirectory(_path);var executable=Path.Combine(_path,"easysellput");File.WriteAllText(executable,"");
+        var setup=new McpConnectionSetup(executable,Path.Combine(_path,"data"),false);var ui=new FakeUiPlatform();Ui.Platform=ui;
+        var loc=new LocalizationService();using var data=new Meili.Data.DataServices(new());
+        var shell=new ShellViewModel(loc,new(_path,DataDirectorySource.CommandLine),data,setup);
+        var settings=new SettingsViewModel(new(_path),loc,new Theme(),new(_path,DataDirectorySource.CommandLine),new Services(),setup);
+        foreach(var language in new[]{"zh-CN","en-US"})
+        {
+            loc.Apply(language);await shell.CopyMcpSetupCommand.ExecuteAsync(null);
+            Assert.Equal(setup.ConfigurationPrompt(language=="zh-CN"),ui.ClipboardText);
+            Assert.Equal(loc["Status_McpCopied"],shell.McpStatusText);
+            await settings.CopyUniversalSetupCommand.ExecuteAsync(null);Assert.Equal(setup.ConfigurationPrompt(language=="zh-CN"),ui.ClipboardText);
+            Assert.Contains(setup.Json,ui.ClipboardText);Assert.Contains("easysellput://guides/skill",ui.ClipboardText);
+        }
+        ui.FailCopy=true;await shell.CopyMcpSetupCommand.ExecuteAsync(null);Assert.Equal(loc["Status_McpCopyFailed"],shell.McpStatusText);
+        var absent=new ShellViewModel(loc,new(_path,DataDirectorySource.CommandLine),data,new(Path.Combine(_path,"absent"),_path,false));
+        await absent.CopyMcpSetupCommand.ExecuteAsync(null);Assert.Equal(loc["Set_AiMissing"],absent.McpStatusText);
     }
     public void Dispose(){if(Directory.Exists(_path))Directory.Delete(_path,true);}
 }

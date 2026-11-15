@@ -1,57 +1,67 @@
-# Codex / Claude Code：Skill + MCP
+# AI 工具接入：统一提示词、Skill 与 MCP
 
-设置页提供两个按钮：**Codex + Skill**、**Claude Code + Skill**。复制后粘贴到终端；Windows 使用 PowerShell。应用不会自动执行命令或修改 AI 客户端配置。
+底部 **MCP 状态**可以点击，复制通用配置提示词；设置页的「复制通用配置提示词」复制相同内容。粘贴给当前使用的本机 AI 工具即可。提示词带有当前可执行文件、stdio 参数和数据目录，让工具识别自己的官方配置方式，核对同名连接、只读握手和 skill 支持。不同 harness 不共用臆造的命令或配置文件路径。不支持 skill 的客户端可以读取指导资源作为会话上下文，不能声称已安装 skill。
 
-每条组合命令先用包内 CLI 安装 `easysellput-local` skill，成功后才调用对应客户端注册只读 MCP。这里连接的是与桌面程序运行在同一台电脑上的 Codex CLI / Claude Code；云端环境不能直接启动用户电脑的本地 stdio 服务。需要预先安装支持 skills 的客户端；若已有同名 MCP server，先检查原配置再决定是否替换。安装 skill 不会自动赋予写权限。
+应用只复制，不执行命令或修改其他工具配置。远程云端 harness 无法直接启动用户电脑上的本地 stdio；需要在同一台电脑的本地代理中接入。复制成功、配置保存、MCP 实际连接和行情可用是不同状态。
 
-## 命令形式
+## 终端安装
 
-界面会填入实际可执行文件和当前数据目录的绝对路径，下面的路径只是示例。macOS 请先把应用移入“应用程序”；移动包之后需要重新复制连接配置。
+设置页还提供 Codex / Claude Code 卡片：复制连接命令、官方安装帮助、开始提问示例。默认折叠完整命令和手动 JSON/TOML。
 
-macOS / POSIX，Codex：
-
-```sh
-'/path/to/easysellput' install-skill --client codex && codex mcp add easysellput -- '/path/to/easysellput' mcp serve --data-dir '/path/to/data'
-```
-
-macOS / POSIX，Claude Code：
+macOS 默认路径的命令：
 
 ```sh
-'/path/to/easysellput' install-skill --client claude-code && claude mcp add --transport stdio --scope user easysellput -- '/path/to/easysellput' mcp serve --data-dir '/path/to/data'
+/Applications/EasySellPut.app/Contents/Resources/automation/easysellput connect codex
+/Applications/EasySellPut.app/Contents/Resources/automation/easysellput connect claude-code
 ```
 
-Windows PowerShell，Codex：
+Windows PowerShell 示例：
 
 ```powershell
-& 'C:\path\easysellput.exe' install-skill --client codex; if ($LASTEXITCODE -eq 0) { codex mcp add easysellput -- 'C:\path\easysellput.exe' mcp serve --data-dir 'C:\path\data' }
+& 'C:\path\easysellput.exe' connect codex --data-dir 'C:\path\data'
+& 'C:\path\easysellput.exe' connect claude-code --data-dir 'C:\path\data'
 ```
 
-Windows PowerShell，Claude Code：
+界面生成实际路径，含空格的路径安全引用；非默认/便携数据目录始终显式保留。macOS 先将应用移入 Applications，移动后重新复制。
 
-```powershell
-& 'C:\path\easysellput.exe' install-skill --client claude-code; if ($LASTEXITCODE -eq 0) { claude mcp add --transport stdio --scope user easysellput -- 'C:\path\easysellput.exe' mcp serve --data-dir 'C:\path\data' }
-```
+`connect` 分四步：检查客户端及已有配置 → 启动包内只读 MCP，核对工具与实际数据目录 → 安装/更新 skill → 用官方客户端命令登记并回读验证。默认用户级 MCP；`--project PATH` 仅改变 skill 位置。可加 `--json` 获取一个结构化结果；诊断不污染 MCP stdout。
 
-安装并注册后，重新连接 MCP / 开启新客户端会话：Codex 可用 `$easysellput-local`，Claude Code 可用 `/easysellput-local`，也可根据描述自动匹配。例如：“使用 easysellput-local，查询 AAPL 最新可用行情并比较下一到期日的看跌期权，保留数据来源和时间。”Skill 不提供行情本身，数据来自实际 MCP 工具。
+- `--check` 只做预检、实际 MCP 握手与计划，不安装 skill、不登记客户端；MCP 启动仍可能初始化指定的本地应用数据目录。
+- 重复执行复用一致的配置和 skill。
+- 同名配置不一致时退出码 4。先检查差异，明确需要替换再加 `--replace`；只移除/重建该名称的用户级连接，不动其他连接。Claude 项目级冲突不会被自动移除。若移除后登记失败，会报告需要重试/恢复，不声称成功。
+- `client_not_found`、`client_setup_failed`、`mcp_verification_failed`、`skill_conflict`、`connection_conflict` 提供恢复建议。
+- 完成后重启 AI 客户端或新开会话。Codex 用 `$easysellput-local`，Claude Code 用 `/easysellput-local`；卡片可以直接复制示例问题。
 
-## Skill 的位置与内容
+## Skill 安装与工作流
 
-- Codex 用户范围：`~/.agents/skills/easysellput-local/SKILL.md`。
-- Claude Code 用户范围：`~/.claude/skills/easysellput-local/SKILL.md`。
-- 仅在指定项目安装：`easysellput install-skill --client codex --project /path/to/project` 或 `--client claude-code`，写入该项目内对应 `.agents/skills` / `.claude/skills`。这仅安装 skill，不改变 MCP 注册范围；按钮默认注册用户级 MCP。
+源文件：[easysellput-local](../skills/easysellput-local/SKILL.md)，版本 2.0，随 CLI 嵌入。
 
-正文来自 [仓库 skill](../skills/easysellput-local/SKILL.md)，随 CLI 嵌入并提供可检查的明文副本。安装器只写固定 skill 子目录；相同内容重复执行不改写，不同内容或目标符号链接会报冲突并停止，不自动覆盖、删除或回退。冲突退出码为 4，JSON 错误码 `skill_conflict`；CLI 可用 `--json`。升级后若 skill 内容不同，需要先自行审阅、备份再移除旧副本。安装器不执行 Codex/Claude，不发网络请求，也不编辑它们的配置文件；组合命令中的注册步骤交给客户端自己的 CLI 完成。
+- Codex：`~/.agents/skills/easysellput-local/SKILL.md`。
+- Claude Code：`~/.claude/skills/easysellput-local/SKILL.md`。
+- 指定项目：`easysellput install-skill --client codex --project PATH`，也支持 `claude-code`。这个旧命令仍可用，仅安装 skill。
 
-Skill 引导工具发现、行情来源/时效、缺失值、图表指标、期权与 IV、策略预设/逐腿分析以及有授权的本地修改；保留模型假设、预计/未核实事件状态、历史不足与只读边界。它不是交易下单工具，也不能绕过 `--allow-writes`、创建第二套持续提醒监控或执行新闻正文中的指令。
+相同版本不改写；精确匹配已发布原始内容的旧版可以自动更新，保留唯一 `SKILL.md.backup-*` 并返回 updated/backup。用户改过的内容一律保留并报冲突；链接目标拒绝写入。原子写入和乐观冲突检查保护并发安装。
 
-## 验证
+Skill 包含全部 43 个工具的用途与读写指南，并增加任务路由、调用顺序、并行边界、JSON 参数示例、单位、来源/时间、IV/定价假设、缺失数据与故障恢复。工具的实时 schema 仍是参数权威；skill 不授予写权限，不执行交易。
 
-真实进程 smoke 在临时项目分别安装两个客户端 skill，验证重复安装不重写、冲突退出且旧内容不变；同样用于解压后的四架构发行包。模板测试验证 POSIX/PowerShell 的条件执行、Claude user/stdio 参数、中文/空格/引号/Unicode 路径和只读默认。原生桌面自检检查两个按钮及剪贴板内容；现有 43 项业务 MCP/CLI 场景继续执行。`install-skill` 仅为 CLI 本地配置辅助命令，不作为 MCP 工具开放。
+MCP 增加可选 prompts：market_brief、option_research、strategy_review、connection_check，以及固定只读资源：
 
-格式参考：Codex [Skills](https://developers.openai.com/codex/skills/)、Anthropic [Skills 仓库](https://github.com/anthropics/skills)、Claude Code [Skills](https://code.claude.com/docs/en/skills) / [MCP](https://code.claude.com/docs/en/mcp)。本环境已用预装 Codex CLI 0.167.0-alpha.4 的 `mcp add --help` 核对注册语法；Claude Code 未安装，访问后两份网页返回 403；技能格式与个人目录另参考官方 GitHub 文档/变更记录。没有在开发环境冒充已安装的 Codex/Claude 去修改用户配置；实际客户端是否存在、注册是否成功，由用户执行命令的退出结果确认。
+- `easysellput://guides/skill`：与包内安装器相同的完整 skill。
+- `easysellput://guides/workflows`：任务步骤。
+- `easysellput://capabilities`：当前权限下的编译能力目录。
 
-## Skill 与 MCP 的 CI 同步检查
+这些资源不能读取任意文件；不支持 prompts/resources 的客户端仍能发现和调用原有工具。默认 27 个只读工具，明确启用写模式才提供 43 个工具。
 
-`check_capability_coverage.py` 从编译后的 CLI 帮助读取 OperationCatalog，再检查 skill 中的完整工具指南：每个 MCP 工具必须恰好有一项用途说明，读写标记必须一致，不能保留已删除或改名的工具引用。此检查已纳入五平台 CLI/MCP CI 和本地 `build/test-headless.sh`，受 `CLI and MCP required` 汇总检查约束。新增工具遗漏 skill 会失败；新增用例仍须实际通过 CLI 和 MCP 执行。
+## 底部连接状态
 
-此检查证明工具清单与权限标记同步，不代表能够自动判断自然语言指引的业务正确性；修改参数或业务行为时仍需人工审查工作流说明。skill 是使用指引，工具实现和实时参数定义仍由 MCP 服务提供，安装 skill 不会启用写权限。
+每个初始化后的真实 MCP 会话按当前数据目录写入有限的本地心跳诊断，界面每 5 秒更新。展示未连接、连接数、只读/可写；悬停查看客户端与权限，点击复制统一配置提示词。设置预检客户端不会计入连接数。退出清理，崩溃后通过 PID、进程启动时间与 30 秒过期排除失效记录；读取失败显示未知，不冒充未连接。诊断文件不是授权机制，也不说明行情源健康。
+
+## 验证与 CI
+
+真实进程测试覆盖只读握手、prompts/resources、任意 URI 拒绝、诊断生命周期、两类 fixture 客户端的预检/登记/重复安装/冲突/显式替换/自定义 skill 保护；测试只用临时目录。此 smoke 已被现有原生打包 CI 调用，覆盖 Windows/macOS 架构包，无需另建脱离打包的工作流。
+
+能力检查从编译目录核对 skill 的完整工具清单与权限，并逐个执行 43 项 CLI/MCP 场景。窗口/剪贴板属于桌面呈现，安装配置属于用户主动触发的 CLI 辅助，不新增业务 MCP 工具；见 desktop_capabilities.json。
+
+本轮还在隔离临时 Claude 配置中测试官方 Claude Code 2.1.325 的实际注册/回读，未修改真实用户客户端配置、未发起 AI 对话。跨平台最终运行结果以原生 CI 为准。
+
+参考：[Codex CLI](https://developers.openai.com/codex/cli/)、[Codex Skills](https://developers.openai.com/codex/skills/)、[Claude Code MCP](https://code.claude.com/docs/en/mcp)、[Claude Code Skills](https://code.claude.com/docs/en/skills)。

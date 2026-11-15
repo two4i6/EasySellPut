@@ -21,11 +21,26 @@ public static class Program
         Console.CancelKeyPress += (_, e) => { e.Cancel = true; stop.Cancel(); };
         try
         {
+            if(args.FirstOrDefault()=="connect")
+            {
+                if(args.Skip(1).SequenceEqual(new[]{"--help"}))
+                {Console.WriteLine("connect codex|claude-code [--data-dir PATH] [--project PATH] [--check] [--replace] [--json]\nChecks the installed client and read-only MCP, installs/upgrades the unedited bundled skill, then registers and verifies the connection. --check does not modify client configuration or skills. --replace explicitly replaces a conflicting easysellput entry only.");return 0;}
+                var connected=await AiConnectionCommand.RunAsync(args,line=>{if(!json)Console.WriteLine(line);},stop.Token);
+                if(json)Console.WriteLine(WireJson.Element(WireJson.Success(connected)).GetRawText());else
+                {
+                    var report=WireJson.Element(connected);
+                    Console.WriteLine(args.Contains("--check")?"✓ Checks passed · no client/skill changes applied":"✓ Setup complete · read-only MCP + companion skill");
+                    Console.WriteLine("Data   "+report.GetProperty("dataDirectory").GetString());
+                    var skill=report.GetProperty("skill");Console.WriteLine("Skill  "+skill.GetProperty("status").GetString()+" · "+skill.GetProperty("path").GetString());
+                    if(report.TryGetProperty("nextStep",out var next))Console.WriteLine("\nNext   "+next.GetString());
+                }
+                return 0;
+            }
             if (args.FirstOrDefault() == "install-skill")
             {
                 if (args.Skip(1).SequenceEqual(new[] { "--help" }))
                 {
-                    Console.WriteLine("install-skill --client codex|claude-code [--project PATH] [--json]\nDefault: user profile. --project installs only inside the selected project. Existing different skills are never overwritten. Reconnect the AI client after installation.");
+                    Console.WriteLine("install-skill --client codex|claude-code [--project PATH] [--json]\nDefault: user profile. --project installs only inside the selected project. Custom skills are preserved; exact known bundled versions upgrade with a backup. Reconnect the AI client after installation.");
                     return 0;
                 }
                 string? client = null, project = null;
@@ -69,13 +84,15 @@ public static class Program
         catch (Exception e) // expected: return structured errors and a nonzero CLI exit or MCP isError
         {
             Console.Error.WriteLine($"{WireJson.Code(e)}: {WireJson.Element(WireJson.Error(e)).GetProperty("error").GetProperty("message").GetString()}");
+            if (!json) Console.Error.WriteLine("Next: "+WireJson.Recovery(e));
             if (json) Console.WriteLine(JsonSerializer.Serialize(WireJson.Error(e), WireJson.Options));
-            return e switch { ArgumentException or JsonException or FormatException or OverflowException => 2, UnauthorizedAccessException => 3, Meili.Core.Settings.DataConflictException or SkillInstallConflictException => 4, OperationCanceledException => 130, _ => 1 };
+            return e switch { ArgumentException or JsonException or FormatException or OverflowException => 2, UnauthorizedAccessException => 3, Meili.Core.Settings.DataConflictException or SkillInstallConflictException => 4, AiSetupException setup when setup.Code=="connection_conflict" => 4, OperationCanceledException => 130, _ => 1 };
         }
     }
 
     private static async Task ServeMcp(AutomationService service, bool writes, int timeout, CancellationToken ct)
     {
+        string? observedClient=null;
         var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { Args = [], DisableDefaults = true });
         builder.Logging.ClearProviders();
         builder.Logging.AddConsole(o => o.LogToStandardErrorThreshold = LogLevel.Trace);
@@ -83,22 +100,65 @@ public static class Program
         builder.Services.AddMcpServer(o =>
         {
             o.ServerInfo = new Implementation { Name = "EasySellPut", Version = typeof(Program).Assembly.GetName().Version?.ToString(3) ?? "0.6.0" };
-            o.ServerInstructions = "Local market research and strategy analysis. Preserve provenance, freshness, missing values and pricing assumptions. Read-only unless explicitly started with --allow-writes. Desktop performs continuous alert monitoring.";
+            o.ServerInstructions = AiWorkflowGuide.Instructions + (writes ? " Explicit write mode is enabled; still require a user-requested change." : " This connection is read-only.");
         }).WithStdioServerTransport()
-        .WithListToolsHandler((request, cancel) => ValueTask.FromResult(new ListToolsResult
+        .WithListPromptsHandler((request,cancel)=>ValueTask.FromResult(new ListPromptsResult
+        {
+            Prompts=AiWorkflowGuide.All.Select(w=>new Prompt{Name=w.Name,Title=w.Title,Description=w.Description,
+                Arguments=[new PromptArgument{Name="symbol",Description="US ticker, e.g. NVDA; required for ticker workflows.",Required=w.NeedsSymbol},new PromptArgument{Name="question",Description="Optional user question or explicit position context; max 1000 characters."}]}).ToList()
+        }))
+        .WithGetPromptHandler((request,cancel)=>
+        {
+            observedClient=request.Server.ClientInfo?.Name;
+            var parameters=request.Params??throw new ModelContextProtocol.McpProtocolException("Missing prompt parameters.",ModelContextProtocol.McpErrorCode.InvalidParams);
+            var recipe=AiWorkflowGuide.All.FirstOrDefault(w=>w.Name==parameters.Name)??throw new ModelContextProtocol.McpProtocolException("Unknown EasySellPut prompt.",ModelContextProtocol.McpErrorCode.InvalidParams);
+            var arguments=parameters.Arguments??new Dictionary<string,JsonElement>();
+            if(arguments.Keys.Any(k=>k is not ("symbol" or "question")))throw new ModelContextProtocol.McpProtocolException("Unknown prompt argument.",ModelContextProtocol.McpErrorCode.InvalidParams);
+            if(arguments.Values.Any(v=>v.ValueKind!=JsonValueKind.String))throw new ModelContextProtocol.McpProtocolException("Prompt arguments must be strings.",ModelContextProtocol.McpErrorCode.InvalidParams);
+            var symbol=arguments.TryGetValue("symbol",out var symbolArg)?symbolArg.GetString():null;
+            var question=arguments.TryGetValue("question",out var questionArg)?questionArg.GetString():null;
+            if((recipe.NeedsSymbol||!string.IsNullOrWhiteSpace(symbol))&&!Meili.Core.Settings.WatchlistStore.TryNormalizeSymbol(symbol,out _,out _))throw new ModelContextProtocol.McpProtocolException("A valid ticker symbol is required.",ModelContextProtocol.McpErrorCode.InvalidParams);
+            if(question?.Length>1000)throw new ModelContextProtocol.McpProtocolException("Question is too long.",ModelContextProtocol.McpErrorCode.InvalidParams);
+            return ValueTask.FromResult(new GetPromptResult{Description=recipe.Description,Messages=[new PromptMessage{Role=Role.User,Content=new TextContentBlock{Text=recipe.Title+" for "+(symbol?.ToUpperInvariant()??"local connection")+".\n"+recipe.Steps+"\nDiscover actual schemas before calling tools.\nUser question/context: "+(question??"Use a concise evidence-first summary.")}}]});
+        })
+        .WithListResourcesHandler((request,cancel)=>ValueTask.FromResult(new ListResourcesResult{Resources=[
+            new Resource{Uri="easysellput://guides/workflows",Name="Task recipes",Description="Tool selection and task-specific research workflows.",MimeType="text/markdown"},
+            new Resource{Uri="easysellput://guides/skill",Name="Companion skill",Description="Complete local research guide, safety/units and all tool usage.",MimeType="text/markdown"},
+            new Resource{Uri="easysellput://capabilities",Name="Available capabilities",Description="Compiled tool catalog for this connection's permissions.",MimeType="application/json"}
+        ]}))
+        .WithReadResourceHandler((request,cancel)=>
+        {
+            observedClient=request.Server.ClientInfo?.Name;
+            var uri=request.Params?.Uri;
+            var content=uri switch
+            {
+                "easysellput://guides/workflows"=>AiWorkflowGuide.Markdown,
+                "easysellput://guides/skill"=>AiSkillInstaller.Content,
+                "easysellput://capabilities"=>WireJson.Element(new{readOnly=!writes,operations=OperationCatalog.All.Where(o=>writes||!o.Writes).Select(o=>new{o.Name,o.Description,o.Writes,inputSchema=o.Schema})}).GetRawText(),
+                _=>throw new ModelContextProtocol.McpProtocolException("Unknown resource URI; arbitrary file/URL reads are not supported.",ModelContextProtocol.McpErrorCode.InvalidParams)
+            };
+            return ValueTask.FromResult(new ReadResourceResult{Contents=[new TextResourceContents{Uri=uri!,MimeType=uri=="easysellput://capabilities"?"application/json":"text/markdown",Text=content}]});
+        })
+        .WithListToolsHandler((request, cancel) =>
+        {
+            observedClient=request.Server.ClientInfo?.Name;
+            return ValueTask.FromResult(new ListToolsResult
         {
             Tools = OperationCatalog.All.Where(x => writes || !x.Writes).Select(x => new Tool
             {
                 Name = x.Name,
+                Title = CultureInfo.InvariantCulture.TextInfo.ToTitleCase(x.Name.Replace('_',' ')),
                 Description = x.Description,
                 InputSchema = x.Schema,
-                Annotations = new ToolAnnotations { ReadOnlyHint = !x.Writes, DestructiveHint = x.Writes, IdempotentHint = !x.Writes, OpenWorldHint = x.Name is "search_symbols" or "get_quotes" or "get_bars" or "get_expirations" or "get_option_chain" or "get_fundamentals" or "get_financials" or "get_news" or "get_market_events" or "get_chart_analysis" or "analyze_option_chain" or "get_pricing_assumptions" or "get_volatility_insights" or "record_option_snapshot" or "probe_data_sources" }
+                Annotations = new ToolAnnotations { ReadOnlyHint = !x.Writes, DestructiveHint = x.Writes && (x.Name.StartsWith("delete_",StringComparison.Ordinal) || x.Name.StartsWith("clear_",StringComparison.Ordinal) || x.Name=="save_strategy"), IdempotentHint = !x.Writes, OpenWorldHint = x.Name is "search_symbols" or "get_quotes" or "get_bars" or "get_expirations" or "get_option_chain" or "get_fundamentals" or "get_financials" or "get_news" or "get_market_events" or "get_chart_analysis" or "analyze_option_chain" or "get_pricing_assumptions" or "get_volatility_insights" or "record_option_snapshot" or "probe_data_sources" }
             }).ToList()
-        }))
+        });
+        })
         .WithCallToolHandler(async (request, cancel) =>
         {
             try
             {
+                observedClient=request.Server.ClientInfo?.Name;
                 var p = request.Params ?? throw new ArgumentException("Missing tool parameters.");
                 using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancel); deadline.CancelAfter(TimeSpan.FromSeconds(timeout));
                 var input = WireJson.Element(p.Arguments ?? new Dictionary<string, JsonElement>());
@@ -112,6 +172,8 @@ public static class Program
             }
         });
         using var host = builder.Build();
+        var server=host.Services.GetService<ModelContextProtocol.Server.McpServer>();
+        using var session=new McpSessionLease(service.DirectoryInfo.Path,writes,()=>server?.ClientInfo?.Name??observedClient);
         await host.RunAsync(ct);
     }
 
@@ -204,7 +266,7 @@ public static class Program
     private static string Kebab(string s) => string.Concat(s.Select(c => char.IsUpper(c) ? "-" + char.ToLowerInvariant(c) : c.ToString()));
     private static void PrintHelp(string? operation)
     {
-        Console.WriteLine("EasySellPut — local CLI + stdio MCP\nUsage: easysellput <command> [options] [--json] [--data-dir PATH] [--timeout 60]\n       easysellput mcp serve [--allow-writes] [--data-dir PATH]\nSetup: install-skill --client codex|claude-code [--project PATH] [--json] (CLI only; never modifies a different existing skill)\nAliases: quote, bars, search, expirations, options, fundamentals, financials, news, events, chart, option-analysis, insights, presets, sources, price, indicators\nGroups: watchlist list/add/remove/create-group/rename-group/delete-group; strategy list/save/delete/analyze; alerts list/history/save/delete/enable; settings show\nUse any operation name below directly. --input FILE accepts an argument JSON object.\nNumbers use invariant decimal units. --help after an operation prints its JSON schema.\nExit: 0 success, 1 failure, 2 arguments, 3 permission, 4 conflict, 130 cancelled/timeout.");
+        Console.WriteLine("EasySellPut — local CLI + stdio MCP\nUsage: easysellput <command> [options] [--json] [--data-dir PATH] [--timeout 60]\n       easysellput mcp serve [--allow-writes] [--data-dir PATH]\nSetup: connect codex|claude-code [--check] [--json] (verifies MCP, installs skill and registers the client)\n       install-skill --client codex|claude-code [--project PATH] [--json] (CLI only; preserves custom skills; known bundled upgrades are backed up)\nAliases: quote, bars, search, expirations, options, fundamentals, financials, news, events, chart, option-analysis, insights, presets, sources, price, indicators\nGroups: watchlist list/add/remove/create-group/rename-group/delete-group; strategy list/save/delete/analyze; alerts list/history/save/delete/enable; settings show\nUse any operation name below directly. --input FILE accepts an argument JSON object.\nNumbers use invariant decimal units. --help after an operation prints its JSON schema.\nExit: 0 success, 1 failure, 2 arguments, 3 permission, 4 conflict, 130 cancelled/timeout.");
         foreach (var op in OperationCatalog.All.Where(o => operation is null || o.Name == operation))
         {
             Console.WriteLine($"\n{op.Name}{(op.Writes ? " [writes local data]" : "")}: {op.Description}");

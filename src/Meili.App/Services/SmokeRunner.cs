@@ -108,7 +108,14 @@ public sealed class SmokeRunner
             if (page.FindName("ConnectClaude") is not System.Windows.Controls.Button { IsEnabled: true }) throw new InvalidOperationException("Claude button not enabled");
             await settings.CopyClaudeCommand.ExecuteAsync(null);
             if (Clipboard.GetText() != Meili.Automation.McpConnectionSetup.Bundled(AppContext.BaseDirectory, AppServices.DataDirectory.Path).ClaudeSetupCommand) throw new InvalidOperationException("Claude setup command mismatch");
-            return "Codex/Claude skill + read-only MCP commands copied";
+            var shell=AppServices.Get<ShellViewModel>();
+            if(window.FindName("McpStatusIndicator") is not System.Windows.Controls.Button statusButton || statusButton.Command!=shell.CopyMcpSetupCommand)throw new InvalidOperationException("MCP status copy action unavailable");
+            await shell.CopyMcpSetupCommand.ExecuteAsync(null);
+            var prompt=Meili.Automation.McpConnectionSetup.Bundled(AppContext.BaseDirectory,AppServices.DataDirectory.Path).ConfigurationPrompt(LocalizationService.Current.Language=="zh-CN");
+            if(Clipboard.GetText()!=prompt || shell.McpStatusText!=LocalizationService.Current["Status_McpCopied"])throw new InvalidOperationException("Universal MCP prompt/feedback mismatch");
+            await settings.CopyUniversalSetupCommand.ExecuteAsync(null);
+            if(Clipboard.GetText()!=prompt)throw new InvalidOperationException("Settings/status universal prompts differ");
+            return "Codex/Claude commands and universal status/settings MCP + skill prompt copied";
         });
         if (Directory.Exists(Path.Combine(AppContext.BaseDirectory, "automation"))) await CheckAsync("packaged-webview", async () =>
         {

@@ -98,6 +98,14 @@ public partial class App : Application
             if (window.CurrentView?.FindControl<Button>("ConnectClaude")?.IsEnabled != true) throw new InvalidOperationException("Claude button not enabled");
             await settings.CopyClaudeCommand.ExecuteAsync(null);
             if (await Avalonia.Input.Platform.ClipboardExtensions.TryGetTextAsync(window.Clipboard!) != Meili.Automation.McpConnectionSetup.Bundled(AppContext.BaseDirectory, AppServices.DataDirectory.Path).ClaudeSetupCommand) throw new InvalidOperationException("Claude setup command mismatch");
+            var connection=Meili.Automation.McpConnectionSetup.Bundled(AppContext.BaseDirectory,AppServices.DataDirectory.Path);
+            var shell=AppServices.Get<Meili.Shared.ViewModels.ShellViewModel>();
+            if(window.FindControl<Button>("McpStatusIndicator")?.Command!=shell.CopyMcpSetupCommand)throw new InvalidOperationException("MCP status copy action unavailable");
+            await shell.CopyMcpSetupCommand.ExecuteAsync(null);
+            if(await Avalonia.Input.Platform.ClipboardExtensions.TryGetTextAsync(window.Clipboard!)!=connection.ConfigurationPrompt(LocalizationService.Current.Language=="zh-CN")
+                || shell.McpStatusText!=LocalizationService.Current["Status_McpCopied"])throw new InvalidOperationException("Universal MCP prompt/feedback mismatch");
+            await settings.CopyUniversalSetupCommand.ExecuteAsync(null);
+            if(await Avalonia.Input.Platform.ClipboardExtensions.TryGetTextAsync(window.Clipboard!)!=connection.ConfigurationPrompt(LocalizationService.Current.Language=="zh-CN"))throw new InvalidOperationException("Settings/status universal prompts differ");
             if (LocalizationService.Current["Set_AiTitle"] == "Set_AiTitle") throw new InvalidOperationException("Missing connection resources");
             window.Navigate(AppPage.Charts);
             var deadline = DateTimeOffset.UtcNow.AddSeconds(25);

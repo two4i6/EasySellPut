@@ -5,4 +5,5 @@
     <ProjectReference Include="../../src/Meili.Application/Meili.Application.csproj" />
     <Using Include="Xunit" />
   </ItemGroup>
+  <ItemGroup><EmbeddedResource Include="Fixtures/previous-skill.md" LogicalName="EasySellPut.Tests.PreviousSkill" /></ItemGroup>
 </Project>

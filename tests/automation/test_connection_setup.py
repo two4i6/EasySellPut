@@ -20,19 +20,18 @@ class ConnectionSetupTests(unittest.TestCase):
             self.assertEqual(tomllib.loads(fixture['Toml'])['mcp_servers']['easysellput'],expected)
             self.assertNotIn('--allow-writes',fixture['Arguments'])
             self.assertEqual(fixture['Arguments'][-1],fixture['DataDirectory'])
-    def test_setup_installs_skill_before_registering_and_claude_scope_is_explicit(self):
+    def test_setup_is_one_user_invoked_connection_command(self):
         for fixture in self.fixtures:
             for key,client in [('CodexSetupCommand','codex'),('ClaudeSetupCommand','claude-code')]:
                 setup=fixture[key]
                 self.assertNotIn('--allow-writes',setup)
+                self.assertNotIn('&&',setup)
+                self.assertNotIn('mcp add',setup)
                 if fixture['Windows']:
                     self.assertTrue(setup.startswith("& '"))
-                    self.assertIn('; if ($LASTEXITCODE -eq 0) { ',setup)
+                    self.assertIn(' connect '+client+' --data-dir ',setup)
                 else:
-                    install,registration=setup.split(' && ',1)
-                    self.assertEqual(shlex.split(install),[fixture['Executable'],'install-skill','--client',client])
-                    if client=='claude-code':
-                        self.assertEqual(shlex.split(registration),['claude','mcp','add','--transport','stdio','--scope','user','easysellput','--',fixture['Executable'],*fixture['Arguments']])
+                    self.assertEqual(shlex.split(setup),[fixture['Executable'],'connect',client,'--data-dir',fixture['DataDirectory']])
             self.assertIn('--scope user',fixture['ClaudeCommand'])
     def test_posix_shell_roundtrip_and_powershell_literal_escaping(self):
         for fixture in self.fixtures:

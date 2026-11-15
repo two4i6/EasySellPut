@@ -134,15 +134,43 @@
             </ui:CardControl>
 
             <TextBlock Style="{StaticResource SectionTitle}" Text="{DynamicResource Set_AiTitle}" />
-            <ui:CardControl Margin="0,0,0,4"><ui:CardControl.Header>
+            <ui:CardControl x:Name="AiSetupPanel" Margin="0,0,0,4"><ui:CardControl.Header>
                 <StackPanel>
+                    <Button Content="{DynamicResource Set_AiUniversal}" Command="{Binding CopyUniversalSetupCommand}" IsEnabled="{Binding CanConnectAi}" HorizontalAlignment="Left" Margin="0,0,0,8"/>
                     <WrapPanel Margin="0,0,0,8">
-                        <Button x:Name="ConnectCodex" Content="{DynamicResource Set_AiCodex}" Command="{Binding CopyCodexCommand}" IsEnabled="{Binding CanConnectAi}" AutomationProperties.AutomationId="ConnectCodex" Margin="0,0,12,0" />
-                        <Button x:Name="ConnectClaude" Content="{DynamicResource Set_AiClaude}" Command="{Binding CopyClaudeCommand}" IsEnabled="{Binding CanConnectAi}" AutomationProperties.AutomationId="ConnectClaude" Margin="0,0,12,0" />
-                        <TextBlock FontSize="12" Text="{Binding AiConnectionStatus}" TextWrapping="Wrap" VerticalAlignment="Center" />
+                        <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Set_AiStepCopy}" Margin="0,0,12,0"/>
+                        <TextBlock Style="{StaticResource Caption}" Text="→" Margin="0,0,12,0"/>
+                        <TextBlock Style="{StaticResource Caption}" Text="{Binding AiTerminalLabel}" Margin="0,0,12,0"/>
+                        <TextBlock Style="{StaticResource Caption}" Text="→" Margin="0,0,12,0"/>
+                        <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Set_AiStepSession}"/>
                     </WrapPanel>
+                    <WrapPanel>
+                        <Border Width="280" Padding="12" Margin="0,0,12,8" CornerRadius="6" BorderThickness="1" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" Background="{DynamicResource ControlFillColorSecondaryBrush}">
+                            <StackPanel>
+                                <DockPanel Margin="0,0,0,12"><Button DockPanel.Dock="Right" Content="?" Padding="4,0" MinWidth="24" Command="{Binding OpenAiHelpCommand}" CommandParameter="codex" AutomationProperties.Name="{DynamicResource Set_AiHelp}" ToolTip="{DynamicResource Set_AiHelp}" Margin="8,0,0,0"/><TextBlock DockPanel.Dock="Right" Style="{StaticResource Caption}" Text="{Binding CodexAvailability}" VerticalAlignment="Center"/><TextBlock Style="{StaticResource CardTitle}" FontSize="16" Text="Codex"/></DockPanel>
+                                <WrapPanel>
+                                    <Button x:Name="ConnectCodex" Content="{DynamicResource Set_AiCodex}" Command="{Binding CopyCodexCommand}" IsEnabled="{Binding CanConnectAi}" AutomationProperties.AutomationId="ConnectCodex" Margin="0,0,8,0"/>
+                                    <Button Content="{DynamicResource Set_AiPrompt}" Command="{Binding CopyAiPromptCommand}" CommandParameter="codex" IsEnabled="{Binding CanConnectAi}"/>
+                                </WrapPanel>
+                            </StackPanel>
+                        </Border>
+                        <Border Width="280" Padding="12" Margin="0,0,12,8" CornerRadius="6" BorderThickness="1" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" Background="{DynamicResource ControlFillColorSecondaryBrush}">
+                            <StackPanel>
+                                <DockPanel Margin="0,0,0,12"><Button DockPanel.Dock="Right" Content="?" Padding="4,0" MinWidth="24" Command="{Binding OpenAiHelpCommand}" CommandParameter="claude-code" AutomationProperties.Name="{DynamicResource Set_AiHelp}" ToolTip="{DynamicResource Set_AiHelp}" Margin="8,0,0,0"/><TextBlock DockPanel.Dock="Right" Style="{StaticResource Caption}" Text="{Binding ClaudeAvailability}" VerticalAlignment="Center"/><TextBlock Style="{StaticResource CardTitle}" FontSize="16" Text="Claude Code"/></DockPanel>
+                                <WrapPanel>
+                                    <Button x:Name="ConnectClaude" Content="{DynamicResource Set_AiClaude}" Command="{Binding CopyClaudeCommand}" IsEnabled="{Binding CanConnectAi}" AutomationProperties.AutomationId="ConnectClaude" Margin="0,0,8,0"/>
+                                    <Button Content="{DynamicResource Set_AiPrompt}" Command="{Binding CopyAiPromptCommand}" CommandParameter="claude-code" IsEnabled="{Binding CanConnectAi}"/>
+                                </WrapPanel>
+                            </StackPanel>
+                        </Border>
+                    </WrapPanel>
+                    <TextBlock Style="{StaticResource Caption}" Text="{Binding AiConnectionStatus}" TextWrapping="Wrap" Margin="0,0,0,8"/>
                     <Expander Header="{DynamicResource Set_AiMore}">
                         <StackPanel>
+                            <TextBlock Style="{StaticResource Caption}" Text="Codex"/>
+                            <TextBox Text="{Binding CodexSetupCommand, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap"/>
+                            <TextBlock Style="{StaticResource Caption}" Text="Claude Code"/>
+                            <TextBox Text="{Binding ClaudeSetupCommand, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap"/>
                             <Button Content="{DynamicResource Set_AiToml}" Command="{Binding CopyMcpTomlCommand}" IsEnabled="{Binding CanConnectAi}" HorizontalAlignment="Left" Margin="0,8" />
                             <TextBox Text="{Binding McpToml, Mode=OneWay}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" />
                             <Button Content="{DynamicResource Set_AiJson}" Command="{Binding CopyMcpJsonCommand}" IsEnabled="{Binding CanConnectAi}" HorizontalAlignment="Left" Margin="0,8" />
