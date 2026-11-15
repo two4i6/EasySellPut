@@ -882,4 +882,5 @@
     <sys:String x:Key="Web_Removed">Website removed</sys:String>
     <sys:String x:Key="Web_Privacy">Only names and addresses are saved; web sessions clear on exit.</sys:String>
     <sys:String x:Key="Web_ConfirmRemove">Click again to remove</sys:String>
+    <sys:String x:Key="Ch_ClearAllShort">Clear all</sys:String>
 </ResourceDictionary>

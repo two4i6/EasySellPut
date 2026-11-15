@@ -760,6 +760,52 @@
       },
       "compare": [
         "/data"
+      ],
+      "capture": {
+        "drawingRevision": "/data/revision"
+      }
+    },
+    {
+      "operation": "update_chart_drawing",
+      "arguments": {
+        "symbol": "AAPL",
+        "index": 0,
+        "revision": "${drawingRevision}",
+        "kind": "HorizontalLine",
+        "price1": 125.5
+      },
+      "expect": {
+        "/data/drawings/0/price1": {
+          "equals": 125.5
+        },
+        "/data/total": {
+          "equals": 1
+        }
+      },
+      "compare": [
+        "/data"
+      ],
+      "capture": {
+        "editedRevision": "/data/revision"
+      }
+    },
+    {
+      "operation": "delete_chart_drawing",
+      "arguments": {
+        "symbol": "AAPL",
+        "index": 0,
+        "revision": "${editedRevision}"
+      },
+      "expect": {
+        "/data/drawings": {
+          "equals": []
+        },
+        "/data/total": {
+          "equals": 0
+        }
+      },
+      "compare": [
+        "/data"
       ]
     },
     {

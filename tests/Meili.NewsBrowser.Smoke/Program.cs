@@ -256,6 +256,10 @@ internal static class Program
             if (!Result(d => d.GetProperty("rows").GetInt32() == 120 && d.GetProperty("candles").GetInt32() == 119)) throw new Exception("Missing OHLC was fabricated");
             await Until(() => Result(d => d.GetProperty("sidebarPermanent").GetBoolean() && d.GetProperty("sidebarViews").GetInt32() == 3 && d.GetProperty("events").GetInt32() == 3 && d.GetProperty("eventMarkers").GetInt32() == 2 && d.GetProperty("historyGroups").GetInt32() == 2 && d.GetProperty("historyStops").GetInt32() == 2), "News/calendar markers, date groups and history stops in native chart");
             if(!Result(d=>d.GetProperty("sessionBands").GetInt32()>0 && d.GetProperty("sessionPanes").GetInt32()==5))throw new Exception("Session background primitives missing from native panes");
+            vm.StartDrawingCommand.Execute(DrawingKind.TrendLine); vm.AddDrawingPoint(vm.Series!.Bars[10].Time, 105);
+            await Until(() => Result(d => d.GetProperty("drawingPreview").GetBoolean() && d.GetProperty("drawingHandles").GetInt32() == 1), "Native first-anchor drawing preview");
+            vm.CancelDrawing();
+            await Until(() => Result(d => !d.GetProperty("drawingPreview").GetBoolean()), "Native drawing cancellation clears preview");
             vm.MaPeriod = 5;
             await Until(() => Result(d => Math.Abs(d.GetProperty("lastMa").GetDouble() - vm.Snapshot!.Sma[^1]) < 1e-8), "Analytics MA parity in actual chart series");
             vm.ShowRsi = false;

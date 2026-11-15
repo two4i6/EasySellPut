@@ -882,4 +882,5 @@
     <sys:String x:Key="Web_Removed">网页已移除</sys:String>
     <sys:String x:Key="Web_Privacy">仅保存名称和网址；网页会话在退出后清除。</sys:String>
     <sys:String x:Key="Web_ConfirmRemove">再次点击移除</sys:String>
+    <sys:String x:Key="Ch_ClearAllShort">清空</sys:String>
 </ResourceDictionary>

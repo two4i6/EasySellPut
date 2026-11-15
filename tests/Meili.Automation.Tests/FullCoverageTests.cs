@@ -92,5 +92,19 @@ public sealed class FullCoverageTests:IDisposable
         Assert.Throws<DataConflictException>(()=>stale.Add("MSFT",new(DrawingKind.HorizontalLine,200)));
         Assert.Empty(stale.For("MSFT"));Assert.Single(new ChartDrawingStore(_path).For("AAPL"));
     }
+    [Fact]
+    public async Task Drawing_edits_require_writes_and_reject_stale_revisions()
+    {
+        using var service=Service();
+        var added=await Run(service,"add_chart_drawing",new{symbol="AAPL",kind="HorizontalLine",price1=100},true);
+        var revision=added.GetProperty("revision").GetString()!;
+        var edit=new{symbol="AAPL",index=0,revision,kind="HorizontalLine",price1=110};
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(()=>Run(service,"update_chart_drawing",edit));
+        var changed=await Run(service,"update_chart_drawing",edit,true);
+        Assert.Equal(110,changed.GetProperty("drawings")[0].GetProperty("price1").GetDouble());
+        await Assert.ThrowsAsync<DataConflictException>(()=>Run(service,"delete_chart_drawing",new{symbol="AAPL",index=0,revision},true));
+        var removed=await Run(service,"delete_chart_drawing",new{symbol="AAPL",index=0,revision=changed.GetProperty("revision").GetString()},true);
+        Assert.Empty(removed.GetProperty("drawings").EnumerateArray());
+    }
     public void Dispose(){Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();if(Directory.Exists(_path))Directory.Delete(_path,true);}
 }

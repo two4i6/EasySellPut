@@ -45,7 +45,7 @@ public sealed class SymbolBox : UserControl
 
     public SymbolBox()
     {
-        _box = new Wpf.Ui.Controls.TextBox { FontSize = 14, MinHeight = 32 };
+        _box = new Wpf.Ui.Controls.TextBox { FontSize = 14, MinHeight = 32, Height = 32, VerticalContentAlignment = VerticalAlignment.Center, Padding = new Thickness(8, 4, 8, 4) };
         _box.SetResourceReference(Wpf.Ui.Controls.TextBox.PlaceholderTextProperty, "Sb_Placeholder");
         _box.TextChanged += OnBoxTextChanged;
         _box.PreviewKeyDown += OnBoxKeyDown;

@@ -6,6 +6,7 @@
   let sessionBands=[],sessionLayers=[];
   let chart, state, version = -1, signature = '', key = '', series = {}, priceLines = [], drawingSeries = [];
   let posting = false, pendingHover = null, userRange = null, applying = false;
+  let editorPreview=null, sameBarWarning = false, draft = null, drawingHover = null, selectedDrawing = -1, drawingRevision = '', drawingBusy = false;
   const finite = Number.isFinite;
   const post = body => fetch('event', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)});
   const diagnostic = body => post({kind: 'diagnostic', ...body}).catch(() => {});
@@ -17,6 +18,112 @@
   };
   window.addEventListener('error', e => error(e.message));
   window.addEventListener('unhandledrejection', e => error(e.reason));
+  let drawingDown=null, drawingRequests=Promise.resolve(), finishingDrawing=false;
+  function mouseDrawingPoint(event){const rect=root.getBoundingClientRect(),point={x:event.clientX-rect.left,y:event.clientY-rect.top};return drawingPoint({point,time:chart.timeScale().coordinateToTime(point.x),paneIndex:0});}
+  root.addEventListener('mousedown',event=>{
+    if(!state?.drawingMode || event.button!==0)return;
+    const point=mouseDrawingPoint(event);if(!point)return;
+    drawingDown={x:event.clientX,y:event.clientY};event.preventDefault();event.stopPropagation();
+  },true);
+  root.addEventListener('mouseup',event=>{
+    if(!state?.drawingMode || !drawingDown || event.button!==0)return;
+    const down=drawingDown;drawingDown=null;event.preventDefault();event.stopPropagation();
+    if(Math.hypot(event.clientX-down.x,event.clientY-down.y)>5 || finishingDrawing)return;
+    const point=mouseDrawingPoint(event);if(!point)return;root.focus();
+    if(state.drawingMode==='TrendLine' && draft?.time===point.time){sameBarWarning=true;drawOverlay();return;}
+    finishingDrawing=state.drawingMode==='HorizontalLine'||!!draft;
+    if(state.drawingMode==='TrendLine'&&!draft)draft=point;
+    const body={kind:'drawing',key:state.key,mode:state.drawingMode,epoch:state.drawingEpoch,index:point.index,price:point.price};
+    drawingRequests=drawingRequests.then(()=>post(body)).then(response=>{if(!response.ok)throw new Error('Drawing request rejected');}).catch(e=>{finishingDrawing=false;error(e);});drawOverlay();
+  },true);
+  window.addEventListener('mouseup',()=>{drawingDown=null;});
+  const overlay = document.getElementById('drawing-overlay');
+  const drawingPanel = document.getElementById('drawing-panel');
+  function drawingPoint(param) {
+    if (!param.point || param.paneIndex !== undefined && param.paneIndex !== 0 || param.point.y < 0 || param.point.y >= chart.panes()[0].getHeight() || param.point.x < 0 || param.point.x >= chart.timeScale().width()) return null;
+    const row = byTime.get(param.time), price = series.candles.coordinateToPrice(param.point.y);
+    return row && finite(price) && price >= 0 && price <= 1e12 ? {time:row.time,index:row.index,price:Number(price.toFixed(6))} : null;
+  }
+  function anchors(drawing) {
+    const width=chart.timeScale().width();
+    if(drawing.kind==='HorizontalLine')return [{x:0,y:series.candles.priceToCoordinate(drawing.price1)},{x:width,y:series.candles.priceToCoordinate(drawing.price1)}];
+    return [{x:chart.timeScale().timeToCoordinate(drawing.time1),y:series.candles.priceToCoordinate(drawing.price1)},{x:chart.timeScale().timeToCoordinate(drawing.time2),y:series.candles.priceToCoordinate(drawing.price2)}];
+  }
+  function drawOverlay() {
+    overlay.replaceChildren(); if(!chart || !state)return;
+    const width=chart.timeScale().width(),height=chart.panes()[0].getHeight();
+    overlay.style.width=width+'px';overlay.style.height=height+'px';
+    function shape(tag,attrs){const node=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const [key,value] of Object.entries(attrs))node.setAttribute(key,value);overlay.append(node);}
+    function segment(points,preview){
+      if(!points.every(p=>finite(p.x)&&finite(p.y)))return;
+      shape('line',{x1:points[0].x,y1:points[0].y,x2:points[1].x,y2:points[1].y,stroke:state.theme.accent,'stroke-width':2,...(preview?{'stroke-dasharray':'5 4'}:{})});
+      for(const p of points)shape('circle',{cx:p.x,cy:p.y,r:4,fill:state.theme.background,stroke:state.theme.accent,'stroke-width':2});
+    }
+    const drawing=editorPreview||state.drawings[selectedDrawing];if(drawing && !state.drawingMode)segment(anchors(drawing),!!editorPreview);
+    if(state.drawingMode && drawingHover){
+      if(state.drawingMode==='HorizontalLine')segment([{x:0,y:series.candles.priceToCoordinate(drawingHover.price)},{x:width,y:series.candles.priceToCoordinate(drawingHover.price)}],true);
+      else if(draft)segment(anchors({kind:'TrendLine',time1:draft.time,price1:draft.price,time2:drawingHover.time,price2:drawingHover.price}),true);
+      else shape('circle',{cx:chart.timeScale().timeToCoordinate(drawingHover.time),cy:series.candles.priceToCoordinate(drawingHover.price),r:4,fill:state.theme.accent});
+    }else if(state.drawingMode && draft)shape('circle',{cx:chart.timeScale().timeToCoordinate(draft.time),cy:series.candles.priceToCoordinate(draft.price),r:4,fill:state.theme.accent});
+    const hint=document.getElementById('drawing-hint'),zh=state.language==='zh-CN';
+    hint.hidden=!state.drawingMode;
+    hint.textContent=sameBarWarning?(zh?'请选择另一根 K 线':'Choose a different candle'):state.drawingMode==='HorizontalLine'?(zh?'点击放置水平线 · Esc 取消':'Click to place · Esc cancel'):draft?(zh?'选择终点 · Esc 取消':'Choose end · Esc cancel'):(zh?'选择起点 · Esc 取消':'Choose start · Esc cancel');
+  }
+  function selectDrawing(index,focus=false) {
+    editorPreview=null;selectedDrawing=index; drawingRevision=state.drawingRevision||'';
+    drawingPanel.hidden=index<0 || !!state.drawingMode;
+    const zh=state.language==='zh-CN';
+    const select=document.getElementById('drawing-select');select.replaceChildren();
+    select.setAttribute('aria-label',zh?'已保存画线':'Saved drawings');
+    state.drawings.forEach((d,i)=>{const option=document.createElement('option');option.value=i;option.textContent=(zh?(d.kind==='HorizontalLine'?'水平线':'趋势线'):(d.kind==='HorizontalLine'?'Horizontal':'Trend'))+' '+(i+1);select.append(option);});
+    select.value=index;
+    const drawing=state.drawings[index];
+    if(drawing){document.getElementById('drawing-first').value=drawing.price1;document.getElementById('drawing-second').value=drawing.price2;document.getElementById('drawing-second-field').hidden=drawing.kind==='HorizontalLine';}
+    document.getElementById('drawing-first-label').textContent=drawing?.kind==='TrendLine'?(zh?'起点':'Start'):(zh?'价格':'Price');document.getElementById('drawing-second-label').textContent=zh?'终点':'End';
+    document.getElementById('drawing-save').textContent=zh?'保存':'Save';document.getElementById('drawing-delete').textContent=zh?'删除':'Delete';
+    document.getElementById('drawing-close').setAttribute('aria-label',zh?'收起画线编辑':'Close drawing editor');
+    drawOverlay();if(focus){document.getElementById('drawing-first').focus();document.getElementById('drawing-first').select();}
+  }
+  function drawingHit(point){
+    if(!point || point.y<0 || point.y>=chart.panes()[0].getHeight())return -1;
+    let hit=-1,best=7;
+    state.drawings.forEach((d,i)=>{const [a,b]=anchors(d);if(![a.x,a.y,b.x,b.y].every(finite))return;const dx=b.x-a.x,dy=b.y-a.y,t=Math.max(0,Math.min(1,((point.x-a.x)*dx+(point.y-a.y)*dy)/(dx*dx+dy*dy||1))),distance=Math.hypot(point.x-a.x-t*dx,point.y-a.y-t*dy);if(distance<best){best=distance;hit=i;}});return hit;
+  }
+  async function changeDrawing(remove){
+    if(selectedDrawing<0 || drawingBusy)return;
+    const first=document.getElementById('drawing-first'),second=document.getElementById('drawing-second');
+    if(!remove && (!first.reportValidity() || !second.reportValidity() || first.value==='' || second.value===''))return;
+    drawingBusy=true;
+    try{const response=await post({kind:remove?'drawing-delete':'drawing-edit',key:state.key,index:selectedDrawing,revision:drawingRevision,price1:Number(first.value),price2:Number(second.value)});if(!response.ok)throw new Error('Drawing request rejected');if(remove)selectDrawing(-1);}
+    catch(e){error(e);}finally{drawingBusy=false;}
+  }
+  for(const id of ['drawing-first','drawing-second'])document.getElementById(id).addEventListener('input',()=>{
+    const drawing=state.drawings[selectedDrawing],first=document.getElementById('drawing-first'),second=document.getElementById('drawing-second');
+    editorPreview=drawing && first.validity.valid && second.validity.valid && first.value!=='' && second.value!==''?{...drawing,price1:Number(first.value),price2:Number(second.value)}:null;drawOverlay();
+  });
+  drawingPanel.addEventListener('keydown',event=>{if(event.key==='Enter'&&event.target.tagName==='INPUT'){event.preventDefault();changeDrawing(false);}});
+  document.getElementById('drawing-select').addEventListener('change',e=>selectDrawing(Number(e.target.value)));
+  document.getElementById('drawing-save').addEventListener('click',()=>changeDrawing(false));
+  document.getElementById('drawing-delete').addEventListener('click',()=>changeDrawing(true));
+  document.getElementById('drawing-close').addEventListener('click',()=>{selectDrawing(-1);root.focus();});
+  root.tabIndex=0;root.setAttribute('aria-label','Chart');
+  let overlayFrame=0;
+  function scheduleOverlay(){if(!overlayFrame)overlayFrame=requestAnimationFrame(()=>{overlayFrame=0;drawOverlay();});}
+  root.addEventListener('pointermove',scheduleOverlay);root.addEventListener('wheel',scheduleOverlay,{passive:true});
+  root.addEventListener('keydown',e=>{
+    if(e.target!==root || state.drawingMode || !state.drawings.length)return;
+    if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();selectDrawing((selectedDrawing+(e.key==='ArrowDown'?1:-1)+state.drawings.length)%state.drawings.length);}
+    if(e.key==='Enter'&&selectedDrawing>=0){e.preventDefault();selectDrawing(selectedDrawing,true);}
+  });
+  root.addEventListener('mouseleave',()=>{drawingHover=null;drawOverlay();});
+  window.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){
+      if(state?.drawingMode){const mode=state.drawingMode;state.drawingMode=null;draft=null;drawingHover=null;root.style.cursor='';chart.applyOptions({handleScroll:{pressedMouseMove:true},handleScale:{axisPressedMouseMove:true}});drawOverlay();post({kind:'drawing-cancel',key:state.key,mode,epoch:state.drawingEpoch}).catch(error);}
+      selectDrawing(-1);
+    }
+    if((e.key==='Delete'||e.key==='Backspace') && selectedDrawing>=0 && e.target===root){e.preventDefault();changeDrawing(true);}
+  });
+  new ResizeObserver(()=>requestAnimationFrame(drawOverlay)).observe(root);
   function point(row, field, color) {
     return finite(row[field]) ? {time: row.time, value: row[field], ...(color ? {color} : {})} : {time: row.time};
   }
@@ -132,20 +239,21 @@
       pendingHover = {kind: 'crosshair', key: state.key, index: row ? row.index : -1};
       if (row) showLegend(row);
       showEventTooltip(param);
+      drawingHover=drawingPoint(param);if(drawingHover && drawingHover.time!==draft?.time)sameBarWarning=false;root.style.cursor=state.drawingMode?'crosshair':drawingHit(param.point)>=0?'pointer':'';drawOverlay();
     });
     chart.subscribeClick(param => {
       if (!state.drawingMode) {
+        const drawing=drawingHit(param.point);if(drawing>=0){selectDrawing(drawing);root.focus();return;}
+        if(selectedDrawing>=0)selectDrawing(-1);
         const hit = (state.events || []).find(e => filters.has(e.event.type) && (e.event.id === param.hoveredObjectId || e.time === param.time));
         hideEventTooltip();
         if (hit) {selectedEvent = hit.event.id; renderEvents();}
         return;
       }
-      if (!param.point || typeof param.time !== 'number') return;
-      const row = byTime.get(param.time);
-      const price = series.candles.coordinateToPrice(param.point.y);
-      if (row && finite(price)) post({kind: 'drawing', key: state.key, index: row.index, price}).catch(error);
+      // Drawing gestures use their own mouse lifecycle, including rapid second clicks.
+
     });
-    chart.timeScale().subscribeVisibleLogicalRangeChange(range => {if (!applying && range) userRange = range;});
+    chart.timeScale().subscribeVisibleLogicalRangeChange(range => {if (!applying && range) userRange = range;drawOverlay();});
   }
   // Group by original publication day in New York, never by an aligned candle or observation time.
   function eventDay(event) {
@@ -280,8 +388,11 @@
     document.getElementById('legend').textContent=values.join('   ');
   }
   function render(next) {
-    const previousKey = key, saved = userRange;
+    const previousKey = key, saved = userRange, previousMode=state?.drawingMode, previousRevision=state?.drawingRevision,previousEpoch=state?.drawingEpoch;
     state = next;
+    if(previousKey!==state.key || previousMode!==state.drawingMode || previousEpoch!==state.drawingEpoch){finishingDrawing=false;sameBarWarning=false;draft=null;drawingHover=null;selectedDrawing=-1;}
+    if(state.drawingStart)draft=state.drawingStart;
+    if(previousRevision && previousRevision!==state.drawingRevision)selectedDrawing=-1;
     byTime = new Map(state.rows.map(r => [r.time, r]));
     document.documentElement.lang = state.language;
     const shape = JSON.stringify(state.show);
@@ -300,7 +411,7 @@
       document.getElementById('fit').textContent = state.language === 'zh-CN' ? '适应' : 'Fit';
       document.getElementById('fit').setAttribute('aria-label',state.language === 'zh-CN' ? '适应图表窗口' : 'Fit chart to window');
       document.getElementById('help-heading').textContent=state.language === 'zh-CN' ? '? 操作' : '? Controls';
-      document.getElementById('hint').textContent = state.language === 'zh-CN' ? '滚轮缩放 · 拖动平移 · 拖动面板分隔线调整高度' : 'Scroll to zoom · Drag to pan · Resize pane separators';
+      document.getElementById('hint').textContent = state.language === 'zh-CN' ? '滚轮缩放 · 拖动平移 · 点击画线编辑 · 方向键选择画线，Enter 编辑，Delete 删除'  : 'Scroll to zoom · Drag to pan · Click lines to edit · Arrow keys select, Enter edits, Delete removes' ;
       document.getElementById('empty').textContent = state.rows.length ? '' : state.labels.empty;
       document.getElementById('error').style.display = 'none';
       chart.applyOptions({layout: {background: {type: 'solid', color: t.background}, textColor: t.text,panes:{separatorColor:t.border,separatorHoverColor:t.accent}}, crosshair:{vertLine:{color:t.muted,labelBackgroundColor:t.accent},horzLine:{color:t.muted,labelBackgroundColor:t.accent}}, grid: {vertLines: {color: t.grid}, horzLines: {color: t.grid}}, localization: {locale: state.language}, timeScale: {timeVisible: state.intraday}});
@@ -345,6 +456,9 @@
         }
       }
       updateSessions();
+      root.style.cursor=state.drawingMode?'crosshair':'';
+      chart.applyOptions({handleScroll:{pressedMouseMove:!state.drawingMode},handleScale:{axisPressedMouseMove:!state.drawingMode}});
+      if(document.activeElement?.closest('#drawing-panel') && !drawingPanel.hidden && previousRevision===state.drawingRevision)drawOverlay();else selectDrawing(selectedDrawing);
       if (rebuild) {
         const panes = chart.panes();
         // Relative weights remain stable when autoSize lays out the window after the first frame.
@@ -354,7 +468,7 @@
       else {chart.timeScale().fitContent();userRange = null;}
       if (state.rows.length) showLegend(state.rows[state.rows.length - 1]);
       document.title = 'EasySellPut Charts · ' + state.symbol;
-      diagnostic({status:'rendered',sidebarPermanent:document.getElementById('timeline').tagName==='ASIDE',sidebarViews:document.querySelectorAll('#right-tools button').length,sessionBands:sessionBands.length,sessionPanes:sessionLayers.length,historyGroups:document.querySelectorAll('.event-day').length,historyStops:document.getElementById('event-history').children.length,events:(state.events||[]).length,eventMarkers:eventMarkers.markers().length,key:state.key,rows:state.rows.length,candles:series.candles.data().filter(p=>finite(p.open)).length,panes:chart.panes().length,lastMa:series.ma?.data().at(-1)?.value ?? null,background:t.background,up:series.candles.options().upColor,range:chart.timeScale().getVisibleLogicalRange()});
+      diagnostic({status:'rendered',drawingPreview:!!draft,drawingHandles:overlay.querySelectorAll("circle").length,drawingSelection:selectedDrawing,sidebarPermanent:document.getElementById('timeline').tagName==='ASIDE',sidebarViews:document.querySelectorAll('#right-tools button').length,sessionBands:sessionBands.length,sessionPanes:sessionLayers.length,historyGroups:document.querySelectorAll('.event-day').length,historyStops:document.getElementById('event-history').children.length,events:(state.events||[]).length,eventMarkers:eventMarkers.markers().length,key:state.key,rows:state.rows.length,candles:series.candles.data().filter(p=>finite(p.open)).length,panes:chart.panes().length,lastMa:series.ma?.data().at(-1)?.value ?? null,background:t.background,up:series.candles.options().upColor,range:chart.timeScale().getVisibleLogicalRange()});
     } finally {applying = false;}
   }
   document.getElementById('fit').addEventListener('click',()=>{if(chart){userRange=null;chart.timeScale().fitContent();chart.priceScale('right').applyOptions({autoScale:true});}});

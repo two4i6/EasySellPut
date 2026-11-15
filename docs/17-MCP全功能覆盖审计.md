@@ -1,6 +1,6 @@
 # MCP 全功能覆盖审计
 
-本次审计从桌面功能出发，而非仅检查已登记工具。原 28 个操作均有双传输场景，但缺少完整 K 线指标、期权补全与历史、策略预设/逐腿分析、画线、部分偏好和维护操作。现补齐为 43 个操作，CLI 与 MCP 共用 Application 和 catalog；没有为 MCP 引入桌面依赖。
+本次审计从桌面功能出发，而非仅检查已登记工具。原 28 个操作均有双传输场景，但缺少完整 K 线指标、期权补全与历史、策略预设/逐腿分析、画线、部分偏好和维护操作。现补齐为 45 个操作，CLI 与 MCP 共用 Application 和 catalog；没有为 MCP 引入桌面依赖。
 
 ## 功能对应
 
@@ -8,7 +8,7 @@
 | --- | --- |
 | 搜索、报价、历史 OHLCV | search_symbols / get_quotes / get_bars |
 | 全部图表指标 MA、EMA、BOLL、MACD、RSI、KDJ、成交量与对比标的 | get_chart_analysis（计算完整历史后分页） |
-| 图表画线持久化 | get_chart_drawings / add_chart_drawing / clear_chart_drawings |
+| 图表画线持久化 | get_chart_drawings / add_chart_drawing / update_chart_drawing / delete_chart_drawing / clear_chart_drawings |
 | 期权到期日、筛选与原始报价 | get_expirations / get_option_chain |
 | IV/Greeks 补全、价差与宽价差、价外距离、OI 条形比例、IV 微笑数据、OI 日变化 | analyze_option_chain |
 | 定价利率来源、股息率及缺失回退 | get_pricing_assumptions / calculate_option |
@@ -57,7 +57,7 @@ easysellput probe_data_sources --source-id yahoo --json
 
 `tests/automation/desktop_capabilities.json` 审核 17 个共享 view-model 文件、67 个 RelayCommand：每个命令关联业务工具或具体界面/监控归属/安全例外。新增/移除文件和命令、引用不存在的工具会使能力检查失败。自动检查不能判断既有函数内部新增了什么业务，因此 AGENTS.md 仍要求评审业务逻辑与持久化变更。
 
-`capability_cases.json` 为 43 个操作各提供一个有效场景、结果断言和双传输比较路径。新工具未登记场景仍失败；MCP 初始化、发现、权限、schema 与 CLI 目录逐项匹配。单元测试另外验证完整指标分页、真实 Analytics Greeks、IV 历史不被只读查询写入、全部预设可构建并直接保存、逐腿未来估值、偏好安全合并及画线冲突保护。
+`capability_cases.json` 为 45 个操作各提供一个有效场景、结果断言和双传输比较路径。新工具未登记场景仍失败；MCP 初始化、发现、权限、schema 与 CLI 目录逐项匹配。单元测试另外验证完整指标分页、真实 Analytics Greeks、IV 历史不被只读查询写入、全部预设可构建并直接保存、逐腿未来估值、偏好安全合并及画线冲突保护。
 
 沿用完整离线回归、真实 CLI/MCP 进程检查和 Windows x64/ARM64、macOS Intel/Apple Silicon 的实际发行包与原生 WebView CI。离线固定数据不证明实时联网可用。
 

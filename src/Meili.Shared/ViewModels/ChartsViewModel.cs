@@ -212,7 +212,7 @@ public partial class ChartsViewModel : ObservableObject
 
     public void Deactivate()
     {
-        _active = false;
+        _active = false; DrawingEpoch++; DrawMode = null; _trendStart = null;
         _timer.Stop();
         _cts?.Cancel();
         var timelineCancellation = _timelineCts;
@@ -328,6 +328,8 @@ public partial class ChartsViewModel : ObservableObject
                 return;
             }
             var bars = series.Bars.Select(b => new OhlcvBar(b.Time, b.Open, b.High, b.Low, b.Close, b.Volume)).ToArray();
+            if (!refreshOnly || Series is null || Series.Symbol != series.Symbol || Series.Interval != series.Interval || Series.Source != series.Source || Series.Adjustment != series.Adjustment)
+            { DrawingEpoch++; DrawMode = null; _trendStart = null; }
             Series = series;
             DescribeAdjustment(request, series);
             _bars = bars;
@@ -370,6 +372,7 @@ public partial class ChartsViewModel : ObservableObject
     [RelayCommand]
     private void StartDrawing(DrawingKind kind)
     {
+        DrawingEpoch++;
         DrawMode = DrawMode == kind ? null : kind;
         _trendStart = null;
         StatusText = DrawMode switch
@@ -386,20 +389,22 @@ public partial class ChartsViewModel : ObservableObject
         if (Series is null) return;
         try { _drawings.Clear(Series.Symbol); }
         catch (DataConflictException) { ReportDrawingConflict(); return; }
-        Drawings = [];
+        Drawings = []; DrawMode = null; _trendStart = null;
         PlotChanged?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>B5: a click on the price chart while drawing. Returns true when the click was used for drawing.</summary>
     public bool AddDrawingPoint(DateTimeOffset time, double price)
     {
-        if (DrawMode is not { } mode || Series is null) return false;
+        if (DrawMode is not { } mode || Series is null || IsBusy) return false;
         if (mode == DrawingKind.TrendLine && _trendStart is null)
         {
             _trendStart = (time, price);
             StatusText = _loc["Ch_DrawTrendHint2"];
+            PlotChanged?.Invoke(this, EventArgs.Empty);
             return true;
         }
+        if (mode == DrawingKind.TrendLine && _trendStart!.Value.Time == time) return false;
         var drawing = mode == DrawingKind.HorizontalLine
             ? new ChartDrawing(mode, price)
             : new ChartDrawing(mode, _trendStart!.Value.Price, _trendStart.Value.Time, price, time);
@@ -413,6 +418,24 @@ public partial class ChartsViewModel : ObservableObject
         return true;
     }
 
+    public long DrawingEpoch { get; private set; }
+    public (DateTimeOffset Time, double Price)? DrawingStart => _trendStart;
+    public string DrawingRevision => Series is null ? "" : _drawings.Revision(Series.Symbol);
+    public void CancelDrawing()
+    {
+        DrawingEpoch++; DrawMode = null; _trendStart = null; UpdateStatus(); PlotChanged?.Invoke(this, EventArgs.Empty);
+    }
+    public void EditDrawing(int index, double? first, double? second, string revision)
+    {
+        if (Series is null || index < 0 || index >= Drawings.Count) return;
+        var original = Drawings[index];
+        try
+        {
+            _drawings.Edit(Series.Symbol, index, first is null ? null : original with { Price1 = first.Value, Price2 = second ?? original.Price2 }, revision);
+            Drawings = _drawings.For(Series.Symbol).ToList(); PlotChanged?.Invoke(this, EventArgs.Empty);
+        }
+        catch (DataConflictException) { ReportDrawingConflict(); PlotChanged?.Invoke(this, EventArgs.Empty); }
+    }
     private void ReportDrawingConflict()
     {
         DrawMode = null; _trendStart = null;

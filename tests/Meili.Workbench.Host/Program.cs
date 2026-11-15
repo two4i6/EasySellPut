@@ -22,6 +22,7 @@ while(await Console.In.ReadLineAsync() is { } line)
 {
     if(line=="quit")break;
     var command=line;
+    if(command is "draw-horizontal" or "draw-trend" && chartVm is not null)queue.Writer.TryWrite(()=>{chartVm.StartDrawingCommand.Execute(command=="draw-horizontal"?Meili.Core.Settings.DrawingKind.HorizontalLine:Meili.Core.Settings.DrawingKind.TrendLine);session.Update(palette);});
     if(command=="opened")queue.Writer.TryWrite(()=>Console.WriteLine(JsonSerializer.Serialize(((QueuedUi)Ui.Platform).OpenedArticles)));
     if(command is "light" or "dark")queue.Writer.TryWrite(()=>{palette=WorkbenchFixture.Palette(command=="dark");session.Update(palette);});
     if(command is "en-US" or "zh-CN")queue.Writer.TryWrite(()=>LocalizationService.Current.Apply(command));

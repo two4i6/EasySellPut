@@ -117,6 +117,8 @@ Discover the live schema before calling any tool; this guide does not replace ar
 | `strategy_what_if` | read | Position and per-leg values/P&L/facts at an assumed price, with optional future horizon and IV shift. No GUI state/save. Mixed expiry requires valuationTime. |
 | `get_chart_drawings` | read | Read a symbol's persisted local horizontal/trend lines; does not control chart windows. |
 | `add_chart_drawing` | write | Persist a bounded horizontal/trend line in the shared drawing store with conflict protection. Trend lines need distinct time1/time2. |
+| `update_chart_drawing` | write | Read get_chart_drawings first; use its revision and zero-based index to replace one line. Stale revisions fail; re-read and confirm before retrying. |
+| `delete_chart_drawing` | write | Read get_chart_drawings first; use its revision and zero-based index to remove only the intended line. Other lines remain; stale revisions fail. |
 | `clear_chart_drawings` | write | Clear persisted drawings for one symbol with conflict protection. |
 | `update_preferences` | write | Patch allowlisted local preferences; omitted fields remain unchanged. No proxy URL/credentials, arbitrary paths or window control. Desktop reload/restart required after external changes. |
 <!-- mcp-tool-guide:end -->

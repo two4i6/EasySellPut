@@ -52,7 +52,9 @@
         "get_chart_drawings",
         "add_chart_drawing",
         "clear_chart_drawings",
-        "update_preferences"
+        "update_preferences",
+        "update_chart_drawing",
+        "delete_chart_drawing"
       ],
       "scope": "Business data and calculations are mapped; transient selection, the chart inspector, drawing-tool selection, responsive event panels, window layout, theme rendering and native navigation are presentation.",
       "commands": {

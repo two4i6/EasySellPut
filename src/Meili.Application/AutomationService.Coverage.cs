@@ -70,6 +70,8 @@ public sealed partial class AutomationService
                     var result = WhatIf.Capture(strategy, a.Number("spot"), valuation);
                     return new { valuation, assumptions = new { settlement = valuation is null ? "intrinsic_same_expiry" : "per_leg_expiry_BSM", model = "European Black-Scholes-Merton" }, result };
                 }
+            case "update_chart_drawing":
+            case "delete_chart_drawing":
             case "get_chart_drawings":
             case "add_chart_drawing":
             case "clear_chart_drawings":
@@ -85,9 +87,12 @@ public sealed partial class AutomationService
                         if (kind == DrawingKind.TrendLine && (first is null || last is null || first == last || !a.Has("price2"))) throw new ArgumentException("Trend lines need time1, time2 and price2; timestamps must differ.");
                         store.Add(symbol, new(kind, a.Number("price1"), first, a.Number("price2", 0), last));
                     }
+                    if (operation is "update_chart_drawing" or "delete_chart_drawing")
+                        store.Edit(symbol, a.Int("index", 0, 0, 199), operation == "delete_chart_drawing" ? null : new ChartDrawing(Enum.Parse<DrawingKind>(a.Text("kind")), a.Number("price1"), a.Instant("time1"), a.Number("price2", 0), a.Instant("time2")), a.Text("revision"));
+                    var revision = store.Revision(symbol);
                     var drawings = store.For(symbol);
                     var offset = a.Int("offset", 0, 0, int.MaxValue); var limit = a.Int("limit", operation == "get_chart_drawings" ? 100 : 200, 1, 500);
-                    return new { symbol, drawings = drawings.Skip(offset).Take(limit).ToArray(), total = drawings.Count, offset, nextOffset = (long)offset + limit < drawings.Count ? (int?)(offset + limit) : null };
+                    return new { symbol, revision, drawings = drawings.Skip(offset).Take(limit).ToArray(), total = drawings.Count, offset, nextOffset = (long)offset + limit < drawings.Count ? (int?)(offset + limit) : null };
                 }
             case "get_chart_analysis":
                 {

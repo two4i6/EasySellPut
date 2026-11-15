@@ -17,6 +17,34 @@ public sealed class ButtonAlignmentTests
     [AvaloniaTheory]
     [InlineData("zh-CN",false)]
     [InlineData("en-US",true)]
+    public void Chart_tool_families_have_equal_bounds(string language,bool dark)
+    {
+        MacHost.EnsureComposed();var loc=LocalizationService.Current;var theme=AppServices.Get<MacTheme>();loc.Apply(language);theme.Apply(dark?AppThemeMode.Dark:AppThemeMode.Light);
+        var window=new MainWindow();window.Show();window.Navigate(AppPage.Charts);MacHost.Pump();
+        try
+        {
+            var page=window.CurrentView!;
+            var tools=page.GetVisualDescendants().OfType<Button>().Where(b=>b.Classes.Contains("DrawTool")).ToArray();
+            Assert.Equal(3,tools.Length);
+            Assert.All(tools,b=>{Assert.Equal(56,b.Bounds.Width);Assert.Equal(56,b.Bounds.Height);});
+            var symbol=page.GetVisualDescendants().OfType<Meili.Mac.Views.Controls.SymbolBox>().First();
+            var dropdown=symbol.GetVisualDescendants().OfType<Button>().Single();
+            var input=symbol.GetVisualDescendants().OfType<TextBox>().First();
+            Assert.Equal(32,dropdown.Bounds.Width);Assert.Equal(32,dropdown.Bounds.Height);Assert.Equal(32,input.Bounds.Height);
+            Assert.InRange(Math.Abs(dropdown.TranslatePoint(new Point(),page)!.Value.Y-input.TranslatePoint(new Point(),page)!.Value.Y),0,1);
+            MacHost.Save(window,"button-families-"+language+"-"+dark);
+            if(Environment.GetEnvironmentVariable("MEILI_RENDER_DIR") is {Length:>0} directory)
+            {
+                var group=(StackPanel)tools[0].Parent!;var bottom=tools.Max(b=>b.TranslatePoint(new Point(),group)!.Value.Y+b.Bounds.Height);
+                using var frame=new RenderTargetBitmap(new PixelSize((int)Math.Ceiling(group.Bounds.Width)*3,(int)Math.Ceiling(bottom)*3),new Vector(288,288));
+                frame.Render(group);frame.Save(Path.Combine(directory,"drawing-buttons-"+language+".png"),new PngBitmapEncoderOptions());
+            }
+        }
+        finally{window.Close();loc.Apply("zh-CN");theme.Apply(AppThemeMode.System);}
+    }
+    [AvaloniaTheory]
+    [InlineData("zh-CN",false)]
+    [InlineData("en-US",true)]
     public void Buttons_keep_content_centered_across_pages(string language,bool dark)
     {
         MacHost.EnsureComposed();var loc=AppServices.Get<LocalizationService>();var original=loc.Language;

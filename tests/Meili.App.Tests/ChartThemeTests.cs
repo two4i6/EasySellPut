@@ -47,6 +47,11 @@ public class ChartThemeTests
                 var page = new ChartsPage();
                 using var host = new OffscreenHost(page, 1280, 800);
                 await ScreenRenderTests.Settle();
+                var tools = UiAudit.Descendants<System.Windows.Controls.Primitives.ButtonBase>(page).Where(b => b.Command == ((ChartsViewModel)page.DataContext).StartDrawingCommand || b.Command == ((ChartsViewModel)page.DataContext).ClearDrawingsCommand).ToArray();
+                Assert.Equal(3,tools.Length);Assert.All(tools,b=>{Assert.Equal(56,b.ActualWidth);Assert.Equal(56,b.ActualHeight);});
+                var symbol=UiAudit.Descendants<SymbolBox>(page).First();
+                var dropdown=UiAudit.Descendants<Wpf.Ui.Controls.Button>(symbol).Single();
+                Assert.Equal(32,dropdown.ActualWidth);Assert.Equal(32,dropdown.ActualHeight);
                 var web = UiAudit.Descendants<WebChartControl>(page).Single();
                 using var http = new HttpClient(new HttpClientHandler { UseProxy = false });
                 async Task<string?> Field(string key)

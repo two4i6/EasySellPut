@@ -150,3 +150,11 @@ Keep both desktops on a Discord-style two-level shell: narrow workspace rail for
 Remote tabs reuse system WKWebView / WebView2 with no chart token, host objects or web-message bridge. Keep redirect/popup protocol checks, denied permissions and downloads, explicit external opening and visible load failures. Store only bookmark metadata, not browser history or credentials; browsing sessions are ephemeral. No arbitrary-URL browser execution, cookie/session or UI navigation tools belong in MCP/CLI. Record this presentation exception in desktop_capabilities.json.
 
 Animate only small app-owned chrome with short, interruptible easing; do not translate/fade native WebView surfaces, run frame timers, or animate full-page layout. Honor system reduce-motion settings plus the local user toggle. Keep keyboard focus, tooltips/names and visible selected indicators in both themes/languages. Exercise persistence/conflicts and real tab switching/history/security in native four-architecture browser smoke, and provide actual shell screenshots.
+
+## Drawing interaction and button families
+
+Chart toolbar inputs and action buttons share 32px height; drawing tools share explicit 56×56 bounds, symmetric padding and centered content across Button/ToggleButton on both platforms. Check actual control and ink bounds; do not rely on font chevrons or different default templates to align themselves.
+
+Drawing gestures belong only to the price pane, with a visible first point/preview, Esc cancellation, automatic return to pan after completion, and line selection/edit/single deletion. Preserve rapid consecutive clicks, distinguish drags, and reject equal-time trend endpoints. Keep plot overlays aligned through zoom/pan, pane resizing and theme changes. Bind queued drawing gestures to the current chart/tool epoch; an old canceled gesture must not affect a newly selected tool.
+
+Single-line edits/deletions use ChartDrawingStore validation, absolute zero-based indices and an explicit drawing revision, plus SnapshotFile cross-process protection. Never overwrite stale edits or implement delete by clearing/re-adding a collection. Desktop, CLI and MCP must expose the same mutations; preserve read-only MCP enforcement and update the companion skill/scenarios. Actual Chromium pointer regression and all four native WebViews must remain in CI.

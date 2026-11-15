@@ -54,7 +54,8 @@ public static class WebChartSnapshot
             show = new { ma = vm.ShowMa, ema = vm.ShowEma, boll = vm.ShowBoll, volume = vm.ShowVolume, macd = vm.ShowMacd, rsi = vm.ShowRsi, kdj = vm.ShowKdj },
             labels = new { ma = vm.MaLabel, ema = vm.EmaLabel, boll = vm.BollLabel, macd = vm.MacdLabel, rsi = vm.RsiLabel, kdj = vm.KdjLabel, volume = LocalizationService.Current["Ch_Volume"], empty = LocalizationService.Current["Ch_Empty"] },
             theme = Theme(palette),
-            drawingMode = vm.DrawMode?.ToString(),
+            drawingMode = vm.DrawMode?.ToString(), drawingRevision = vm.DrawingRevision, drawingEpoch = vm.DrawingEpoch,
+            drawingStart = vm.DrawingStart is { } start ? new { time = start.Time.ToUnixTimeSeconds(), price = start.Price } : null,
             drawings = vm.Drawings.Where(d => double.IsFinite(d.Price1) && double.IsFinite(d.Price2)).Select(d => new { kind = d.Kind.ToString(), price1 = d.Price1, time1 = d.Time1?.ToUnixTimeSeconds(), price2 = d.Price2, time2 = d.Time2?.ToUnixTimeSeconds() }),
         }, Json);
     }

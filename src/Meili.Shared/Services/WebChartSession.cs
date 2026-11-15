@@ -140,6 +140,11 @@ public sealed class WebChartSession : IDisposable
             "open-event" => e.TryGetProperty("key", out var eventKey) && eventKey.ValueKind == JsonValueKind.String && eventKey.GetString()!.Length <= 512
                 && e.TryGetProperty("id", out var id) && id.ValueKind == JsonValueKind.String && id.GetString()!.Length == 64,
             "diagnostic" => e.TryGetProperty("status", out var s) && s.ValueKind == JsonValueKind.String,
+            "drawing-cancel" => e.TryGetProperty("key", out var cancelKey) && cancelKey.ValueKind == JsonValueKind.String && cancelKey.GetString()!.Length <= 512,
+            "drawing-edit" or "drawing-delete" => e.TryGetProperty("key", out var editKey) && editKey.ValueKind == JsonValueKind.String && editKey.GetString()!.Length <= 512
+                && e.TryGetProperty("index", out var editIndex) && editIndex.ValueKind == JsonValueKind.Number && editIndex.TryGetInt32(out var number) && number is >= 0 and < 200
+                && e.TryGetProperty("revision", out var revision) && revision.ValueKind == JsonValueKind.String && revision.GetString()!.Length == 64
+                && (kind.GetString() == "drawing-delete" || e.TryGetProperty("price1", out var first) && first.ValueKind == JsonValueKind.Number && first.TryGetDouble(out var firstValue) && double.IsFinite(firstValue) && firstValue is >= 0 and <= 1e12 && e.TryGetProperty("price2", out var second) && second.ValueKind == JsonValueKind.Number && second.TryGetDouble(out var secondValue) && double.IsFinite(secondValue) && secondValue is >= 0 and <= 1e12),
             "crosshair" or "drawing" => e.TryGetProperty("key", out var key) && key.ValueKind == JsonValueKind.String
                 && e.TryGetProperty("index", out var i) && i.ValueKind == JsonValueKind.Number && i.TryGetInt32(out _)
                 && (kind.GetString() != "drawing" || (e.TryGetProperty("price", out var p) && p.ValueKind == JsonValueKind.Number && p.TryGetDouble(out var value) && double.IsFinite(value) && Math.Abs(value) < 1e15)),
@@ -159,8 +164,15 @@ public sealed class WebChartSession : IDisposable
             using var state = JsonDocument.Parse(current.Json);
             if (message.GetProperty("key").GetString() != state.RootElement.GetProperty("key").GetString()) return;
             if (kind == "open-event") { _vm!.OpenTimelineEvent(message.GetProperty("id").GetString()!); return; }
+            if (kind is "drawing" or "drawing-cancel" && message.TryGetProperty("epoch", out var epoch) && (epoch.ValueKind != JsonValueKind.Number || !epoch.TryGetInt64(out var epochValue) || epochValue != _vm!.DrawingEpoch)) return;
+            if (kind == "drawing-cancel") { if (!message.TryGetProperty("mode", out var mode) || mode.ValueKind == JsonValueKind.String && mode.GetString() == _vm!.DrawMode?.ToString()) _vm!.CancelDrawing(); return; }
+            if (kind is "drawing-edit" or "drawing-delete")
+            {
+                _vm!.EditDrawing(message.GetProperty("index").GetInt32(), kind == "drawing-delete" ? null : message.GetProperty("price1").GetDouble(), kind == "drawing-delete" ? null : message.GetProperty("price2").GetDouble(), message.GetProperty("revision").GetString()!); return;
+            }
             var index = message.GetProperty("index").GetInt32();
             if (_vm!.Series is not { } series || index < 0 || index >= series.Bars.Count) { if (kind == "crosshair") _vm.UpdateCrosshair(-1); return; }
+            if (kind == "drawing" && message.TryGetProperty("mode", out var drawingMode) && (drawingMode.ValueKind != JsonValueKind.String || drawingMode.GetString() != _vm.DrawMode?.ToString())) return;
             if (kind == "drawing") _vm.AddDrawingPoint(series.Bars[index].Time, message.GetProperty("price").GetDouble());
             else _vm.UpdateCrosshair(index);
         }

@@ -29,7 +29,7 @@ public static class AiSkillInstaller
     };
 
     // Only exact previously shipped content can be upgraded automatically; edited skills remain user-owned.
-    private static readonly HashSet<string> PreviousVersions = ["EA52A6EAFD2150E510FBF79BB6C08B4D7864F4487B01AFFBD58676AC13C3A2B5", "78ED60852D730C26AE83D00F0BB3F2C1BA45419EDBC9F980F873ECB473798990"];
+    private static readonly HashSet<string> PreviousVersions = ["D7AFE8DCE54D95C2FE04DB8246F3AA9C22C5685165C13A2C97E6538539C2F722", "EA52A6EAFD2150E510FBF79BB6C08B4D7864F4487B01AFFBD58676AC13C3A2B5", "78ED60852D730C26AE83D00F0BB3F2C1BA45419EDBC9F980F873ECB473798990"];
     private static string Destination(string client, string root, bool create)
     {
         var destination = Path.GetFullPath(root);

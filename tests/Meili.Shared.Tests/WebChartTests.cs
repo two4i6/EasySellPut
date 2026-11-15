@@ -109,5 +109,20 @@ public sealed class WebChartTests : IDisposable
         await Send(key, 2);
         Assert.Equal(123.45, Assert.Single(_vm.Drawings).Price1);
     }
+    [Fact]
+    public async Task Reload_cancels_the_old_draft_and_old_tool_epoch_cannot_cancel_a_new_tool()
+    {
+        await _vm.LoadAsync(); _vm.StartDrawingCommand.Execute(DrawingKind.TrendLine);
+        _vm.AddDrawingPoint(_vm.Series!.Bars[10].Time,110);Assert.NotNull(_vm.DrawingStart);
+        var oldEpoch=_vm.DrawingEpoch;await _vm.LoadAsync();Assert.Null(_vm.DrawingStart);Assert.Null(_vm.DrawMode);Assert.True(_vm.DrawingEpoch>oldEpoch);
+        using var session=new WebChartSession(_vm);session.Update(_palette);
+        using var json=JsonDocument.Parse(WebChartSnapshot.Serialize(_vm,_palette));var key=json.RootElement.GetProperty("key").GetString();
+        _vm.StartDrawingCommand.Execute(DrawingKind.HorizontalLine);
+        using var client=new HttpClient(new HttpClientHandler{UseProxy=false});
+        using var request=new HttpRequestMessage(HttpMethod.Post,new Uri(session.PageUri,"event")){Content=new ByteArrayContent(JsonSerializer.SerializeToUtf8Bytes(new{kind="drawing-cancel",key,epoch=oldEpoch,mode="HorizontalLine"}))};
+        request.Content.Headers.ContentType=new("application/json");
+        request.Headers.Add("Origin",session.Origin);Assert.Equal(HttpStatusCode.NoContent,(await client.SendAsync(request)).StatusCode);
+        Assert.Equal(DrawingKind.HorizontalLine,_vm.DrawMode);Assert.Empty(_vm.Drawings);
+    }
     public void Dispose() { _vm.Deactivate(); if (Directory.Exists(_directory)) Directory.Delete(_directory, true); }
 }
