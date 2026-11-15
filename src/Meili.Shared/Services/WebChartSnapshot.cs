@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Meili.Shared.ViewModels;
 using Meili.Core.Models;
+using Meili.Core.Time;
 
 namespace Meili.Shared.Services;
 
@@ -23,6 +24,7 @@ public static class WebChartSnapshot
             return new
             {
                 time = b.Time.ToUnixTimeSeconds(), index = i,
+                session = vm.Series!.Interval.IsIntraday() ? MarketClock.GetSession(b.Time).ToString() : null,
                 open = complete ? Finite(b.Open) : null, high = complete ? Finite(b.High) : null,
                 low = complete ? Finite(b.Low) : null, close = Finite(b.Close), incomplete = !complete,
                 volume = b.Volume >= 0 ? Finite(b.Volume) : null,
@@ -61,7 +63,7 @@ public static class WebChartSnapshot
         static string Css(ScottPlot.Color c) => $"#{c.R:X2}{c.G:X2}{c.B:X2}";
         var ui = ThemePalette.For(palette.Dark);
         static string Token(uint argb) => $"#{argb & 0xFFFFFF:X6}";
-        return new { dark = palette.Dark, control = Token(ui.Control), border = Token(ui.Border), accent = Token(ui.Accent), errorBackground = Token(ui.ErrorBar), errorText = Token(ui.Degraded), background = Css(palette.Background), text = Css(palette.Text), muted = Css(palette.Muted), grid = $"{Css(palette.Grid)}{palette.Grid.A:X2}", up = Css(palette.Up), down = Css(palette.Down), colors = new[] { palette.Series1, palette.Series2, palette.Series3, palette.Series4, palette.Series5, palette.Series6 }.Select(Css) };
+        return new { dark = palette.Dark, control = Token(ui.Control), border = Token(ui.Border), accent = Token(ui.Accent), errorBackground = Token(ui.ErrorBar), errorText = Token(ui.Degraded), sessionPre = Token(ui.PreMarketTint) + (ui.PreMarketTint >> 24).ToString("X2"), sessionPost = Token(ui.AfterHoursTint) + (ui.AfterHoursTint >> 24).ToString("X2"), background = Css(palette.Background), text = Css(palette.Text), muted = Css(palette.Muted), grid = $"{Css(palette.Grid)}{palette.Grid.A:X2}", up = Css(palette.Up), down = Css(palette.Down), colors = new[] { palette.Series1, palette.Series2, palette.Series3, palette.Series4, palette.Series5, palette.Series6 }.Select(Css) };
     }
 
 }

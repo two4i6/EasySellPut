@@ -10,7 +10,7 @@ Ui.Platform=new QueuedUi(queue);_ =new LocalizationService();
 var directory=Path.Combine(Path.GetTempPath(),"meili-workbench-host-"+Guid.NewGuid().ToString("N"));
 var chartMode=args.Contains("--chart");
 var vm=chartMode?null:await WorkbenchFixture.CreateAsync(directory);
-var chartVm=chartMode?await WorkbenchFixture.CreateChartAsync(directory):null;
+var chartVm=chartMode?await WorkbenchFixture.CreateChartAsync(directory,args.Contains("--sessions")):null;
 var palette=WorkbenchFixture.Palette(true);
 using var session=chartMode?new WebChartSession(chartVm!):new WebChartSession(vm!);
 if(vm is not null){vm.ChartChanged+=(_,_)=>session.Update(palette);vm.WhatIfChanged+=(_,_)=>session.Update(palette);}

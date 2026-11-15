@@ -30,12 +30,23 @@ public sealed class WebChartTests : IDisposable
         _palette = ChartPalette.Create(true, new(204,142,138), new(110,170,138), new(201,198,193), new(150,145,136), ThemePalette.Dark);
     }
     [Fact]
+    public async Task Daily_bars_do_not_receive_intraday_session_labels()
+    {
+        await _vm.LoadAsync();
+        _vm.Series=new BarSeries{Symbol="AAPL",Interval=BarInterval.Day1,Source="fixture",Bars=_vm.Series!.Bars};
+        using var json=JsonDocument.Parse(WebChartSnapshot.Serialize(_vm,_palette));
+        Assert.False(json.RootElement.GetProperty("intraday").GetBoolean());
+        Assert.All(json.RootElement.GetProperty("rows").EnumerateArray(),r=>Assert.Equal(JsonValueKind.Null,r.GetProperty("session").ValueKind));
+    }
+    [Fact]
     public async Task Snapshot_preserves_real_prices_indicator_gaps_and_the_same_analytics_values()
     {
         await _vm.LoadAsync();
         using var json = JsonDocument.Parse(WebChartSnapshot.Serialize(_vm, _palette));
         var rows = json.RootElement.GetProperty("rows");
         Assert.Equal(120, rows.GetArrayLength());
+        Assert.Equal("Regular", rows[0].GetProperty("session").GetString());
+        Assert.Equal("AfterHours", rows[119].GetProperty("session").GetString());
         Assert.Equal(JsonValueKind.Null, rows[70].GetProperty("open").ValueKind);
         Assert.Equal(JsonValueKind.Null, rows[70].GetProperty("high").ValueKind);
         Assert.Equal(JsonValueKind.Null, rows[70].GetProperty("k").ValueKind);

@@ -3,6 +3,7 @@
 (() => {
   const root = document.getElementById('chart');
   let byTime = new Map(), eventMarkers, selectedEvent, filters = new Set(["news","earnings","ex_dividend"]);
+  let sessionBands=[],sessionLayers=[];
   let chart, state, version = -1, signature = '', key = '', series = {}, priceLines = [], drawingSeries = [];
   let posting = false, pendingHover = null, userRange = null, applying = false;
   const finite = Number.isFinite;
@@ -68,9 +69,50 @@
   root.addEventListener('mouseleave',hideEventTooltip);
   root.addEventListener('wheel',hideEventTooltip,{passive:true});
   document.addEventListener('keydown',e=>{if(e.key==='Escape')hideEventTooltip();});
+  // Pane primitive: paints in chart coordinates, below candles/indicators, and follows native zoom/pan/DPI.
+  class SessionBackground {
+    attached({chart,requestUpdate}) {this.chart=chart;this.requestUpdate=requestUpdate;}
+    detached() {this.chart=null;this.requestUpdate=null;}
+    paneViews() {return [{zOrder:()=> 'bottom',renderer:()=>({draw:target=>target.useBitmapCoordinateSpace(scope=>{
+      if(!this.chart)return;
+      const {context,horizontalPixelRatio,bitmapSize}=scope;
+      for(const band of sessionBands){
+        const scale=this.chart.timeScale(),start=scale.timeToCoordinate(state.rows[band.from].time),finish=scale.timeToCoordinate(state.rows[band.to].time);
+        if(!finite(start)||!finite(finish))continue;
+        const half=scale.options().barSpacing/2,left=start-half,right=finish+half;
+        const x=Math.max(0,Math.round(left*horizontalPixelRatio)),end=Math.min(bitmapSize.width,Math.round(right*horizontalPixelRatio));
+        if(end<=x)continue;
+        context.fillStyle=band.session==='PreMarket'?state.theme.sessionPre:state.theme.sessionPost;
+        context.fillRect(x,0,end-x,bitmapSize.height);
+      }
+    })})}];}
+  }
+  function updateSessions() {
+    sessionBands=[];
+    if(state.intraday)state.rows.forEach((row,index)=>{
+      if(row.session!=='PreMarket'&&row.session!=='AfterHours')return;
+      const previous=sessionBands.at(-1);
+      if(previous?.session===row.session && previous.to===index-1)previous.to=index;
+      else sessionBands.push({session:row.session,from:index,to:index});
+    });
+    for(const owner of [series.candles,series.volume,series.histogram,series.rsi,series.k].filter(Boolean)){
+      if(!sessionLayers.some(layer=>layer.owner===owner)){
+        const primitive=new SessionBackground();owner.attachPrimitive(primitive);sessionLayers.push({owner,primitive});
+      }
+    }
+    for(const layer of sessionLayers)layer.primitive.requestUpdate?.();
+    const legend=document.getElementById('session-key');legend.replaceChildren();legend.hidden=!state.intraday||!state.rows.some(row=>row.session);
+    const zh=state.language==='zh-CN';
+    legend.title=zh?'按 K 线起始时间 · 美东标准时段：盘前 04:00–09:30，盘后 16:00–20:00；提前收市日未调整':'Bar start · Standard Eastern hours: pre-market 04:00–09:30, after-hours 16:00–20:00; early closes are not adjusted';
+    const summary=document.createElement('summary');summary.setAttribute('aria-label',zh?'交易时段详情':'Trading session details');legend.append(summary);
+    for(const [color,label] of [[state.theme.sessionPre,zh?'盘前':'Pre'],[state.theme.sessionPost,zh?'盘后':'Post']]){
+      const item=document.createElement('span'),swatch=document.createElement('i');swatch.style.background=color;swatch.setAttribute('aria-hidden','true');item.append(swatch,document.createTextNode(label));summary.append(item);
+    }
+    const note=document.createElement('div');note.className='session-note';note.textContent=legend.title;legend.append(note);
+  }
   function build() {
     if (chart) chart.remove();
-    series = {}; priceLines = []; drawingSeries = [];
+    series = {}; priceLines = []; drawingSeries = [];sessionLayers=[];
     chart = LightweightCharts.createChart(root, {
       autoSize: true,
       layout: {fontFamily:getComputedStyle(document.body).fontFamily,fontSize:12,background: {type: 'solid', color: state.theme.background}, textColor: state.theme.text, attributionLogo: true, panes: {enableResize: true,separatorColor:state.theme.border,separatorHoverColor:state.theme.accent}},
@@ -220,7 +262,10 @@
   }
   function showLegend(row) {
     const fields = [state.show.ma && ['MA', row.ma], state.show.ema && ['EMA', row.ema], state.show.macd && ['MACD', row.macd], state.show.rsi && ['RSI', row.rsi], state.show.kdj && ['K', row.k]];
-    document.getElementById('legend').textContent = fields.filter(Boolean).map(([label, value]) => label + ' ' + (finite(value) ? value.toFixed(2) : '—')).join('   ');
+    const sessionNames=state.language==='zh-CN'?{PreMarket:'盘前',Regular:'常规',AfterHours:'盘后',Closed:'休市'}:{PreMarket:'Pre-market',Regular:'Regular',AfterHours:'After-hours',Closed:'Closed'};
+    const values=fields.filter(Boolean).map(([label,value])=>label+' '+(finite(value)?value.toFixed(2):'—'));
+    if(state.intraday&&row.session)values.unshift(sessionNames[row.session]);
+    document.getElementById('legend').textContent=values.join('   ');
   }
   function render(next) {
     const previousKey = key, saved = userRange;
@@ -287,6 +332,7 @@
           s.setData([{time:d.time1,value:d.price1},{time:d.time2,value:d.price2}].sort((a,b)=>a.time-b.time));drawingSeries.push(s);
         }
       }
+      updateSessions();
       if (rebuild) {
         const panes = chart.panes();
         // Relative weights remain stable when autoSize lays out the window after the first frame.
@@ -296,7 +342,7 @@
       else {chart.timeScale().fitContent();userRange = null;}
       if (state.rows.length) showLegend(state.rows[state.rows.length - 1]);
       document.title = 'EasySellPut Charts · ' + state.symbol;
-      diagnostic({status:'rendered',historyGroups:document.querySelectorAll('.event-day').length,historyStops:document.getElementById('event-history').children.length,events:(state.events||[]).length,eventMarkers:eventMarkers.markers().length,key:state.key,rows:state.rows.length,candles:series.candles.data().filter(p=>finite(p.open)).length,panes:chart.panes().length,lastMa:series.ma?.data().at(-1)?.value ?? null,background:t.background,up:series.candles.options().upColor,range:chart.timeScale().getVisibleLogicalRange()});
+      diagnostic({status:'rendered',sessionBands:sessionBands.length,sessionPanes:sessionLayers.length,historyGroups:document.querySelectorAll('.event-day').length,historyStops:document.getElementById('event-history').children.length,events:(state.events||[]).length,eventMarkers:eventMarkers.markers().length,key:state.key,rows:state.rows.length,candles:series.candles.data().filter(p=>finite(p.open)).length,panes:chart.panes().length,lastMa:series.ma?.data().at(-1)?.value ?? null,background:t.background,up:series.candles.options().upColor,range:chart.timeScale().getVisibleLogicalRange()});
     } finally {applying = false;}
   }
   document.getElementById('fit').addEventListener('click',()=>{if(chart){userRange=null;chart.timeScale().fitContent();chart.priceScale('right').applyOptions({autoScale:true});}});
@@ -315,6 +361,6 @@
     setTimeout(poll,250);
   }
   // Read-only diagnostics for renderer tests; it grants no native capabilities.
-  window.meiliChart = {inspect:()=>({chart,series,state,eventMarkers}),render};
+  window.meiliChart = {inspect:()=>({chart,series,state,eventMarkers,sessionBands,sessionLayers}),render};
   poll();
 })();
