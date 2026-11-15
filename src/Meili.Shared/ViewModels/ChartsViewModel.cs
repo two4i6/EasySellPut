@@ -21,12 +21,13 @@ public partial class ChartRangeTab : ObservableObject
 {
     public ChartRangeKind Kind { get; }
     public string Key { get; }
+    public string CompactTitle { get; }
     [ObservableProperty] public partial string Title { get; set; } = "";
     [ObservableProperty] public partial bool IsSelected { get; set; }
 
-    public ChartRangeTab(ChartRangeKind kind, string key, string title, bool selected)
+    public ChartRangeTab(ChartRangeKind kind, string key, string title, bool selected, string? compactTitle = null)
     {
-        Kind = kind; Key = key; Title = title; IsSelected = selected;
+        Kind = kind; Key = key; Title = title; CompactTitle = compactTitle ?? title; IsSelected = selected;
     }
 }
 
@@ -239,7 +240,7 @@ public partial class ChartsViewModel : ObservableObject
         var keep = Range;
         Ranges.Clear();
         foreach (var (kind, key) in AllRanges())
-            Ranges.Add(new ChartRangeTab(kind, key, _loc[key], kind == keep));
+            Ranges.Add(new ChartRangeTab(kind, key, _loc[key], kind == keep, _loc[key+"_Short"]));
     }
 
     private static (ChartRangeKind kind, string key)[] AllRanges() =>

@@ -799,4 +799,12 @@
     <sys:String x:Key="Ch_HLineShort">H line</sys:String>
     <sys:String x:Key="Ch_TrendShort">Trend</sys:String>
     <sys:String x:Key="Ch_ClearShort">Clear</sys:String>
+    <sys:String x:Key="Ch_Session_Short">Session</sys:String>
+    <sys:String x:Key="Ch_1m_Short">1m</sys:String>
+    <sys:String x:Key="Ch_5m_Short">5m</sys:String>
+    <sys:String x:Key="Ch_15m_Short">15m</sys:String>
+    <sys:String x:Key="Ch_1h_Short">1h</sys:String>
+    <sys:String x:Key="Ch_1d_Short">1D</sys:String>
+    <sys:String x:Key="Ch_1w_Short">1W</sys:String>
+    <sys:String x:Key="Ch_1mo_Short">1M</sys:String>
 </ResourceDictionary>

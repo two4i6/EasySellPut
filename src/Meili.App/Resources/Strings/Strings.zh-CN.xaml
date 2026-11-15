@@ -799,4 +799,12 @@
     <sys:String x:Key="Ch_HLineShort">水平线</sys:String>
     <sys:String x:Key="Ch_TrendShort">趋势线</sys:String>
     <sys:String x:Key="Ch_ClearShort">清除</sys:String>
+    <sys:String x:Key="Ch_Session_Short">分时</sys:String>
+    <sys:String x:Key="Ch_1m_Short">1分</sys:String>
+    <sys:String x:Key="Ch_5m_Short">5分</sys:String>
+    <sys:String x:Key="Ch_15m_Short">15分</sys:String>
+    <sys:String x:Key="Ch_1h_Short">1小时</sys:String>
+    <sys:String x:Key="Ch_1d_Short">日</sys:String>
+    <sys:String x:Key="Ch_1w_Short">周</sys:String>
+    <sys:String x:Key="Ch_1mo_Short">月</sys:String>
 </ResourceDictionary>

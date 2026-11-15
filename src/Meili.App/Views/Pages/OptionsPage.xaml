@@ -117,9 +117,7 @@
                 <Button Style="{StaticResource RangeChip}" Content="{DynamicResource Op_Range10}" Tag="Near10" Click="OnWindowClick" />
                 <Button Style="{StaticResource RangeChip}" Content="{DynamicResource Op_Range20}" Tag="Near20" Click="OnWindowClick" />
                 <Button Style="{StaticResource RangeChip}" Content="{DynamicResource Op_RangeAll}" Tag="All" Click="OnWindowClick" />
-            </WrapPanel>
-
-            <WrapPanel Margin="0,0,0,8">
+            <Border Width="1" Height="18" Margin="12,0,16,0" VerticalAlignment="Center" Background="{DynamicResource ControlStrokeColorDefaultBrush}"/>
                 <TextBlock Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0,0,10,0" Text="{DynamicResource Op_Columns}" />
                 <CheckBox Style="{StaticResource ColCheck}" Content="{DynamicResource Op_Volume}" IsChecked="{Binding ShowVolume}" />
                 <CheckBox Style="{StaticResource ColCheck}" Content="{DynamicResource Op_OI}" IsChecked="{Binding ShowOi}" />

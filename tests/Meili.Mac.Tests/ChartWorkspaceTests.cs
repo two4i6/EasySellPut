@@ -1,8 +1,11 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Headless.XUnit;
 using Avalonia.VisualTree;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using Avalonia.Input;
 using Meili.Core.Settings;
 using Meili.Mac.Platform;
 using Meili.Mac.Views;
@@ -32,10 +35,30 @@ public sealed class ChartWorkspaceTests
             var inspector=page.FindControl<Border>("ChartInspector")!;
             var toggle=page.FindControl<ToggleButton>("InspectorToggle")!;
             Assert.False(inspector.IsVisible);
+            var toolbar=page.FindControl<Grid>("ChartToolbar")!;
+            var tabs=page.FindControl<ItemsControl>("RangeTabs")!;
+            Assert.True(toolbar.Bounds.Height<=56,$"Toolbar unexpectedly gained a row: {toolbar.Bounds}");
+            var rangeButtons=tabs.GetVisualDescendants().OfType<Button>().ToArray();
+            Assert.Equal(8,rangeButtons.Length);
+            Assert.All(rangeButtons,b=>Assert.InRange(b.TranslatePoint(new Point(),page)!.Value.Y-rangeButtons[0].TranslatePoint(new Point(),page)!.Value.Y,-1,1));
+            var input=page.FindControl<Meili.Mac.Views.Controls.SymbolBox>("SymbolInput")!;
+            Assert.InRange(Math.Abs(input.TranslatePoint(new Point(),page)!.Value.Y-toggle.TranslatePoint(new Point(),page)!.Value.Y),0,18);
+
             Assert.True(chart.Bounds.Height>page.Bounds.Height*.72,$"Chart height: {chart.Bounds}, page: {page.Bounds}");
             Assert.True(chart.Bounds.Width>page.Bounds.Width*.82);
             Assert.Equal(loc["Ch_Tools"],toggle.Content);
             MacHost.Save(window,$"workspace-{width}-{language}-{dark}-default");
+            if(Environment.GetEnvironmentVariable("MEILI_RENDER_DIR") is {Length:>0} renderDir)
+            {
+                using var toolbarFrame=new RenderTargetBitmap(new PixelSize((int)Math.Ceiling(toolbar.Bounds.Width),(int)Math.Ceiling(toolbar.Bounds.Height)));
+                toolbarFrame.Render(toolbar);
+                toolbarFrame.Save(Path.Combine(renderDir,$"toolbar-{width}-{language}-{dark}.png"),new PngBitmapEncoderOptions());
+            }
+            rangeButtons[^1].Focus(NavigationMethod.Tab);MacHost.Pump();
+            var scroller=page.FindControl<ScrollViewer>("RangeScroller")!;
+            var lastX=rangeButtons[^1].TranslatePoint(new Point(),scroller)!.Value.X;
+            Assert.InRange(lastX,-1,scroller.Bounds.Width-rangeButtons[^1].Bounds.Width+2);
+
             var fullWidth=chart.Bounds.Width;
             toggle.IsChecked=true;MacHost.Pump();
             Assert.True(vm.ShowInspector);Assert.True(inspector.IsVisible);
