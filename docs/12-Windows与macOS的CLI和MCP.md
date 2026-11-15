@@ -13,7 +13,7 @@ CLI 和 MCP 使用同一个原生可执行文件，不需要打开桌面界面�
 
 ## 获取发行包
 
-GitHub Actions 的 `CLI and MCP CI` 成功运行后，可在该运行的 Artifacts 中下载：
+GitHub Actions 的 `CI · Test & Package` 成功运行后，可在该运行的 Artifacts 中下载：
 
 - CLI-MCP-win-x64
 - CLI-MCP-win-arm64

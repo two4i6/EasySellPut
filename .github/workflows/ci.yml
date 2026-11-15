@@ -1,4 +1,5 @@
-name: CLI and MCP CI
+name: CI · Test & Package
+run-name: "CI · ${{ github.head_ref || github.ref_name }} · #${{ github.run_number }}"
 
 on:
   push:
@@ -27,8 +28,8 @@ env:
   NUGET_PACKAGES: ${{ github.workspace }}/tools/nuget-packages
 
 jobs:
-  automation:
-    name: CLI and MCP (${{ matrix.rid }})
+  cli:
+    name: ${{ matrix.label }} · CLI/MCP
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     strategy:
@@ -37,32 +38,40 @@ jobs:
         include:
           - os: ubuntu-24.04
             rid: linux-x64
+            label: Linux x64
           - os: windows-latest
             rid: win-x64
+            label: Windows x64
           - os: windows-11-arm
             rid: win-arm64
+            label: Windows ARM64
           - os: macos-15-intel
             rid: osx-x64
+            label: Mac Intel
           - os: "${{ inputs.macos_arm_runner || 'macos-26' }}"
             rid: osx-arm64
+            label: Mac Apple Silicon
     defaults:
       run:
         shell: pwsh
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout source
+        uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - uses: actions/setup-dotnet@v4
+      - name: Install .NET SDK
+        uses: actions/setup-dotnet@v4
         with:
           global-json-file: global.json
-      - uses: actions/setup-python@v5
+      - name: Install Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Build the real CLI and deterministic protocol host
+      - name: Build CLI & protocol test host
         run: |
           dotnet build tests/Meili.Automation.Host/Meili.Automation.Host.csproj -c Release -m:3 -v minimal
           if ($LASTEXITCODE -ne 0) { throw 'CLI / protocol host build failed' }
-      - name: Shared business and automation tests
+      - name: Test shared business logic
         run: |
           $failed = $false
           foreach ($name in @('Core', 'Data', 'Analytics', 'Shared', 'Automation')) {
@@ -70,19 +79,19 @@ jobs:
             if ($LASTEXITCODE -ne 0) { $failed = $true }
           }
           if ($failed) { throw 'Shared or automation tests failed' }
-      - name: Coverage guard and live-validator regression tests
+      - name: Test coverage & validation guards
         run: |
           python -m unittest discover -s tests/automation -p "test_*.py" -v
           if ($LASTEXITCODE -ne 0) { throw 'Capability coverage guard tests failed' }
-      - name: Skill and desktop inventories and every operation through CLI and MCP
+      - name: Verify CLI/MCP capability parity
         run: |
           python tests/automation/check_capability_coverage.py
           if ($LASTEXITCODE -ne 0) { throw 'CLI / MCP capability coverage or parity failed' }
-      - name: Production CLI and stdio MCP process checks
+      - name: Test CLI/MCP processes
         run: |
           python tests/automation/cli_mcp_smoke.py --dll src/Meili.Cli/bin/Release/net10.0/easysellput.dll
           if ($LASTEXITCODE -ne 0) { throw 'Production CLI / MCP process checks failed' }
-      - name: Package, extract and test the native CLI and MCP distribution
+      - name: Build & test CLI package
         run: |
           $os = if ($IsWindows) { 'win' } elseif ($IsMacOS) { 'osx' } else { 'linux' }
           $arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant()
@@ -105,7 +114,7 @@ jobs:
           $executable = Join-Path (Join-Path $extract $name) $binary
           python tests/automation/cli_mcp_smoke.py --executable $executable
           if ($LASTEXITCODE -ne 0) { throw 'Extracted CLI / MCP process checks failed' }
-      - name: Retain installable platform packages
+      - name: Upload CLI package
         uses: actions/upload-artifact@v4
         with:
           name: CLI-MCP-${{ matrix.rid }}
@@ -115,7 +124,7 @@ jobs:
             build/out/ci/packages/*.sha256
           if-no-files-found: error
           retention-days: 14
-      - name: Retain test evidence even on failure
+      - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -126,38 +135,41 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-  desktop:
-    name: Desktop headless regression
+  ui:
+    name: UI · Layout & Charts
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout source
+        uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - uses: actions/setup-dotnet@v4
+      - name: Install .NET SDK
+        uses: actions/setup-dotnet@v4
         with:
           global-json-file: global.json
-      - name: Install fonts for real Skia headless rendering
+      - name: Install UI test fonts
         run: |
           sudo apt-get update
           sudo apt-get install -y fontconfig fonts-dejavu-core fonts-noto-core fonts-noto-cjk
-      - name: Run existing desktop headless tests
+      - name: Test layout & themes
         env:
           FONTCONFIG_FILE: ${{ github.workspace }}/build/ci-fonts.conf
           MEILI_RENDER_DIR: ${{ github.workspace }}/build/out/ci/render
         run: |
           mkdir -p "$MEILI_RENDER_DIR"
           dotnet test tests/Meili.Mac.Tests/Meili.Mac.Tests.csproj -c Release -m:3 --blame-crash --blame-crash-dump-type mini --filter 'Category!=Live' --logger 'trx;LogFileName=Mac.trx' --results-directory build/out/ci/tests -v minimal -- RunConfiguration.TreatNoTestsAsError=true
-      - uses: actions/setup-python@v5
+      - name: Install Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install browser test tooling
+      - name: Install browser test tools
         run: |
           python -m pip install playwright==1.56.0
           python -m playwright install --with-deps chromium
-      - name: Build the test-only linked workbench host
+      - name: Build chart test host
         run: dotnet build tests/Meili.Workbench.Host/Meili.Workbench.Host.csproj -c Release -m:3 -v minimal
-      - name: Exercise actual TradingView renderer and mouse interactions
+      - name: Test chart interactions
         env:
           MEILI_RENDER_DIR: ${{ github.workspace }}/build/out/ci/render
         run: |
@@ -166,7 +178,7 @@ jobs:
           python tests/webcharts/test_timeline.py -v
           python tests/webcharts/test_sessions.py -v
           python tests/webcharts/test_drawings.py -v
-      - name: Retain desktop results and rendered pages
+      - name: Upload UI screenshots & reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -180,22 +192,36 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-  news-browser:
-    name: Native WebViews and desktop package (${{ matrix.os }})
+  desktop:
+    name: ${{ matrix.label }} · Desktop
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, windows-11-arm, macos-15-intel, macos-26]
+        include:
+          - os: windows-latest
+            rid: win-x64
+            label: Windows x64
+          - os: windows-11-arm
+            rid: win-arm64
+            label: Windows ARM64
+          - os: macos-15-intel
+            rid: osx-x64
+            label: Mac Intel
+          - os: macos-26
+            rid: osx-arm64
+            label: Mac Apple Silicon
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout source
+        uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - uses: actions/setup-dotnet@v4
+      - name: Install .NET SDK
+        uses: actions/setup-dotnet@v4
         with:
           global-json-file: global.json
-      - name: Ensure system Evergreen runtime on Windows test runner
+      - name: Install WebView2 runtime
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
@@ -209,13 +235,13 @@ jobs:
             $process = Start-Process $installer -ArgumentList '/silent', '/install' -Wait -PassThru
             if ($process.ExitCode -ne 0) { throw "WebView2 installation failed: $($process.ExitCode)" }
           }
-      - name: Load real HTML and exercise the system browser engine
+      - name: Test native WebView
         shell: pwsh
         run: |
           dotnet run --project tests/Meili.NewsBrowser.Smoke/Meili.NewsBrowser.Smoke.csproj -c Release -p:BuildInParallel=false
           if ($LASTEXITCODE -ne 0) { throw 'Native news reader smoke failed' }
 
-      - name: Windows complete offline desktop regression
+      - name: Test Windows desktop
         if: runner.os == 'Windows'
         env:
           MEILI_RENDER_DIR: ${{ github.workspace }}/build/out/ci/desktop-render
@@ -225,10 +251,11 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Windows desktop regression failed' }
 
 
-      - uses: actions/setup-python@v5
+      - name: Install Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Build native desktop with bundled CLI and MCP
+      - name: Build desktop package
         shell: pwsh
         run: |
           python -m pip install pillow==11.3.0
@@ -237,7 +264,7 @@ jobs:
           $arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant()
           python build/pack-desktop.py --rid "$os-$arch" --output build/out/ci/desktop
           if ($LASTEXITCODE -ne 0) { throw 'Desktop packaging failed' }
-      - name: Extract desktop and exercise real GUI and bundled automation
+      - name: Test packaged app & updater
         shell: pwsh
         run: |
           $os = if ($IsWindows) { 'win' } else { 'osx' }
@@ -245,7 +272,8 @@ jobs:
           $archive = (Get-ChildItem build/out/ci/desktop/*.zip | Select-Object -First 1).FullName
           python tests/automation/check_desktop_package.py --archive $archive --rid "$os-$arch" --extract-to 'build/out/ci/desktop extracted with spaces'
           if ($LASTEXITCODE -ne 0) { throw 'Extracted desktop verification failed' }
-      - uses: actions/upload-artifact@v4
+      - name: Upload desktop package
+        uses: actions/upload-artifact@v4
         with:
           name: Desktop-${{ matrix.os }}
           path: |
@@ -253,7 +281,8 @@ jobs:
             build/out/ci/desktop/*.sha256
           if-no-files-found: error
           retention-days: 14
-      - uses: actions/upload-artifact@v4
+      - name: Upload desktop test reports
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: desktop-package-evidence-${{ matrix.os }}
@@ -266,36 +295,38 @@ jobs:
           retention-days: 14
 
   release-policy:
-    name: Main-only release policy
+    name: Release · main guard
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout source
+        uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - name: Install Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Validate release workflow structure and negative-path policy
+      - name: Test main-only release rules
         run: |
           python3 -m pip install PyYAML==6.0.3
           python3 build/release/check-workflows.py
           python3 -m unittest discover -s tests/automation -p 'test_release_policy.py' -v
 
   required:
-    name: CLI and MCP required
+    name: CI · Required checks
     if: always()
-    needs: [automation, desktop, news-browser, release-policy]
+    needs: [cli, ui, desktop, release-policy]
     runs-on: ubuntu-24.04
     steps:
-      - name: All platform and desktop checks must pass
+      - name: Require every CI job to pass
         env:
-          AUTOMATION_RESULT: ${{ needs.automation.result }}
+          CLI_RESULT: ${{ needs.cli.result }}
+          UI_RESULT: ${{ needs.ui.result }}
           DESKTOP_RESULT: ${{ needs.desktop.result }}
-          BROWSER_RESULT: ${{ needs.news-browser.result }}
           RELEASE_POLICY_RESULT: ${{ needs.release-policy.result }}
         run: |
-          test "$AUTOMATION_RESULT" = success
+          test "$CLI_RESULT" = success
+          test "$UI_RESULT" = success
           test "$DESKTOP_RESULT" = success
-          test "$BROWSER_RESULT" = success
           test "$RELEASE_POLICY_RESULT" = success

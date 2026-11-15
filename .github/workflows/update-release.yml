@@ -1,7 +1,8 @@
-name: Prepare main release draft
+name: Release · Prepare draft
+run-name: "Prepare release · main · CI ${{ inputs.ci_run_id || github.event.workflow_run.id }}"
 on:
   workflow_run:
-    workflows: [CLI and MCP CI]
+    workflows: ['CI · Test & Package']
     types: [completed]
     branches: [main]
   workflow_dispatch:
@@ -21,7 +22,8 @@ concurrency:
   group: official-release
   cancel-in-progress: false
 jobs:
-  select:
+  source:
+    name: Verify main & CI
     if: >-
       github.ref == 'refs/heads/main' &&
       (github.event_name == 'workflow_dispatch' ||
@@ -34,21 +36,24 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       RUN_ID: ${{ inputs.ci_run_id || github.event.workflow_run.id }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout tested source
+        uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Require current main, successful complete CI and all nine package artifacts
+      - name: Verify CI source & all packages
         id: tested
         run: python3 build/release/policy.py --run-id "$RUN_ID" --output "$RUNNER_TEMP/release-source.json"
-      - uses: actions/upload-artifact@v4
+      - name: Upload source provenance
+        uses: actions/upload-artifact@v4
         with:
           name: Release-source-plan
           path: ${{ runner.temp }}/release-source.json
           if-no-files-found: error
 
-  platform:
+  packages:
+    name: ${{ matrix.label }} · Sign & Verify
     if: github.ref == 'refs/heads/main'
-    needs: select
+    needs: source
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
     environment: release
@@ -58,39 +63,47 @@ jobs:
         include:
           - os: ubuntu-24.04
             rid: linux-x64
+            label: Linux x64
             desktop: ''
           - os: windows-latest
             rid: win-x64
+            label: Windows x64
             desktop: Desktop-windows-latest
           - os: windows-11-arm
             rid: win-arm64
+            label: Windows ARM64
             desktop: Desktop-windows-11-arm
           - os: macos-15-intel
             rid: osx-x64
+            label: Mac Intel
             desktop: Desktop-macos-15-intel
           - os: macos-26
             rid: osx-arm64
+            label: Mac Apple Silicon
             desktop: Desktop-macos-26
     defaults:
       run:
         shell: pwsh
     env:
       GH_TOKEN: ${{ github.token }}
-      RUN_ID: ${{ needs.select.outputs.run_id }}
+      RUN_ID: ${{ needs.source.outputs.run_id }}
       RID: ${{ matrix.rid }}
       DESKTOP_ARTIFACT: ${{ matrix.desktop }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout tested source
+        uses: actions/checkout@v4
         with:
-          ref: ${{ needs.select.outputs.sha }}
+          ref: ${{ needs.source.outputs.sha }}
           persist-credentials: false
-      - uses: actions/setup-dotnet@v4
+      - name: Install .NET SDK
+        uses: actions/setup-dotnet@v4
         with:
           global-json-file: global.json
-      - uses: actions/setup-python@v5
+      - name: Install Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Download the exact tested packages (no application rebuild)
+      - name: Download tested CI packages
         run: |
           gh run download $env:RUN_ID --repo $env:GITHUB_REPOSITORY --name "CLI-MCP-$env:RID" --dir "$env:RUNNER_TEMP/input/cli"
           if ($LASTEXITCODE -ne 0) { throw 'CLI artifact download failed' }
@@ -98,7 +111,7 @@ jobs:
             gh run download $env:RUN_ID --repo $env:GITHUB_REPOSITORY --name $env:DESKTOP_ARTIFACT --dir "$env:RUNNER_TEMP/input/desktop"
             if ($LASTEXITCODE -ne 0) { throw 'Desktop artifact download failed' }
           }
-      - name: Sign Windows binaries or Developer ID sign and notarize macOS binaries
+      - name: Sign & notarize packages
         env:
           APPLE_CERTIFICATE_P12_BASE64: ${{ runner.os == 'macOS' && secrets.APPLE_CERTIFICATE_P12_BASE64 || '' }}
           APPLE_CERTIFICATE_PASSWORD: ${{ runner.os == 'macOS' && secrets.APPLE_CERTIFICATE_PASSWORD || '' }}
@@ -112,7 +125,7 @@ jobs:
           $version = ([xml](Get-Content Directory.Build.props -Raw)).Project.PropertyGroup.Version
           python build/release/sign-packages.py --packages "$env:RUNNER_TEMP/input" --output build/out/release --rid $env:RID --version $version
           if ($LASTEXITCODE -ne 0) { throw 'Platform signing/notarization failed; unsigned fallback is prohibited' }
-      - name: Revalidate and run the final signed packages on the native runner
+      - name: Test final signed packages
         run: |
           $hostRid = if ($IsWindows) { 'win' } elseif ($IsMacOS) { 'osx' } else { 'linux' }
           $hostRid += '-' + [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant()
@@ -138,12 +151,14 @@ jobs:
             spctl --assess --type execute $app
             if ($LASTEXITCODE -ne 0) { throw 'Extracted app Gatekeeper validation failed' }
           }
-      - uses: actions/upload-artifact@v4
+      - name: Upload signed package
+        uses: actions/upload-artifact@v4
         with:
           name: Release-${{ matrix.rid }}
           path: build/out/release/*
           if-no-files-found: error
-      - uses: actions/upload-artifact@v4
+      - name: Upload package test reports
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: release-evidence-${{ matrix.rid }}
@@ -151,7 +166,8 @@ jobs:
           if-no-files-found: ignore
 
   draft:
-    needs: [select, platform]
+    name: Create release draft
+    needs: [source, packages]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     environment: release
@@ -160,26 +176,28 @@ jobs:
       actions: read
     env:
       GH_TOKEN: ${{ github.token }}
-      RUN_ID: ${{ needs.select.outputs.run_id }}
-      TESTED_SHA: ${{ needs.select.outputs.sha }}
+      RUN_ID: ${{ needs.source.outputs.run_id }}
+      TESTED_SHA: ${{ needs.source.outputs.sha }}
       RELEASE_NOTES: ${{ inputs.notes }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout tested source
+        uses: actions/checkout@v4
         with:
-          ref: ${{ needs.select.outputs.sha }}
+          ref: ${{ needs.source.outputs.sha }}
           persist-credentials: false
-      - name: Recheck main and CI after platform verification
+      - name: Recheck main & CI
         run: |
           python3 build/release/policy.py --run-id "$RUN_ID" --output "$RUNNER_TEMP/release-source.json"
           python3 -c 'import json,os; assert json.load(open(os.environ["RUNNER_TEMP"]+"/release-source.json"))["sourceCommit"]==os.environ["TESTED_SHA"]'
-      - uses: actions/download-artifact@v4
+      - name: Download signed packages
+        uses: actions/download-artifact@v4
         with:
           pattern: Release-*
           path: ${{ runner.temp }}/release-packages
-      - name: Assemble four desktop and five CLI packages with signed provenance
+      - name: Assemble release assets
         id: manifest
         run: python3 build/release/assemble.py --packages "$RUNNER_TEMP/release-packages" --plan "$RUNNER_TEMP/release-source.json" --output "$RUNNER_TEMP/release-assets"
-      - name: Sign and verify both update and complete release indexes
+      - name: Sign update & release indexes
         env:
           UPDATE_SIGNING_KEY: ${{ secrets.UPDATE_SIGNING_KEY }}
         run: |
@@ -192,7 +210,7 @@ jobs:
             openssl dgst -sha256 -sign "$key" -out "$RUNNER_TEMP/release-assets/$index.sig" "$RUNNER_TEMP/release-assets/$index"
             openssl dgst -sha256 -verify src/Meili.Application/Updates/update-public-key.pem -signature "$RUNNER_TEMP/release-assets/$index.sig" "$RUNNER_TEMP/release-assets/$index"
           done
-      - name: Create main tag and release draft without overwriting a version
+      - name: Create main tag & draft
         env:
           TAG: v${{ steps.manifest.outputs.version }}
         run: |

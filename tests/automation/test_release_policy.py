@@ -39,7 +39,7 @@ class ReleasePolicyTests(unittest.TestCase):
 
     def test_aggregate_alone_cannot_replace_all_native_jobs(self):
         policy.validate_jobs(self.jobs)
-        for jobs in [self.jobs[:-1], self.jobs + [self.jobs[0]], [dict(name='CLI and MCP required', status='completed', conclusion='success')],
+        for jobs in [self.jobs[:-1], self.jobs + [self.jobs[0]], [dict(name=policy.GATE_NAME, status='completed', conclusion='success')],
                      [dict(j, conclusion='skipped') if i == 0 else j for i, j in enumerate(self.jobs)]]:
             with self.assertRaises(ValueError):
                 policy.validate_jobs(jobs)

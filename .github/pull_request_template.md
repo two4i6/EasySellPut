@@ -15,4 +15,4 @@ results and CLI/MCP parity checks. Do not change a tool count to bypass coverage
 ## Validation
 
 Record commands and outcomes. Keep offline fixture tests, live-provider tests,
-native execution and cross-compilation distinct. `CLI and MCP required` must pass.
+native execution and cross-compilation distinct. `CI · Required checks` must pass.

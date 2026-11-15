@@ -10,9 +10,14 @@ import subprocess
 CLI_RIDS = ('linux-x64', 'win-x64', 'win-arm64', 'osx-x64', 'osx-arm64')
 DESKTOP_RUNNERS = ('windows-latest', 'windows-11-arm', 'macos-15-intel', 'macos-26')
 ARTIFACTS = tuple('Desktop-' + r for r in DESKTOP_RUNNERS) + tuple('CLI-MCP-' + r for r in CLI_RIDS)
-REQUIRED_JOBS = {'CLI and MCP required', 'Desktop headless regression', 'Main-only release policy'} | {
-    'CLI and MCP (' + r + ')' for r in CLI_RIDS
-} | {'Native WebViews and desktop package (' + r + ')' for r in DESKTOP_RUNNERS}
+RID_LABELS = {
+    'linux-x64': 'Linux x64', 'win-x64': 'Windows x64', 'win-arm64': 'Windows ARM64',
+    'osx-x64': 'Mac Intel', 'osx-arm64': 'Mac Apple Silicon',
+}
+GATE_NAME = 'CI · Required checks'
+REQUIRED_JOBS = {GATE_NAME, 'UI · Layout & Charts', 'Release · main guard'} | {
+    label + ' · CLI/MCP' for label in RID_LABELS.values()
+} | {RID_LABELS[r] + ' · Desktop' for r in CLI_RIDS if r != 'linux-x64'}
 
 
 def require(condition, message):

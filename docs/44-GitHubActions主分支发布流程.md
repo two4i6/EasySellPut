@@ -4,9 +4,9 @@
 
 | 阶段 | 触发 | 内容 | 能否公开发布 |
 | --- | --- | --- | --- |
-| CI | 所有 push / PR，也可手动运行 | 共享测试、全目录 CLI/MCP、组件与浏览器测试、原生安装包及升级事务验收 | 否，仅保留 artifacts |
-| Prepare main release draft | main 的成功 CI 自动触发；也可在 main 手动指定 run ID | 校验来源，下载九份既有包，平台签名/公证，再运行最终包，签署发行索引和更新索引，创建版本 tag 与 Release 草稿 | 否 |
-| Publish verified main release | 在 main 手动输入稳定版本号 | 复验 tag、当前 main、成功 CI、两个签名索引和全部附件，再把草稿转正式发布 | 是 |
+| CI · Test & Package | 所有 push / PR，也可手动运行 | 共享测试、全目录 CLI/MCP、组件与浏览器测试、原生安装包及升级事务验收 | 否，仅保留 artifacts |
+| Release · Prepare draft | main 的成功 CI 自动触发；也可在 main 手动指定 run ID | 校验来源，下载九份既有包，平台签名/公证，再运行最终包，签署发行索引和更新索引，创建版本 tag 与 Release 草稿 | 否 |
+| Release · Publish | 在 main 手动输入稳定版本号 | 复验 tag、当前 main、成功 CI、两个签名索引和全部附件，再把草稿转正式发布 | 是 |
 
 `work`、PR、其他分支和标签上的 CI 产物均不能进入发布流程。工作流 job 条件和 Python 策略同时验证 main；成功的 aggregate 不能代替缺失的平台作业。来源必须是本仓库 `.github/workflows/ci.yml` 的成功 **push**，SHA 必须等于当前 main。拒绝 fork、PR、过期/缺失/重复产物和截断的 API 列表。
 
@@ -43,20 +43,20 @@ macOS 使用临时 keychain、hardened runtime 和 .NET JIT entitlements，Apple
 
 当前更新公钥的首次正式初始化仍按 [29](29-检查更新与安装.md) 操作，私钥备份保存在仓库外；提交公钥并重新完成 CI 后才可发布。已有正式客户端时不能随意更换公钥。Apple/Windows 证书由维护者向各自信任体系申请，GitHub Actions 不能自动提供这些身份。
 
-仓库分支规则应要求 `CLI and MCP required`。不能因为签名配置尚未完成就去掉平台、忽略测试或绕过公证。CI 测试包仍可下载；它们不等于正式签名发行版。
+仓库分支规则应要求 `CI · Required checks`（原 `CLI and MCP required`；改名迁移见 [09](09-CI与能力覆盖.md)）。不能因为签名配置尚未完成就去掉平台、忽略测试或绕过公证。CI 测试包仍可下载；它们不等于正式签名发行版。
 
 ## 操作
 
 1. 将改动合入 main，并设置新的三段稳定版本号。
-2. 等 main 的完整 CI 成功。自动准备工作流启动；也可在 main 手动选择 `Prepare main release draft`，输入该 CI run ID 和可选说明。
+2. 等 main 的完整 CI 成功。自动准备工作流启动；也可在 main 手动选择 `Release · Prepare draft`，输入该 CI run ID 和可选说明。
 3. 检查草稿、发行说明、签名及所有平台的最终包验证结果。tag 在草稿准备阶段创建并指向该 main SHA；不重新指向已有版本。
-4. 在 main 运行 `Publish verified main release`，输入如 `0.6.0`。它会再次验证当前 main、tag、来源和附件后公开发布。
+4. 在 main 运行 `Release · Publish`，输入如 `0.6.0`。它会再次验证当前 main、tag、来源和附件后公开发布。
 
 所有正式发布通过 Actions 完成，不在本地执行 `gh release create/edit`，也不通过网页手工替换附件。GitHub 管理员始终具有手动修改仓库的权限；工作流约束不能替代仓库权限与 Environment 配置。
 
 ## 验证范围
 
-CI 增加 `Main-only release policy` 并接入 required 聚合：检查工作流边界，测试 main/work、错误来源、缺失平台、过期产物、篡改哈希、错误附件、凭据缺失和实际 OpenSSL 签名验证。发布编排测试使用临时 fixture 和模拟 GitHub API，不创建真实发行。
+CI 增加 `Release · main guard` 并接入 required 聚合：检查工作流边界，测试 main/work、错误来源、缺失平台、过期产物、篡改哈希、错误附件、凭据缺失和实际 OpenSSL 签名验证。发布编排测试使用临时 fixture 和模拟 GitHub API，不创建真实发行。
 
 新增正式平台签名、公证和公开发布必须在凭据配置后，通过 main 的实际发行流程验收；普通 CI 的 ad-hoc macOS 包不能证明 Developer ID 或 Apple 服务已验证。本次仅实现并验证流程，没有运行正式发布或修改用户安装。
 
