@@ -910,4 +910,5 @@
     <sys:String x:Key="QP_Next">下一页</sys:String>
     <sys:String x:Key="QP_More">更多</sys:String>
     <sys:String x:Key="Bg_Run">后台运行</sys:String>
+    <sys:String x:Key="Reader_Close">关闭阅读分屏</sys:String>
 </ResourceDictionary>

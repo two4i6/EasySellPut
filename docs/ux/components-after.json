@@ -18346,7 +18346,7 @@
       "type": "Image",
       "name": null,
       "attributes": {
-        "Source": "pack://application:,,,/Assets/app-64.png",
+        "Source": "pack://application:,,,/MeiliTerminal;component/Assets/app-64.png",
         "Width": "40",
         "Height": "40",
         "Margin": "0,0,12,0"
@@ -18558,7 +18558,7 @@
         "FontFamily": "{DynamicResource AppFont}",
         "FontSize": "{StaticResource BodyFontSize}",
         "Typography.NumeralAlignment": "Tabular",
-        "Icon": "pack://application:,,,/Assets/app.ico"
+        "Icon": "pack://application:,,,/MeiliTerminal;component/Assets/app.ico"
       },
       "composition": [],
       "source": "src/Meili.App/MainWindow.xaml"
@@ -18610,7 +18610,7 @@
       "type": "ImageIcon",
       "name": null,
       "attributes": {
-        "Source": "pack://application:,,,/Assets/app-64.png",
+        "Source": "pack://application:,,,/MeiliTerminal;component/Assets/app-64.png",
         "Width": "18",
         "Height": "18"
       },
@@ -18737,7 +18737,7 @@
       "type": "Image",
       "name": null,
       "attributes": {
-        "Source": "pack://application:,,,/Assets/app-64.png",
+        "Source": "pack://application:,,,/MeiliTerminal;component/Assets/app-64.png",
         "Width": "28",
         "Height": "28"
       },

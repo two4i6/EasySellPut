@@ -186,7 +186,7 @@
           ]
         },
         "OpenArticle": {
-          "uiOnly": "Opening the embedded browser is desktop-only; get_news/get_market_events provide article metadata and URLs."
+          "uiOnly": "Opening the inline article split is desktop-only; get_news/get_market_events provide article metadata and URLs."
         },
         "OpenWebsite": {
           "uiOnly": "Opening an external website is desktop-only; get_fundamentals provides the website."

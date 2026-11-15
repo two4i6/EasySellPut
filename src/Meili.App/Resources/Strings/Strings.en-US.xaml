@@ -910,4 +910,5 @@
     <sys:String x:Key="QP_Next">Next page</sys:String>
     <sys:String x:Key="QP_More">More</sys:String>
     <sys:String x:Key="Bg_Run">Run in background</sys:String>
+    <sys:String x:Key="Reader_Close">Close article pane</sys:String>
 </ResourceDictionary>

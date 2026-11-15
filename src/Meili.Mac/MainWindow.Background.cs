@@ -21,6 +21,7 @@ public partial class MainWindow
         _windowActivity.SetVisible(_activityOwner,visible);_windowShell.SetPresentationVisible(visible);
         if(!visible && !_presentationSuspended){_presentationSuspended=true;PageHost.Content=null;_bannerTimer.Stop();}
         else if(visible && _presentationSuspended){_presentationSuspended=false;if(_activeWebsite is null && _pages.TryGetValue(CurrentPage,out var page))PageHost.Content=page;}
+        _articleReader?.SetPresentationActive(visible);
         foreach(var (id,pane) in _webTabs)pane.SetPresentationActive(visible && id==_activeWebsite);
     }
     internal void PrepareBackgroundStartup()=>UpdateBackgroundLifecycle();

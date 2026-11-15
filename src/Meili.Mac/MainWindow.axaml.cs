@@ -38,6 +38,7 @@ public partial class MainWindow : Window
         InitializeComponent();
         DataContext = AppServices.Get<ShellViewModel>();
         SetupWorkspace();
+        SetupNewsSplit();
         SetupBackgroundLifecycle();
         RestorePlacement();
         var hub = AppServices.Get<NavigationHub>();

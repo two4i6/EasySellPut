@@ -18,6 +18,7 @@ public partial class MainWindow
         _windowActivity.SetVisible(_activityOwner,visible);_windowShell.SetPresentationVisible(visible);
         if(!visible && !_presentationSuspended){_presentationSuspended=true;NativePageHost.Children.Remove(RootNavigation);}
         else if(visible && _presentationSuspended){_presentationSuspended=false;if(_activeWebsite is null && !NativePageHost.Children.Contains(RootNavigation))NativePageHost.Children.Add(RootNavigation);}
+        if(_articleReader is not null)_ = _articleReader.SetPresentationActiveAsync(visible);
         foreach(var (id,pane) in _webTabs)_ = pane.SetPresentationActiveAsync(visible && id==_activeWebsite);
     }
     internal void PrepareBackgroundStartup()

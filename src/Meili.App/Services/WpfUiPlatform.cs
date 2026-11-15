@@ -35,19 +35,10 @@ public sealed class WpfUiPlatform : IUiPlatform
         return Task.FromResult(dialog.ShowDialog()==true);
     }
 
-    private NewsReaderWindow? _reader;
     public void OpenNewsArticle(string url, string title)
     {
         if (!NewsReaderPolicy.IsAllowed(url)) throw new ArgumentException("Unsupported article URL", nameof(url));
-        if (_reader is null)
-        {
-            _reader = new NewsReaderWindow();
-            _reader.Closed += (_, _) => _reader = null;
-            _reader.Owner = Application.Current?.MainWindow;
-            _reader.Show();
-        }
-        _reader.OpenArticle(url, title);
-        _reader.Activate();
+        Run(()=>{if(Application.Current?.MainWindow is MainWindow window)window.OpenNewsArticle(url,title);});
     }
 
     public Task CopyTextAsync(string text) { Clipboard.SetText(text); return Task.CompletedTask; }

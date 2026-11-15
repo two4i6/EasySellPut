@@ -28,6 +28,7 @@ public partial class MainWindow : FluentWindow
         InitializeComponent();
         DataContext = AppServices.Get<ShellViewModel>();
         SetupWorkspace();
+        SetupNewsSplit();
         SetupBackgroundLifecycle();
         RestorePlacement();
         RootNavigation.Loaded += (_, _) =>

@@ -163,14 +163,23 @@ internal static class Program
 #endif
     private static async Task ProbeWebTabs(Pages server)
     {
-        var first = new WebTabPane(server.Url + "one");
+        var first = new WebTabPane(server.Url + "one",articleMode:true);
         var second = new WebTabPane(server.Url + "two");
-        var host = new Grid(); host.Children.Add(first); host.Children.Add(second);
-        var window = new Window { Width = 1100, Height = 760, Content = host };
+#if WINDOWS_READER
+        var host=new Meili.App.Views.Controls.ArticleSplitView(second);
+#else
+        var host=new Meili.Mac.Views.Controls.ArticleSplitView(second);
+#endif
+        host.Open(first);
+        var window = new Window { Width = 1320, Height = 760, Content = host };
         try
         {
             window.Show();
             await Until(() => first.DocumentTitle == "Reader One" && second.DocumentTitle == "Reader Two", "two workspace browser documents");
+            var requestsBeforeResize=server.Count;window.Width=980;await Task.Delay(250);
+            if(!host.IsVertical)throw new Exception("Compact article split did not stack");
+            window.Width=1320;await Task.Delay(250);
+            if(host.IsVertical||server.Count!=requestsBeforeResize)throw new Exception("Resizing the reader reloaded its native session");
 #if WINDOWS_READER
             var web = ((DockPanel)first.Content).Children.OfType<WebView2>().Single();
             first.Visibility = Visibility.Collapsed; second.Visibility = Visibility.Visible;
