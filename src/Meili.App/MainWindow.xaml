@@ -15,7 +15,7 @@
                  FontFamily="{DynamicResource AppFont}"
                  FontSize="{StaticResource BodyFontSize}"
                  Typography.NumeralAlignment="Tabular"
-                 Icon="pack://application:,,,/Assets/app.ico">
+                 Icon="pack://application:,,,/MeiliTerminal;component/Assets/app.ico">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
