@@ -50,25 +50,25 @@
 
             <!-- Appearance -->
             <TextBlock Classes="SectionTitle" Text="{DynamicResource Set_Appearance}" />
-            <ds:AppCard Classes="Card" Padding="16,12" Margin="0,0,0,4">
+            <ds:AppCard Classes="Card FormRow" Padding="16,12" Margin="0,0,0,4">
 <DockPanel>
 <StackPanel DockPanel.Dock="Right" VerticalAlignment="Center" Margin="16,0,0,0">
-                <ds:AppSelect MinWidth="200" SelectedIndex="{Binding LanguageIndex}">
+                <ds:AppSelect Width="{StaticResource FormFieldWidth}" SelectedIndex="{Binding LanguageIndex}">
                     <ComboBoxItem Content="简体中文" />
                     <ComboBoxItem Content="English" />
                 </ds:AppSelect>
             </StackPanel>
 
                     <StackPanel>
-                        <DockPanel LastChildFill="True"><ux:AppHelp HelpText="{DynamicResource Set_LanguageDesc}" DockPanel.Dock="Right" Margin="8,0,0,0"/><TextBlock Classes="CardTitle" Text="{DynamicResource Set_Language}" /></DockPanel>
+                        <ux:AppFormHeader Title="{DynamicResource Set_Language}" HelpText="{DynamicResource Set_LanguageDesc}"/>
                     </StackPanel>
                 
 </DockPanel>
 </ds:AppCard>
-            <ds:AppCard Classes="Card" Padding="16,12" Margin="0,0,0,4">
+            <ds:AppCard Classes="Card FormRow" Padding="16,12" Margin="0,0,0,4">
 <DockPanel>
 <StackPanel DockPanel.Dock="Right" VerticalAlignment="Center" Margin="16,0,0,0">
-                <ds:AppSelect MinWidth="200" SelectedIndex="{Binding ThemeIndex}">
+                <ds:AppSelect Width="{StaticResource FormFieldWidth}" SelectedIndex="{Binding ThemeIndex}">
                     <ComboBoxItem Content="{DynamicResource Set_ThemeSystem}" />
                     <ComboBoxItem Content="{DynamicResource Set_ThemeLight}" />
                     <ComboBoxItem Content="{DynamicResource Set_ThemeDark}" />
@@ -76,49 +76,49 @@
             </StackPanel>
 
                     <StackPanel>
-                        <DockPanel LastChildFill="True"><ux:AppHelp HelpText="{DynamicResource Set_ThemeDesc}" DockPanel.Dock="Right" Margin="8,0,0,0"/><TextBlock Classes="CardTitle" Text="{DynamicResource Set_Theme}" /></DockPanel>
+                        <ux:AppFormHeader Title="{DynamicResource Set_Theme}" HelpText="{DynamicResource Set_ThemeDesc}"/>
                     </StackPanel>
                 
 </DockPanel>
 </ds:AppCard>
-            <ds:AppCard Classes="Card" Padding="16,12" Margin="0,0,0,4">
+            <ds:AppCard Classes="Card FormRow" Padding="16,12" Margin="0,0,0,4">
 <DockPanel>
 <StackPanel DockPanel.Dock="Right" VerticalAlignment="Center" Margin="16,0,0,0">
-                <ds:AppSelect MinWidth="200" SelectedIndex="{Binding UpDownIndex}">
+                <ds:AppSelect Width="{StaticResource FormFieldWidth}" SelectedIndex="{Binding UpDownIndex}">
                     <ComboBoxItem Content="{DynamicResource Set_RedUp}" />
                     <ComboBoxItem Content="{DynamicResource Set_GreenUp}" />
                 </ds:AppSelect>
             </StackPanel>
 
                     <StackPanel>
-                        <DockPanel LastChildFill="True"><ux:AppHelp HelpText="{DynamicResource Set_UpDownDesc}" DockPanel.Dock="Right" Margin="8,0,0,0"/><TextBlock Classes="CardTitle" Text="{DynamicResource Set_UpDown}" /></DockPanel>
+                        <ux:AppFormHeader Title="{DynamicResource Set_UpDown}" HelpText="{DynamicResource Set_UpDownDesc}"/>
                     </StackPanel>
                 
 </DockPanel>
 </ds:AppCard>
 
             <!-- Close button -->
-            <ds:AppCard Classes="Card" Padding="16,12" Margin="0,0,0,4">
+            <ds:AppCard Classes="Card FormRow" Padding="16,12" Margin="0,0,0,4">
 <DockPanel>
 <StackPanel DockPanel.Dock="Right" VerticalAlignment="Center" Margin="16,0,0,0">
-                <ds:AppSelect MinWidth="240" SelectedIndex="{Binding CloseActionIndex}" AutomationProperties.AutomationId="SettingsCloseAction">
+                <ds:AppSelect Width="{StaticResource FormFieldWidth}" SelectedIndex="{Binding CloseActionIndex}" AutomationProperties.AutomationId="SettingsCloseAction">
                     <ComboBoxItem Content="{DynamicResource Set_CloseAsk}" />
                     <ComboBoxItem Content="{DynamicResource Close_ToTray}" />
                     <ComboBoxItem Content="{DynamicResource Close_Exit}" />
                 </ds:AppSelect>
             </StackPanel>
                     <StackPanel>
-                        <DockPanel LastChildFill="True"><ux:AppHelp HelpText="{DynamicResource Set_CloseActionDesc}" DockPanel.Dock="Right" Margin="8,0,0,0"/><TextBlock Classes="CardTitle" Text="{DynamicResource Set_CloseAction}" /></DockPanel>
+                        <ux:AppFormHeader Title="{DynamicResource Set_CloseAction}" HelpText="{DynamicResource Set_CloseActionDesc}"/>
                     </StackPanel>
 </DockPanel>
 </ds:AppCard>
 
             <!-- Network -->
             <TextBlock Classes="SectionTitle" Text="{DynamicResource Set_Network}" />
-            <ds:AppCard Classes="Card" Padding="16,12" Margin="0,0,0,4">
+            <ds:AppCard Classes="Card FormRow" Padding="16,12" Margin="0,0,0,4">
 <DockPanel>
 <StackPanel DockPanel.Dock="Right" VerticalAlignment="Center" Margin="16,0,0,0">
-                <ds:AppSelect MinWidth="240" SelectedIndex="{Binding ProxyModeIndex}">
+                <ds:AppSelect Width="{StaticResource FormFieldWidth}" SelectedIndex="{Binding ProxyModeIndex}">
                     <ComboBoxItem Content="{DynamicResource Set_ProxyAuto}" />
                     <ComboBoxItem Content="{DynamicResource Set_ProxySystem}" />
                     <ComboBoxItem Content="{DynamicResource Set_ProxyManual}" />
@@ -127,24 +127,24 @@
             </StackPanel>
 
                     <StackPanel>
-                        <DockPanel LastChildFill="True"><ux:AppHelp HelpText="{DynamicResource Set_ProxyModeDesc}" DockPanel.Dock="Right" Margin="8,0,0,0"/><TextBlock Classes="CardTitle" Text="{DynamicResource Set_ProxyMode}" /></DockPanel>
+                        <ux:AppFormHeader Title="{DynamicResource Set_ProxyMode}" HelpText="{DynamicResource Set_ProxyModeDesc}"/>
                     </StackPanel>
                 
 </DockPanel>
 </ds:AppCard>
-            <ds:AppCard Classes="Card" Padding="16,12" Margin="0,0,0,4" IsEnabled="{Binding IsManualProxy}">
+            <ds:AppCard Classes="Card FormRow" Padding="16,12" Margin="0,0,0,4" IsEnabled="{Binding IsManualProxy}">
 <DockPanel>
 <StackPanel DockPanel.Dock="Right" VerticalAlignment="Center" Margin="16,0,0,0">
-                <TextBox MinWidth="260" PlaceholderText="http://127.0.0.1:7890" Text="{Binding ManualProxy}" />
+                <TextBox Width="{StaticResource FormFieldWidth}" PlaceholderText="http://127.0.0.1:7890" Text="{Binding ManualProxy}" />
             </StackPanel>
 
                     <StackPanel>
-                        <DockPanel LastChildFill="True"><ux:AppHelp HelpText="{DynamicResource Set_ManualProxyDesc}" DockPanel.Dock="Right" Margin="8,0,0,0"/><TextBlock Classes="CardTitle" Text="{DynamicResource Set_ManualProxy}" /></DockPanel>
+                        <ux:AppFormHeader Title="{DynamicResource Set_ManualProxy}" HelpText="{DynamicResource Set_ManualProxyDesc}"/>
                     </StackPanel>
                 
 </DockPanel>
 </ds:AppCard>
-            <ds:AppCard Classes="Card" Padding="16,12" Margin="0,0,0,4">
+            <ds:AppCard Classes="Card FormRow" Padding="16,12" Margin="0,0,0,4">
 <DockPanel>
 <StackPanel DockPanel.Dock="Right" VerticalAlignment="Center" Margin="16,0,0,0">
                 <Button Classes="Primary" Content="{DynamicResource Set_ProxyApply}" Command="{Binding ApplyProxyCommand}" MinWidth="140" />
@@ -162,7 +162,7 @@
 
             <!-- Keyboard (D2) -->
             <TextBlock Classes="SectionTitle" Text="{DynamicResource Set_Shortcuts}" />
-            <ds:AppCard Classes="Card" Padding="16,12" Margin="0,0,0,4">
+            <ds:AppCard Classes="Card FormRow" Padding="16,12" Margin="0,0,0,4">
 <DockPanel>
 <StackPanel DockPanel.Dock="Right" VerticalAlignment="Center" Margin="16,0,0,0">
             </StackPanel>
@@ -177,37 +177,31 @@
 
             <!-- Pricing (F5) -->
             <TextBlock Classes="SectionTitle" Text="{DynamicResource Set_Pricing}" />
-            <ds:AppCard Classes="Card" Padding="16,12" Margin="0,0,0,4">
+            <ds:AppCard Classes="Card FormRow" Padding="16,12" Margin="0,0,0,4">
 <DockPanel>
 <StackPanel DockPanel.Dock="Right" VerticalAlignment="Center" Margin="16,0,0,0">
-                <ds:AppSelect MinWidth="240" SelectedIndex="{Binding RateModeIndex}" AutomationProperties.AutomationId="SettingsRateMode">
+                <ds:AppSelect Width="{StaticResource FormFieldWidth}" SelectedIndex="{Binding RateModeIndex}" AutomationProperties.AutomationId="SettingsRateMode">
                     <ComboBoxItem Content="{DynamicResource Set_RateTreasury}" />
                     <ComboBoxItem Content="{DynamicResource Set_RateFixedItem}" />
                 </ds:AppSelect>
             </StackPanel>
 
                     <StackPanel>
-                        <DockPanel LastChildFill="True"><ux:AppHelp HelpText="{DynamicResource Set_RateModeDesc}" DockPanel.Dock="Right" Margin="8,0,0,0"/><TextBlock Classes="CardTitle" Text="{DynamicResource Set_RateMode}" /></DockPanel>
+                        <ux:AppFormHeader Title="{DynamicResource Set_RateMode}" HelpText="{DynamicResource Set_RateModeDesc}"/>
                     </StackPanel>
                 
 </DockPanel>
 </ds:AppCard>
-            <ds:AppCard Classes="Card" Padding="16,12" Margin="0,0,0,4">
-<DockPanel>
-<StackPanel DockPanel.Dock="Right" VerticalAlignment="Center" Margin="16,0,0,0">
-                <TextBox MinWidth="120" Text="{Binding FixedRateText}" AutomationProperties.AutomationId="SettingsFixedRate" />
-            </StackPanel>
-
-                    <StackPanel>
-                        <DockPanel LastChildFill="True"><ux:AppHelp HelpText="{DynamicResource Set_FixedRateDesc}" DockPanel.Dock="Right" Margin="8,0,0,0"/><TextBlock Classes="CardTitle" Text="{DynamicResource Set_FixedRate}" /></DockPanel>
-                        <TextBlock Classes="Caption" Text="{Binding FixedRateError}" Foreground="{DynamicResource SystemFillColorCriticalBrush}" />
-                    </StackPanel>
-                
-</DockPanel>
-</ds:AppCard>
+            <ds:AppCard Classes="Card FormRow" Padding="16,12" Margin="0,0,0,4">
+                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                    <ux:AppFormHeader Title="{DynamicResource Set_FixedRate}" HelpText="{DynamicResource Set_FixedRateDesc}" Margin="0,0,16,0"/>
+                    <TextBox Grid.Column="1" Width="{StaticResource FormFieldWidth}" Text="{Binding FixedRateText}" AutomationProperties.AutomationId="SettingsFixedRate"/>
+                    <TextBlock Grid.Row="1" Grid.Column="1" Classes="Caption" Text="{Binding FixedRateError}" TextWrapping="Wrap" MaxWidth="{StaticResource FormFieldWidth}" Foreground="{DynamicResource SystemFillColorCriticalBrush}" IsVisible="{Binding FixedRateError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                </Grid>
+            </ds:AppCard>
 
             <TextBlock Classes="SectionTitle" Text="{DynamicResource Set_AiTitle}" />
-            <ds:AppCard x:Name="AiSetupPanel" Classes="Card" Padding="16,12" Margin="0,0,0,4">
+            <ds:AppCard x:Name="AiSetupPanel" Classes="Card FormRow" Padding="16,12" Margin="0,0,0,4">
                 <StackPanel Spacing="8">
                     <Button Content="{DynamicResource Set_AiUniversal}" Command="{Binding CopyUniversalSetupCommand}" IsEnabled="{Binding CanConnectAi}" HorizontalAlignment="Left" Margin="0,0,0,8"/>
                     <WrapPanel Margin="0,0,0,8">
@@ -220,7 +214,7 @@
                     <WrapPanel>
                         <Border Width="280" Padding="12" Margin="0,0,12,8" CornerRadius="6" BorderThickness="1" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" Background="{DynamicResource ControlFillColorSecondaryBrush}">
                             <StackPanel>
-                                <DockPanel Margin="0,0,0,12"><Button DockPanel.Dock="Right" Classes="Icon" Width="24" Height="24" MinWidth="24" MinHeight="24" Command="{Binding OpenAiHelpCommand}" CommandParameter="codex" AutomationProperties.Name="{DynamicResource Set_AiHelp}" ToolTip.Tip="{DynamicResource Set_AiHelp}" Margin="8,0,0,0"><lucide:LucideIcon Kind="Help"/></Button><TextBlock DockPanel.Dock="Right" Classes="Caption" Text="{Binding CodexAvailability}" VerticalAlignment="Center"/><TextBlock Classes="CardTitle" FontSize="16" Text="Codex"/></DockPanel>
+                                <DockPanel Margin="0,0,0,12"><Button DockPanel.Dock="Right" Classes="Icon" Width="24" Height="24" MinWidth="24" MinHeight="24" Command="{Binding OpenAiHelpCommand}" CommandParameter="codex" AutomationProperties.Name="{DynamicResource Set_AiHelp}" ToolTip.Tip="{DynamicResource Set_AiHelp}" Margin="8,0,0,0"><lucide:LucideIcon Kind="Help"/></Button><TextBlock DockPanel.Dock="Right" Classes="Caption" Text="{Binding CodexAvailability}" VerticalAlignment="Center"/><TextBlock Classes="CardTitle" FontSize="16" Text="Codex" VerticalAlignment="Center"/></DockPanel>
                                 <WrapPanel>
                                     <Button x:Name="ConnectCodex" Content="{DynamicResource Set_AiCodex}" Command="{Binding CopyCodexCommand}" IsEnabled="{Binding CanConnectAi}" AutomationProperties.AutomationId="ConnectCodex" Margin="0,0,8,0"/>
                                     <Button Content="{DynamicResource Set_AiPrompt}" Command="{Binding CopyAiPromptCommand}" CommandParameter="codex" IsEnabled="{Binding CanConnectAi}"/>
@@ -229,7 +223,7 @@
                         </Border>
                         <Border Width="280" Padding="12" Margin="0,0,12,8" CornerRadius="6" BorderThickness="1" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" Background="{DynamicResource ControlFillColorSecondaryBrush}">
                             <StackPanel>
-                                <DockPanel Margin="0,0,0,12"><Button DockPanel.Dock="Right" Classes="Icon" Width="24" Height="24" MinWidth="24" MinHeight="24" Command="{Binding OpenAiHelpCommand}" CommandParameter="claude-code" AutomationProperties.Name="{DynamicResource Set_AiHelp}" ToolTip.Tip="{DynamicResource Set_AiHelp}" Margin="8,0,0,0"><lucide:LucideIcon Kind="Help"/></Button><TextBlock DockPanel.Dock="Right" Classes="Caption" Text="{Binding ClaudeAvailability}" VerticalAlignment="Center"/><TextBlock Classes="CardTitle" FontSize="16" Text="Claude Code"/></DockPanel>
+                                <DockPanel Margin="0,0,0,12"><Button DockPanel.Dock="Right" Classes="Icon" Width="24" Height="24" MinWidth="24" MinHeight="24" Command="{Binding OpenAiHelpCommand}" CommandParameter="claude-code" AutomationProperties.Name="{DynamicResource Set_AiHelp}" ToolTip.Tip="{DynamicResource Set_AiHelp}" Margin="8,0,0,0"><lucide:LucideIcon Kind="Help"/></Button><TextBlock DockPanel.Dock="Right" Classes="Caption" Text="{Binding ClaudeAvailability}" VerticalAlignment="Center"/><TextBlock Classes="CardTitle" FontSize="16" Text="Claude Code" VerticalAlignment="Center"/></DockPanel>
                                 <WrapPanel>
                                     <Button x:Name="ConnectClaude" Content="{DynamicResource Set_AiClaude}" Command="{Binding CopyClaudeCommand}" IsEnabled="{Binding CanConnectAi}" AutomationProperties.AutomationId="ConnectClaude" Margin="0,0,8,0"/>
                                     <Button Content="{DynamicResource Set_AiPrompt}" Command="{Binding CopyAiPromptCommand}" CommandParameter="claude-code" IsEnabled="{Binding CanConnectAi}"/>
@@ -255,16 +249,16 @@
             </ds:AppCard>
             <!-- Storage -->
             <TextBlock Classes="SectionTitle" Text="{DynamicResource Set_Storage}" />
-            <ds:AppCard Classes="Card" Padding="16,12" Margin="0,0,0,4">
+            <ds:AppCard Classes="Card FormRow" Padding="16,12" Margin="0,0,0,4">
 <DockPanel>
 <StackPanel DockPanel.Dock="Right" VerticalAlignment="Center" Margin="16,0,0,0">
                 <Button Content="{DynamicResource Set_OpenFolder}" Command="{Binding OpenDataFolderCommand}" MinWidth="120" />
             </StackPanel>
 
                     <StackPanel>
-                        <TextBlock Classes="CardTitle" Text="{DynamicResource Set_DataDir}" />
+                        <ux:AppFormHeader Title="{DynamicResource Set_DataDir}" HelpText="{DynamicResource Set_DataDirDesc}"/>
                         <TextBlock Classes="Body" Text="{Binding DataDirectory}" Margin="0,2,0,2" />
-                        <ux:AppHelp HelpText="{DynamicResource Set_DataDirDesc}" DockPanel.Dock="Right" Margin="8,0,0,0"/>
+                        
                     </StackPanel>
                 
 </DockPanel>

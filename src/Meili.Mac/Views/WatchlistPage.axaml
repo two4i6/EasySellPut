@@ -9,7 +9,7 @@
              x:DataType="vm:WatchlistViewModel">
     <DockPanel>
         <StackPanel DockPanel.Dock="Top" Margin="32,24,32,12">
-            <DockPanel LastChildFill="True" Margin="0,0,0,8"><ux:AppHelp HelpText="{DynamicResource Wl_Desc}" DockPanel.Dock="Right" Margin="12,0,0,0"/><TextBlock Classes="PageTitle" Text="{DynamicResource Wl_Title}" /></DockPanel>
+            <ux:AppFormHeader Title="{DynamicResource Wl_Title}" HelpText="{DynamicResource Wl_Desc}" IsPageTitle="True" Margin="0,0,0,12"/>
 
             <!-- Groups -->
             <DockPanel Margin="0,0,0,12" LastChildFill="False">

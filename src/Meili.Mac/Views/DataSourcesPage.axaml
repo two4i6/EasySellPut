@@ -10,7 +10,7 @@
              x:DataType="vm:DataSourcesViewModel">
     <ScrollViewer Classes="PageScroller">
         <StackPanel MaxWidth="1200">
-            <DockPanel LastChildFill="True" Margin="0,0,0,8"><ux:AppHelp HelpText="{DynamicResource Ds_Desc}" DockPanel.Dock="Right" Margin="12,0,0,0"/><TextBlock Classes="PageTitle" Text="{DynamicResource Ds_Title}" /></DockPanel>
+            <ux:AppFormHeader Title="{DynamicResource Ds_Title}" HelpText="{DynamicResource Ds_Desc}" IsPageTitle="True" Margin="0,0,0,12"/>
 
             <DockPanel LastChildFill="False" Margin="0,0,0,12">
                 <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center">

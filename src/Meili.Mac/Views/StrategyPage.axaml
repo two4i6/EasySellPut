@@ -19,7 +19,7 @@
     </UserControl.Styles>
     <Grid RowDefinitions="Auto,*">
         <StackPanel x:Name="HeaderPanel" Grid.Row="0" Margin="32,16,32,4">
-            <DockPanel LastChildFill="True"><ux:AppHelp HelpText="{DynamicResource St_Hint}" DockPanel.Dock="Right" Margin="12,0,0,0"/><TextBlock Classes="PageTitle" Text="{DynamicResource St_Title}" /></DockPanel>
+            <ux:AppFormHeader Title="{DynamicResource St_Title}" HelpText="{DynamicResource St_Hint}" IsPageTitle="True" Margin="0,0,0,4"/>
             <DockPanel Margin="0,0,0,8">
                 <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding RefreshCommand}" Content="{DynamicResource St_Refresh}"  IsEnabled="{Binding !IsBusy}"/>
                 <Button DockPanel.Dock="Right" Margin="8,0,0,0" Content="{DynamicResource St_SavedMenu}">

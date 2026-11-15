@@ -30,7 +30,7 @@ class DesignSystemTests(unittest.TestCase):
     def test_components_are_used_by_both_desktops(self):
         for platform,sub,ext in [('App','Views/Pages','xaml'),('Mac','Views','axaml')]:
             root=ROOT/f'src/Meili.{platform}'
-            for component in ['AppCard','AppDialog','AppDrawer','AppLoading','AppSelect']:self.assertTrue((root/f'Views/Controls/{component}.cs').exists())
+            for component in ['AppCard','AppDialog','AppDrawer','AppLoading','AppSelect','AppFormHeader']:self.assertTrue((root/f'Views/Controls/{component}.cs').exists())
             chart=(root/f'{sub}/ChartsPage.{ext}').read_text();self.assertIn('controls:AppDrawer',chart);self.assertIn('IsOpen="{Binding ShowInspector, Mode=TwoWay}"',chart);self.assertIn('controls:AppLoading',chart)
             dashboard=(root/f'{sub}/DashboardPage.{ext}').read_text();self.assertIn('ds:AppCard',dashboard)
         server=(ROOT/'src/Meili.Shared/Services/WebChartSession.cs').read_text();self.assertIn("font-src 'self'",server);self.assertIn('"fonts/SourceSans3-Regular.ttf"',server)

@@ -39,7 +39,7 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
     <DockPanel MinHeight="760" Height="{Binding $parent[ScrollViewer].Bounds.Height}">
         <StackPanel DockPanel.Dock="Top" Margin="32,20,32,8">
-            <DockPanel LastChildFill="True" Margin="0,0,0,8"><ux:AppHelp HelpText="{DynamicResource Op_Desc}" DockPanel.Dock="Right" Margin="12,0,0,0"/><TextBlock Classes="PageTitle" Text="{DynamicResource Op_Title}" /></DockPanel>
+            <ux:AppFormHeader Title="{DynamicResource Op_Title}" HelpText="{DynamicResource Op_Desc}" IsPageTitle="True" Margin="0,0,0,12"/>
             <DockPanel Margin="0,0,0,10">
                 <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding ExportCommand}" Content="{DynamicResource Op_Export}" />
                 <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding RefreshCommand}" Content="{DynamicResource Op_Refresh}"  IsEnabled="{Binding !IsBusy}"/>

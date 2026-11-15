@@ -14,6 +14,7 @@ public sealed class AppHelp : AppPopover
     protected override bool UsesHeaderToolTip=>false;
     public AppHelp()
     {
+        VerticalAlignment=Avalonia.Layout.VerticalAlignment.Center;
         Width=28;Height=28;MinWidth=28;MinHeight=28;PopupWidth=320;
         Content=new LucideIcon{Kind="Help",Width=18,Height=18};
         this[!HeaderProperty]=this.GetResourceObservable("UX_Help").ToBinding();

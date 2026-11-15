@@ -9,7 +9,7 @@
              x:DataType="vm:AlertsViewModel">
     <DockPanel>
         <StackPanel DockPanel.Dock="Top" Margin="32,24,32,12">
-            <DockPanel LastChildFill="True" Margin="0,0,0,8"><ux:AppHelp HelpText="{DynamicResource Mac_AlDesc}" DockPanel.Dock="Right" Margin="12,0,0,0"/><TextBlock Classes="PageTitle" Text="{DynamicResource Nav_Alerts}" /></DockPanel>
+            <ux:AppFormHeader Title="{DynamicResource Nav_Alerts}" HelpText="{DynamicResource Mac_AlDesc}" IsPageTitle="True" Margin="0,0,0,12"/>
 
             <!-- F10: monitoring interrupted -->
             <Border Classes="ErrorBar" IsVisible="{Binding MonitorDown}" Margin="0,0,0,12"

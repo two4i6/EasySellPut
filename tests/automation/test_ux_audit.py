@@ -15,7 +15,8 @@ class UxAuditTests(unittest.TestCase):
             options=(base/f'OptionsPage.{ext}').read_text(encoding="utf-8");self.assertIn('OptionControlsPopover',options)
             for kind in ['LC','SC','LP','SP']:self.assertIn('CommandParameter="'+kind+'"',options)
             alerts=(base/f'AlertsPage.{ext}').read_text(encoding="utf-8");self.assertIn('AdvancedExpanded, Mode=TwoWay',alerts);self.assertIn('UX_RunningOnly',alerts)
-            for page in ['Watchlist','Options','News','Alerts','DataSources']:self.assertIn('ux:AppHelp',(base/f'{page}Page.{ext}').read_text(encoding="utf-8"))
+            for page in ['Watchlist','Options','News','Alerts','DataSources']:self.assertIn('ux:AppFormHeader',(base/f'{page}Page.{ext}').read_text(encoding="utf-8"))
+            self.assertIn('AppHelp',(ROOT/f'src/Meili.{platform}/Views/Controls/AppFormHeader.cs').read_text())
             watch=(base/f'WatchlistPage.{ext}').read_text(encoding="utf-8");self.assertIn('OnGroupDraftKeyDown',watch);self.assertIn('HasSelectedRow',watch)
     def test_primary_variants_and_motion_assets_cannot_regress(self):
         for path in (ROOT/'src/Meili.Mac/Views').rglob('*.axaml'):

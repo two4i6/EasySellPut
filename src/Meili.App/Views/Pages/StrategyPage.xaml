@@ -64,7 +64,7 @@
             <RowDefinition Height="*" MinHeight="220" />
         </Grid.RowDefinitions>
         <StackPanel x:Name="HeaderPanel" Grid.Row="0" Margin="32,16,32,4">
-            <DockPanel LastChildFill="True"><ux:AppHelp HelpText="{DynamicResource St_Hint}" DockPanel.Dock="Right" Margin="12,0,0,0"/><TextBlock Style="{StaticResource PageTitle}" Text="{DynamicResource St_Title}" /></DockPanel>
+            <ux:AppFormHeader Title="{DynamicResource St_Title}" HelpText="{DynamicResource St_Hint}" IsPageTitle="True" Margin="0,0,0,4"/>
             <!-- Toolbar: symbol, expiration, template, quantity, refresh; saved strategies in an overflow. -->
             <DockPanel Margin="0,0,0,8" LastChildFill="True">
                 <ui:Button DockPanel.Dock="Right" Appearance="Secondary" Padding="12,6" Margin="8,0,0,0" Command="{Binding RefreshCommand}" IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}">

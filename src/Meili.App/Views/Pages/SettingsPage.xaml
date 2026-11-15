@@ -36,10 +36,10 @@
             <ds:AppCard Margin="0,0,0,4" Icon="{lucide:Lucide Language}">
                 <ds:AppCard.Header>
                     <StackPanel>
-                        <DockPanel LastChildFill="True"><ux:AppHelp HelpText="{DynamicResource Set_LanguageDesc}" DockPanel.Dock="Right" Margin="8,0,0,0"/><TextBlock Style="{StaticResource CardTitle}" Text="{DynamicResource Set_Language}" /></DockPanel>
+                        <ux:AppFormHeader Title="{DynamicResource Set_Language}" HelpText="{DynamicResource Set_LanguageDesc}"/>
                     </StackPanel>
                 </ds:AppCard.Header>
-                <ds:AppSelect MinWidth="200" SelectedIndex="{Binding LanguageIndex}">
+                <ds:AppSelect Width="{StaticResource FormFieldWidth}" SelectedIndex="{Binding LanguageIndex}">
                     <ComboBoxItem Content="简体中文" />
                     <ComboBoxItem Content="English" />
                 </ds:AppSelect>
@@ -47,10 +47,10 @@
             <ds:AppCard Margin="0,0,0,4" Icon="{lucide:Lucide Theme}">
                 <ds:AppCard.Header>
                     <StackPanel>
-                        <DockPanel LastChildFill="True"><ux:AppHelp HelpText="{DynamicResource Set_ThemeDesc}" DockPanel.Dock="Right" Margin="8,0,0,0"/><TextBlock Style="{StaticResource CardTitle}" Text="{DynamicResource Set_Theme}" /></DockPanel>
+                        <ux:AppFormHeader Title="{DynamicResource Set_Theme}" HelpText="{DynamicResource Set_ThemeDesc}"/>
                     </StackPanel>
                 </ds:AppCard.Header>
-                <ds:AppSelect MinWidth="200" SelectedIndex="{Binding ThemeIndex}">
+                <ds:AppSelect Width="{StaticResource FormFieldWidth}" SelectedIndex="{Binding ThemeIndex}">
                     <ComboBoxItem Content="{DynamicResource Set_ThemeSystem}" />
                     <ComboBoxItem Content="{DynamicResource Set_ThemeLight}" />
                     <ComboBoxItem Content="{DynamicResource Set_ThemeDark}" />
@@ -59,10 +59,10 @@
             <ds:AppCard Margin="0,0,0,4" Icon="{lucide:Lucide ArrowUpDown}">
                 <ds:AppCard.Header>
                     <StackPanel>
-                        <DockPanel LastChildFill="True"><ux:AppHelp HelpText="{DynamicResource Set_UpDownDesc}" DockPanel.Dock="Right" Margin="8,0,0,0"/><TextBlock Style="{StaticResource CardTitle}" Text="{DynamicResource Set_UpDown}" /></DockPanel>
+                        <ux:AppFormHeader Title="{DynamicResource Set_UpDown}" HelpText="{DynamicResource Set_UpDownDesc}"/>
                     </StackPanel>
                 </ds:AppCard.Header>
-                <ds:AppSelect MinWidth="200" SelectedIndex="{Binding UpDownIndex}">
+                <ds:AppSelect Width="{StaticResource FormFieldWidth}" SelectedIndex="{Binding UpDownIndex}">
                     <ComboBoxItem Content="{DynamicResource Set_RedUp}" />
                     <ComboBoxItem Content="{DynamicResource Set_GreenUp}" />
                 </ds:AppSelect>
@@ -73,10 +73,10 @@
             <ds:AppCard Margin="0,0,0,4" Icon="{lucide:Lucide Globe}">
                 <ds:AppCard.Header>
                     <StackPanel>
-                        <DockPanel LastChildFill="True"><ux:AppHelp HelpText="{DynamicResource Set_ProxyModeDesc}" DockPanel.Dock="Right" Margin="8,0,0,0"/><TextBlock Style="{StaticResource CardTitle}" Text="{DynamicResource Set_ProxyMode}" /></DockPanel>
+                        <ux:AppFormHeader Title="{DynamicResource Set_ProxyMode}" HelpText="{DynamicResource Set_ProxyModeDesc}"/>
                     </StackPanel>
                 </ds:AppCard.Header>
-                <ds:AppSelect MinWidth="240" SelectedIndex="{Binding ProxyModeIndex}">
+                <ds:AppSelect Width="{StaticResource FormFieldWidth}" SelectedIndex="{Binding ProxyModeIndex}">
                     <ComboBoxItem Content="{DynamicResource Set_ProxyAuto}" />
                     <ComboBoxItem Content="{DynamicResource Set_ProxySystem}" />
                     <ComboBoxItem Content="{DynamicResource Set_ProxyManual}" />
@@ -86,10 +86,10 @@
             <ds:AppCard Margin="0,0,0,4" Icon="{lucide:Lucide Router}" IsEnabled="{Binding IsManualProxy}">
                 <ds:AppCard.Header>
                     <StackPanel>
-                        <DockPanel LastChildFill="True"><ux:AppHelp HelpText="{DynamicResource Set_ManualProxyDesc}" DockPanel.Dock="Right" Margin="8,0,0,0"/><TextBlock Style="{StaticResource CardTitle}" Text="{DynamicResource Set_ManualProxy}" /></DockPanel>
+                        <ux:AppFormHeader Title="{DynamicResource Set_ManualProxy}" HelpText="{DynamicResource Set_ManualProxyDesc}"/>
                     </StackPanel>
                 </ds:AppCard.Header>
-                <ui:TextBox MinWidth="260" PlaceholderText="http://127.0.0.1:7890" Text="{Binding ManualProxy, UpdateSourceTrigger=PropertyChanged}" />
+                <ui:TextBox Width="{StaticResource FormFieldWidth}" PlaceholderText="http://127.0.0.1:7890" Text="{Binding ManualProxy, UpdateSourceTrigger=PropertyChanged}" />
             </ds:AppCard>
             <ds:AppCard Margin="0,0,0,4" Icon="{lucide:Lucide DataSources}">
                 <ds:AppCard.Header>
@@ -105,10 +105,10 @@
             <ds:AppCard Margin="0,0,0,4" Icon="{lucide:Lucide Close}">
                 <ds:AppCard.Header>
                     <StackPanel>
-                        <DockPanel LastChildFill="True"><ux:AppHelp HelpText="{DynamicResource Set_CloseActionDesc}" DockPanel.Dock="Right" Margin="8,0,0,0"/><TextBlock Style="{StaticResource CardTitle}" Text="{DynamicResource Set_CloseAction}" /></DockPanel>
+                        <ux:AppFormHeader Title="{DynamicResource Set_CloseAction}" HelpText="{DynamicResource Set_CloseActionDesc}"/>
                     </StackPanel>
                 </ds:AppCard.Header>
-                <ds:AppSelect MinWidth="220" SelectedIndex="{Binding CloseActionIndex}" AutomationProperties.AutomationId="SettingsCloseAction">
+                <ds:AppSelect Width="{StaticResource FormFieldWidth}" SelectedIndex="{Binding CloseActionIndex}" AutomationProperties.AutomationId="SettingsCloseAction">
                     <ComboBoxItem Content="{DynamicResource Set_CloseAsk}" />
                     <ComboBoxItem Content="{DynamicResource Close_ToTray}" />
                     <ComboBoxItem Content="{DynamicResource Close_Exit}" />
@@ -120,7 +120,7 @@
             <ds:AppCard Margin="0,0,0,4" Icon="{lucide:Lucide Keyboard}">
                 <ds:AppCard.Header>
                     <StackPanel>
-                        <DockPanel LastChildFill="True"><ux:AppHelp HelpText="{DynamicResource Set_ShortcutsDesc}" DockPanel.Dock="Right" Margin="8,0,0,0"/><TextBlock Style="{StaticResource CardTitle}" Text="{DynamicResource Set_ShortcutsTitle}" /></DockPanel>
+                        <ux:AppFormHeader Title="{DynamicResource Set_ShortcutsTitle}" HelpText="{DynamicResource Set_ShortcutsDesc}"/>
                     </StackPanel>
                 </ds:AppCard.Header>
             </ds:AppCard>
@@ -130,22 +130,23 @@
             <ds:AppCard Margin="0,0,0,4" Icon="{lucide:Lucide TrendUp}">
                 <ds:AppCard.Header>
                     <StackPanel>
-                        <DockPanel LastChildFill="True"><ux:AppHelp HelpText="{DynamicResource Set_RateModeDesc}" DockPanel.Dock="Right" Margin="8,0,0,0"/><TextBlock Style="{StaticResource CardTitle}" Text="{DynamicResource Set_RateMode}" /></DockPanel>
+                        <ux:AppFormHeader Title="{DynamicResource Set_RateMode}" HelpText="{DynamicResource Set_RateModeDesc}"/>
                     </StackPanel>
                 </ds:AppCard.Header>
-                <ds:AppSelect MinWidth="240" SelectedIndex="{Binding RateModeIndex}" AutomationProperties.AutomationId="SettingsRateMode">
+                <ds:AppSelect Width="{StaticResource FormFieldWidth}" SelectedIndex="{Binding RateModeIndex}" AutomationProperties.AutomationId="SettingsRateMode">
                     <ComboBoxItem Content="{DynamicResource Set_RateTreasury}" />
                     <ComboBoxItem Content="{DynamicResource Set_RateFixedItem}" />
                 </ds:AppSelect>
             </ds:AppCard>
-            <ds:AppCard Margin="0,0,0,4" Icon="{lucide:Lucide Hash}">
-                <ds:AppCard.Header>
-                    <StackPanel>
-                        <DockPanel LastChildFill="True"><ux:AppHelp HelpText="{DynamicResource Set_FixedRateDesc}" DockPanel.Dock="Right" Margin="8,0,0,0"/><TextBlock Style="{StaticResource CardTitle}" Text="{DynamicResource Set_FixedRate}" /></DockPanel>
-                        <TextBlock Style="{StaticResource Caption}" Text="{Binding FixedRateError}" Foreground="{DynamicResource SystemFillColorCriticalBrush}" />
-                    </StackPanel>
-                </ds:AppCard.Header>
-                <ui:TextBox MinWidth="120" Text="{Binding FixedRateText, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.AutomationId="SettingsFixedRate" />
+            <ds:AppCard Margin="0,0,0,4">
+                <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                    <lucide:LucideIcon Kind="Hash" Width="20" Height="20" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                    <ux:AppFormHeader Grid.Column="1" Title="{DynamicResource Set_FixedRate}" HelpText="{DynamicResource Set_FixedRateDesc}" Margin="0,0,20,0"/>
+                    <ui:TextBox Grid.Column="2" Width="{StaticResource FormFieldWidth}" Text="{Binding FixedRateText, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.AutomationId="SettingsFixedRate"/>
+                    <TextBlock Grid.Row="1" Grid.Column="2" Style="{StaticResource Caption}" Text="{Binding FixedRateError}" TextWrapping="Wrap" MaxWidth="{StaticResource FormFieldWidth}" Foreground="{DynamicResource SystemFillColorCriticalBrush}" Visibility="{Binding FixedRateError, Converter={StaticResource NonEmptyToVis}}"/>
+                </Grid>
             </ds:AppCard>
 
             <TextBlock Style="{StaticResource SectionTitle}" Text="{DynamicResource Set_AiTitle}" />
@@ -162,7 +163,7 @@
                     <WrapPanel>
                         <Border Width="280" Padding="12" Margin="0,0,12,8" CornerRadius="6" BorderThickness="1" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" Background="{DynamicResource ControlFillColorSecondaryBrush}">
                             <StackPanel>
-                                <DockPanel Margin="0,0,0,12"><Button DockPanel.Dock="Right" Content="{lucide:Lucide Help}" Padding="0" Width="24" Height="24" MinWidth="24" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Command="{Binding OpenAiHelpCommand}" CommandParameter="codex" AutomationProperties.Name="{DynamicResource Set_AiHelp}" ToolTip="{DynamicResource Set_AiHelp}" Margin="8,0,0,0"/><TextBlock DockPanel.Dock="Right" Style="{StaticResource Caption}" Text="{Binding CodexAvailability}" VerticalAlignment="Center"/><TextBlock Style="{StaticResource CardTitle}" FontSize="16" Text="Codex"/></DockPanel>
+                                <DockPanel Margin="0,0,0,12"><Button DockPanel.Dock="Right" Content="{lucide:Lucide Help}" Padding="0" Width="24" Height="24" MinWidth="24" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Command="{Binding OpenAiHelpCommand}" CommandParameter="codex" AutomationProperties.Name="{DynamicResource Set_AiHelp}" ToolTip="{DynamicResource Set_AiHelp}" Margin="8,0,0,0"/><TextBlock DockPanel.Dock="Right" Style="{StaticResource Caption}" Text="{Binding CodexAvailability}" VerticalAlignment="Center"/><TextBlock Style="{StaticResource CardTitle}" FontSize="16" Text="Codex" VerticalAlignment="Center"/></DockPanel>
                                 <WrapPanel>
                                     <Button x:Name="ConnectCodex" Content="{DynamicResource Set_AiCodex}" Command="{Binding CopyCodexCommand}" IsEnabled="{Binding CanConnectAi}" AutomationProperties.AutomationId="ConnectCodex" Margin="0,0,8,0"/>
                                     <Button Content="{DynamicResource Set_AiPrompt}" Command="{Binding CopyAiPromptCommand}" CommandParameter="codex" IsEnabled="{Binding CanConnectAi}"/>
@@ -171,7 +172,7 @@
                         </Border>
                         <Border Width="280" Padding="12" Margin="0,0,12,8" CornerRadius="6" BorderThickness="1" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" Background="{DynamicResource ControlFillColorSecondaryBrush}">
                             <StackPanel>
-                                <DockPanel Margin="0,0,0,12"><Button DockPanel.Dock="Right" Content="{lucide:Lucide Help}" Padding="0" Width="24" Height="24" MinWidth="24" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Command="{Binding OpenAiHelpCommand}" CommandParameter="claude-code" AutomationProperties.Name="{DynamicResource Set_AiHelp}" ToolTip="{DynamicResource Set_AiHelp}" Margin="8,0,0,0"/><TextBlock DockPanel.Dock="Right" Style="{StaticResource Caption}" Text="{Binding ClaudeAvailability}" VerticalAlignment="Center"/><TextBlock Style="{StaticResource CardTitle}" FontSize="16" Text="Claude Code"/></DockPanel>
+                                <DockPanel Margin="0,0,0,12"><Button DockPanel.Dock="Right" Content="{lucide:Lucide Help}" Padding="0" Width="24" Height="24" MinWidth="24" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Command="{Binding OpenAiHelpCommand}" CommandParameter="claude-code" AutomationProperties.Name="{DynamicResource Set_AiHelp}" ToolTip="{DynamicResource Set_AiHelp}" Margin="8,0,0,0"/><TextBlock DockPanel.Dock="Right" Style="{StaticResource Caption}" Text="{Binding ClaudeAvailability}" VerticalAlignment="Center"/><TextBlock Style="{StaticResource CardTitle}" FontSize="16" Text="Claude Code" VerticalAlignment="Center"/></DockPanel>
                                 <WrapPanel>
                                     <Button x:Name="ConnectClaude" Content="{DynamicResource Set_AiClaude}" Command="{Binding CopyClaudeCommand}" IsEnabled="{Binding CanConnectAi}" AutomationProperties.AutomationId="ConnectClaude" Margin="0,0,8,0"/>
                                     <Button Content="{DynamicResource Set_AiPrompt}" Command="{Binding CopyAiPromptCommand}" CommandParameter="claude-code" IsEnabled="{Binding CanConnectAi}"/>
@@ -200,9 +201,9 @@
             <ds:AppCard Margin="0,0,0,4" Icon="{lucide:Lucide Folder}">
                 <ds:AppCard.Header>
                     <StackPanel>
-                        <TextBlock Style="{StaticResource CardTitle}" Text="{DynamicResource Set_DataDir}" />
+                        <ux:AppFormHeader Title="{DynamicResource Set_DataDir}" HelpText="{DynamicResource Set_DataDirDesc}"/>
                         <TextBlock Style="{StaticResource Body}" Text="{Binding DataDirectory}" Margin="0,2,0,2" />
-                        <ux:AppHelp HelpText="{DynamicResource Set_DataDirDesc}" DockPanel.Dock="Right" Margin="8,0,0,0"/>
+                        
                     </StackPanel>
                 </ds:AppCard.Header>
                 <ui:Button Content="{DynamicResource Set_OpenFolder}" Command="{Binding OpenDataFolderCommand}" MinWidth="120" />

@@ -50,7 +50,7 @@
     </UserControl.Styles>
     <DockPanel>
         <StackPanel DockPanel.Dock="Top" Margin="32,20,32,8">
-            <DockPanel LastChildFill="True" Margin="0,0,0,8"><ux:AppHelp HelpText="{DynamicResource Nf_Desc}" DockPanel.Dock="Right" Margin="12,0,0,0"/><TextBlock Classes="PageTitle" Text="{DynamicResource Nf_Title}" /></DockPanel>
+            <ux:AppFormHeader Title="{DynamicResource Nf_Title}" HelpText="{DynamicResource Nf_Desc}" IsPageTitle="True" Margin="0,0,0,12"/>
             <DockPanel Margin="0,0,0,10">
                 <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding ExportCommand}" Content="{DynamicResource Nf_Export}" />
                 <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding RefreshCommand}" Content="{DynamicResource Nf_Refresh}"  IsEnabled="{Binding !IsBusy}"/>

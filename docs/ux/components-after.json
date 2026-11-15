@@ -999,51 +999,18 @@
     {
       "platform": "App",
       "page": "Watchlist",
-      "type": "DockPanel",
+      "type": "AppFormHeader",
       "name": null,
       "attributes": {
-        "LastChildFill": "True",
-        "Margin": "0,0,0,8"
+        "Title": "{DynamicResource Wl_Title}",
+        "HelpText": "{DynamicResource Wl_Desc}",
+        "IsPageTitle": "True",
+        "Margin": "0,0,0,12"
       },
       "composition": [
         "Page",
         "DockPanel",
         "StackPanel"
-      ],
-      "source": "src/Meili.App/Views/Pages/WatchlistPage.xaml"
-    },
-    {
-      "platform": "App",
-      "page": "Watchlist",
-      "type": "AppHelp",
-      "name": null,
-      "attributes": {
-        "HelpText": "{DynamicResource Wl_Desc}",
-        "DockPanel.Dock": "Right",
-        "Margin": "12,0,0,0"
-      },
-      "composition": [
-        "Page",
-        "DockPanel",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.App/Views/Pages/WatchlistPage.xaml"
-    },
-    {
-      "platform": "App",
-      "page": "Watchlist",
-      "type": "TextBlock",
-      "name": null,
-      "attributes": {
-        "Style": "{StaticResource PageTitle}",
-        "Text": "{DynamicResource Wl_Title}"
-      },
-      "composition": [
-        "Page",
-        "DockPanel",
-        "StackPanel",
-        "DockPanel"
       ],
       "source": "src/Meili.App/Views/Pages/WatchlistPage.xaml"
     },
@@ -6058,54 +6025,19 @@
     {
       "platform": "App",
       "page": "Options",
-      "type": "DockPanel",
+      "type": "AppFormHeader",
       "name": null,
       "attributes": {
-        "LastChildFill": "True",
-        "Margin": "0,0,0,8"
+        "Title": "{DynamicResource Op_Title}",
+        "HelpText": "{DynamicResource Op_Desc}",
+        "IsPageTitle": "True",
+        "Margin": "0,0,0,12"
       },
       "composition": [
         "Page",
         "ScrollViewer",
         "DockPanel",
         "StackPanel"
-      ],
-      "source": "src/Meili.App/Views/Pages/OptionsPage.xaml"
-    },
-    {
-      "platform": "App",
-      "page": "Options",
-      "type": "AppHelp",
-      "name": null,
-      "attributes": {
-        "HelpText": "{DynamicResource Op_Desc}",
-        "DockPanel.Dock": "Right",
-        "Margin": "12,0,0,0"
-      },
-      "composition": [
-        "Page",
-        "ScrollViewer",
-        "DockPanel",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.App/Views/Pages/OptionsPage.xaml"
-    },
-    {
-      "platform": "App",
-      "page": "Options",
-      "type": "TextBlock",
-      "name": null,
-      "attributes": {
-        "Style": "{StaticResource PageTitle}",
-        "Text": "{DynamicResource Op_Title}"
-      },
-      "composition": [
-        "Page",
-        "ScrollViewer",
-        "DockPanel",
-        "StackPanel",
-        "DockPanel"
       ],
       "source": "src/Meili.App/Views/Pages/OptionsPage.xaml"
     },
@@ -7606,50 +7538,18 @@
     {
       "platform": "App",
       "page": "Strategy",
-      "type": "DockPanel",
+      "type": "AppFormHeader",
       "name": null,
       "attributes": {
-        "LastChildFill": "True"
+        "Title": "{DynamicResource St_Title}",
+        "HelpText": "{DynamicResource St_Hint}",
+        "IsPageTitle": "True",
+        "Margin": "0,0,0,4"
       },
       "composition": [
         "Page",
         "Grid",
         "StackPanel"
-      ],
-      "source": "src/Meili.App/Views/Pages/StrategyPage.xaml"
-    },
-    {
-      "platform": "App",
-      "page": "Strategy",
-      "type": "AppHelp",
-      "name": null,
-      "attributes": {
-        "HelpText": "{DynamicResource St_Hint}",
-        "DockPanel.Dock": "Right",
-        "Margin": "12,0,0,0"
-      },
-      "composition": [
-        "Page",
-        "Grid",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.App/Views/Pages/StrategyPage.xaml"
-    },
-    {
-      "platform": "App",
-      "page": "Strategy",
-      "type": "TextBlock",
-      "name": null,
-      "attributes": {
-        "Style": "{StaticResource PageTitle}",
-        "Text": "{DynamicResource St_Title}"
-      },
-      "composition": [
-        "Page",
-        "Grid",
-        "StackPanel",
-        "DockPanel"
       ],
       "source": "src/Meili.App/Views/Pages/StrategyPage.xaml"
     },
@@ -11049,51 +10949,18 @@
     {
       "platform": "App",
       "page": "News",
-      "type": "DockPanel",
+      "type": "AppFormHeader",
       "name": null,
       "attributes": {
-        "LastChildFill": "True",
-        "Margin": "0,0,0,8"
+        "Title": "{DynamicResource Nf_Title}",
+        "HelpText": "{DynamicResource Nf_Desc}",
+        "IsPageTitle": "True",
+        "Margin": "0,0,0,12"
       },
       "composition": [
         "Page",
         "DockPanel",
         "StackPanel"
-      ],
-      "source": "src/Meili.App/Views/Pages/NewsPage.xaml"
-    },
-    {
-      "platform": "App",
-      "page": "News",
-      "type": "AppHelp",
-      "name": null,
-      "attributes": {
-        "HelpText": "{DynamicResource Nf_Desc}",
-        "DockPanel.Dock": "Right",
-        "Margin": "12,0,0,0"
-      },
-      "composition": [
-        "Page",
-        "DockPanel",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.App/Views/Pages/NewsPage.xaml"
-    },
-    {
-      "platform": "App",
-      "page": "News",
-      "type": "TextBlock",
-      "name": null,
-      "attributes": {
-        "Style": "{StaticResource PageTitle}",
-        "Text": "{DynamicResource Nf_Title}"
-      },
-      "composition": [
-        "Page",
-        "DockPanel",
-        "StackPanel",
-        "DockPanel"
       ],
       "source": "src/Meili.App/Views/Pages/NewsPage.xaml"
     },
@@ -12403,51 +12270,18 @@
     {
       "platform": "App",
       "page": "Alerts",
-      "type": "DockPanel",
+      "type": "AppFormHeader",
       "name": null,
       "attributes": {
-        "LastChildFill": "True",
-        "Margin": "0,0,0,8"
+        "Title": "{DynamicResource Nav_Alerts}",
+        "HelpText": "{DynamicResource Al_Desc}",
+        "IsPageTitle": "True",
+        "Margin": "0,0,0,12"
       },
       "composition": [
         "Page",
         "DockPanel",
         "StackPanel"
-      ],
-      "source": "src/Meili.App/Views/Pages/AlertsPage.xaml"
-    },
-    {
-      "platform": "App",
-      "page": "Alerts",
-      "type": "AppHelp",
-      "name": null,
-      "attributes": {
-        "HelpText": "{DynamicResource Al_Desc}",
-        "DockPanel.Dock": "Right",
-        "Margin": "12,0,0,0"
-      },
-      "composition": [
-        "Page",
-        "DockPanel",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.App/Views/Pages/AlertsPage.xaml"
-    },
-    {
-      "platform": "App",
-      "page": "Alerts",
-      "type": "TextBlock",
-      "name": null,
-      "attributes": {
-        "Style": "{StaticResource PageTitle}",
-        "Text": "{DynamicResource Nav_Alerts}"
-      },
-      "composition": [
-        "Page",
-        "DockPanel",
-        "StackPanel",
-        "DockPanel"
       ],
       "source": "src/Meili.App/Views/Pages/AlertsPage.xaml"
     },
@@ -14002,51 +13836,18 @@
     {
       "platform": "App",
       "page": "DataSources",
-      "type": "DockPanel",
+      "type": "AppFormHeader",
       "name": null,
       "attributes": {
-        "LastChildFill": "True",
-        "Margin": "0,0,0,8"
+        "Title": "{DynamicResource Ds_Title}",
+        "HelpText": "{DynamicResource Ds_Desc}",
+        "IsPageTitle": "True",
+        "Margin": "0,0,0,12"
       },
       "composition": [
         "Page",
         "ScrollViewer",
         "StackPanel"
-      ],
-      "source": "src/Meili.App/Views/Pages/DataSourcesPage.xaml"
-    },
-    {
-      "platform": "App",
-      "page": "DataSources",
-      "type": "AppHelp",
-      "name": null,
-      "attributes": {
-        "HelpText": "{DynamicResource Ds_Desc}",
-        "DockPanel.Dock": "Right",
-        "Margin": "12,0,0,0"
-      },
-      "composition": [
-        "Page",
-        "ScrollViewer",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.App/Views/Pages/DataSourcesPage.xaml"
-    },
-    {
-      "platform": "App",
-      "page": "DataSources",
-      "type": "TextBlock",
-      "name": null,
-      "attributes": {
-        "Style": "{StaticResource PageTitle}",
-        "Text": "{DynamicResource Ds_Title}"
-      },
-      "composition": [
-        "Page",
-        "ScrollViewer",
-        "StackPanel",
-        "DockPanel"
       ],
       "source": "src/Meili.App/Views/Pages/DataSourcesPage.xaml"
     },
@@ -15748,10 +15549,11 @@
     {
       "platform": "App",
       "page": "Settings",
-      "type": "DockPanel",
+      "type": "AppFormHeader",
       "name": null,
       "attributes": {
-        "LastChildFill": "True"
+        "Title": "{DynamicResource Set_Language}",
+        "HelpText": "{DynamicResource Set_LanguageDesc}"
       },
       "composition": [
         "Page",
@@ -15766,51 +15568,10 @@
     {
       "platform": "App",
       "page": "Settings",
-      "type": "AppHelp",
-      "name": null,
-      "attributes": {
-        "HelpText": "{DynamicResource Set_LanguageDesc}",
-        "DockPanel.Dock": "Right",
-        "Margin": "8,0,0,0"
-      },
-      "composition": [
-        "Page",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "AppCard.Header",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.App/Views/Pages/SettingsPage.xaml"
-    },
-    {
-      "platform": "App",
-      "page": "Settings",
-      "type": "TextBlock",
-      "name": null,
-      "attributes": {
-        "Style": "{StaticResource CardTitle}",
-        "Text": "{DynamicResource Set_Language}"
-      },
-      "composition": [
-        "Page",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "AppCard.Header",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.App/Views/Pages/SettingsPage.xaml"
-    },
-    {
-      "platform": "App",
-      "page": "Settings",
       "type": "AppSelect",
       "name": null,
       "attributes": {
-        "MinWidth": "200",
+        "Width": "{StaticResource FormFieldWidth}",
         "SelectedIndex": "{Binding LanguageIndex}"
       },
       "composition": [
@@ -15903,10 +15664,11 @@
     {
       "platform": "App",
       "page": "Settings",
-      "type": "DockPanel",
+      "type": "AppFormHeader",
       "name": null,
       "attributes": {
-        "LastChildFill": "True"
+        "Title": "{DynamicResource Set_Theme}",
+        "HelpText": "{DynamicResource Set_ThemeDesc}"
       },
       "composition": [
         "Page",
@@ -15921,51 +15683,10 @@
     {
       "platform": "App",
       "page": "Settings",
-      "type": "AppHelp",
-      "name": null,
-      "attributes": {
-        "HelpText": "{DynamicResource Set_ThemeDesc}",
-        "DockPanel.Dock": "Right",
-        "Margin": "8,0,0,0"
-      },
-      "composition": [
-        "Page",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "AppCard.Header",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.App/Views/Pages/SettingsPage.xaml"
-    },
-    {
-      "platform": "App",
-      "page": "Settings",
-      "type": "TextBlock",
-      "name": null,
-      "attributes": {
-        "Style": "{StaticResource CardTitle}",
-        "Text": "{DynamicResource Set_Theme}"
-      },
-      "composition": [
-        "Page",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "AppCard.Header",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.App/Views/Pages/SettingsPage.xaml"
-    },
-    {
-      "platform": "App",
-      "page": "Settings",
       "type": "AppSelect",
       "name": null,
       "attributes": {
-        "MinWidth": "200",
+        "Width": "{StaticResource FormFieldWidth}",
         "SelectedIndex": "{Binding ThemeIndex}"
       },
       "composition": [
@@ -16075,10 +15796,11 @@
     {
       "platform": "App",
       "page": "Settings",
-      "type": "DockPanel",
+      "type": "AppFormHeader",
       "name": null,
       "attributes": {
-        "LastChildFill": "True"
+        "Title": "{DynamicResource Set_UpDown}",
+        "HelpText": "{DynamicResource Set_UpDownDesc}"
       },
       "composition": [
         "Page",
@@ -16093,51 +15815,10 @@
     {
       "platform": "App",
       "page": "Settings",
-      "type": "AppHelp",
-      "name": null,
-      "attributes": {
-        "HelpText": "{DynamicResource Set_UpDownDesc}",
-        "DockPanel.Dock": "Right",
-        "Margin": "8,0,0,0"
-      },
-      "composition": [
-        "Page",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "AppCard.Header",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.App/Views/Pages/SettingsPage.xaml"
-    },
-    {
-      "platform": "App",
-      "page": "Settings",
-      "type": "TextBlock",
-      "name": null,
-      "attributes": {
-        "Style": "{StaticResource CardTitle}",
-        "Text": "{DynamicResource Set_UpDown}"
-      },
-      "composition": [
-        "Page",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "AppCard.Header",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.App/Views/Pages/SettingsPage.xaml"
-    },
-    {
-      "platform": "App",
-      "page": "Settings",
       "type": "AppSelect",
       "name": null,
       "attributes": {
-        "MinWidth": "200",
+        "Width": "{StaticResource FormFieldWidth}",
         "SelectedIndex": "{Binding UpDownIndex}"
       },
       "composition": [
@@ -16246,10 +15927,11 @@
     {
       "platform": "App",
       "page": "Settings",
-      "type": "DockPanel",
+      "type": "AppFormHeader",
       "name": null,
       "attributes": {
-        "LastChildFill": "True"
+        "Title": "{DynamicResource Set_ProxyMode}",
+        "HelpText": "{DynamicResource Set_ProxyModeDesc}"
       },
       "composition": [
         "Page",
@@ -16264,51 +15946,10 @@
     {
       "platform": "App",
       "page": "Settings",
-      "type": "AppHelp",
-      "name": null,
-      "attributes": {
-        "HelpText": "{DynamicResource Set_ProxyModeDesc}",
-        "DockPanel.Dock": "Right",
-        "Margin": "8,0,0,0"
-      },
-      "composition": [
-        "Page",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "AppCard.Header",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.App/Views/Pages/SettingsPage.xaml"
-    },
-    {
-      "platform": "App",
-      "page": "Settings",
-      "type": "TextBlock",
-      "name": null,
-      "attributes": {
-        "Style": "{StaticResource CardTitle}",
-        "Text": "{DynamicResource Set_ProxyMode}"
-      },
-      "composition": [
-        "Page",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "AppCard.Header",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.App/Views/Pages/SettingsPage.xaml"
-    },
-    {
-      "platform": "App",
-      "page": "Settings",
       "type": "AppSelect",
       "name": null,
       "attributes": {
-        "MinWidth": "240",
+        "Width": "{StaticResource FormFieldWidth}",
         "SelectedIndex": "{Binding ProxyModeIndex}"
       },
       "composition": [
@@ -16436,10 +16077,11 @@
     {
       "platform": "App",
       "page": "Settings",
-      "type": "DockPanel",
+      "type": "AppFormHeader",
       "name": null,
       "attributes": {
-        "LastChildFill": "True"
+        "Title": "{DynamicResource Set_ManualProxy}",
+        "HelpText": "{DynamicResource Set_ManualProxyDesc}"
       },
       "composition": [
         "Page",
@@ -16454,51 +16096,10 @@
     {
       "platform": "App",
       "page": "Settings",
-      "type": "AppHelp",
-      "name": null,
-      "attributes": {
-        "HelpText": "{DynamicResource Set_ManualProxyDesc}",
-        "DockPanel.Dock": "Right",
-        "Margin": "8,0,0,0"
-      },
-      "composition": [
-        "Page",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "AppCard.Header",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.App/Views/Pages/SettingsPage.xaml"
-    },
-    {
-      "platform": "App",
-      "page": "Settings",
-      "type": "TextBlock",
-      "name": null,
-      "attributes": {
-        "Style": "{StaticResource CardTitle}",
-        "Text": "{DynamicResource Set_ManualProxy}"
-      },
-      "composition": [
-        "Page",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "AppCard.Header",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.App/Views/Pages/SettingsPage.xaml"
-    },
-    {
-      "platform": "App",
-      "page": "Settings",
       "type": "TextBox",
       "name": null,
       "attributes": {
-        "MinWidth": "260",
+        "Width": "{StaticResource FormFieldWidth}",
         "PlaceholderText": "http://127.0.0.1:7890",
         "Text": "{Binding ManualProxy, UpdateSourceTrigger=PropertyChanged}"
       },
@@ -16660,10 +16261,11 @@
     {
       "platform": "App",
       "page": "Settings",
-      "type": "DockPanel",
+      "type": "AppFormHeader",
       "name": null,
       "attributes": {
-        "LastChildFill": "True"
+        "Title": "{DynamicResource Set_CloseAction}",
+        "HelpText": "{DynamicResource Set_CloseActionDesc}"
       },
       "composition": [
         "Page",
@@ -16678,51 +16280,10 @@
     {
       "platform": "App",
       "page": "Settings",
-      "type": "AppHelp",
-      "name": null,
-      "attributes": {
-        "HelpText": "{DynamicResource Set_CloseActionDesc}",
-        "DockPanel.Dock": "Right",
-        "Margin": "8,0,0,0"
-      },
-      "composition": [
-        "Page",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "AppCard.Header",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.App/Views/Pages/SettingsPage.xaml"
-    },
-    {
-      "platform": "App",
-      "page": "Settings",
-      "type": "TextBlock",
-      "name": null,
-      "attributes": {
-        "Style": "{StaticResource CardTitle}",
-        "Text": "{DynamicResource Set_CloseAction}"
-      },
-      "composition": [
-        "Page",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "AppCard.Header",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.App/Views/Pages/SettingsPage.xaml"
-    },
-    {
-      "platform": "App",
-      "page": "Settings",
       "type": "AppSelect",
       "name": null,
       "attributes": {
-        "MinWidth": "220",
+        "Width": "{StaticResource FormFieldWidth}",
         "SelectedIndex": "{Binding CloseActionIndex}",
         "AutomationProperties.AutomationId": "SettingsCloseAction"
       },
@@ -16849,10 +16410,11 @@
     {
       "platform": "App",
       "page": "Settings",
-      "type": "DockPanel",
+      "type": "AppFormHeader",
       "name": null,
       "attributes": {
-        "LastChildFill": "True"
+        "Title": "{DynamicResource Set_ShortcutsTitle}",
+        "HelpText": "{DynamicResource Set_ShortcutsDesc}"
       },
       "composition": [
         "Page",
@@ -16861,47 +16423,6 @@
         "AppCard",
         "AppCard.Header",
         "StackPanel"
-      ],
-      "source": "src/Meili.App/Views/Pages/SettingsPage.xaml"
-    },
-    {
-      "platform": "App",
-      "page": "Settings",
-      "type": "AppHelp",
-      "name": null,
-      "attributes": {
-        "HelpText": "{DynamicResource Set_ShortcutsDesc}",
-        "DockPanel.Dock": "Right",
-        "Margin": "8,0,0,0"
-      },
-      "composition": [
-        "Page",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "AppCard.Header",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.App/Views/Pages/SettingsPage.xaml"
-    },
-    {
-      "platform": "App",
-      "page": "Settings",
-      "type": "TextBlock",
-      "name": null,
-      "attributes": {
-        "Style": "{StaticResource CardTitle}",
-        "Text": "{DynamicResource Set_ShortcutsTitle}"
-      },
-      "composition": [
-        "Page",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "AppCard.Header",
-        "StackPanel",
-        "DockPanel"
       ],
       "source": "src/Meili.App/Views/Pages/SettingsPage.xaml"
     },
@@ -16969,10 +16490,11 @@
     {
       "platform": "App",
       "page": "Settings",
-      "type": "DockPanel",
+      "type": "AppFormHeader",
       "name": null,
       "attributes": {
-        "LastChildFill": "True"
+        "Title": "{DynamicResource Set_RateMode}",
+        "HelpText": "{DynamicResource Set_RateModeDesc}"
       },
       "composition": [
         "Page",
@@ -16987,51 +16509,10 @@
     {
       "platform": "App",
       "page": "Settings",
-      "type": "AppHelp",
-      "name": null,
-      "attributes": {
-        "HelpText": "{DynamicResource Set_RateModeDesc}",
-        "DockPanel.Dock": "Right",
-        "Margin": "8,0,0,0"
-      },
-      "composition": [
-        "Page",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "AppCard.Header",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.App/Views/Pages/SettingsPage.xaml"
-    },
-    {
-      "platform": "App",
-      "page": "Settings",
-      "type": "TextBlock",
-      "name": null,
-      "attributes": {
-        "Style": "{StaticResource CardTitle}",
-        "Text": "{DynamicResource Set_RateMode}"
-      },
-      "composition": [
-        "Page",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "AppCard.Header",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.App/Views/Pages/SettingsPage.xaml"
-    },
-    {
-      "platform": "App",
-      "page": "Settings",
       "type": "AppSelect",
       "name": null,
       "attributes": {
-        "MinWidth": "240",
+        "Width": "{StaticResource FormFieldWidth}",
         "SelectedIndex": "{Binding RateModeIndex}",
         "AutomationProperties.AutomationId": "SettingsRateMode"
       },
@@ -17083,8 +16564,7 @@
       "type": "AppCard",
       "name": null,
       "attributes": {
-        "Margin": "0,0,0,4",
-        "Icon": "{lucide:Lucide Hash}"
+        "Margin": "0,0,0,4"
       },
       "composition": [
         "Page",
@@ -17096,7 +16576,7 @@
     {
       "platform": "App",
       "page": "Settings",
-      "type": "AppCard.Header",
+      "type": "Grid",
       "name": null,
       "attributes": {},
       "composition": [
@@ -17110,94 +16590,41 @@
     {
       "platform": "App",
       "page": "Settings",
-      "type": "StackPanel",
-      "name": null,
-      "attributes": {},
-      "composition": [
-        "Page",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "AppCard.Header"
-      ],
-      "source": "src/Meili.App/Views/Pages/SettingsPage.xaml"
-    },
-    {
-      "platform": "App",
-      "page": "Settings",
-      "type": "DockPanel",
+      "type": "LucideIcon",
       "name": null,
       "attributes": {
-        "LastChildFill": "True"
+        "Kind": "Hash",
+        "Width": "20",
+        "Height": "20",
+        "Margin": "0,0,12,0",
+        "VerticalAlignment": "Center"
       },
       "composition": [
         "Page",
         "ScrollViewer",
         "StackPanel",
         "AppCard",
-        "AppCard.Header",
-        "StackPanel"
+        "Grid"
       ],
       "source": "src/Meili.App/Views/Pages/SettingsPage.xaml"
     },
     {
       "platform": "App",
       "page": "Settings",
-      "type": "AppHelp",
+      "type": "AppFormHeader",
       "name": null,
       "attributes": {
+        "Grid.Column": "1",
+        "Title": "{DynamicResource Set_FixedRate}",
         "HelpText": "{DynamicResource Set_FixedRateDesc}",
-        "DockPanel.Dock": "Right",
-        "Margin": "8,0,0,0"
+        "Margin": "0,0,20,0"
       },
       "composition": [
         "Page",
         "ScrollViewer",
         "StackPanel",
         "AppCard",
-        "AppCard.Header",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.App/Views/Pages/SettingsPage.xaml"
-    },
-    {
-      "platform": "App",
-      "page": "Settings",
-      "type": "TextBlock",
-      "name": null,
-      "attributes": {
-        "Style": "{StaticResource CardTitle}",
-        "Text": "{DynamicResource Set_FixedRate}"
-      },
-      "composition": [
-        "Page",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "AppCard.Header",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.App/Views/Pages/SettingsPage.xaml"
-    },
-    {
-      "platform": "App",
-      "page": "Settings",
-      "type": "TextBlock",
-      "name": null,
-      "attributes": {
-        "Style": "{StaticResource Caption}",
-        "Text": "{Binding FixedRateError}",
-        "Foreground": "{DynamicResource SystemFillColorCriticalBrush}"
-      },
-      "composition": [
-        "Page",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "AppCard.Header",
-        "StackPanel"
+        "Grid"
       ],
       "source": "src/Meili.App/Views/Pages/SettingsPage.xaml"
     },
@@ -17207,7 +16634,8 @@
       "type": "TextBox",
       "name": null,
       "attributes": {
-        "MinWidth": "120",
+        "Grid.Column": "2",
+        "Width": "{StaticResource FormFieldWidth}",
         "Text": "{Binding FixedRateText, UpdateSourceTrigger=PropertyChanged}",
         "AutomationProperties.AutomationId": "SettingsFixedRate"
       },
@@ -17215,7 +16643,32 @@
         "Page",
         "ScrollViewer",
         "StackPanel",
-        "AppCard"
+        "AppCard",
+        "Grid"
+      ],
+      "source": "src/Meili.App/Views/Pages/SettingsPage.xaml"
+    },
+    {
+      "platform": "App",
+      "page": "Settings",
+      "type": "TextBlock",
+      "name": null,
+      "attributes": {
+        "Grid.Row": "1",
+        "Grid.Column": "2",
+        "Style": "{StaticResource Caption}",
+        "Text": "{Binding FixedRateError}",
+        "TextWrapping": "Wrap",
+        "MaxWidth": "{StaticResource FormFieldWidth}",
+        "Foreground": "{DynamicResource SystemFillColorCriticalBrush}",
+        "Visibility": "{Binding FixedRateError, Converter={StaticResource NonEmptyToVis}}"
+      },
+      "composition": [
+        "Page",
+        "ScrollViewer",
+        "StackPanel",
+        "AppCard",
+        "Grid"
       ],
       "source": "src/Meili.App/Views/Pages/SettingsPage.xaml"
     },
@@ -17575,7 +17028,8 @@
       "attributes": {
         "Style": "{StaticResource CardTitle}",
         "FontSize": "16",
-        "Text": "Codex"
+        "Text": "Codex",
+        "VerticalAlignment": "Center"
       },
       "composition": [
         "Page",
@@ -17793,7 +17247,8 @@
       "attributes": {
         "Style": "{StaticResource CardTitle}",
         "FontSize": "16",
-        "Text": "Claude Code"
+        "Text": "Claude Code",
+        "VerticalAlignment": "Center"
       },
       "composition": [
         "Page",
@@ -18203,11 +17658,11 @@
     {
       "platform": "App",
       "page": "Settings",
-      "type": "TextBlock",
+      "type": "AppFormHeader",
       "name": null,
       "attributes": {
-        "Style": "{StaticResource CardTitle}",
-        "Text": "{DynamicResource Set_DataDir}"
+        "Title": "{DynamicResource Set_DataDir}",
+        "HelpText": "{DynamicResource Set_DataDirDesc}"
       },
       "composition": [
         "Page",
@@ -18228,26 +17683,6 @@
         "Style": "{StaticResource Body}",
         "Text": "{Binding DataDirectory}",
         "Margin": "0,2,0,2"
-      },
-      "composition": [
-        "Page",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "AppCard.Header",
-        "StackPanel"
-      ],
-      "source": "src/Meili.App/Views/Pages/SettingsPage.xaml"
-    },
-    {
-      "platform": "App",
-      "page": "Settings",
-      "type": "AppHelp",
-      "name": null,
-      "attributes": {
-        "HelpText": "{DynamicResource Set_DataDirDesc}",
-        "DockPanel.Dock": "Right",
-        "Margin": "8,0,0,0"
       },
       "composition": [
         "Page",
@@ -21026,51 +20461,18 @@
     {
       "platform": "Mac",
       "page": "Watchlist",
-      "type": "DockPanel",
+      "type": "AppFormHeader",
       "name": null,
       "attributes": {
-        "LastChildFill": "True",
-        "Margin": "0,0,0,8"
+        "Title": "{DynamicResource Wl_Title}",
+        "HelpText": "{DynamicResource Wl_Desc}",
+        "IsPageTitle": "True",
+        "Margin": "0,0,0,12"
       },
       "composition": [
         "UserControl",
         "DockPanel",
         "StackPanel"
-      ],
-      "source": "src/Meili.Mac/Views/WatchlistPage.axaml"
-    },
-    {
-      "platform": "Mac",
-      "page": "Watchlist",
-      "type": "AppHelp",
-      "name": null,
-      "attributes": {
-        "HelpText": "{DynamicResource Wl_Desc}",
-        "DockPanel.Dock": "Right",
-        "Margin": "12,0,0,0"
-      },
-      "composition": [
-        "UserControl",
-        "DockPanel",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.Mac/Views/WatchlistPage.axaml"
-    },
-    {
-      "platform": "Mac",
-      "page": "Watchlist",
-      "type": "TextBlock",
-      "name": null,
-      "attributes": {
-        "Classes": "PageTitle",
-        "Text": "{DynamicResource Wl_Title}"
-      },
-      "composition": [
-        "UserControl",
-        "DockPanel",
-        "StackPanel",
-        "DockPanel"
       ],
       "source": "src/Meili.Mac/Views/WatchlistPage.axaml"
     },
@@ -25043,54 +24445,19 @@
     {
       "platform": "Mac",
       "page": "Options",
-      "type": "DockPanel",
+      "type": "AppFormHeader",
       "name": null,
       "attributes": {
-        "LastChildFill": "True",
-        "Margin": "0,0,0,8"
+        "Title": "{DynamicResource Op_Title}",
+        "HelpText": "{DynamicResource Op_Desc}",
+        "IsPageTitle": "True",
+        "Margin": "0,0,0,12"
       },
       "composition": [
         "UserControl",
         "ScrollViewer",
         "DockPanel",
         "StackPanel"
-      ],
-      "source": "src/Meili.Mac/Views/OptionsPage.axaml"
-    },
-    {
-      "platform": "Mac",
-      "page": "Options",
-      "type": "AppHelp",
-      "name": null,
-      "attributes": {
-        "HelpText": "{DynamicResource Op_Desc}",
-        "DockPanel.Dock": "Right",
-        "Margin": "12,0,0,0"
-      },
-      "composition": [
-        "UserControl",
-        "ScrollViewer",
-        "DockPanel",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.Mac/Views/OptionsPage.axaml"
-    },
-    {
-      "platform": "Mac",
-      "page": "Options",
-      "type": "TextBlock",
-      "name": null,
-      "attributes": {
-        "Classes": "PageTitle",
-        "Text": "{DynamicResource Op_Title}"
-      },
-      "composition": [
-        "UserControl",
-        "ScrollViewer",
-        "DockPanel",
-        "StackPanel",
-        "DockPanel"
       ],
       "source": "src/Meili.Mac/Views/OptionsPage.axaml"
     },
@@ -26357,50 +25724,18 @@
     {
       "platform": "Mac",
       "page": "Strategy",
-      "type": "DockPanel",
+      "type": "AppFormHeader",
       "name": null,
       "attributes": {
-        "LastChildFill": "True"
+        "Title": "{DynamicResource St_Title}",
+        "HelpText": "{DynamicResource St_Hint}",
+        "IsPageTitle": "True",
+        "Margin": "0,0,0,4"
       },
       "composition": [
         "UserControl",
         "Grid",
         "StackPanel"
-      ],
-      "source": "src/Meili.Mac/Views/StrategyPage.axaml"
-    },
-    {
-      "platform": "Mac",
-      "page": "Strategy",
-      "type": "AppHelp",
-      "name": null,
-      "attributes": {
-        "HelpText": "{DynamicResource St_Hint}",
-        "DockPanel.Dock": "Right",
-        "Margin": "12,0,0,0"
-      },
-      "composition": [
-        "UserControl",
-        "Grid",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.Mac/Views/StrategyPage.axaml"
-    },
-    {
-      "platform": "Mac",
-      "page": "Strategy",
-      "type": "TextBlock",
-      "name": null,
-      "attributes": {
-        "Classes": "PageTitle",
-        "Text": "{DynamicResource St_Title}"
-      },
-      "composition": [
-        "UserControl",
-        "Grid",
-        "StackPanel",
-        "DockPanel"
       ],
       "source": "src/Meili.Mac/Views/StrategyPage.axaml"
     },
@@ -29715,51 +29050,18 @@
     {
       "platform": "Mac",
       "page": "News",
-      "type": "DockPanel",
+      "type": "AppFormHeader",
       "name": null,
       "attributes": {
-        "LastChildFill": "True",
-        "Margin": "0,0,0,8"
+        "Title": "{DynamicResource Nf_Title}",
+        "HelpText": "{DynamicResource Nf_Desc}",
+        "IsPageTitle": "True",
+        "Margin": "0,0,0,12"
       },
       "composition": [
         "UserControl",
         "DockPanel",
         "StackPanel"
-      ],
-      "source": "src/Meili.Mac/Views/NewsPage.axaml"
-    },
-    {
-      "platform": "Mac",
-      "page": "News",
-      "type": "AppHelp",
-      "name": null,
-      "attributes": {
-        "HelpText": "{DynamicResource Nf_Desc}",
-        "DockPanel.Dock": "Right",
-        "Margin": "12,0,0,0"
-      },
-      "composition": [
-        "UserControl",
-        "DockPanel",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.Mac/Views/NewsPage.axaml"
-    },
-    {
-      "platform": "Mac",
-      "page": "News",
-      "type": "TextBlock",
-      "name": null,
-      "attributes": {
-        "Classes": "PageTitle",
-        "Text": "{DynamicResource Nf_Title}"
-      },
-      "composition": [
-        "UserControl",
-        "DockPanel",
-        "StackPanel",
-        "DockPanel"
       ],
       "source": "src/Meili.Mac/Views/NewsPage.axaml"
     },
@@ -30913,51 +30215,18 @@
     {
       "platform": "Mac",
       "page": "Alerts",
-      "type": "DockPanel",
+      "type": "AppFormHeader",
       "name": null,
       "attributes": {
-        "LastChildFill": "True",
-        "Margin": "0,0,0,8"
+        "Title": "{DynamicResource Nav_Alerts}",
+        "HelpText": "{DynamicResource Mac_AlDesc}",
+        "IsPageTitle": "True",
+        "Margin": "0,0,0,12"
       },
       "composition": [
         "UserControl",
         "DockPanel",
         "StackPanel"
-      ],
-      "source": "src/Meili.Mac/Views/AlertsPage.axaml"
-    },
-    {
-      "platform": "Mac",
-      "page": "Alerts",
-      "type": "AppHelp",
-      "name": null,
-      "attributes": {
-        "HelpText": "{DynamicResource Mac_AlDesc}",
-        "DockPanel.Dock": "Right",
-        "Margin": "12,0,0,0"
-      },
-      "composition": [
-        "UserControl",
-        "DockPanel",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.Mac/Views/AlertsPage.axaml"
-    },
-    {
-      "platform": "Mac",
-      "page": "Alerts",
-      "type": "TextBlock",
-      "name": null,
-      "attributes": {
-        "Classes": "PageTitle",
-        "Text": "{DynamicResource Nav_Alerts}"
-      },
-      "composition": [
-        "UserControl",
-        "DockPanel",
-        "StackPanel",
-        "DockPanel"
       ],
       "source": "src/Meili.Mac/Views/AlertsPage.axaml"
     },
@@ -32493,51 +31762,18 @@
     {
       "platform": "Mac",
       "page": "DataSources",
-      "type": "DockPanel",
+      "type": "AppFormHeader",
       "name": null,
       "attributes": {
-        "LastChildFill": "True",
-        "Margin": "0,0,0,8"
+        "Title": "{DynamicResource Ds_Title}",
+        "HelpText": "{DynamicResource Ds_Desc}",
+        "IsPageTitle": "True",
+        "Margin": "0,0,0,12"
       },
       "composition": [
         "UserControl",
         "ScrollViewer",
         "StackPanel"
-      ],
-      "source": "src/Meili.Mac/Views/DataSourcesPage.axaml"
-    },
-    {
-      "platform": "Mac",
-      "page": "DataSources",
-      "type": "AppHelp",
-      "name": null,
-      "attributes": {
-        "HelpText": "{DynamicResource Ds_Desc}",
-        "DockPanel.Dock": "Right",
-        "Margin": "12,0,0,0"
-      },
-      "composition": [
-        "UserControl",
-        "ScrollViewer",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.Mac/Views/DataSourcesPage.axaml"
-    },
-    {
-      "platform": "Mac",
-      "page": "DataSources",
-      "type": "TextBlock",
-      "name": null,
-      "attributes": {
-        "Classes": "PageTitle",
-        "Text": "{DynamicResource Ds_Title}"
-      },
-      "composition": [
-        "UserControl",
-        "ScrollViewer",
-        "StackPanel",
-        "DockPanel"
       ],
       "source": "src/Meili.Mac/Views/DataSourcesPage.axaml"
     },
@@ -34160,7 +33396,7 @@
       "type": "AppCard",
       "name": null,
       "attributes": {
-        "Classes": "Card",
+        "Classes": "Card FormRow",
         "Padding": "16,12",
         "Margin": "0,0,0,4"
       },
@@ -34210,7 +33446,7 @@
       "type": "AppSelect",
       "name": null,
       "attributes": {
-        "MinWidth": "200",
+        "Width": "{StaticResource FormFieldWidth}",
         "SelectedIndex": "{Binding LanguageIndex}"
       },
       "composition": [
@@ -34279,10 +33515,11 @@
     {
       "platform": "Mac",
       "page": "Settings",
-      "type": "DockPanel",
+      "type": "AppFormHeader",
       "name": null,
       "attributes": {
-        "LastChildFill": "True"
+        "Title": "{DynamicResource Set_Language}",
+        "HelpText": "{DynamicResource Set_LanguageDesc}"
       },
       "composition": [
         "UserControl",
@@ -34297,51 +33534,10 @@
     {
       "platform": "Mac",
       "page": "Settings",
-      "type": "AppHelp",
-      "name": null,
-      "attributes": {
-        "HelpText": "{DynamicResource Set_LanguageDesc}",
-        "DockPanel.Dock": "Right",
-        "Margin": "8,0,0,0"
-      },
-      "composition": [
-        "UserControl",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "DockPanel",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.Mac/Views/SettingsPage.axaml"
-    },
-    {
-      "platform": "Mac",
-      "page": "Settings",
-      "type": "TextBlock",
-      "name": null,
-      "attributes": {
-        "Classes": "CardTitle",
-        "Text": "{DynamicResource Set_Language}"
-      },
-      "composition": [
-        "UserControl",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "DockPanel",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.Mac/Views/SettingsPage.axaml"
-    },
-    {
-      "platform": "Mac",
-      "page": "Settings",
       "type": "AppCard",
       "name": null,
       "attributes": {
-        "Classes": "Card",
+        "Classes": "Card FormRow",
         "Padding": "16,12",
         "Margin": "0,0,0,4"
       },
@@ -34391,7 +33587,7 @@
       "type": "AppSelect",
       "name": null,
       "attributes": {
-        "MinWidth": "200",
+        "Width": "{StaticResource FormFieldWidth}",
         "SelectedIndex": "{Binding ThemeIndex}"
       },
       "composition": [
@@ -34479,10 +33675,11 @@
     {
       "platform": "Mac",
       "page": "Settings",
-      "type": "DockPanel",
+      "type": "AppFormHeader",
       "name": null,
       "attributes": {
-        "LastChildFill": "True"
+        "Title": "{DynamicResource Set_Theme}",
+        "HelpText": "{DynamicResource Set_ThemeDesc}"
       },
       "composition": [
         "UserControl",
@@ -34497,51 +33694,10 @@
     {
       "platform": "Mac",
       "page": "Settings",
-      "type": "AppHelp",
-      "name": null,
-      "attributes": {
-        "HelpText": "{DynamicResource Set_ThemeDesc}",
-        "DockPanel.Dock": "Right",
-        "Margin": "8,0,0,0"
-      },
-      "composition": [
-        "UserControl",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "DockPanel",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.Mac/Views/SettingsPage.axaml"
-    },
-    {
-      "platform": "Mac",
-      "page": "Settings",
-      "type": "TextBlock",
-      "name": null,
-      "attributes": {
-        "Classes": "CardTitle",
-        "Text": "{DynamicResource Set_Theme}"
-      },
-      "composition": [
-        "UserControl",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "DockPanel",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.Mac/Views/SettingsPage.axaml"
-    },
-    {
-      "platform": "Mac",
-      "page": "Settings",
       "type": "AppCard",
       "name": null,
       "attributes": {
-        "Classes": "Card",
+        "Classes": "Card FormRow",
         "Padding": "16,12",
         "Margin": "0,0,0,4"
       },
@@ -34591,7 +33747,7 @@
       "type": "AppSelect",
       "name": null,
       "attributes": {
-        "MinWidth": "200",
+        "Width": "{StaticResource FormFieldWidth}",
         "SelectedIndex": "{Binding UpDownIndex}"
       },
       "composition": [
@@ -34660,10 +33816,11 @@
     {
       "platform": "Mac",
       "page": "Settings",
-      "type": "DockPanel",
+      "type": "AppFormHeader",
       "name": null,
       "attributes": {
-        "LastChildFill": "True"
+        "Title": "{DynamicResource Set_UpDown}",
+        "HelpText": "{DynamicResource Set_UpDownDesc}"
       },
       "composition": [
         "UserControl",
@@ -34678,51 +33835,10 @@
     {
       "platform": "Mac",
       "page": "Settings",
-      "type": "AppHelp",
-      "name": null,
-      "attributes": {
-        "HelpText": "{DynamicResource Set_UpDownDesc}",
-        "DockPanel.Dock": "Right",
-        "Margin": "8,0,0,0"
-      },
-      "composition": [
-        "UserControl",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "DockPanel",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.Mac/Views/SettingsPage.axaml"
-    },
-    {
-      "platform": "Mac",
-      "page": "Settings",
-      "type": "TextBlock",
-      "name": null,
-      "attributes": {
-        "Classes": "CardTitle",
-        "Text": "{DynamicResource Set_UpDown}"
-      },
-      "composition": [
-        "UserControl",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "DockPanel",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.Mac/Views/SettingsPage.axaml"
-    },
-    {
-      "platform": "Mac",
-      "page": "Settings",
       "type": "AppCard",
       "name": null,
       "attributes": {
-        "Classes": "Card",
+        "Classes": "Card FormRow",
         "Padding": "16,12",
         "Margin": "0,0,0,4"
       },
@@ -34772,7 +33888,7 @@
       "type": "AppSelect",
       "name": null,
       "attributes": {
-        "MinWidth": "240",
+        "Width": "{StaticResource FormFieldWidth}",
         "SelectedIndex": "{Binding CloseActionIndex}",
         "AutomationProperties.AutomationId": "SettingsCloseAction"
       },
@@ -34861,10 +33977,11 @@
     {
       "platform": "Mac",
       "page": "Settings",
-      "type": "DockPanel",
+      "type": "AppFormHeader",
       "name": null,
       "attributes": {
-        "LastChildFill": "True"
+        "Title": "{DynamicResource Set_CloseAction}",
+        "HelpText": "{DynamicResource Set_CloseActionDesc}"
       },
       "composition": [
         "UserControl",
@@ -34873,47 +33990,6 @@
         "AppCard",
         "DockPanel",
         "StackPanel"
-      ],
-      "source": "src/Meili.Mac/Views/SettingsPage.axaml"
-    },
-    {
-      "platform": "Mac",
-      "page": "Settings",
-      "type": "AppHelp",
-      "name": null,
-      "attributes": {
-        "HelpText": "{DynamicResource Set_CloseActionDesc}",
-        "DockPanel.Dock": "Right",
-        "Margin": "8,0,0,0"
-      },
-      "composition": [
-        "UserControl",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "DockPanel",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.Mac/Views/SettingsPage.axaml"
-    },
-    {
-      "platform": "Mac",
-      "page": "Settings",
-      "type": "TextBlock",
-      "name": null,
-      "attributes": {
-        "Classes": "CardTitle",
-        "Text": "{DynamicResource Set_CloseAction}"
-      },
-      "composition": [
-        "UserControl",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "DockPanel",
-        "StackPanel",
-        "DockPanel"
       ],
       "source": "src/Meili.Mac/Views/SettingsPage.axaml"
     },
@@ -34939,7 +34015,7 @@
       "type": "AppCard",
       "name": null,
       "attributes": {
-        "Classes": "Card",
+        "Classes": "Card FormRow",
         "Padding": "16,12",
         "Margin": "0,0,0,4"
       },
@@ -34989,7 +34065,7 @@
       "type": "AppSelect",
       "name": null,
       "attributes": {
-        "MinWidth": "240",
+        "Width": "{StaticResource FormFieldWidth}",
         "SelectedIndex": "{Binding ProxyModeIndex}"
       },
       "composition": [
@@ -35096,10 +34172,11 @@
     {
       "platform": "Mac",
       "page": "Settings",
-      "type": "DockPanel",
+      "type": "AppFormHeader",
       "name": null,
       "attributes": {
-        "LastChildFill": "True"
+        "Title": "{DynamicResource Set_ProxyMode}",
+        "HelpText": "{DynamicResource Set_ProxyModeDesc}"
       },
       "composition": [
         "UserControl",
@@ -35114,51 +34191,10 @@
     {
       "platform": "Mac",
       "page": "Settings",
-      "type": "AppHelp",
-      "name": null,
-      "attributes": {
-        "HelpText": "{DynamicResource Set_ProxyModeDesc}",
-        "DockPanel.Dock": "Right",
-        "Margin": "8,0,0,0"
-      },
-      "composition": [
-        "UserControl",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "DockPanel",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.Mac/Views/SettingsPage.axaml"
-    },
-    {
-      "platform": "Mac",
-      "page": "Settings",
-      "type": "TextBlock",
-      "name": null,
-      "attributes": {
-        "Classes": "CardTitle",
-        "Text": "{DynamicResource Set_ProxyMode}"
-      },
-      "composition": [
-        "UserControl",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "DockPanel",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.Mac/Views/SettingsPage.axaml"
-    },
-    {
-      "platform": "Mac",
-      "page": "Settings",
       "type": "AppCard",
       "name": null,
       "attributes": {
-        "Classes": "Card",
+        "Classes": "Card FormRow",
         "Padding": "16,12",
         "Margin": "0,0,0,4",
         "IsEnabled": "{Binding IsManualProxy}"
@@ -35209,7 +34245,7 @@
       "type": "TextBox",
       "name": null,
       "attributes": {
-        "MinWidth": "260",
+        "Width": "{StaticResource FormFieldWidth}",
         "PlaceholderText": "http://127.0.0.1:7890",
         "Text": "{Binding ManualProxy}"
       },
@@ -35241,10 +34277,11 @@
     {
       "platform": "Mac",
       "page": "Settings",
-      "type": "DockPanel",
+      "type": "AppFormHeader",
       "name": null,
       "attributes": {
-        "LastChildFill": "True"
+        "Title": "{DynamicResource Set_ManualProxy}",
+        "HelpText": "{DynamicResource Set_ManualProxyDesc}"
       },
       "composition": [
         "UserControl",
@@ -35259,51 +34296,10 @@
     {
       "platform": "Mac",
       "page": "Settings",
-      "type": "AppHelp",
-      "name": null,
-      "attributes": {
-        "HelpText": "{DynamicResource Set_ManualProxyDesc}",
-        "DockPanel.Dock": "Right",
-        "Margin": "8,0,0,0"
-      },
-      "composition": [
-        "UserControl",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "DockPanel",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.Mac/Views/SettingsPage.axaml"
-    },
-    {
-      "platform": "Mac",
-      "page": "Settings",
-      "type": "TextBlock",
-      "name": null,
-      "attributes": {
-        "Classes": "CardTitle",
-        "Text": "{DynamicResource Set_ManualProxy}"
-      },
-      "composition": [
-        "UserControl",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "DockPanel",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.Mac/Views/SettingsPage.axaml"
-    },
-    {
-      "platform": "Mac",
-      "page": "Settings",
       "type": "AppCard",
       "name": null,
       "attributes": {
-        "Classes": "Card",
+        "Classes": "Card FormRow",
         "Padding": "16,12",
         "Margin": "0,0,0,4"
       },
@@ -35443,7 +34439,7 @@
       "type": "AppCard",
       "name": null,
       "attributes": {
-        "Classes": "Card",
+        "Classes": "Card FormRow",
         "Padding": "16,12",
         "Margin": "0,0,0,4"
       },
@@ -35563,7 +34559,7 @@
       "type": "AppCard",
       "name": null,
       "attributes": {
-        "Classes": "Card",
+        "Classes": "Card FormRow",
         "Padding": "16,12",
         "Margin": "0,0,0,4"
       },
@@ -35613,7 +34609,7 @@
       "type": "AppSelect",
       "name": null,
       "attributes": {
-        "MinWidth": "240",
+        "Width": "{StaticResource FormFieldWidth}",
         "SelectedIndex": "{Binding RateModeIndex}",
         "AutomationProperties.AutomationId": "SettingsRateMode"
       },
@@ -35683,10 +34679,11 @@
     {
       "platform": "Mac",
       "page": "Settings",
-      "type": "DockPanel",
+      "type": "AppFormHeader",
       "name": null,
       "attributes": {
-        "LastChildFill": "True"
+        "Title": "{DynamicResource Set_RateMode}",
+        "HelpText": "{DynamicResource Set_RateModeDesc}"
       },
       "composition": [
         "UserControl",
@@ -35701,51 +34698,10 @@
     {
       "platform": "Mac",
       "page": "Settings",
-      "type": "AppHelp",
-      "name": null,
-      "attributes": {
-        "HelpText": "{DynamicResource Set_RateModeDesc}",
-        "DockPanel.Dock": "Right",
-        "Margin": "8,0,0,0"
-      },
-      "composition": [
-        "UserControl",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "DockPanel",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.Mac/Views/SettingsPage.axaml"
-    },
-    {
-      "platform": "Mac",
-      "page": "Settings",
-      "type": "TextBlock",
-      "name": null,
-      "attributes": {
-        "Classes": "CardTitle",
-        "Text": "{DynamicResource Set_RateMode}"
-      },
-      "composition": [
-        "UserControl",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "DockPanel",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.Mac/Views/SettingsPage.axaml"
-    },
-    {
-      "platform": "Mac",
-      "page": "Settings",
       "type": "AppCard",
       "name": null,
       "attributes": {
-        "Classes": "Card",
+        "Classes": "Card FormRow",
         "Padding": "16,12",
         "Margin": "0,0,0,4"
       },
@@ -35759,9 +34715,12 @@
     {
       "platform": "Mac",
       "page": "Settings",
-      "type": "DockPanel",
+      "type": "Grid",
       "name": null,
-      "attributes": {},
+      "attributes": {
+        "ColumnDefinitions": "*,Auto",
+        "RowDefinitions": "Auto,Auto"
+      },
       "composition": [
         "UserControl",
         "ScrollViewer",
@@ -35773,19 +34732,19 @@
     {
       "platform": "Mac",
       "page": "Settings",
-      "type": "StackPanel",
+      "type": "AppFormHeader",
       "name": null,
       "attributes": {
-        "DockPanel.Dock": "Right",
-        "VerticalAlignment": "Center",
-        "Margin": "16,0,0,0"
+        "Title": "{DynamicResource Set_FixedRate}",
+        "HelpText": "{DynamicResource Set_FixedRateDesc}",
+        "Margin": "0,0,16,0"
       },
       "composition": [
         "UserControl",
         "ScrollViewer",
         "StackPanel",
         "AppCard",
-        "DockPanel"
+        "Grid"
       ],
       "source": "src/Meili.Mac/Views/SettingsPage.axaml"
     },
@@ -35795,7 +34754,8 @@
       "type": "TextBox",
       "name": null,
       "attributes": {
-        "MinWidth": "120",
+        "Grid.Column": "1",
+        "Width": "{StaticResource FormFieldWidth}",
         "Text": "{Binding FixedRateText}",
         "AutomationProperties.AutomationId": "SettingsFixedRate"
       },
@@ -35804,62 +34764,7 @@
         "ScrollViewer",
         "StackPanel",
         "AppCard",
-        "DockPanel",
-        "StackPanel"
-      ],
-      "source": "src/Meili.Mac/Views/SettingsPage.axaml"
-    },
-    {
-      "platform": "Mac",
-      "page": "Settings",
-      "type": "StackPanel",
-      "name": null,
-      "attributes": {},
-      "composition": [
-        "UserControl",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "DockPanel"
-      ],
-      "source": "src/Meili.Mac/Views/SettingsPage.axaml"
-    },
-    {
-      "platform": "Mac",
-      "page": "Settings",
-      "type": "DockPanel",
-      "name": null,
-      "attributes": {
-        "LastChildFill": "True"
-      },
-      "composition": [
-        "UserControl",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "DockPanel",
-        "StackPanel"
-      ],
-      "source": "src/Meili.Mac/Views/SettingsPage.axaml"
-    },
-    {
-      "platform": "Mac",
-      "page": "Settings",
-      "type": "AppHelp",
-      "name": null,
-      "attributes": {
-        "HelpText": "{DynamicResource Set_FixedRateDesc}",
-        "DockPanel.Dock": "Right",
-        "Margin": "8,0,0,0"
-      },
-      "composition": [
-        "UserControl",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "DockPanel",
-        "StackPanel",
-        "DockPanel"
+        "Grid"
       ],
       "source": "src/Meili.Mac/Views/SettingsPage.axaml"
     },
@@ -35869,37 +34774,21 @@
       "type": "TextBlock",
       "name": null,
       "attributes": {
-        "Classes": "CardTitle",
-        "Text": "{DynamicResource Set_FixedRate}"
-      },
-      "composition": [
-        "UserControl",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "DockPanel",
-        "StackPanel",
-        "DockPanel"
-      ],
-      "source": "src/Meili.Mac/Views/SettingsPage.axaml"
-    },
-    {
-      "platform": "Mac",
-      "page": "Settings",
-      "type": "TextBlock",
-      "name": null,
-      "attributes": {
+        "Grid.Row": "1",
+        "Grid.Column": "1",
         "Classes": "Caption",
         "Text": "{Binding FixedRateError}",
-        "Foreground": "{DynamicResource SystemFillColorCriticalBrush}"
+        "TextWrapping": "Wrap",
+        "MaxWidth": "{StaticResource FormFieldWidth}",
+        "Foreground": "{DynamicResource SystemFillColorCriticalBrush}",
+        "IsVisible": "{Binding FixedRateError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
       },
       "composition": [
         "UserControl",
         "ScrollViewer",
         "StackPanel",
         "AppCard",
-        "DockPanel",
-        "StackPanel"
+        "Grid"
       ],
       "source": "src/Meili.Mac/Views/SettingsPage.axaml"
     },
@@ -35926,7 +34815,7 @@
       "name": "AiSetupPanel",
       "attributes": {
         "Name": "AiSetupPanel",
-        "Classes": "Card",
+        "Classes": "Card FormRow",
         "Padding": "16,12",
         "Margin": "0,0,0,4"
       },
@@ -36249,7 +35138,8 @@
       "attributes": {
         "Classes": "CardTitle",
         "FontSize": "16",
-        "Text": "Codex"
+        "Text": "Codex",
+        "VerticalAlignment": "Center"
       },
       "composition": [
         "UserControl",
@@ -36478,7 +35368,8 @@
       "attributes": {
         "Classes": "CardTitle",
         "FontSize": "16",
-        "Text": "Claude Code"
+        "Text": "Claude Code",
+        "VerticalAlignment": "Center"
       },
       "composition": [
         "UserControl",
@@ -36828,7 +35719,7 @@
       "type": "AppCard",
       "name": null,
       "attributes": {
-        "Classes": "Card",
+        "Classes": "Card FormRow",
         "Padding": "16,12",
         "Margin": "0,0,0,4"
       },
@@ -36910,11 +35801,11 @@
     {
       "platform": "Mac",
       "page": "Settings",
-      "type": "TextBlock",
+      "type": "AppFormHeader",
       "name": null,
       "attributes": {
-        "Classes": "CardTitle",
-        "Text": "{DynamicResource Set_DataDir}"
+        "Title": "{DynamicResource Set_DataDir}",
+        "HelpText": "{DynamicResource Set_DataDirDesc}"
       },
       "composition": [
         "UserControl",
@@ -36935,26 +35826,6 @@
         "Classes": "Body",
         "Text": "{Binding DataDirectory}",
         "Margin": "0,2,0,2"
-      },
-      "composition": [
-        "UserControl",
-        "ScrollViewer",
-        "StackPanel",
-        "AppCard",
-        "DockPanel",
-        "StackPanel"
-      ],
-      "source": "src/Meili.Mac/Views/SettingsPage.axaml"
-    },
-    {
-      "platform": "Mac",
-      "page": "Settings",
-      "type": "AppHelp",
-      "name": null,
-      "attributes": {
-        "HelpText": "{DynamicResource Set_DataDirDesc}",
-        "DockPanel.Dock": "Right",
-        "Margin": "8,0,0,0"
       },
       "composition": [
         "UserControl",
