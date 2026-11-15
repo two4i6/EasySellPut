@@ -40,6 +40,11 @@ public sealed class MenuBarQuoteTests
             context.Set("NVDA");Assert.Equal(new[]{"NVDA"},hub.SubscribedSymbols);Assert.StartsWith("NVDA ",item.Quote.Title);
             item.Entries.Single(e=>e.Title=="MSFT").Action!();Assert.Equal("MSFT",context.Current);Assert.StartsWith("MSFT ",item.Quote.Title);
             item.Entries.First(e=>e.Title==AppServices.Get<LocalizationService>()["Mb_OpenChart"]).Action!();Assert.Equal(1,opened);
+            var theme=AppServices.Get<MacTheme>();
+            theme.ApplyUpDownColors(UpDownColorMode.GreenUp);
+            settings.Current.UpDownColors=UpDownColorMode.GreenUp;settings.Current.UpDownColorsChosen=true;
+            MacHost.Pump();Assert.Equal(UpDownColorMode.GreenUp,item.Colors);
+            theme.ApplyUpDownColors(AppServices.Get<SettingsStore>().Current.EffectiveUpDownColors());
             data.QuoteFailure=new IOException("fixture offline");await hub.PollAsync();MacHost.Pump();
             Assert.Contains(AppServices.Get<LocalizationService>()["Mb_Stale"],item.Quote.Title);
         }
@@ -48,8 +53,8 @@ public sealed class MenuBarQuoteTests
     }
     private sealed class Sink:IQuoteStatusItem
     {
-        public MenuBarQuote? Quote;public IReadOnlyList<QuoteMenuEntry> Entries=[];public bool Disposed;
-        public void Update(MenuBarQuote quote,IReadOnlyList<QuoteMenuEntry> entries,UpDownColorMode colors){Quote=quote;Entries=entries;}
+        public MenuBarQuote? Quote;public IReadOnlyList<QuoteMenuEntry> Entries=[];public bool Disposed;public UpDownColorMode Colors;
+        public void Update(MenuBarQuote quote,IReadOnlyList<QuoteMenuEntry> entries,UpDownColorMode colors){Quote=quote;Entries=entries;Colors=colors;}
         public void Dispose()=>Disposed=true;
     }
 }

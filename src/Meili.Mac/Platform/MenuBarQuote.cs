@@ -67,7 +67,11 @@ public sealed class MenuBarQuoteController : IDisposable
         Select(_symbol);
     }
     private void OnSymbol(object? sender, string symbol) => Select(symbol);
-    private void OnLabels(object? sender, EventArgs e) => Render();
+    private void OnLabels(object? sender, EventArgs e)
+    {
+        // Settings applies the theme before committing its preference; read the final state next UI turn.
+        Dispatcher.UIThread.Post(Render);
+    }
     private void Select(string symbol)
     {
         if (_disposed) return;
