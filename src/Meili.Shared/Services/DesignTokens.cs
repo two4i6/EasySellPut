@@ -96,6 +96,13 @@ public static class DesignTokens
     public const double FormFieldWidth = 260;
     public const double WindowHeaderHeight = 36;
     public const double StorageBarHeight = 24;
+    public const double GaugeWidth = 240;
+    public const double GaugeHeight = 132;
+    public const double GaugeStroke = 8;
+    public const double GaugeMarker = 6;
+    public const double LiquidityHeatLowAlpha = 16;
+    public const double LiquidityHeatNormalAlpha = 40;
+    public const double LiquidityHeatHighAlpha = 72;
     public const double QuotePanelWidth = 420;
     public const double MacQuotePanelWidth = 360;
     public const double MacQuotePanelHeight = 640;

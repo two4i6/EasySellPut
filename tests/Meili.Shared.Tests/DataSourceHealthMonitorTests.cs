@@ -17,17 +17,17 @@ public sealed class DataSourceHealthMonitorTests
         var ui = new FakeUiPlatform(); Ui.Platform = ui;
         using var data = new DataServices(new());
         var health = data.Health; health.RecordSuccess(data.Providers[0].Id, TimeSpan.Zero);
-        var activity = new DesktopActivity(); activity.SetVisible("main", true); var clock = new Clock(); var calls = 0;
+        var activity = new DesktopActivity(); activity.SetVisible("main", true); var clock = new Clock(); var calls = 0; var count = data.Providers.Count;
         using var monitor = new DataSourceHealthMonitor(data.Providers.Select(p => (Func<CancellationToken, Task>)(_ =>
         { Interlocked.Increment(ref calls); health.RecordSuccess(p.Id, TimeSpan.Zero); return Task.CompletedTask; })).ToArray(), activity, clock);
         monitor.Start(); await Until(() => !monitor.IsTesting);
-        Assert.Equal(8, calls); Assert.All(health.All, h => Assert.Equal(Meili.Data.Routing.HealthState.Healthy, h.State(health.Now)));
-        var timer = Assert.Single(ui.Timers); clock.Now += TimeSpan.FromMinutes(4); timer.Fire(); Assert.Equal(8, calls);
-        clock.Now += TimeSpan.FromMinutes(1); timer.Fire(); await Until(() => !monitor.IsTesting); Assert.Equal(16, calls);
+        Assert.Equal(count, calls); Assert.All(health.All, h => Assert.Equal(Meili.Data.Routing.HealthState.Healthy, h.State(health.Now)));
+        var timer = Assert.Single(ui.Timers); clock.Now += TimeSpan.FromMinutes(4); timer.Fire(); Assert.Equal(count, calls);
+        clock.Now += TimeSpan.FromMinutes(1); timer.Fire(); await Until(() => !monitor.IsTesting); Assert.Equal(count * 2, calls);
         activity.SetVisible("main", false); Assert.False(timer.IsEnabled);
-        activity.SetVisible("main", true); Assert.Equal(16, calls); // Fresh results survive a quick hide/restore.
-        activity.SetVisible("main", false); clock.Now += TimeSpan.FromMinutes(6); timer.Fire(); Assert.Equal(16, calls);
-        activity.SetVisible("main", true); await Until(() => !monitor.IsTesting); Assert.Equal(24, calls);
+        activity.SetVisible("main", true); Assert.Equal(count * 2, calls); // Fresh results survive a quick hide/restore.
+        activity.SetVisible("main", false); clock.Now += TimeSpan.FromMinutes(6); timer.Fire(); Assert.Equal(count * 2, calls);
+        activity.SetVisible("main", true); await Until(() => !monitor.IsTesting); Assert.Equal(count * 3, calls);
     }
 
     [Fact]

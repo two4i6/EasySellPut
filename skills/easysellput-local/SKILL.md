@@ -1,12 +1,16 @@
 ---
 name: easysellput-local
 metadata:
-  version: "2.0"
+  version: "2.1"
   mcp-server: easysellput
-description: Use the local EasySellPut MCP server for US equity quotes, OHLCV and chart indicators, company financials/news/events, option chains and IV/Greeks, volatility history, strategy presets/payoffs/what-if analysis, and explicitly requested local watchlist/strategy/alert/preferences changes. Use when the user asks to research or analyze these through EasySellPut; not for placing orders or controlling desktop windows.
+description: Use the local EasySellPut MCP server for US equity quotes, OHLCV and chart indicators, company financials/news/events, US funding/liquidity indicators and sector ETF activity proxies, option chains and IV/Greeks, volatility history, strategy presets/payoffs/what-if analysis, and explicitly requested local watchlist/strategy/alert/preferences changes. Use when the user asks to research or analyze these through EasySellPut; not for placing orders or controlling desktop windows.
 ---
 
 # EasySellPut local research
+
+## Liquidity research
+
+Use `get_market_liquidity` for US money-market funding context and a sector ETF activity comparison. The experimental 0–100 `pressureIndex` is a funding heuristic, not VIX or an official panic index: SOFR-IORB 50%, EFFR-IORB 30%, four-observation reserve change 20%. Read its formula, dates, components and unavailable reason; never turn the score into a calibrated forecast or trading signal. Read the six macro observations and their input series dates first; daily and weekly data are not synchronized live quotes. Compare sector ratios against each ETF’s own baseline, inspect unavailable/offline/adjustment metadata, then use `get_bars` or `get_chart_analysis` for a specific ETF. Do not call turnover a fund inflow or quote an unobserved bid/ask spread. No write tool is needed.
 
 ## Connect and choose tools
 
@@ -128,4 +132,5 @@ Discover the live schema before calling any tool; this guide does not replace ar
 | `get_cache_status` | read | Inspect process-local cache counts and shared bar storage policies before maintenance. Memory in another running process is not included; IV/OI history and user data are protected. |
 | `clear_cache` | write | Clear only an explicitly requested registered category. Inspect first; requires write-enabled MCP. Symbol filtering is bars-only, expired mode keeps TTL-free bars, and clearing bars removes offline availability. Never delete the database or browser profile. |
 | `get_qqq_gex_live_decision` | read | Evaluate original PCS gates/timing and real-chain references using retained local inputs only. Preserve expiry/delay/missing input meaning; no network, synthetic trade substitute, account permission or order path. |
+| `get_market_liquidity` | read | Experimental 0–100 funding-pressure-v1 gauge (not VIX/official/calibrated); inspect formula, component weights/dates and missing/stale-input rejection. Six dated US macro indicators and eleven sector ETF daily activity proxies. Preserve exact observation dates, FRED source units, common-date spread joins, missing/offline flags and each sector date. SOFR-IORB/EFFR-IORB are basis points; balance levels are USD billions. Heat is close×volume / prior 20 observations; Amihud is absolute percent return per USD million, not intraday depth or net flows. Never infer complete sector liquidity or systemic risk from this proxy alone. |
 <!-- mcp-tool-guide:end -->

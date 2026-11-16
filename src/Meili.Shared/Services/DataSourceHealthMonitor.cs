@@ -54,7 +54,7 @@ public sealed class DataSourceHealthMonitor : IDisposable
         _running = completion.Task;
         IsTesting = true;
         _nextSweep = _time.GetUtcNow() + RefreshInterval;
-        _round = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+        _round = new CancellationTokenSource(TimeSpan.FromSeconds(Math.Max(60, Math.Ceiling(_probes.Count / 2d) * 12 + 5)));
         Changed?.Invoke(this, EventArgs.Empty);
         _ = RunAsync(_round, completion);
         return _running;

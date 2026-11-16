@@ -348,6 +348,7 @@ jobs:
           name: desktop-package-evidence-${{ matrix.os }}
           path: |
             build/out/ci/desktop-smoke*
+            build/out/ci/theme-switch-*.png
             build/out/ci/desktop-render/**/*.png
             build/out/ci/desktop-render/**/*.json
             build/out/ci/tests/**/*.trx

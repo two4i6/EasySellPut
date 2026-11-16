@@ -6,4 +6,5 @@
     <Using Include="Xunit" />
   </ItemGroup>
   <ItemGroup><EmbeddedResource Include="Fixtures/previous-skill.md" LogicalName="EasySellPut.Tests.PreviousSkill" /></ItemGroup>
+  <ItemGroup><Compile Include="../Fixtures/LiquidityFixture.cs" Link="LiquidityFixture.cs" /></ItemGroup>
 </Project>

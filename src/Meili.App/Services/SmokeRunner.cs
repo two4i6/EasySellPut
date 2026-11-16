@@ -101,8 +101,21 @@ public sealed class SmokeRunner
                 var home=(System.Windows.Controls.Primitives.ToggleButton)window.FindName("HomeWorkspace");
                 var target=Enum.Parse<AppPage>(page.Name.Replace("Page",""));
                 var settingsButton=(System.Windows.Controls.Primitives.ToggleButton)window.FindName("SettingsButton");
-                var button=NavigationButton(window,target);
-                button.BringIntoView();if(target==AppPage.DataSources){if(button.Command?.CanExecute(button.CommandParameter)!=true)throw new InvalidOperationException("Source-health footer command is unavailable");button.Command.Execute(button.CommandParameter);}else button.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
+                System.Windows.Controls.Primitives.ButtonBase button;
+                if (target == AppPage.DataSources)
+                {
+                    var footer = (System.Windows.Controls.Button)window.FindName("MarketStatusIndicator");
+                    if (footer.Command != AppServices.Get<ShellViewModel>().OpenDataSourcesCommand)
+                        throw new InvalidOperationException("Footer source-status navigation command is unavailable");
+                    button = footer;
+                    var peer = new System.Windows.Automation.Peers.ButtonAutomationPeer(footer);
+                    ((System.Windows.Automation.Provider.IInvokeProvider)peer.GetPattern(System.Windows.Automation.Peers.PatternInterface.Invoke)).Invoke();
+                }
+                else
+                {
+                    button=target==AppPage.Dashboard?home:target==AppPage.Settings?settingsButton:rail.Children.OfType<System.Windows.Controls.Primitives.ToggleButton>().Single(b=>Equals(b.Tag,target));
+                    button.BringIntoView();button.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
+                }
                 await Task.Delay(1500);
                 await window.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
                 string[] newErrors;
@@ -111,7 +124,14 @@ public sealed class SmokeRunner
                 if (window.CurrentPageType != page) throw new InvalidOperationException($"navigation ended on {window.CurrentPageType?.Name ?? "none"}");
                 var workspace=(System.Windows.Controls.Grid)window.FindName("WorkspaceGrid");
                 if(workspace.ColumnDefinitions.Count!=2 || workspace.ColumnDefinitions[0].ActualWidth!=64 || window.FindName("ChannelNav") is not null)throw new InvalidOperationException("The wide navigation column returned");
-                if(rail.Children.OfType<System.Windows.Controls.Primitives.ToggleButton>().Append(home).Append(settingsButton).Count(b=>b.IsChecked==true)!=(target==AppPage.DataSources?0:1) || target!=AppPage.DataSources && (button as System.Windows.Controls.Primitives.ToggleButton)?.IsChecked!=true)throw new InvalidOperationException("Navigation rail selection is inconsistent");
+                var selected = rail.Children.OfType<System.Windows.Controls.Primitives.ToggleButton>().Append(home).Append(settingsButton).Count(b=>b.IsChecked==true);
+                if (target == AppPage.DataSources)
+                {
+                    if (selected != 0 || rail.Children.OfType<System.Windows.Controls.Primitives.ToggleButton>().Any(b=>Equals(b.Tag,AppPage.DataSources)))
+                        throw new InvalidOperationException("Data sources must use the sole footer entry, without a selected/duplicate rail tile");
+                }
+                else if (selected != 1 || button is not System.Windows.Controls.Primitives.ToggleButton { IsChecked: true })
+                    throw new InvalidOperationException("Navigation rail selection is inconsistent");
                 if(window.FindName("BackgroundButton") is not null || window.FindName("MotionButton") is not null)throw new InvalidOperationException("Removed footer controls returned");
                 foreach(var name in new[]{"SettingsButton","LanguageButton","ThemeButton"})
                 {
@@ -120,7 +140,7 @@ public sealed class SmokeRunner
                     var icon=(System.Windows.Controls.Viewbox)action.Content;var center=icon.TranslatePoint(new Point(icon.ActualWidth/2,icon.ActualHeight/2),action);
                     if(Math.Abs(center.X-action.ActualWidth/2)>.6 || Math.Abs(center.Y-action.ActualHeight/2)>.6)throw new InvalidOperationException("Off-center status icon: "+name);
                 }
-                return target==AppPage.DataSources?"loaded via footer source-health entry":"loaded via single-rail button";
+                return target == AppPage.DataSources ? "loaded via footer source-status button" : "loaded via single-rail button";
             });
         }
         if (Directory.Exists(Path.Combine(AppContext.BaseDirectory, "automation"))) await CheckAsync("ai-connection", async () =>
@@ -261,9 +281,10 @@ public sealed class SmokeRunner
                         var actual = ((System.Windows.Media.SolidColorBrush)element.FindResource(key)).Color;
                         if (expected != actual) throw new InvalidOperationException($"{name}: {part} resolves {key} as {actual}, application has {expected}");
                     }
-                    var i = (int)at.Y * stride + (int)at.X * 4;
-                    var lum = (0.0722 * px[i] + 0.7152 * px[i + 1] + 0.2126 * px[i + 2]) / 255;   // Pbgra32
-                    if (dark ? lum > 0.35 : lum < 0.6) throw new InvalidOperationException($"{name}: {part} pixel at {at} has lightness {lum:0.00}");
+                    // A single pixel can land on a correctly white option-price glyph in dark mode.
+                    // Validate the surrounding background patch while preserving the same thresholds/resource checks.
+                    var lum = ThemeSurfaceSample.MedianLightness(px, stride / 4, px.Length / stride, stride, (int)at.X, (int)at.Y);
+                    if (dark ? lum > 0.35 : lum < 0.6) throw new InvalidOperationException($"{name}: {part} background patch at {at} has lightness {lum:0.00}");
                     notes.Add($"{name}/{part} {lum:0.00}");
                 }
             }

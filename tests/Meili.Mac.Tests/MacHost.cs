@@ -39,6 +39,8 @@ public static class MacHost
         services.AddSingleton(new AppLaunchOptions { NoAlerts = true, ExitOnClose = true });
         MacComposition.Register(services, dataDir);
         services.AddSingleton<IMarketDataService>(Data);
+        services.AddSingleton<ILiquiditySeriesSource>(new Meili.Testing.LiquidityFixture());
+        services.AddSingleton(sp=>new MarketLiquidityService(sp.GetRequiredService<ILiquiditySeriesSource>(),sp.GetRequiredService<IMarketDataService>(),Meili.Testing.LiquidityFixture.Clock));
         services.AddSingleton<IIvSource>(new FakeIvSource());
         services.AddSingleton<INetworkController>(new FakeNetwork());
         AppServices.Provider = services.BuildServiceProvider();

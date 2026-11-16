@@ -36,6 +36,7 @@ public sealed class FakeMarketDataService : IMarketDataService
 
     public Task<BarSeries> GetBarsAsync(BarRequest request, CancellationToken ct = default)
     {
+        if(request.Symbol.StartsWith("XL",StringComparison.Ordinal))return Task.FromResult(Meili.Testing.LiquidityFixture.Bars(request));
         lock (BarRequests) BarRequests.Add(request);
         var (src, basis) = BarMeta?.Invoke(request)
             ?? ("yahoo", request.Adjust == AdjustMode.Total && !request.Interval.IsIntraday() ? PriceAdjustment.SplitDividend : PriceAdjustment.Split);

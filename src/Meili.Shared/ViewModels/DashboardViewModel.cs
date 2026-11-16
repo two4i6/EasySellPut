@@ -23,6 +23,7 @@ public partial class DashboardViewModel : ObservableObject
     private readonly NavigationHub _nav;
     private readonly INetworkController _network;
     private readonly SettingsStore _settings;
+    public LiquidityViewModel Liquidity {get;}
     private bool _active;
     private CancellationTokenSource? _cts;
     private DateTimeOffset? _lastUpdate;
@@ -41,8 +42,9 @@ public partial class DashboardViewModel : ObservableObject
     [ObservableProperty] public partial string GuideNetworkText { get; set; } = "";
 
     public DashboardViewModel(WatchlistStore watchlist, QuoteHub hub, LocalizationService loc, NavigationHub nav,
-        INetworkController network, SettingsStore settings)
+        INetworkController network, SettingsStore settings, LiquidityViewModel liquidity)
     {
+        Liquidity=liquidity;
         _watchlist = watchlist; _hub = hub; _loc = loc; _nav = nav; _network = network; _settings = settings;
         ShowGuide = !settings.Current.GuideDismissed;
         DescribeNetwork();
@@ -72,6 +74,7 @@ public partial class DashboardViewModel : ObservableObject
             _active = true;
             _hub.Updated += OnBatch;
         }
+        _ = Liquidity.ActivateAsync();
         Resubscribe();
         ShowCached();
         await RefreshAsync();
@@ -79,6 +82,7 @@ public partial class DashboardViewModel : ObservableObject
 
     public void Deactivate()
     {
+        Liquidity.Deactivate();
         _active = false;
         _hub.Updated -= OnBatch;
         _hub.Unsubscribe(Owner);

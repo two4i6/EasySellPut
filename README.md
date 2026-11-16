@@ -9,6 +9,7 @@ Current version: **0.6.0**
 ## Features
 
 - Watchlists, quote overview, and K-line charts
+- [US market liquidity](docs/52-市场流动性与行业热力图.md): experimental 0–100 funding-pressure gauge, six dated macro indicators and 11 sector ETF activity proxies (desktop, CLI and MCP)
 - Options chain, implied volatility, and a linked multi-leg strategy/payoff workbench
 - Price / IV alerts, news and fundamentals, and data-source status
 - Chinese and English UI, light and dark themes
@@ -39,6 +40,7 @@ Version 0.6.0 adds a local CLI and stdio MCP server for **Windows x64/ARM64 and 
 
 ```bash
 easysellput quote AAPL MSFT --json
+easysellput liquidity --json
 easysellput strategy analyze --input analysis.json --json
 easysellput mcp serve --data-dir /path/to/EasySellPut-data
 ```
