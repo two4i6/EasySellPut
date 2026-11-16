@@ -3,6 +3,12 @@ using Meili.Shared.Services;
 using Meili.Automation;
 // Cloud test harness only; never included in application distributions.
 if(args is ["--serve",var database]){using var session=new QqqGexSession(Path.GetFullPath(database));Console.WriteLine(JsonSerializer.Serialize(new{pageUri=session.PageUri.AbsoluteUri}));await Console.In.ReadLineAsync();return 0;}
+if(args is ["--measure-query",var queryDirectory,var queryPath]){
+    var allocated=GC.GetTotalAllocatedBytes(true);var clock=System.Diagnostics.Stopwatch.StartNew();
+    var result=await QqqGexCalculationRunner.QueryAsync(queryDirectory,queryPath);
+    var bytesAllocated=GC.GetTotalAllocatedBytes(true)-allocated;var elapsedMs=clock.Elapsed.TotalMilliseconds;
+    var body=JsonSerializer.SerializeToUtf8Bytes(result);Console.WriteLine(JsonSerializer.Serialize(new{elapsedMs,bytesAllocated,responseBytes=body.Length,sha256=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(body)),peakWorkingSetBytes=System.Diagnostics.Process.GetCurrentProcess().PeakWorkingSet64}));return 0;
+}
 if(args is ["--operation",var dataDirectory,var operation,var arguments]){using var automation=new AutomationService(new(Path.GetFullPath(dataDirectory),Meili.Core.Settings.DataDirectorySource.CommandLine));using var document=JsonDocument.Parse(arguments);Console.WriteLine((await automation.ExecuteAsync(operation,document.RootElement,false)).GetRawText());return 0;}
 if(args is ["--capture-sequence",var directory]){
     using var services=new Meili.Data.DataServices(new Meili.Core.Settings.NetworkSettings());var market=new Meili.Data.Cache.CachedMarketData(services.Router,new Meili.Data.Cache.MarketDb(Path.Combine(directory,"cache","market.db")));

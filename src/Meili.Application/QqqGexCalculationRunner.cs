@@ -68,11 +68,12 @@ public static class QqqGexCalculationRunner
         if(process is null)return new {status="runtime_unavailable",complete=false};
         using(process)
         {
-            async Task<string> ReadBounded(Stream stream,int limit){using var buffer=new MemoryStream();var chunk=new byte[8192];int n;while((n=await stream.ReadAsync(chunk,timeout.Token))>0){if(buffer.Length+n>limit){try{process.Kill(true);}catch(InvalidOperationException){}throw new InvalidDataException("GEX process output exceeds bound");}buffer.Write(chunk,0,n);}return Encoding.UTF8.GetString(buffer.GetBuffer(),0,(int)buffer.Length);}
+            async Task<byte[]> ReadBounded(Stream stream,int limit){using var buffer=new MemoryStream();var chunk=new byte[8192];int n;while((n=await stream.ReadAsync(chunk,timeout.Token))>0){if(buffer.Length+n>limit){try{process.Kill(true);}catch(InvalidOperationException){}throw new InvalidDataException("GEX process output exceeds bound");}buffer.Write(chunk,0,n);}return buffer.ToArray();}
             var outputLimit=script=="query.mjs"?128*1024*1024:1024*1024;var stdout=ReadBounded(process.StandardOutput.BaseStream,outputLimit);var stderr=ReadBounded(process.StandardError.BaseStream,65536);
             try{await process.WaitForExitAsync(timeout.Token);}catch(OperationCanceledException){try{process.Kill(true);}catch(InvalidOperationException){}throw;}
             var output=await stdout;_ =await stderr;
             if(process.ExitCode!=0||output.Length>outputLimit)return new {status="calculation_failed",complete=false,exitCode=process.ExitCode,reason="Pinned source runtime rejected input; raw normalized input retained"};
+            // Parse bounded UTF-8 without a full UTF-16 stdout copy; clone preserves the existing independently owned JsonElement contract.
             using var doc=JsonDocument.Parse(output);return doc.RootElement.Clone();
         }
     }

@@ -1,0 +1,76 @@
+{
+  "dataset": "Same real retained partial174-snapshot/31806-strike/9-bar archive, latest display query",
+  "method": "Fresh processes, alternating order, .NET GC allocated delta around QueryAsync; excludes final serialization; same harness and dependencies except Application.dll. Cold processes, warm OS cache; no native claim.",
+  "responseBytesIdentical": true,
+  "trials": [
+    {
+      "trial": 0,
+      "version": "before",
+      "elapsedMs": 1818.6982,
+      "bytesAllocated": 38651320,
+      "responseBytes": 3831069,
+      "sha256": "6033BCA4E11CD73B9EF913B5032922FFD388AF71B46E2D06ACC8F2279F8208BB",
+      "peakWorkingSetBytes": 77447168
+    },
+    {
+      "trial": 0,
+      "version": "utf8Clone",
+      "elapsedMs": 1291.9131,
+      "bytesAllocated": 30802152,
+      "responseBytes": 3831069,
+      "sha256": "6033BCA4E11CD73B9EF913B5032922FFD388AF71B46E2D06ACC8F2279F8208BB",
+      "peakWorkingSetBytes": 69435392
+    },
+    {
+      "trial": 1,
+      "version": "utf8Clone",
+      "elapsedMs": 1399.8049,
+      "bytesAllocated": 30800560,
+      "responseBytes": 3831069,
+      "sha256": "6033BCA4E11CD73B9EF913B5032922FFD388AF71B46E2D06ACC8F2279F8208BB",
+      "peakWorkingSetBytes": 65589248
+    },
+    {
+      "trial": 1,
+      "version": "before",
+      "elapsedMs": 1388.9919,
+      "bytesAllocated": 38650656,
+      "responseBytes": 3831069,
+      "sha256": "6033BCA4E11CD73B9EF913B5032922FFD388AF71B46E2D06ACC8F2279F8208BB",
+      "peakWorkingSetBytes": 76840960
+    },
+    {
+      "trial": 2,
+      "version": "before",
+      "elapsedMs": 1199.08,
+      "bytesAllocated": 38650728,
+      "responseBytes": 3831069,
+      "sha256": "6033BCA4E11CD73B9EF913B5032922FFD388AF71B46E2D06ACC8F2279F8208BB",
+      "peakWorkingSetBytes": 72224768
+    },
+    {
+      "trial": 2,
+      "version": "utf8Clone",
+      "elapsedMs": 1077.8186,
+      "bytesAllocated": 30801184,
+      "responseBytes": 3831069,
+      "sha256": "6033BCA4E11CD73B9EF913B5032922FFD388AF71B46E2D06ACC8F2279F8208BB",
+      "peakWorkingSetBytes": 65662976
+    }
+  ],
+  "medians": {
+    "before": {
+      "elapsedMs": 1388.9919,
+      "bytesAllocated": 38650728,
+      "peakWorkingSetBytes": 76840960
+    },
+    "utf8Clone": {
+      "elapsedMs": 1291.9131,
+      "bytesAllocated": 30801184,
+      "peakWorkingSetBytes": 65662976
+    }
+  },
+  "change": "Keep existing JsonDocument.Parse + independently owned JsonElement clone; read/parse stdout as bounded UTF-8 instead of creating a full UTF-16 string. No math, query, cache or history policy changes.",
+  "baselineCommit": "59dcf4613e808a4194ee577e4c806d5ed9717f24",
+  "limits": "Three trials on one cloud Linux environment and a small retained incomplete sample. Query allocation delta excludes final hash serialization; process peak includes it. Whole desktop/server peaks remain variable. No native or complete-day acceptance."
+}
