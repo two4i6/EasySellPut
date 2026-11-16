@@ -23,7 +23,9 @@ public sealed class MarketStatusTests
                 Assert.Equal(shell.MarketStatusTip, System.Windows.Automation.AutomationProperties.GetName(status));
                 Assert.InRange(status.ActualWidth, 40, 220);
                 AssertAlignment(w);
-                status.Command.Execute(null); await ScreenRenderTests.Settle();
+                var peer=new System.Windows.Automation.Peers.ButtonAutomationPeer(status);
+                ((System.Windows.Automation.Provider.IInvokeProvider)peer.GetPattern(System.Windows.Automation.Peers.PatternInterface.Invoke)).Invoke();
+                await ScreenRenderTests.Settle();
                 Assert.Contains(UiAudit.Descendants<Meili.App.Views.Pages.DataSourcesPage>(w), page => page.IsVisible);
                 Assert.DoesNotContain(((StackPanel)w.FindName("BuiltinRail")).Children.OfType<System.Windows.Controls.Primitives.ToggleButton>(), tile => Equals(tile.Tag, AppPage.DataSources));
                 w.Width = 980; await ScreenRenderTests.Settle();

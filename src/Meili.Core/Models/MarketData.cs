@@ -13,6 +13,7 @@ public enum DataCapability
     Financials = 32,
     News = 64,
     Search = 128,
+    MacroLiquidity = 256,
 }
 
 public enum MarketState { Unknown, PreMarket, Regular, AfterHours, Closed }

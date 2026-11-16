@@ -82,6 +82,7 @@
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
+            <ds:LiquidityPanel DataContext="{Binding Liquidity}" Margin="0,24,0,24"/>
         </StackPanel>
     </ScrollViewer>
 </Page>

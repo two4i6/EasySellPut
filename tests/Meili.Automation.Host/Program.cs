@@ -15,7 +15,7 @@ if (args.SequenceEqual(new[] { "--connection-fixtures" }))
 
 // Test-only executable: real CLI/MCP adapters and official SDK, deterministic market data.
 // This host is never shipped in the production distribution.
-return await Meili.Cli.Program.RunAsync(args, directory => new AutomationService(directory, new FakeMarket(), [new FixtureProbe()]));
+return await Meili.Cli.Program.RunAsync(args, directory => new AutomationService(directory, new FakeMarket(), [new FixtureProbe()], new Meili.Testing.LiquidityFixture(), Meili.Testing.LiquidityFixture.Clock));
 
 sealed class FixtureProbe : Meili.Core.Abstractions.IQuoteProvider
 {

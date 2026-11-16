@@ -25,6 +25,8 @@ CLI/MCP：本次为桌面视觉与组件基础设施，业务操作和权限不�
 | 组件 | Windows | macOS | 内置网页 |
 | --- | --- | --- | --- |
 | 设计变量/字体 | 生成 Tokens.xaml + DesignTokens.cs | 生成 Tokens.axaml/ThemeDefaults.axaml | 生成 design-tokens.css |
+| 0–100 表盘 | AppGauge，共享 GaugePlan 几何 | AppGauge，共享 GaugePlan 几何 | 暂无需求，不引入替代实现 |
+| 操作卡片 | AppActionCard，继承 AppButton 模板 | AppActionCard，继承共享 Button 模板与动效 | 业务区域使用既有 .panel |
 | 按钮/输入/select/状态 | DesignSystem/Components.xaml | DesignSystem/Components.axaml | components.css |
 | 卡片/设置行 | AppCard（可选 Header/Icon） | AppCard（组合标题与内容） | .panel |
 | 抽屉 | AppDrawer，IsOpen 双向绑定、Esc/焦点返回 | AppDrawer，同一交互合同 | 现有右栏，使用共享表面角色 |

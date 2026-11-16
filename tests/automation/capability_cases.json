@@ -954,6 +954,36 @@
       "compare": [
         "/data"
       ]
+    },
+    {
+      "operation": "get_market_liquidity",
+      "arguments": {},
+      "expect": {
+        "/data/metrics/0/id": {
+          "equals": "sofr_iorb"
+        },
+        "/data/metrics/0/latest/value": {
+          "approx": 1
+        },
+        "/data/metrics/3/latest/value": {
+          "equals": 3100
+        },
+        "/data/sectors/0/baselineDays": {
+          "equals": 20
+        },
+        "/data/pressureIndex/score": {
+          "approx": 49.8
+        },
+        "/data/pressureIndex/band": {
+          "equals": "normal"
+        }
+      },
+      "compare": [
+        "/data/metrics",
+        "/data/sectors",
+        "/data/heatmapBasis",
+        "/data/pressureIndex"
+      ]
     }
   ]
 }

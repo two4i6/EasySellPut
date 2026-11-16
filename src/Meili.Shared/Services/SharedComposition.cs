@@ -28,6 +28,9 @@ public static class SharedComposition
         s.AddSingleton(sp => sp.GetRequiredService<DataServices>().Router);
         // B2: K-line history is cached in SQLite in the data folder; everything else goes straight to the router.
         s.AddSingleton(sp => new Meili.Data.Cache.MarketDb(System.IO.Path.Combine(dataDir.Path, "cache", "market.db")));
+        s.AddSingleton<ILiquiditySeriesSource>(sp => sp.GetRequiredService<DataServices>().Providers.OfType<ILiquiditySeriesSource>().Single());
+        s.AddSingleton<MarketLiquidityService>();
+        s.AddSingleton<LiquidityViewModel>();
         s.AddSingleton<IMarketDataService>(sp => new Meili.Data.Cache.CachedMarketData(
             sp.GetRequiredService<DataServices>().Router, sp.GetRequiredService<Meili.Data.Cache.MarketDb>()));
         s.AddSingleton(sp => new Meili.Core.Quotes.QuoteHub(sp.GetRequiredService<IMarketDataService>()));

@@ -49,3 +49,9 @@ public interface ISymbolSearchProvider : IDataProvider
 {
     Task<IReadOnlyList<SymbolMatch>> SearchAsync(string query, int limit = 10, CancellationToken ct = default);
 }
+
+/// <summary>Optional representative connectivity request that bypasses data caches.</summary>
+public interface IConnectivityProbe : IDataProvider
+{
+    Task<bool> ProbeAsync(CancellationToken ct = default);
+}

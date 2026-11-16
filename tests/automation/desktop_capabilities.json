@@ -636,6 +636,23 @@
           "uiOnly": "Desktop update reminder visibility only; no business mutation, installation or MCP equivalent."
         }
       }
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/LiquidityViewModel.cs",
+      "operations": [
+        "get_market_liquidity"
+      ],
+      "scope": "Shared application liquidity report and Analytics math are identical across desktop, CLI and MCP. Card layout, bounded page lifecycle, colors and chart navigation are presentation. Six US macro indicators retain dated FRED inputs; sector ETF turnover/Amihud are daily proxies, not executable depth or flows.",
+      "commands": {
+        "RefreshAsync": {
+          "operations": [
+            "get_market_liquidity"
+          ]
+        },
+        "OpenSector": {
+          "uiOnly": "Navigate to the selected sector ETF chart in the desktop; bar/indicator data remain available through get_bars/get_chart_analysis."
+        }
+      }
     }
   ]
 }

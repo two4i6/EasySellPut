@@ -124,7 +124,7 @@ Windows command 改为完整的 `easysellput.exe` 路径，JSON 中反斜杠需�
 
 默认只读，发现列表不包含修改工具，直接调用修改工具也被拒绝。确需让客户端修改本地自选股、策略或提醒时，在 args 中显式增加 `--allow-writes`。这个开关允许本次 MCP 进程全部已登记的修改操作；仍应由客户端按自己的策略确认操作。工具注解用于描述，不代替权限检查。
 
-查询/计算工具：search_symbols、get_quotes、get_bars、get_expirations、get_option_chain、get_fundamentals、get_financials、get_news、get_market_events、get_source_health、probe_data_sources、get_chart_analysis、analyze_option_chain、get_pricing_assumptions、get_volatility_insights、list_strategy_presets、build_strategy、strategy_what_if、get_chart_drawings、calculate_option、calculate_indicators、analyze_strategy、get_watchlists、get_saved_strategies、get_alerts、get_alert_history、get_settings。
+查询/计算工具：search_symbols、get_quotes、get_bars、get_expirations、get_option_chain、get_fundamentals、get_financials、get_news、get_market_events、get_market_liquidity、get_source_health、probe_data_sources、get_chart_analysis、analyze_option_chain、get_pricing_assumptions、get_volatility_insights、list_strategy_presets、build_strategy、strategy_what_if、get_chart_drawings、calculate_option、calculate_indicators、analyze_strategy、get_watchlists、get_saved_strategies、get_alerts、get_alert_history、get_settings。
 
 修改工具：create_watchlist_group、rename_watchlist_group、delete_watchlist_group、add_watchlist_symbol、remove_watchlist_symbol、save_strategy、delete_strategy、save_alert、delete_alert、set_alert_enabled。
 
@@ -168,3 +168,7 @@ MEILI_LIVE=1 python3 tests/automation/live_cli_mcp_smoke.py --executable /path/t
 `easysellput update check --json` 检查签名的稳定桌面版本；`easysellput update download --json` 下载并验证当前架构包。可加 `--data-dir PATH` 使用相同网络配置。不会自动安装；在桌面设置页阅读更新内容并确认安装/重启。MCP 不开放自我替换可执行文件或任意安装命令。参见 [检查更新与安装](29-检查更新与安装.md)。
 
 缓存维护：`cache status` / `cache clear --category bars --symbol AAPL`；MCP 对应 `get_cache_status` / `clear_cache`。作用范围、历史数据保护与清理语义见 [统一缓存管理](47-统一缓存管理.md)。
+
+## 市场流动性
+
+`easysellput liquidity --json` 或 MCP `get_market_liquidity {}` 返回同一报告：实验性0–100资金压力分数/公式/权重/日期、六项FRED宏观指标、11个行业ETF的日频成交活跃度与Amihud代理。缺少/陈旧输入不出分数，不是VIX、实时深度或资金净流入。无需写权限。详见[数据口径与验收](52-市场流动性与行业热力图.md)。

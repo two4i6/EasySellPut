@@ -14,7 +14,7 @@ using Right = Meili.Analytics.OptionRight;
 namespace Meili.Automation;
 
 /// <summary>UI-free application boundary shared by CLI and MCP. Serializes requests within one host.</summary>
-public sealed partial class AutomationService(DataDirectoryInfo directory, IMarketDataService? market = null, IReadOnlyList<IDataProvider>? diagnosticProviders = null) : IDisposable
+public sealed partial class AutomationService(DataDirectoryInfo directory, IMarketDataService? market = null, IReadOnlyList<IDataProvider>? diagnosticProviders = null, ILiquiditySeriesSource? liquiditySource = null, TimeProvider? liquidityClock = null) : IDisposable
 {
     private readonly SemaphoreSlim _gate = new(1);
     private readonly bool _injectedMarket = market is not null;
@@ -74,6 +74,13 @@ public sealed partial class AutomationService(DataDirectoryInfo directory, IMark
     {
         switch (op)
         {
+            case "get_market_liquidity":
+                {
+                    var marketData = await Market(ct);
+                    var source = liquiditySource ?? _sources?.Providers.OfType<ILiquiditySeriesSource>().SingleOrDefault()
+                        ?? throw new InvalidOperationException("Liquidity source is not configured.");
+                    return await new MarketLiquidityService(source, marketData, liquidityClock).LoadAsync(ct);
+                }
             case "get_cache_status": return await Task.Run(() => Caches().Inspect(ct), ct);
             case "clear_cache": return await Task.Run(() => Caches().Clear(a.Text("category"), a.Text("mode", "all") == "expired", a.Has("symbol") ? a.Text("symbol") : null), ct);
             case "search_symbols": return await (await Market(ct)).SearchAsync(a.Text("query", max: 100), a.Int("limit", 10, 1, 50), ct);

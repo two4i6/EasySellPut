@@ -45,6 +45,7 @@ public sealed class DataServices : IDisposable
     private static IReadOnlyList<ProviderBase> CreateProviders(HttpGateway http, ResponseCache cache) =>
     [
         new YahooProvider(http, cache),
+        new Providers.Fred.FredLiquidityProvider(http, cache),
         new Providers.Cboe.CboeProvider(http, cache),
         new Providers.Nasdaq.NasdaqProvider(http, cache),
         new Providers.Cnbc.CnbcProvider(http, cache),
