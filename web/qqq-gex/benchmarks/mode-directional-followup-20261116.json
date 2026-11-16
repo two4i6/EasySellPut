@@ -1,0 +1,289 @@
+{
+  "date": "2026-11-16",
+  "steps": [
+    {
+      "name": "initial history",
+      "outerMode": "history",
+      "dateMode": "fixed",
+      "date": "2026-11-16",
+      "latestPressed": "false",
+      "pcsPanel": 0,
+      "quoteBadge": 0,
+      "rows": 6,
+      "recentRequests": [
+        {
+          "path": "/api/analysis/qqq/local-state",
+          "params": {}
+        },
+        {
+          "path": "/api/analysis/qqq/cache-status",
+          "params": {}
+        },
+        {
+          "path": "/api/analysis/qqq/pcs/backtest",
+          "params": {
+            "stream": "dates"
+          }
+        },
+        {
+          "path": "/api/analysis/qqq/gex/day",
+          "params": {}
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "params": {}
+        },
+        {
+          "path": "/api/analysis/qqq/pcs/backtest",
+          "params": {
+            "stream": "signals"
+          }
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "params": {}
+        },
+        {
+          "path": "/api/analysis/qqq/cache-status",
+          "params": {}
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "params": {}
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "params": {}
+        }
+      ],
+      "recentResponses": []
+    },
+    {
+      "name": "history selects newest date through dropdown handler",
+      "outerMode": "history",
+      "dateMode": "follow",
+      "date": "2026-11-16",
+      "latestPressed": "false",
+      "pcsPanel": 0,
+      "quoteBadge": 0,
+      "rows": 6,
+      "recentRequests": [
+        {
+          "path": "/api/analysis/qqq/cache-status",
+          "params": {}
+        },
+        {
+          "path": "/api/analysis/qqq/pcs",
+          "params": {
+            "gexWindow": "latest"
+          }
+        },
+        {
+          "path": "/api/analysis/qqq/cache-status",
+          "params": {}
+        },
+        {
+          "path": "/api/analysis/qqq/pcs",
+          "params": {
+            "gexWindow": "latest"
+          }
+        }
+      ],
+      "recentResponses": [
+        {
+          "status": 200,
+          "view": {
+            "mode": "historical",
+            "date": "2026-11-16"
+          },
+          "asOf": "2026-11-16T14:48:18.0000000+00:00",
+          "directional": false,
+          "hasDaily": true
+        }
+      ]
+    },
+    {
+      "name": "latest observation",
+      "outerMode": "latest",
+      "dateMode": "follow",
+      "date": "2026-11-16",
+      "latestPressed": "true",
+      "pcsPanel": 1,
+      "quoteBadge": 1,
+      "rows": 6,
+      "recentRequests": [
+        {
+          "path": "/quotes",
+          "params": {}
+        },
+        {
+          "path": "/api/analysis/qqq/pcs",
+          "params": {
+            "gexWindow": "latest",
+            "localLive": "1"
+          }
+        },
+        {
+          "path": "/api/analysis/qqq/pcs/local-decision",
+          "params": {}
+        },
+        {
+          "path": "/quotes",
+          "params": {}
+        }
+      ],
+      "recentResponses": [
+        {
+          "status": 200,
+          "view": {
+            "mode": "historical",
+            "date": "2026-11-16"
+          },
+          "asOf": "2026-11-16T14:48:18.0000000+00:00",
+          "directional": false,
+          "hasDaily": false
+        },
+        {
+          "status": 200,
+          "view": {
+            "mode": "live",
+            "date": "2026-11-16"
+          },
+          "asOf": "2026-11-16T20:23:10.142Z",
+          "directional": true,
+          "hasDaily": true
+        }
+      ]
+    },
+    {
+      "name": "reload preserves latest follow",
+      "outerMode": "latest",
+      "dateMode": "follow",
+      "date": "2026-11-16",
+      "latestPressed": "true",
+      "pcsPanel": 1,
+      "quoteBadge": 1,
+      "rows": 6,
+      "recentRequests": [
+        {
+          "path": "/api/analysis/qqq/local-state",
+          "params": {}
+        },
+        {
+          "path": "/quotes",
+          "params": {}
+        },
+        {
+          "path": "/api/analysis/qqq/cache-status",
+          "params": {}
+        },
+        {
+          "path": "/api/analysis/qqq/pcs/backtest",
+          "params": {
+            "stream": "dates"
+          }
+        },
+        {
+          "path": "/api/analysis/qqq/pcs/local-decision",
+          "params": {}
+        },
+        {
+          "path": "/api/analysis/qqq/pcs",
+          "params": {
+            "gexWindow": "latest",
+            "localLive": "1"
+          }
+        },
+        {
+          "path": "/quotes",
+          "params": {}
+        },
+        {
+          "path": "/api/analysis/qqq/cache-status",
+          "params": {}
+        },
+        {
+          "path": "/api/analysis/qqq/pcs",
+          "params": {
+            "gexWindow": "latest",
+            "localLive": "1"
+          }
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "params": {}
+        }
+      ],
+      "recentResponses": [
+        {
+          "status": 200,
+          "view": {
+            "mode": "live",
+            "date": "2026-11-16"
+          },
+          "asOf": "2026-11-16T20:23:15.984Z",
+          "directional": true,
+          "hasDaily": true
+        },
+        {
+          "status": 200,
+          "view": {
+            "mode": "live",
+            "date": "2026-11-16"
+          },
+          "asOf": "2026-11-16T20:23:17.718Z",
+          "directional": true,
+          "hasDaily": false
+        }
+      ]
+    },
+    {
+      "name": "history button again",
+      "outerMode": "history",
+      "dateMode": "fixed",
+      "date": "2026-11-16",
+      "latestPressed": "false",
+      "pcsPanel": 0,
+      "quoteBadge": 0,
+      "rows": 6,
+      "recentRequests": [
+        {
+          "path": "/api/analysis/qqq/cache-status",
+          "params": {}
+        },
+        {
+          "path": "/api/analysis/qqq/gex/day",
+          "params": {}
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "params": {}
+        },
+        {
+          "path": "/api/analysis/qqq/pcs/backtest",
+          "params": {
+            "stream": "signals"
+          }
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "params": {}
+        },
+        {
+          "path": "/api/analysis/qqq/cache-status",
+          "params": {}
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "params": {}
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "params": {}
+        }
+      ],
+      "recentResponses": []
+    }
+  ],
+  "scope": "Cloud Linux Chromium, existing real partial cached date only; no new capture or fresh-market claim. selectOption invokes real dropdown change handler even with only one date."
+}
