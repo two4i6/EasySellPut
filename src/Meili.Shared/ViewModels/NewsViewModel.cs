@@ -19,6 +19,8 @@ public partial class NewsViewModel : ObservableObject
 {
     private static readonly TimeZoneInfo BeijingZone = ResolveBeijing();
 
+    public LiveQuotePresenter LiveQuote {get;}
+    private string? _profileSymbol;
     private readonly WatchlistStore _watchlist;
     private readonly IMarketDataService _data;
     private readonly LocalizationService _loc;
@@ -56,9 +58,9 @@ public partial class NewsViewModel : ObservableObject
     [ObservableProperty] public partial bool HasFinancials { get; set; }
     [ObservableProperty] public partial bool HasWebsite { get; set; }
 
-    public NewsViewModel(WatchlistStore watchlist, IMarketDataService data, LocalizationService loc, SymbolContext context)
+    public NewsViewModel(WatchlistStore watchlist, IMarketDataService data, LocalizationService loc, SymbolContext context, Meili.Core.Quotes.QuoteHub? quotes=null)
     {
-        _watchlist = watchlist; _data = data; _loc = loc; _context = context;
+        _watchlist = watchlist; _data = data; _loc = loc; _context = context; LiveQuote=new(quotes,loc,"news-live"); LiveQuote.Updated+=(_,_)=>{if(_profileSymbol==LiveQuote.Symbol&&LiveQuote.Quote is {} quote)ApplyQuoteAndProfile(LiveQuote.Symbol,quote,_lastFundamentals);};
         // D1: follow the shared symbol while visible; when hidden, ActivateAsync adopts it on the next visit.
         _context.Changed += (_, sym) => { if (_active && _context.ShouldAdopt(SymbolText)) _ = AdoptContextAsync(); };
         SymbolText = watchlist.AllSymbols.Contains("AAPL", StringComparer.OrdinalIgnoreCase)
@@ -74,6 +76,7 @@ public partial class NewsViewModel : ObservableObject
     public async Task ActivateAsync()
     {
         _active = true;
+        LiveQuote.Activate(SymbolText);
         if (_context.ShouldAdopt(SymbolText)) { await AdoptContextAsync(); return; }
         if (string.IsNullOrEmpty(Headline) && Stats.Count == 0 && News.Count == 0) await LoadAsync();
         else _timer.Start();
@@ -89,6 +92,7 @@ public partial class NewsViewModel : ObservableObject
     public void Deactivate()
     {
         _active = false;
+        LiveQuote.Deactivate();
         _timer.Stop();
         _cts?.Cancel();
     }
@@ -177,6 +181,7 @@ public partial class NewsViewModel : ObservableObject
             return;
         }
         SymbolText = symbol;
+        if(_active)LiveQuote.Activate(symbol);
         _context.Set(symbol);
         IsBusy = true;
         if (!refreshOnly) StatusText = _loc["Nf_Loading"];
@@ -196,7 +201,8 @@ public partial class NewsViewModel : ObservableObject
             var quote = quotes.FirstOrDefault(x => x.Symbol.Equals(symbol, StringComparison.OrdinalIgnoreCase));
 
             _lastFundamentals = fund;
-            ApplyQuoteAndProfile(symbol, quote, fund);
+            _profileSymbol=symbol;
+            ApplyQuoteAndProfile(symbol, LiveQuote.Symbol==symbol?LiveQuote.Quote??quote:quote, fund);
             ApplyStats(quote, fund);
             _financials = fin;
             RebuildFinancials();

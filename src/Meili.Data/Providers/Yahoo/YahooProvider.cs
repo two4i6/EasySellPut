@@ -212,7 +212,11 @@ public sealed class YahooProvider : ProviderBase, IQuoteProvider, IBarsProvider,
                         f = ac / close;
                     }
                     double? S(double? x) => x * f;
-                    bars.Add(Bar.FromSource(DateTimeOffset.FromUnixTimeSeconds((long)ts[i].GetDouble()),
+                    var time = DateTimeOffset.FromUnixTimeSeconds((long)ts[i].GetDouble());
+                    // Yahoo appends a quote-time point after its interval candles. It is not an OHLC bucket.
+                    // Keep the original quote in the quote channel; do not shift or duplicate it as a candle.
+                    if (interval.IsIntraday() && time.ToUnixTimeSeconds() % 60 != 0) continue;
+                    bars.Add(Bar.FromSource(time,
                         S(i < o.Length ? o[i].Num() : null), S(i < h.Length ? h[i].Num() : null),
                         S(i < l.Length ? l[i].Num() : null), close * f, i < v.Length ? v[i].Num() : null));
                 }

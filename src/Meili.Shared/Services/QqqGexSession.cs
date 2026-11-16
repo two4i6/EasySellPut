@@ -25,8 +25,21 @@ public sealed class QqqGexSession : IDisposable
     private readonly QuoteHub? quotes;
     private readonly DesktopActivity? activity;
     private readonly string quoteOwner="qqq-gex-"+Guid.NewGuid().ToString("N");
-    private void QuoteActivity(object? sender,EventArgs e){if(activity?.AnyVisible??true)quotes?.Subscribe(quoteOwner,["QQQ"]);else quotes?.Unsubscribe(quoteOwner);}
-    private object? LocalQuote()=>quotes is not null&&quotes.TryGetCached("QQQ",out var quote)?new {quote.Symbol,quote.Price,quote.Source,quote.AsOf,quote.FetchedAt,quote.DelayMinutes,quote.IsRealtime}:null;
+    private bool liveQuotesRequested;
+    private void QuoteActivity(object? sender,EventArgs e){if(liveQuotesRequested&&(activity?.AnyVisible??true))quotes?.Subscribe(quoteOwner,["QQQ"]);else quotes?.Unsubscribe(quoteOwner);}
+    private long quoteRevision;
+    private TaskCompletionSource<bool> quoteChanged=new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private void OnQuote(object? sender,QuoteBatch batch)
+    {
+        if(!batch.Covers("QQQ"))return;
+        Interlocked.Increment(ref quoteRevision);var signal=Interlocked.Exchange(ref quoteChanged,new(TaskCreationOptions.RunContinuationsAsynchronously));signal.TrySetResult(true);
+    }
+    private object? LocalQuote()
+    {
+        if(quotes is null||!quotes.TryGetCached("QQQ",out var original))return null;
+        var view=QuotePriceView.Select(original,DateTimeOffset.UtcNow);var quote=view.Snapshot;
+        return new{quote.Symbol,quote.Price,quote.Change,quote.ChangePercent,quote.Source,quote.Delivery,quote.StreamState,quote.StreamStateAt,quote.AsOf,quote.FetchedAt,quote.DelayMinutes,quote.IsRealtime,session=view.Session.ToString(),regularReferencePrice=original.Price,regularAsOf=original.AsOf};
+    }
     private readonly string? directory;
     private readonly QqqGexPreferences? preferences;
     private TaskCompletionSource<bool> changed=new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -40,8 +53,11 @@ public sealed class QqqGexSession : IDisposable
     public Uri PageUri { get; }
     public QqqGexSession(string? databasePath = null, string snapshot = "local", QuoteHub? quotes = null, DesktopActivity? activity = null)
     {
-        this.snapshot=snapshot;this.quotes=quotes;this.activity=activity;if(activity is not null)activity.Changed+=QuoteActivity;QuoteActivity(null,EventArgs.Empty);directory=databasePath is null?null:Path.GetDirectoryName(Path.GetDirectoryName(Path.GetFullPath(databasePath)))!; if(databasePath is not null)cache=new QqqGexResponseStore(databasePath);
+        this.snapshot=snapshot;this.quotes=quotes;this.activity=activity;if(activity is not null)activity.Changed+=QuoteActivity;if(quotes is not null)quotes.Updated+=OnQuote;directory=databasePath is null?null:Path.GetDirectoryName(Path.GetDirectoryName(Path.GetFullPath(databasePath)))!; if(databasePath is not null)cache=new QqqGexResponseStore(databasePath);
         preferences=directory is null?null:new QqqGexPreferences(directory);
+        liveQuotesRequested=preferences is null;
+        if(preferences is not null)try{liveQuotesRequested=preferences.Read().values.GetValueOrDefault("qqq-local:mode")=="latest";}catch(Exception ex)when(ex is IOException or System.Text.Json.JsonException or UnauthorizedAccessException){AppLog.Warn("qqq-gex","Quote demand preference unavailable; history mode stays passive",ex);}
+        QuoteActivity(null,EventArgs.Empty);
         listener.Start();
         PageUri = new Uri($"http://127.0.0.1:{((IPEndPoint)listener.LocalEndpoint).Port}/{token}/index.html");
         _ = Task.Run(Accept);
@@ -89,9 +105,19 @@ public sealed class QqqGexSession : IDisposable
                     var body=new byte[length];var offset=0;while(offset<length){var count=await stream.ReadAsync(body.AsMemory(offset),ct);if(count==0){await Send(400,"application/json",Encoding.UTF8.GetBytes("{}"),ct);return;}offset+=count;}
                     using var json=JsonDocument.Parse(body);if(json.RootElement.ValueKind!=JsonValueKind.Object||json.RootElement.EnumerateObject().Count()!=2||json.RootElement.EnumerateObject().Select(p=>p.Name).Distinct().Count()!=2||json.RootElement.EnumerateObject().Any(p=>p.Name is not ("revision" or "changes")))throw new ArgumentException("Invalid preference envelope");
                     var revision=json.RootElement.GetProperty("revision").GetString()??"";var changes=json.RootElement.GetProperty("changes").Deserialize<Dictionary<string,string?>>()??throw new ArgumentException("Missing preference changes");
-                    await Send(200,"application/json",JsonSerializer.SerializeToUtf8Bytes(preferences.Patch(revision,changes)),ct);return;
+                    var state=preferences.Patch(revision,changes);
+                    if(changes.TryGetValue("qqq-local:mode",out var mode)){liveQuotesRequested=mode=="latest";QuoteActivity(null,EventArgs.Empty);}
+                    await Send(200,"application/json",JsonSerializer.SerializeToUtf8Bytes(state),ct);return;
                 }catch(Meili.Core.Settings.DataConflictException){await Send(409,"application/json",Encoding.UTF8.GetBytes("{\"code\":\"VIEW_PREFERENCE_CONFLICT\"}"),ct);return;}
                 catch(Exception ex)when(ex is ArgumentException or JsonException or InvalidOperationException or KeyNotFoundException){AppLog.Warn("qqq-gex","Rejected view preference: "+ex.GetType().Name);await Send(400,"application/json",Encoding.UTF8.GetBytes("{\"code\":\"INVALID_VIEW_PREFERENCE\"}"),ct);return;}
+            }
+            if(route=="quotes")
+            {
+                deadline.CancelAfter(TimeSpan.FromSeconds(20));
+                var url=new Uri(PageUri,request[1]);var after=url.Query.StartsWith("?after=",StringComparison.Ordinal)&&long.TryParse(url.Query[7..],out var parsed)?parsed:-1;
+                var signal=Volatile.Read(ref quoteChanged);
+                if(Interlocked.Read(ref quoteRevision)==after){try{await signal.Task.WaitAsync(TimeSpan.FromSeconds(15),ct);}catch(TimeoutException){}}
+                await Send(200,"application/json",JsonSerializer.SerializeToUtf8Bytes(new{revision=Interlocked.Read(ref quoteRevision),quote=LocalQuote()}),ct);return;
             }
             if(route=="events"){
                 var url=new Uri(PageUri,request[1]);var after=url.Query.StartsWith("?after=",StringComparison.Ordinal)?Uri.UnescapeDataString(url.Query[7..]):"";var notification=Volatile.Read(ref changed);var storage=cache?.StorageHealth();var readable=cache?.IsUnavailable!=true;var version=readable?cache?.RevisionToken()??"":"storage-unavailable";
@@ -139,5 +165,5 @@ public sealed class QqqGexSession : IDisposable
         var csp="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; worker-src 'self' blob:; base-uri 'none'; frame-ancestors 'none'; form-action 'none'";
         await s.WriteAsync(Encoding.ASCII.GetBytes($"HTTP/1.1 {status} Response\r\nContent-Type: {type}\r\nContent-Length: {body.Length}\r\n{encoding}Server-Timing: local;dur={elapsed}\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nReferrer-Policy: no-referrer\r\nContent-Security-Policy: {csp}\r\nConnection: close\r\n\r\n"),ct);await s.WriteAsync(body,ct);
     }
-    public void Dispose(){if(activity is not null)activity.Changed-=QuoteActivity;quotes?.Unsubscribe(quoteOwner);stop.Cancel();listener.Stop();}
+    public void Dispose(){if(quotes is not null)quotes.Updated-=OnQuote;if(activity is not null)activity.Changed-=QuoteActivity;quotes?.Unsubscribe(quoteOwner);stop.Cancel();listener.Stop();}
 }

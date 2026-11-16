@@ -49,6 +49,22 @@ public class AlertSnapshotTests
         }
     }
 
+    [Fact]public async Task Streaming_bursts_do_not_multiply_alert_evaluations_but_cached_poll_cadence_still_checks()
+    {
+        var directory=Path.Combine(Path.GetTempPath(),"stream-alert-cadence-"+Guid.NewGuid().ToString("N"));
+        try
+        {
+            var settings=new SettingsStore(directory);var store=new AlertStore(directory);
+            store.Upsert(new PriceAlert{Symbol="AAPL",Kind=AlertKind.PriceAbove,Threshold=1000});
+            var hub=new QuoteHub(new PricingSnapshotTests.SnapshotData());
+            using var monitor=new AlertMonitor(store,hub,new RecordingNotifier(),new AppLaunchOptions(),settings);monitor.Start();await monitor.PollAsync();
+            var checks=0;monitor.Updated+=(_,_)=>checks++;
+            for(var i=0;i<100;i++)hub.ApplyTicks([new("AAPL",101+i,DateTimeOffset.UtcNow,MarketState.Regular,Source:"fixture")]);
+            Assert.Equal(0,checks);await hub.PollAsync();Assert.Equal(1,checks);
+        }
+        finally{if(System.IO.Directory.Exists(directory))System.IO.Directory.Delete(directory,true);}
+    }
+
     private sealed class RecordingNotifier : IAlertNotifier
     {
         public int Notifications { get; private set; }

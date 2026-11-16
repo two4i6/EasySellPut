@@ -67,7 +67,7 @@
                 <controls:AppLoading Margin="0,0,8,4" IsVisible="{Binding IsBusy}" />
                 <TextBlock Classes="Caption" Text="{Binding Headline}" TextWrapping="NoWrap" VerticalAlignment="Center" Margin="0,0,12,4" />
                 <TextBlock Classes="Caption" Text="{Binding LivePriceText}" TextWrapping="NoWrap" VerticalAlignment="Center" Margin="0,0,8,4"
-                           ToolTip.Tip="{DynamicResource Op_LivePriceTip}" />
+                           ToolTip.Tip="{Binding LivePriceTip}" />
                 <Border Margin="0,0,8,4" CornerRadius="4" Padding="8,2" VerticalAlignment="Center"
                         Background="{DynamicResource ControlFillColorSecondaryBrush}" IsVisible="{Binding HasDelay}">
                     <TextBlock Classes="Caption" Text="{Binding DelayText}" TextWrapping="NoWrap" />

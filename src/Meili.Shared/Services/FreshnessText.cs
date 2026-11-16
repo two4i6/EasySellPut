@@ -34,8 +34,13 @@ public static class FreshnessText
         : "";
 
     /// <summary>Source · timing, e.g. "新浪 · 实测滞后约 3 分钟".</summary>
-    public static string SourceAndTiming(SourcedData d, LocalizationService loc, DateTimeOffset now) =>
-        $"{SourceNames.Display(d.Source, loc)} · {Timing(DataFreshness.Evaluate(d, now), loc)}";
+    public static string SourceAndTiming(SourcedData d, LocalizationService loc, DateTimeOffset now)
+    {
+        if(d is Quote quote)d=QuotePriceView.Select(quote,now).Snapshot;
+        var timing=DataFreshness.Evaluate(d,now);
+        if(d is Quote{Delivery:"websocket"})return SourceNames.Display(d.Source,loc)+" · "+loc[d is Quote{StreamState:"reconnecting"}?"Quote_Reconnecting":"Quote_Push"]+(timing.Kind==FreshnessKind.Delayed||timing.Lag>TimeSpan.FromMinutes(1)?" · "+Timing(timing,loc):"");
+        return $"{SourceNames.Display(d.Source, loc)} · {Timing(timing, loc)}"+(d is Quote?" · "+loc["Quote_Polling"]:"");
+    }
 
     /// <summary>
     /// Option-chain badge (F4): declared delay plus the market time when the source states one; otherwise the fetch time,
@@ -82,6 +87,9 @@ public static class FreshnessText
         var lines = new List<string> { SourceAndTiming(d, loc, now), AsOf(d.AsOf, loc) };
         var f = Fetched(d.FetchedAt, loc);
         if (f.Length > 0) lines.Add(f);
+        if(d is Quote{SnapshotFetchedAt: { } snapshot} snapshotQuote)lines.Add(loc["Quote_SnapshotFields"]+" · "+SourceNames.Display(snapshotQuote.SnapshotSource??snapshotQuote.Source,loc)+" · "+Fetched(snapshot,loc));
+        if(d is Quote quote&&quote.ExtendedTime is { } ext)lines.Add(loc[quote.MarketState==MarketState.PreMarket?"Quote_Pre":"Quote_Post"]+" · "+AsOf(ext,loc));
+        if(d is Quote{Delivery:"websocket"} or Quote{ExtendedDelivery:"websocket"})lines.Add(loc["Quote_StreamCoverage"]);
         return string.Join(Environment.NewLine, lines);
     }
 }

@@ -39,6 +39,25 @@ public partial class ChartsViewModel : ObservableObject
     private readonly LocalizationService _loc;
     private readonly SymbolContext _context;
     private readonly SettingsStore _settings;
+    public LiveQuotePresenter LiveQuote {get;}
+    private readonly LiveBarStitcher _liveBars=new();
+    public LiveBarView? LiveBars {get;private set;}
+    partial void OnSeriesChanged(BarSeries? value){if(value is not null){_liveBars.SetHistory(value);OnLiveBar(null,EventArgs.Empty);}else LiveBars=null;}
+    private DateTimeOffset _lastLiveRepair;
+    private bool _repairAfterReconnect;
+    public string LiveChartText=>LiveQuote.Text+(LiveBars?.Status is "repairing" or "waiting_history"?" · "+_loc["Ch_Backfilling"]:"");
+    public string LiveChartTip=>LiveQuote.Tooltip+"\n"+(LiveBars is { } view?view.Basis+"\n"+view.Status+" "+view.MissingFrom?.ToString("O")+" → "+view.MissingTo?.ToString("O"):"");
+    private void OnLiveBar(object? sender,EventArgs e)
+    {
+        if(!_active||Series is null||LiveQuote.Quote is not { } quote||quote.Symbol!=Series.Symbol)return;
+        var now=DateTimeOffset.UtcNow;
+        if(quote.StreamState=="reconnecting")_repairAfterReconnect=true;
+        else if(quote.Delivery=="websocket"&&quote.AsOf is { } time)_liveBars.Observe(new(quote.Symbol,quote.Price,time,quote.MarketState,Source:quote.Source));
+        LiveBars=_liveBars.View(now);OnPropertyChanged(nameof(LiveChartText));OnPropertyChanged(nameof(LiveChartTip));
+        if((LiveBars.Status is "repairing" or "waiting_history"||_repairAfterReconnect)&&!IsBusy&&now-_lastLiveRepair>TimeSpan.FromSeconds(15))
+        {_lastLiveRepair=now;_repairAfterReconnect=false;_ = LoadAsync(refreshOnly:true);}
+    }
+    private void FollowQuote(){if(_active)LiveQuote.Activate(SymbolText);}
     private (string Symbol, BarInterval Interval, string Source, PriceAdjustment Basis)? _lastBasis;
     private readonly IUiTimer _timer = Ui.Timer();
     private CancellationTokenSource? _cts;
@@ -169,9 +188,9 @@ public partial class ChartsViewModel : ObservableObject
         && a.Bars[^1] == b.Bars[^1];
 
     public ChartsViewModel(WatchlistStore watchlist, IMarketDataService data, LocalizationService loc, SymbolContext context, SettingsStore settings,
-        ChartDrawingStore drawings)
+        ChartDrawingStore drawings, Meili.Core.Quotes.QuoteHub? quotes=null)
     {
-        _watchlist = watchlist; _data = data; _loc = loc; _context = context; _settings = settings; _drawings = drawings;
+        _watchlist = watchlist; _data = data; _loc = loc; _context = context; _settings = settings; _drawings = drawings; LiveQuote=new(quotes,loc,"chart-live");LiveQuote.Updated+=OnLiveBar;
         ApplyIndicators(settings.Current.Charts.Indicators.Normalized());
         DividendAdjusted = settings.Current.Charts.DividendAdjusted;
         // D1: follow the shared symbol while visible; when hidden, ActivateAsync adopts it on the next visit.
@@ -179,7 +198,7 @@ public partial class ChartsViewModel : ObservableObject
         SymbolText = watchlist.AllSymbols.FirstOrDefault() ?? "AAPL";
         RebuildWatchSymbols();
         RebuildRanges();
-        _timer.Tick += async (_, _) => await LoadAsync(refreshOnly: true);
+        _timer.Tick += async (_, _) => {if(!IsBusy)await LoadAsync(refreshOnly:true);};
         _watchlist.Changed += (_, _) => RebuildWatchSymbols();
         _loc.LanguageChanged += (_, _) =>
         {
@@ -193,6 +212,7 @@ public partial class ChartsViewModel : ObservableObject
     public async Task ActivateAsync()
     {
         _active = true;
+        FollowQuote();
         if (_context.ShouldAdopt(SymbolText)) { await AdoptContextAsync(); return; }
         if (Series is null) await LoadAsync();
         else
@@ -212,6 +232,7 @@ public partial class ChartsViewModel : ObservableObject
 
     public void Deactivate()
     {
+        LiveQuote.Deactivate();
         _active = false; DrawingEpoch++; DrawMode = null; _trendStart = null;
         _timer.Stop();
         _cts?.Cancel();
@@ -308,6 +329,7 @@ public partial class ChartsViewModel : ObservableObject
             return;
         }
         SymbolText = symbol;
+        FollowQuote();
         _context.Set(symbol);
         if (IsBusy) { _cts?.Cancel(); }
         IsBusy = true;
@@ -322,6 +344,9 @@ public partial class ChartsViewModel : ObservableObject
 
             if (refreshOnly && Series is { } shown && SameData(shown, series))
             {
+                // Identical prices can still be a later, now-closed canonical candle.
+                _liveBars.SetHistory(series);
+                OnLiveBar(null, EventArgs.Empty);
                 _ = RefreshTimelineAsync(symbol);
                 unchanged = true;
                 UnchangedRefreshes++;

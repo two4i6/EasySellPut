@@ -63,6 +63,7 @@
                            Text="{Binding ChangeText}" Foreground="{Binding ChangeBrush}" VerticalAlignment="Center" Margin="16,0,0,0" />
                 <TextBlock Classes="CardTitle" FontSize="18" Text="{Binding Headline}" VerticalAlignment="Center" TextWrapping="Wrap" />
             </DockPanel>
+            <TextBlock Classes="Caption" Text="{Binding LiveQuote.Text}" ToolTip.Tip="{Binding LiveQuote.Tooltip}" VerticalAlignment="Center" Margin="0,0,0,6"/>
             <TextBlock Classes="Caption" Text="{Binding MetaText}" Margin="0,0,0,6" />
             <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                 <ux:AppLoading Margin="0,0,8,0" IsVisible="{Binding IsBusy}" />

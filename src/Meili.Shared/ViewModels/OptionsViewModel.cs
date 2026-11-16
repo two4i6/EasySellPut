@@ -21,6 +21,8 @@ public enum StrikeWindowKind { Near5 = 5, Near10 = 10, Near20 = 20, All = 0 }
 /// <summary>Options page: expiration picker, T-quote chain, local IV/Greeks fill-in.</summary>
 public partial class OptionsViewModel : ObservableObject
 {
+    public LiveQuotePresenter LiveQuote {get;}
+    public string LivePriceTip=>LiveQuote.Tooltip+"\n"+_loc["Op_LivePriceTip"];
     private readonly WatchlistStore _watchlist;
     private readonly IMarketDataService _data;
     private readonly LocalizationService _loc;
@@ -87,9 +89,9 @@ public partial class OptionsViewModel : ObservableObject
     private readonly VolatilityInsights _insights;
 
     public OptionsViewModel(WatchlistStore watchlist, IMarketDataService data, LocalizationService loc, SymbolContext context,
-        PricingAssumptions pricing, SettingsStore settings, VolatilityInsights insights)
+        PricingAssumptions pricing, SettingsStore settings, VolatilityInsights insights, Meili.Core.Quotes.QuoteHub? quotes=null)
     {
-        _watchlist = watchlist; _data = data; _loc = loc; _context = context; _pricing = pricing; _settings = settings; _insights = insights;
+        _watchlist = watchlist; _data = data; _loc = loc; _context = context; _pricing = pricing; _settings = settings; _insights = insights; LiveQuote=new(quotes,loc,"options-live"); LiveQuote.Updated+=(_,_)=>{LivePriceText=LiveQuote.Text;OnPropertyChanged(nameof(LivePriceTip));};
         CompactColumns = settings.Current.Options.CompactColumns;
         _inputs = pricing.Initial;
         ModelText = PricingText.Model(_inputs.Rate, loc);
@@ -116,6 +118,7 @@ public partial class OptionsViewModel : ObservableObject
     public async Task ActivateAsync()
     {
         _active = true;
+        LiveQuote.Activate(SymbolText);
         if (_context.ShouldAdopt(SymbolText)) { await AdoptContextAsync(); return; }
         if (Rows.Count == 0) await LoadAsync();
         else _timer.Start();
@@ -131,6 +134,7 @@ public partial class OptionsViewModel : ObservableObject
     public void Deactivate()
     {
         _active = false;
+        LiveQuote.Deactivate();
         _timer.Stop();
         _cts?.Cancel();
     }
@@ -257,6 +261,7 @@ public partial class OptionsViewModel : ObservableObject
             return;
         }
         SymbolText = symbol;
+        if(_active)LiveQuote.Activate(symbol);
         _context.Set(symbol);
         IsBusy = true;
         if (!refreshOnly || Rows.Count == 0) StatusText = _loc["Op_Loading"];
@@ -440,7 +445,7 @@ public partial class OptionsViewModel : ObservableObject
         var now = DateTimeOffset.Now;
         var u = UnderlyingText.Describe(_lastChain, _hdrQuote, _loc, now);
         Headline = u.Main.Length > 0 ? $"{symbol}   {u.Main}" : symbol;
-        LivePriceText = u.Live;
+        LivePriceText = LiveQuote.Text.Length>0?LiveQuote.Text:u.Live;
         DelayText = _lastChain is { } c ? FreshnessText.ChainTiming(c, _loc, now) : "";
         HasDelay = DelayText.Length > 0;
         LocalNote = _hdrLocal ? string.Format(_loc["Op_LocalGreeks"], _inputs.Rate.Rate) : "";

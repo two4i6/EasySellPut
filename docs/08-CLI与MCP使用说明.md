@@ -183,3 +183,6 @@ MEILI_LIVE=1 python3 tests/automation/live_cli_mcp_smoke.py --executable /path/t
 analysis 复用导入的 UI 内核：exposure、replayTable、gammaModel、atmIv、maxPain、pulse、optionOverview、dayScenario、wallTouches、spreadStudy、structureEvents、activityResponse、overlays、chart、heatmapField。需 date、at 游标，selected scope 还需 expiry；mode 支持 gamma/gamma-call/gamma-put/delta/charm，metric 支持 gex/oi/volume。工具的 complete=false 不等于传输丢失：它明确不认证缺失历史或全日覆盖。每个快照仍保留自己的输入质量、来源、源时间、延迟和计算版本。不能把这些工具的新增视为所有 UI 分析已完成逐项验收，详见 web/qqq-gex/MIGRATION-MATRIX.md。
 
 这些读取工具无需 --allow-writes，不采集远程行情或生成观察记录。capture_qqq_gex_input、calculate_qqq_gex_local、rebuild_qqq_gex_history、clear_cache 仍是独立写操作。
+## Yahoo 免费推送
+
+`easysellput live AAPL SPY QQQ --seconds 10 --max-updates 20 --json`；MCP `get_live_quotes` 使用同一有界 WebSocket 会话。不是 HTTP 快照或无限监控。完整的覆盖、缺失/断线语义与验证见 [免费 Live](53-Yahoo免费Live与全应用行情订阅.md)。

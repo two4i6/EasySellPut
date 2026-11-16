@@ -53,6 +53,9 @@ jobs:
         working-directory: web/qqq-gex
       - run: npx playwright install --with-deps chromium
         working-directory: web/qqq-gex
+      - name: Test shared live quote channel
+        run: node tests/live-quote.mjs
+        working-directory: web/qqq-gex
       - run: node tests/offline-viewer.mjs
         working-directory: web/qqq-gex
       - run: npm run build:runtime && node test-results/pcs-contract.mjs && node tests/live-display.mjs && node tests/storage-faults.mjs && node tests/wire-capacity.mjs && node tests/mcp-archive.mjs && node tests/recovery.mjs && npm run test:pipeline && node tests/mcp-analysis-fixture.mjs && node test-results/mcp-kernel-parity.mjs

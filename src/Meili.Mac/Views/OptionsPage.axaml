@@ -52,7 +52,7 @@
             </DockPanel>
             <WrapPanel Margin="0,0,0,8">
                 <TextBlock Classes="CardTitle" FontSize="16" Text="{Binding Headline}" VerticalAlignment="Center" Margin="0,2" />
-                <TextBlock Classes="Caption" Text="{Binding LivePriceText}" VerticalAlignment="Center" Margin="12,2,0,2" ToolTip.Tip="{DynamicResource Op_LivePriceTip}" />
+                <TextBlock Classes="Caption" Text="{Binding LivePriceText}" VerticalAlignment="Center" Margin="12,2,0,2" ToolTip.Tip="{Binding LivePriceTip}" />
                 <Border Classes="Tag" Margin="12,2,0,2" VerticalAlignment="Center" IsVisible="{Binding HasDelay}">
                     <TextBlock Classes="Caption" Text="{Binding DelayText}" />
                 </Border>

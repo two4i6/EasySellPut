@@ -202,4 +202,27 @@ public class QuoteHubTests
         Assert.Single(await pending); Assert.Equal(1, hub.Inspect().Expired); Assert.Equal(0, updates);
         data.Gate = null; await hub.GetQuotesAsync(["AAPL"]); Assert.Equal(2, data.Calls.Count);
     }
+    [Fact]public async Task Pushed_price_survives_late_rest_snapshot_and_unsubscribed_or_out_of_order_ticks_are_ignored()
+    {
+        var(hub,data,clock,_)=Make();hub.Subscribe("view",["AAPL"]);data.Gate=new TaskCompletionSource();
+        var loading=hub.PollAsync();var tick=new QuoteTick("AAPL",102,clock(),MarketState.Regular,2,2,1000,Source:"yahoo");
+        hub.ApplyTicks([tick]);data.Gate.SetResult();var response=await loading;
+        Assert.Equal(102,Assert.Single(response!.Quotes).Price);Assert.True(hub.TryGetCached("AAPL",out var cached));Assert.Equal("websocket",cached.Delivery);Assert.False(cached.IsRealtime);Assert.Equal("yahoo",cached.Source);Assert.Equal("x",cached.SnapshotSource);Assert.Equal(clock(),cached.SnapshotFetchedAt);
+        hub.ApplyTicks([tick with{Price=1,Time=clock().AddSeconds(-1)},tick with{Symbol="MSFT"},tick with{Price=double.NaN},tick with{Time=clock().AddMinutes(2)}]);
+        Assert.True(hub.TryGetCached("AAPL",out cached));Assert.Equal(102,cached.Price);Assert.False(hub.TryGetCached("MSFT",out _));
+        Assert.Equal(102,Assert.Single((await hub.PollAsync())!.Quotes).Price);Assert.Single(data.Calls); // Cached broadcast retains alert cadence without duplicate HTTP.
+        hub.MarkStreamInterrupted(["AAPL"]);Assert.True(hub.TryGetCached("AAPL",out cached));Assert.Equal(102,cached.Price);Assert.Equal("reconnecting",cached.StreamState);
+        hub.ApplyTicks([tick with{Time=clock().AddMilliseconds(1)}]);Assert.True(hub.TryGetCached("AAPL",out cached));Assert.Equal("active",cached.StreamState);
+        hub.Unsubscribe("view");hub.ApplyTicks([tick with{Price=103,Time=clock().AddSeconds(1)}]);Assert.True(hub.TryGetCached("AAPL",out cached));Assert.Equal(102,cached.Price);
+    }
+    [Fact]public async Task Extended_push_retains_regular_close_and_source_then_new_regular_session_clears_extended_fields()
+    {
+        var(hub,_,clock,_)=Make();hub.Subscribe("view",["AAPL"]);await hub.PollAsync();
+        var ext=new QuoteTick("AAPL",105,clock(),MarketState.PreMarket,Source:"yahoo");hub.ApplyTicks([ext]);
+        Assert.True(hub.TryGetCached("AAPL",out var cached));Assert.Equal(100,cached.Price);Assert.Equal(105,cached.ExtendedPrice);Assert.Equal("x",cached.Source);Assert.Equal("yahoo",cached.ExtendedSource);Assert.Equal("websocket",cached.ExtendedDelivery);
+        hub.ApplyTicks([ext with{Price=1,Time=clock().AddSeconds(-1)}]);Assert.True(hub.TryGetCached("AAPL",out cached));Assert.Equal(105,cached.ExtendedPrice);
+        hub.ApplyTicks([ext with{Session=MarketState.Regular,Time=clock().AddSeconds(-1),Price=1}]);Assert.True(hub.TryGetCached("AAPL",out cached));Assert.Equal(100,cached.Price);
+        hub.ApplyTicks([ext with{Session=MarketState.Regular,Time=clock().AddSeconds(1),Price=106}]);Assert.True(hub.TryGetCached("AAPL",out cached));Assert.Equal(106,cached.Price);Assert.Null(cached.ExtendedPrice);Assert.Null(cached.ExtendedDelivery);
+    }
+
 }

@@ -19,11 +19,11 @@ public sealed record QuotePriceView(Quote Snapshot, bool IsExtended, MarketSessi
         var time = MarketClock.ToEastern(at).TimeOfDay;
         var session = time >= TimeSpan.FromHours(4) && time < TimeSpan.FromHours(9.5) ? MarketSession.PreMarket
             : time >= TimeSpan.FromHours(16) ? MarketSession.AfterHours : MarketSession.Closed;
-        return new(quote with { Price = price, Change = change, ChangePercent = percent, PreviousClose = double.IsFinite(quote.Price) && quote.Price > 0 ? quote.Price : null, AsOf = at }, true, session);
+        return new(quote with { Price = price, Change = change, ChangePercent = percent, Delivery=quote.ExtendedDelivery??quote.Delivery,Source=quote.ExtendedSource??quote.Source,IsRealtime=quote.ExtendedDelivery=="websocket"?false:quote.IsRealtime,DelayMinutes=quote.ExtendedDelivery=="websocket"?null:quote.DelayMinutes, PreviousClose = double.IsFinite(quote.Price) && quote.Price > 0 ? quote.Price : null, AsOf = at }, true, session);
     }
     public bool Stale(DateTimeOffset now, bool failed = false)
     {
-        if (failed || QuoteStaleness.Check(Snapshot, now) != StaleReason.None) return true;
+        if (failed || Snapshot.StreamState=="reconnecting" || QuoteStaleness.Check(Snapshot, now) != StaleReason.None) return true;
         return IsExtended && (MarketClock.GetSession(now) is MarketSession.PreMarket or MarketSession.AfterHours)
             && Snapshot.AsOf is { } at && now - at > TimeSpan.FromMinutes(Math.Max(20, Snapshot.DelayMinutes ?? 0));
     }

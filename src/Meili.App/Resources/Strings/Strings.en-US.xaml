@@ -1004,4 +1004,11 @@
     <sys:String x:Key="Liq_Partial">Index inputs are incomplete</sys:String>
     <sys:String x:Key="Liq_Retry">Retry</sys:String>
     <sys:String x:Key="Liq_CheckConnection">Check connection</sys:String>
+    <sys:String x:Key="Quote_Push">Push</sys:String>
+    <sys:String x:Key="Quote_Polling">Polling</sys:String>
+    <sys:String x:Key="Quote_StreamCoverage">Yahoo indicative last-price stream; consolidated exchange coverage and zero latency are not guaranteed. Not a trade tape or live order book.</sys:String>
+    <sys:String x:Key="Quote_Current">Current</sys:String>
+    <sys:String x:Key="Quote_SnapshotFields">Other fields remain HTTP snapshots</sys:String>
+    <sys:String x:Key="Quote_Reconnecting">Reconnecting</sys:String>
+    <sys:String x:Key="Ch_Backfilling">Backfilling</sys:String>
 </ResourceDictionary>

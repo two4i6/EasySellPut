@@ -64,3 +64,5 @@ Installed / normal mode stores settings under `%LOCALAPPDATA%\EasySellPut` on Wi
 [MIT](LICENSE) © 2026 Carl Yu
 
 This software is not investment advice. Market data comes from third-party public endpoints and may be delayed, interrupted, or incorrect. Follow each data source's terms; do not redistribute that data commercially.
+
+股票最新价支持 [Yahoo 免费 Live WebSocket 与全应用共享订阅](docs/53-Yahoo免费Live与全应用行情订阅.md)，CLI 使用 `live`，MCP 使用 `get_live_quotes`。

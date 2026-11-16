@@ -70,7 +70,8 @@ public class YahooTests
     {
         using var d = Fx.Json("yahoo_chart_1m.json");
         var s = YahooProvider.ParseChart(d.RootElement, "AAPL", BarInterval.Minute1);
-        Assert.Equal(126, s.Bars.Count);
+        Assert.Equal(125, s.Bars.Count); // Excludes Yahoo's trailing quote-time point, not an interval candle.
+        Assert.All(s.Bars, b => Assert.Equal(0, b.Time.ToUnixTimeSeconds() % 60));
         Assert.All(s.Bars, b => Assert.True(b.Low <= b.Open && b.Low <= b.Close && b.High >= b.Open && b.High >= b.Close));
         Assert.True(s.Bars.Zip(s.Bars.Skip(1)).All(p => p.First.Time < p.Second.Time));
         // first bar is pre-market (before 09:30 New York)

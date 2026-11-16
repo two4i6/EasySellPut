@@ -89,6 +89,7 @@
                 <TextBlock DockPanel.Dock="Right" FontSize="16" FontWeight="SemiBold" FontFamily="{DynamicResource NumberFont}"
                            Text="{Binding ChangeText}" Foreground="{Binding ChangeBrush}" VerticalAlignment="Center" Margin="16,0,0,0" />
             </DockPanel>
+            <TextBlock Style="{StaticResource Caption}" Text="{Binding LiveQuote.Text}" ToolTip="{Binding LiveQuote.Tooltip}" VerticalAlignment="Center" Margin="0,0,0,6"/>
             <TextBlock Style="{StaticResource Caption}" Text="{Binding MetaText}" Margin="0,0,0,6" />
             <DockPanel LastChildFill="True" Margin="0,0,0,4">
                 <ux:AppLoading DockPanel.Dock="Left" Margin="0,0,8,0"

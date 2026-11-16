@@ -1085,6 +1085,68 @@
       "compare": [
         "/data"
       ]
+    },
+    {
+      "operation": "get_live_quotes",
+      "arguments": {
+        "symbols": [
+          "AAPL"
+        ],
+        "seconds": 1,
+        "maxUpdates": 1
+      },
+      "expect": {
+        "/data/transport": {
+          "equals": "websocket"
+        },
+        "/data/status": {
+          "equals": "received"
+        },
+        "/data/ticks/0/price": {
+          "equals": 101
+        },
+        "/data/ticks/0/session": {
+          "equals": "Regular"
+        },
+        "/data/missingSymbols": {
+          "equals": []
+        }
+      },
+      "compare": [
+        "/data"
+      ]
+    },
+    {
+      "operation": "get_live_bars",
+      "arguments": {
+        "symbol": "AAPL",
+        "interval": "1m",
+        "seconds": 1,
+        "maxUpdates": 1
+      },
+      "expect": {
+        "/data/view/status": {
+          "equals": "joined"
+        },
+        "/data/view/observedTail/0/incomplete": {
+          "equals": true
+        },
+        "/data/view/observedTail/0/close": {
+          "equals": 101
+        },
+        "/data/view/observedTail/0/open": {
+          "equals": null
+        },
+        "/data/view/observedTail/0/volume": {
+          "equals": null
+        },
+        "/data/stream/transport": {
+          "equals": "websocket"
+        }
+      },
+      "compare": [
+        "/data"
+      ]
     }
   ]
 }

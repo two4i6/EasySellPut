@@ -113,4 +113,27 @@ public sealed class QqqGexSessionTests
         async Task<System.Net.HttpStatusCode> Post(string payload,string origin){using var request=new HttpRequestMessage(HttpMethod.Post,uri){Content=new StringContent(payload,System.Text.Encoding.UTF8,"application/json")};request.Headers.Add("Origin",origin);using var response=await http.SendAsync(request);return response.StatusCode;}
         Assert.Equal(System.Net.HttpStatusCode.OK,await Post(body,session.PageUri.GetLeftPart(UriPartial.Authority)));Assert.Equal(System.Net.HttpStatusCode.BadRequest,await Post(body[..^1]+",\"message\":\"Bearer secret-token\"}",session.PageUri.GetLeftPart(UriPartial.Authority)));Assert.Equal(System.Net.HttpStatusCode.Forbidden,await Post(body,"https://foreign.example"));
     }
+    [Fact]public async Task Live_quote_long_poll_wakes_from_shared_hub_without_revising_archives_and_history_releases_demand()
+    {
+        var directory=Path.Combine(Path.GetTempPath(),"gex-live-"+Guid.NewGuid().ToString("N"));Directory.CreateDirectory(Path.Combine(directory,"cache"));
+        var db=Path.Combine(directory,"cache","qqq-gex.db");var hub=new Meili.Core.Quotes.QuoteHub(new PricingSnapshotTests.SnapshotData());var activity=new DesktopActivity();activity.SetVisible("test",true);
+        using var session=new QqqGexSession(db,quotes:hub,activity:activity);using var http=new HttpClient();
+        Assert.Empty(hub.SubscribedSymbols); // A history-only page must not create a streaming subscription.
+        async Task Mode(string mode)
+        {
+            var prefs=System.Text.Json.JsonSerializer.Deserialize<QqqGexPreferences.State>(await http.GetStringAsync(new Uri(session.PageUri,"preferences")))!;
+            using var request=new HttpRequestMessage(HttpMethod.Post,new Uri(session.PageUri,"preferences"));request.Headers.Add("Origin",session.PageUri.GetLeftPart(UriPartial.Authority));
+            request.Content=new StringContent(System.Text.Json.JsonSerializer.Serialize(new{revision=prefs.revision,changes=new Dictionary<string,string>{{"qqq-local:mode",mode}}}),System.Text.Encoding.UTF8,"application/json");
+            (await http.SendAsync(request)).EnsureSuccessStatusCode();
+        }
+        await Mode("latest");Assert.Equal(["QQQ"],hub.SubscribedSymbols);
+        var archiveRevision=new QqqGexResponseStore(db).RevisionToken();
+        var waiting=http.GetStringAsync(new Uri(session.PageUri,"quotes?after=0"));
+        hub.ApplyTicks([new("QQQ",503,DateTimeOffset.UtcNow,Meili.Core.Models.MarketState.Regular,Source:"yahoo")]);
+        using(var response=System.Text.Json.JsonDocument.Parse(await waiting.WaitAsync(TimeSpan.FromSeconds(3))))
+        {var quote=response.RootElement.GetProperty("quote");Assert.Equal(503,quote.GetProperty("Price").GetDouble());Assert.Equal("websocket",quote.GetProperty("Delivery").GetString());Assert.Equal(1,response.RootElement.GetProperty("revision").GetInt64());}
+        Assert.Equal(archiveRevision,new QqqGexResponseStore(db).RevisionToken());
+        await Mode("history");Assert.Empty(hub.SubscribedSymbols);
+    }
+
 }

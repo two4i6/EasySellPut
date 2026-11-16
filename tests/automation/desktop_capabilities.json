@@ -54,7 +54,9 @@
         "clear_chart_drawings",
         "update_preferences",
         "update_chart_drawing",
-        "delete_chart_drawing"
+        "delete_chart_drawing",
+        "get_live_quotes",
+        "get_live_bars"
       ],
       "scope": "Business data and calculations are mapped; transient selection, the chart inspector, drawing-tool selection, responsive event panels, window layout, theme rendering and native navigation are presentation.",
       "commands": {
@@ -104,7 +106,8 @@
         "get_quotes",
         "get_watchlists",
         "get_settings",
-        "update_preferences"
+        "update_preferences",
+        "get_live_quotes"
       ],
       "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation.",
       "commands": {
@@ -159,7 +162,8 @@
         "get_news",
         "get_market_events",
         "get_fundamentals",
-        "get_financials"
+        "get_financials",
+        "get_live_quotes"
       ],
       "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation.",
       "commands": {
@@ -220,7 +224,8 @@
         "build_strategy",
         "update_preferences",
         "analyze_strategy",
-        "save_strategy"
+        "save_strategy",
+        "get_live_quotes"
       ],
       "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation.",
       "commands": {
@@ -448,7 +453,8 @@
         "save_strategy",
         "get_saved_strategies",
         "delete_strategy",
-        "update_preferences"
+        "update_preferences",
+        "get_live_quotes"
       ],
       "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation.",
       "commands": {
@@ -512,7 +518,8 @@
         "delete_watchlist_group",
         "add_watchlist_symbol",
         "remove_watchlist_symbol",
-        "move_watchlist_symbol"
+        "move_watchlist_symbol",
+        "get_live_quotes"
       ],
       "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation.",
       "commands": {
@@ -606,7 +613,8 @@
       "operations": [
         "get_quotes",
         "get_bars",
-        "get_watchlists"
+        "get_watchlists",
+        "get_live_quotes"
       ],
       "scope": "Native macOS menu bar / Windows tray and pinned window are desktop-only presentation. Quotes, intraday bars and watchlist remain available through existing CLI/MCP operations; timestamped extended-price selection and matching-session sparklines are UI projections only; get_quotes retains separate regular/extended fields. They add no indicator or new business mutation. Visibility, selection, paging and pinning do not launch competing market loops.",
       "commands": {}

@@ -1004,4 +1004,11 @@
     <sys:String x:Key="Liq_Partial">指数所需数据尚不完整</sys:String>
     <sys:String x:Key="Liq_Retry">重试</sys:String>
     <sys:String x:Key="Liq_CheckConnection">检查连接</sys:String>
+    <sys:String x:Key="Quote_Push">推送</sys:String>
+    <sys:String x:Key="Quote_Polling">轮询</sys:String>
+    <sys:String x:Key="Quote_StreamCoverage">Yahoo 指示性最新价推送；不保证交易所全市场覆盖或零延迟，不等于逐笔成交或实时买卖盘。</sys:String>
+    <sys:String x:Key="Quote_Current">当前价</sys:String>
+    <sys:String x:Key="Quote_SnapshotFields">其他字段仍为 HTTP 快照</sys:String>
+    <sys:String x:Key="Quote_Reconnecting">重连中</sys:String>
+    <sys:String x:Key="Ch_Backfilling">补齐中</sys:String>
 </ResourceDictionary>

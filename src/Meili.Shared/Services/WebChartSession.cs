@@ -21,6 +21,14 @@ public sealed class WebChartSession : IDisposable
     private readonly ChartsViewModel? _vm;
     private readonly StrategyViewModel? _strategy;
     private State _state = new(0, "{}");
+    private State _liveQuote = new(0,"null");
+    private long _quoteRevision;
+    private void OnLiveQuote(object? sender,EventArgs e)
+    {
+        var quote=_vm?.LiveQuote.Quote;
+        var json=JsonSerializer.Serialize(quote is null?null:new{symbol=quote.Symbol,price=quote.Price,time=quote.AsOf,delivery=quote.Delivery,streamState=quote.StreamState,tail=_vm!.LiveBars?.ObservedTail.Select(b=>new{time=b.Time.ToUnixTimeSeconds(),close=b.Close}),joinStatus=_vm!.LiveBars?.Status},WebChartSnapshot.Json);
+        Volatile.Write(ref _liveQuote,new(Interlocked.Increment(ref _quoteRevision),json));
+    }
     private long _revision;
     private bool _disposed;
     private ChartPalette? _lastPalette;
@@ -35,6 +43,7 @@ public sealed class WebChartSession : IDisposable
     private WebChartSession(ChartsViewModel? vm, StrategyViewModel? strategy)
     {
         _vm = vm; _strategy = strategy;
+        if(vm is not null){vm.LiveQuote.Updated+=OnLiveQuote;if(vm.LiveQuote.Quote is not null)OnLiveQuote(null,EventArgs.Empty);}
         DesignMotion.Changed+=OnMotionChanged;
         _listener.Start();
         PageUri = new Uri($"http://127.0.0.1:{((IPEndPoint)_listener.LocalEndpoint).Port}/{_token}/index.html");
@@ -47,6 +56,7 @@ public sealed class WebChartSession : IDisposable
     {
         if (_disposed) return;
         _lastPalette=palette;
+        if(_vm?.LiveQuote.Quote is not null)OnLiveQuote(null,EventArgs.Empty);
         Volatile.Write(ref _state, new State(++_revision, _strategy is { } strategy ? StrategyWorkbench.Serialize(strategy, palette) : WebChartSnapshot.Serialize(_vm!, palette)));
     }
 
@@ -107,8 +117,11 @@ public sealed class WebChartSession : IDisposable
                 if (route == "state")
                 {
                     var state = Volatile.Read(ref _state);
-                    if (request[1].EndsWith("?after=" + state.Version, StringComparison.Ordinal)) { await Reply(stream, 204, "application/json", [], ct); return; }
-                    var body = Encoding.UTF8.GetBytes($"{{\"version\":{state.Version},\"data\":{state.Json}}}");
+                    var live=Volatile.Read(ref _liveQuote);
+                    var sameChart=request[1].EndsWith("?after="+state.Version,StringComparison.Ordinal)||request[1].Contains("?after="+state.Version+"&",StringComparison.Ordinal);
+                    var sameQuote=request[1].EndsWith("&quote="+live.Version,StringComparison.Ordinal)||live.Version==0&&!request[1].Contains("&quote=",StringComparison.Ordinal);
+                    if(sameChart&&sameQuote){await Reply(stream,204,"application/json",[],ct);return;}
+                    var body=Encoding.UTF8.GetBytes($"{{\"version\":{state.Version},\"data\":{(sameChart?"null":state.Json)},\"quoteVersion\":{live.Version},\"quote\":{live.Json}}}");
                     await Reply(stream, 200, "application/json", body, ct); return;
                 }
                 var file = route switch { "index.html" => _strategy is null ? "index.html" : "workbench.html", "workbench.js" when _strategy is not null => "workbench.js", "chart.js" when _strategy is null => "chart.js", "icons.js" => "icons.js", "motion.js" => "motion.js", "design-tokens.css" => "design-tokens.css", "components.css" => "components.css", "fonts/SourceSans3-Regular.ttf" or "fonts/SourceSans3-Semibold.ttf" or "fonts/SourceSerif4-Regular.ttf" or "fonts/SourceCodePro-Regular.ttf" => route, "library.js" => "vendor/lightweight-charts.js", _ => null };
@@ -197,7 +210,7 @@ public sealed class WebChartSession : IDisposable
     public void Dispose()
     {
         if (_disposed) return;
-        _disposed = true; DesignMotion.Changed-=OnMotionChanged; _stop.Cancel(); _listener.Stop();
+        _disposed = true;if(_vm is not null)_vm.LiveQuote.Updated-=OnLiveQuote; DesignMotion.Changed-=OnMotionChanged; _stop.Cancel(); _listener.Stop();
         // In-flight handlers own cancellation registrations and release the bounded semaphore on exit.
     }
 }

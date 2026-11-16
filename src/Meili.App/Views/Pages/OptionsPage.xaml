@@ -72,7 +72,7 @@
             <WrapPanel Margin="0,0,0,8">
                 <TextBlock Style="{StaticResource CardTitle}" FontSize="16" Text="{Binding Headline}" VerticalAlignment="Center" Margin="0,2,0,2" />
                 <TextBlock Style="{StaticResource Caption}" Text="{Binding LivePriceText}" VerticalAlignment="Center" Margin="12,2,0,2"
-                           ToolTip="{DynamicResource Op_LivePriceTip}" AutomationProperties.AutomationId="LivePrice" />
+                           ToolTip="{Binding LivePriceTip}" AutomationProperties.AutomationId="LivePrice" />
                 <Border Margin="12,2,0,2" CornerRadius="4" Padding="8,2" VerticalAlignment="Center"
                         Background="{DynamicResource ControlFillColorSecondaryBrush}"
                         Visibility="{Binding HasDelay, Converter={StaticResource BoolToVis}}">

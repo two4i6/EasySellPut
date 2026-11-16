@@ -14,7 +14,7 @@ using Right = Meili.Analytics.OptionRight;
 namespace Meili.Automation;
 
 /// <summary>UI-free application boundary shared by CLI and MCP. Serializes requests within one host.</summary>
-public sealed partial class AutomationService(DataDirectoryInfo directory, IMarketDataService? market = null, IReadOnlyList<IDataProvider>? diagnosticProviders = null, ILiquiditySeriesSource? liquiditySource = null, TimeProvider? liquidityClock = null) : IDisposable
+public sealed partial class AutomationService(DataDirectoryInfo directory, IMarketDataService? market = null, IReadOnlyList<IDataProvider>? diagnosticProviders = null, ILiquiditySeriesSource? liquiditySource = null, TimeProvider? liquidityClock = null, IQuoteStreamSource? quoteStream = null, IMarketDataService? liveBarMarket = null, TimeProvider? liveClock = null) : IDisposable
 {
     private readonly SemaphoreSlim _gate = new(1);
     private readonly bool _injectedMarket = market is not null;
@@ -74,6 +74,19 @@ public sealed partial class AutomationService(DataDirectoryInfo directory, IMark
     {
         switch (op)
         {
+            case "get_live_bars":
+                {
+                    var data=liveBarMarket??await Market(ct);var source=quoteStream??(_sources is not null?new Meili.Data.Providers.Yahoo.YahooQuoteStream(_sources.Gateway):throw new InvalidOperationException("Quote stream is not configured."));
+                    return await new LiveBarsService(data,new QuoteStreamingService(source),liveClock).SampleAsync(Symbol(a.Text("symbol")),ParseInterval(a.Text("interval","1m")),a.Int("seconds",5,1,20),a.Int("maxUpdates",100,1,500),ct);
+                }
+            case "get_live_quotes":
+                {
+                    var symbols=a.Value.GetProperty("symbols").EnumerateArray().Select(x=>Symbol(x.GetString()!)).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+                    if(symbols.Length is <1 or >50)throw new ArgumentException("Provide 1..50 symbols.");
+                    var stream=quoteStream;
+                    if(stream is null){await Market(ct);stream=_sources is not null?new Meili.Data.Providers.Yahoo.YahooQuoteStream(_sources.Gateway):throw new InvalidOperationException("Quote stream is not configured.");}
+                    return await new QuoteStreamingService(stream).SampleAsync(symbols,a.Int("seconds",5,1,20),a.Int("maxUpdates",100,1,500),ct);
+                }
             case "get_market_liquidity":
                 {
                     var marketData = await Market(ct);
@@ -93,7 +106,7 @@ public sealed partial class AutomationService(DataDirectoryInfo directory, IMark
                 }
             case "get_bars":
                 {
-                    var interval = a.Text("interval", "1d") switch { "1m" => BarInterval.Minute1, "5m" => BarInterval.Minute5, "15m" => BarInterval.Minute15, "30m" => BarInterval.Minute30, "1h" => BarInterval.Hour1, "1d" => BarInterval.Day1, "1w" => BarInterval.Week1, "1mo" => BarInterval.Month1, _ => throw new ArgumentException("Invalid interval.") };
+                    var interval = ParseInterval(a.Text("interval","1d"));
                     var from = a.Instant("from"); var to = a.Instant("to"); if (from > to) throw new ArgumentException("from must not be after to.");
                     var s = await (await Market(ct)).GetBarsAsync(new(Symbol(a.Text("symbol")), interval, from, to, a.Text("adjust", "split") == "total" ? AdjustMode.Total : AdjustMode.Split), ct);
                     return new { s.Symbol, s.Interval, s.Source, s.AsOf, s.FetchedAt, s.IsRealtime, s.DelayMinutes, s.OfflineCache, s.Adjustment, page = Page(s.Bars, a) };
@@ -227,6 +240,7 @@ public sealed partial class AutomationService(DataDirectoryInfo directory, IMark
         };
     }
     private static StrategyLeg[] Legs(Input a) => a.Value.GetProperty("legs").EnumerateArray().Select(v => WireJson.Read<LegInput>(v).ToLeg()).ToArray();
+    private static BarInterval ParseInterval(string text)=>text switch{"1m"=>BarInterval.Minute1,"5m"=>BarInterval.Minute5,"15m"=>BarInterval.Minute15,"30m"=>BarInterval.Minute30,"1h"=>BarInterval.Hour1,"1d"=>BarInterval.Day1,"1w"=>BarInterval.Week1,"1mo"=>BarInterval.Month1,_=>throw new ArgumentException("Invalid interval.")};
     private static string Symbol(string text) => WatchlistStore.TryNormalizeSymbol(text, out var s, out _) ? s : throw new ArgumentException("Invalid ticker symbol.");
     private static object Page<T>(IReadOnlyList<T> items, Input a)
     {

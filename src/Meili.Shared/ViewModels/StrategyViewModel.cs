@@ -33,6 +33,8 @@ public partial class StrategyViewModel : ObservableObject
         StrategyKind.LongCall, StrategyKind.LongPut, StrategyKind.Custom,
     ];
 
+    public LiveQuotePresenter LiveQuote {get;}
+    public string LivePriceTip=>LiveQuote.Tooltip+"\n"+_loc["Op_LivePriceTip"];
     private readonly WatchlistStore _watchlist;
     private readonly IMarketDataService _data;
     private readonly LocalizationService _loc;
@@ -97,9 +99,9 @@ public partial class StrategyViewModel : ObservableObject
     public event EventHandler? ChartChanged;
 
     public StrategyViewModel(WatchlistStore watchlist, IMarketDataService data, LocalizationService loc, SymbolContext context,
-        PricingAssumptions pricing, StrategyStore store, SettingsStore settings)
+        PricingAssumptions pricing, StrategyStore store, SettingsStore settings, Meili.Core.Quotes.QuoteHub? quotes=null)
     {
-        _watchlist = watchlist; _data = data; _loc = loc; _context = context; _pricing = pricing; _store = store; _settings = settings;
+        _watchlist = watchlist; _data = data; _loc = loc; _context = context; _pricing = pricing; _store = store; _settings = settings; LiveQuote=new(quotes,loc,"strategy-live"); LiveQuote.Updated+=(_,_)=>{LivePriceText=LiveQuote.Text;OnPropertyChanged(nameof(LivePriceTip));};
         ShowHint = !settings.Current.StrategyHintDismissed;
         foreach (var x in store.All) Saved.Add(x);
         _inputs = pricing.Initial;
@@ -128,6 +130,7 @@ public partial class StrategyViewModel : ObservableObject
     public async Task ActivateAsync()
     {
         _active = true;
+        LiveQuote.Activate(SymbolText);
         if (_context.ShouldAdopt(SymbolText)) { await AdoptContextAsync(); return; }
         if (Legs.Count == 0 || _pendingSeed is not null) await LoadAsync();
         else _timer.Start();
@@ -143,6 +146,7 @@ public partial class StrategyViewModel : ObservableObject
     public void Deactivate()
     {
         _active = false;
+        LiveQuote.Deactivate();
         _timer.Stop();
         _cts?.Cancel();
     }
@@ -248,6 +252,7 @@ public partial class StrategyViewModel : ObservableObject
             return;
         }
         SymbolText = symbol;
+        if(_active)LiveQuote.Activate(symbol);
         _context.Set(symbol);
         IsBusy = true;
         if (!refreshOnly || Legs.Count == 0) StatusText = _loc["St_Loading"];
@@ -710,7 +715,7 @@ public partial class StrategyViewModel : ObservableObject
         var now = DateTimeOffset.Now;
         var u = UnderlyingText.Describe(_hdrChain, _hdrQuote, _loc, now);
         Headline = u.Main.Length > 0 ? $"{symbol}   {u.Main}" : symbol;
-        LivePriceText = u.Live;
+        LivePriceText = LiveQuote.Text.Length>0?LiveQuote.Text:u.Live;
         DelayText = _hdrChain is { } c ? FreshnessText.ChainTiming(c, _loc, now) : "";
         HasDelay = DelayText.Length > 0;
         if (_hasChain && _hdrChain is { } ch)

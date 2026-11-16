@@ -5,4 +5,6 @@
     <Compile Include="../Meili.Automation.Tests/FakeMarket.cs" Link="FakeMarket.cs" />
   </ItemGroup>
   <ItemGroup><Compile Include="../Fixtures/LiquidityFixture.cs" Link="LiquidityFixture.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="../Fixtures/QuoteStreamFixture.cs" Link="QuoteStreamFixture.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="../Fixtures/LiveBarHistoryFixture.cs" Link="LiveBarHistoryFixture.cs" /></ItemGroup>
 </Project>

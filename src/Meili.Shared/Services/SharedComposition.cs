@@ -36,6 +36,8 @@ public static class SharedComposition
         s.AddSingleton(sp => new Meili.Core.Quotes.QuoteHub(sp.GetRequiredService<IMarketDataService>()));
         s.AddSingleton<DesktopActivity>();
         s.AddSingleton<DataSourceHealthMonitor>();
+        s.AddSingleton<Meili.Core.Abstractions.IQuoteStreamSource>(sp=>new Meili.Data.Providers.Yahoo.YahooQuoteStream(sp.GetRequiredService<DataServices>().Gateway));
+        s.AddSingleton<QuoteStreamingService>();
         s.AddSingleton<QuotePump>();
         s.AddSingleton<SymbolSearchService>();
         s.AddSingleton(sp => new Meili.Core.Pricing.RiskFreeRateProvider(sp.GetRequiredService<IMarketDataService>(),

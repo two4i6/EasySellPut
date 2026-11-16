@@ -56,6 +56,13 @@ public abstract record SourcedData
 
 public sealed record Quote : SourcedData
 {
+    public string Delivery { get; init; } = "snapshot";
+    public string? StreamState { get; init; }
+    public DateTimeOffset? StreamStateAt { get; init; }
+    public string? ExtendedDelivery { get; init; }
+    public string? ExtendedSource { get; init; }
+    public DateTimeOffset? SnapshotFetchedAt { get; init; }
+    public string? SnapshotSource { get; init; }
     public required string Symbol { get; init; }
     public string? Name { get; init; }
     public string? Exchange { get; init; }

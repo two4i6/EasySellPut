@@ -7,3 +7,5 @@ html,body,#root{height:100%;width:100%;margin:0;overflow:hidden}
 .qqq-local-shell>details{flex-shrink:0;max-height:25vh;overflow:auto;border-bottom:1px solid var(--border-color)}
 
 :root[data-reduced-motion='true'] *, :root[data-reduced-motion='true'] *::before, :root[data-reduced-motion='true'] *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+
+.qqq-local-live-quote{margin-left:auto;padding:var(--space-x-s,4px) var(--space-s-m,8px);border:1px solid var(--border-color);border-radius:var(--control-radius,8px);background:var(--bg-card);white-space:nowrap;font-variant-numeric:tabular-nums}

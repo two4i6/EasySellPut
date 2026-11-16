@@ -8,6 +8,8 @@ import os
 import pathlib
 import threading
 import unittest
+import urllib.parse
+import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from playwright.sync_api import sync_playwright
 
@@ -35,14 +37,16 @@ def fixture():
 class RendererTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.state = fixture(); cls.version = 1; cls.events = []; cls.errors = []
+        cls.state = fixture(); cls.version = 1; cls.events = []; cls.errors = []; cls.quote_version=0;cls.quote=None
         class Handler(BaseHTTPRequestHandler):
             def log_message(self, *_): pass
             def do_GET(self):
                 route = self.path.split('?')[0]
                 if route == '/state':
-                    if self.path.endswith('?after='+str(cls.version)): self.send_response(204); self.end_headers(); return
-                    body=json.dumps(dict(version=cls.version,data=cls.state)).encode(); mime='application/json'
+                    params=urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+                    same=params.get('after',['-1'])[0]==str(cls.version)
+                    if same and params.get('quote',['0'])[0]==str(cls.quote_version): self.send_response(204); self.end_headers(); return
+                    body=json.dumps(dict(version=cls.version,data=None if same else cls.state,quoteVersion=cls.quote_version,quote=cls.quote)).encode(); mime='application/json'
                 else:
                     file={'/index.html':'index.html','/chart.js':'chart.js','/icons.js':'icons.js','/motion.js':'motion.js','/design-tokens.css':'design-tokens.css','/components.css':'components.css',**{'/fonts/'+name:'../Assets/Fonts/'+name for name in ['SourceSans3-Regular.ttf','SourceSans3-Semibold.ttf','SourceSerif4-Regular.ttf','SourceCodePro-Regular.ttf']},'/library.js':'vendor/lightweight-charts.js'}.get(route)
                     if file is None: self.send_error(404); return
@@ -155,5 +159,33 @@ class RendererTests(unittest.TestCase):
         provenance=json.loads((ASSETS/'vendor/provenance.json').read_text())
         self.assertEqual(hashlib.sha256((ASSETS/'vendor/lightweight-charts.js').read_bytes()).hexdigest(),provenance['sha256'])
         self.assertIn('Apache License',(ASSETS/'vendor/LICENSE').read_text())
+
+    def test_live_price_line_keeps_historical_rows_indicators_and_viewport_unchanged(self):
+        cls=type(self);page=cls.browser.new_page(viewport=dict(width=1920,height=1080))
+        try:
+            page.goto(cls.origin+'/index.html')
+            page.wait_for_function('()=>window.meiliChart?.inspect().state?.rows.length===120')
+            page.evaluate('()=>window.meiliChart.inspect().chart.timeScale().setVisibleLogicalRange({from:30,to:80})')
+            page.wait_for_function('()=>Math.abs(window.meiliChart.inspect().chart.timeScale().getVisibleLogicalRange().from-30)<.01')
+            baseline=page.evaluate('()=>{const s=window.meiliChart.inspect();return {rows:s.state.rows,ma:s.series.ma.data(),range:s.chart.timeScale().getVisibleLogicalRange()}}')
+            tail_time=cls.state['rows'][-1]['time']+300
+            cls.quote=dict(symbol='FIXTURE',price=111.5,tail=[dict(time=tail_time,close=111.5)],time=datetime.datetime.now(datetime.timezone.utc).isoformat(),delivery='websocket');cls.quote_version+=1
+            page.wait_for_function('()=>window.meiliChart.inspect().liveQuote?.price===111.5')
+            current=page.evaluate('()=>{const s=window.meiliChart.inspect();return {rows:s.state.rows,ma:s.series.ma.data(),range:s.chart.timeScale().getVisibleLogicalRange()}}')
+            self.assertEqual(baseline,current)
+            self.assertEqual(tail_time,page.evaluate('()=>window.meiliChart.inspect().series.incomplete.data().at(-1).time'))
+            self.assertEqual(111.5,page.evaluate('()=>window.meiliChart.inspect().livePriceLine.options().price'))
+            cls.quote['streamState']='reconnecting';cls.quote_version+=1
+            page.wait_for_function("()=>window.meiliChart.inspect().livePriceLine.options().title==='Reconnecting'")
+            self.assertEqual(111.5,page.evaluate('()=>window.meiliChart.inspect().livePriceLine.options().price'))
+            cls.quote['streamState']='active';cls.quote['price']=111.6;cls.quote_version+=1
+            page.wait_for_function("()=>window.meiliChart.inspect().livePriceLine.options().title==='Push'&&window.meiliChart.inspect().livePriceLine.options().price===111.6")
+            page.locator('#fit').click() # Capture the observed tail after verifying user viewport retention.
+            page.wait_for_timeout(200)
+            output=ROOT/'build/out/yahoo-live';output.mkdir(parents=True,exist_ok=True);page.screenshot(path=str(output/'chart-live-price-1080p.png'))
+            cls.quote=dict(symbol='OTHER',price=1,time=datetime.datetime.now(datetime.timezone.utc).isoformat(),delivery='websocket');cls.quote_version+=1
+            page.wait_for_function('()=>window.meiliChart.inspect().livePriceLine===null')
+        finally:
+            cls.quote=None;cls.quote_version+=1;page.close()
 
 if __name__ == '__main__': unittest.main()

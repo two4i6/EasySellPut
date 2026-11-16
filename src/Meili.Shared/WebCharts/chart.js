@@ -5,6 +5,7 @@
   let byTime = new Map(), eventMarkers, selectedEvent, selectedEventTime=null, filters = new Set(["news","earnings","ex_dividend"]);
   let sessionBands=[],sessionLayers=[];
   let chart, state, version = -1, signature = '', key = '', series = {}, priceLines = [], drawingSeries = [];
+  let quoteVersion=-1,liveQuote=null,livePriceLine=null,livePriceOwner=null;
   let posting = false, pendingHover = null, userRange = null, applying = false;
   let editorPreview=null, sameBarWarning = false, draft = null, drawingHover = null, selectedDrawing = -1, drawingRevision = '', drawingBusy = false;
   const finite = Number.isFinite;
@@ -517,15 +518,37 @@
     const body = pendingHover;pendingHover = null;posting = true;
     post(body).catch(()=>{}).finally(()=>posting = false);
   },100);
+  function updateLiveQuote(value) {
+    if(livePriceOwner!==series.candles){livePriceLine=null;livePriceOwner=series.candles;}
+    if(!state||!series.candles)return;
+    if(!value||value.symbol!==state.symbol||!finite(value.price)||value.price<=0){
+      if(livePriceLine)series.candles.removePriceLine(livePriceLine);
+      livePriceLine=null;liveQuote=null;series.candles.applyOptions({lastValueVisible:true,priceLineVisible:true});return;
+    }
+    // Append only the backend-verified, close-only observed tail. Never fabricate OHLC or volume.
+    if(Array.isArray(value.tail)&&value.tail.length&&state.rows.length){
+      const last=state.rows[state.rows.length-1];
+      let latest=series.incomplete.data().at(-1)?.time??last.time;
+      const update=point=>{series.incomplete.update(point,point.time<latest);latest=Math.max(latest,point.time);};
+      if(finite(last.close))update({time:last.time,value:last.close});
+      for(const point of value.tail)if(finite(point.time)&&finite(point.close)&&point.time>=last.time)update({time:point.time,value:point.close});
+    }
+    liveQuote=value;
+    const age=Date.now()-Date.parse(value.time),fresh=finite(age)&&age>=-60000&&age<60000;
+    const title=state.language==='zh-CN'?(value.streamState==='reconnecting'?'重连中':value.delivery==='websocket'&&fresh?'推送':'最新价'):(value.streamState==='reconnecting'?'Reconnecting':value.delivery==='websocket'&&fresh?'Push':'Latest');
+    const options={price:value.price,color:fresh&&value.streamState!=='reconnecting'?state.theme.accent:state.theme.muted,lineWidth:1,lineStyle:2,axisLabelVisible:true,title};
+    if(livePriceLine)livePriceLine.applyOptions(options);else livePriceLine=series.candles.createPriceLine(options);
+    series.candles.applyOptions({lastValueVisible:false,priceLineVisible:false});
+  }
   async function poll() {
     try {
-      const response = await fetch('state?after=' + version, {cache:'no-store'});
-      if (response.status === 200) {const update=await response.json();if(update.version>0){render(update.data);version=update.version;}}
+      const response = await fetch('state?after=' + version+'&quote='+quoteVersion, {cache:'no-store'});
+      if (response.status === 200) {const update=await response.json();if(update.version>0&&update.data){render(update.data);version=update.version;}if(typeof update.quoteVersion==='number'){quoteVersion=update.quoteVersion;updateLiveQuote(update.quote);}}
       else if (response.status !== 204) throw new Error('Chart state HTTP ' + response.status);
     } catch (e) {error(e);}
     setTimeout(poll,250);
   }
   // Read-only diagnostics for renderer tests; it grants no native capabilities.
-  window.meiliChart = {inspect:()=>({chart,series,state,eventMarkers,sessionBands,sessionLayers}),render};
+  window.meiliChart = {inspect:()=>({chart,series,state,eventMarkers,sessionBands,sessionLayers,liveQuote,livePriceLine}),render};
   poll();
 })();
