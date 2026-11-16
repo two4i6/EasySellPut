@@ -918,4 +918,27 @@
     <sys:String x:Key="Upd_ViewUpdate">View update</sys:String>
     <sys:String x:Key="Ch_ControlHelp">Scroll to zoom · Drag to pan · Click a drawing to edit. Arrow keys select, Enter edits, Delete removes, Esc cancels.</sys:String>
     <sys:String x:Key="Upd_Disabled">Updates are not configured for this development build</sys:String>
+    <sys:String x:Key="Cache_Title">Cache</sys:String>
+    <sys:String x:Key="Cache_Refresh">Refresh</sys:String>
+    <sys:String x:Key="Cache_all">All caches</sys:String>
+    <sys:String x:Key="Cache_responses">Responses</sys:String>
+    <sys:String x:Key="Cache_bars">Bars</sys:String>
+    <sys:String x:Key="Cache_quotes">Quotes</sys:String>
+    <sys:String x:Key="Cache_search">Search</sys:String>
+    <sys:String x:Key="Cache_rates">Rates</sys:String>
+    <sys:String x:Key="Cache_Expired">Clear expired</sys:String>
+    <sys:String x:Key="Cache_Clear">Clear selected</sys:String>
+    <sys:String x:Key="Cache_Help">Memory statistics and clearing apply to this process only; bars are shared with CLI/MCP. IV/OI history, user data and browser cookies are preserved. Bars have no TTL. Quote clearing invalidates reuse and retains last-known display values.</sys:String>
+    <sys:String x:Key="Cache_Confirm">Clearing may require new downloads and removes selected bars from offline access. IV/OI history and user data are preserved. Continue?</sys:String>
+    <sys:String x:Key="Cache_Done">Processed. Subsequent requests fetch data as needed.</sys:String>
+    <sys:String x:Key="Cache_Error">Cache operation failed. Retry or check the log.</sys:String>
+    <sys:String x:Key="Storage_Title">Local storage</sys:String>
+    <sys:String x:Key="Storage_market">Market database</sys:String>
+    <sys:String x:Key="Storage_browser">Web data</sys:String>
+    <sys:String x:Key="Storage_userdata">User data</sys:String>
+    <sys:String x:Key="Storage_logs">Logs</sys:String>
+    <sys:String x:Key="Storage_cache">Other cache</sys:String>
+    <sys:String x:Key="Storage_other">Other</sys:String>
+    <sys:String x:Key="Storage_Partial">Some files could not be measured; totals are incomplete.</sys:String>
+    <sys:String x:Key="Storage_Help">File sizes inside the app data directory, not whole-disk capacity or process memory. The market database includes bars and protected IV/OI history; the whole segment is not disposable. Web data, user data and logs are measured but not deleted by cache maintenance. Links are skipped and files can change during measurement.</sys:String>
 </ResourceDictionary>

@@ -916,6 +916,44 @@
       "compare": [
         "/data"
       ]
+    },
+    {
+      "operation": "get_cache_status",
+      "arguments": {},
+      "expect": {
+        "/data/caches/1/id": {
+          "equals": "bars"
+        },
+        "/data/protectedData/0": {
+          "equals": "iv_samples"
+        },
+        "/data/storage/basis": {
+          "equals": "logical-file-bytes-in-data-directory"
+        }
+      },
+      "compare": [
+        "/data/caches/1/id",
+        "/data/protectedData",
+        "/data/excluded"
+      ]
+    },
+    {
+      "operation": "clear_cache",
+      "arguments": {
+        "category": "bars",
+        "symbol": "CACHEEMPTY"
+      },
+      "expect": {
+        "/data/0/id": {
+          "equals": "bars"
+        },
+        "/data/0/removed": {
+          "equals": 0
+        }
+      },
+      "compare": [
+        "/data"
+      ]
     }
   ]
 }

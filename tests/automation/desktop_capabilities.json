@@ -256,7 +256,9 @@
       "path": "src/Meili.Shared/ViewModels/SettingsViewModel.cs",
       "operations": [
         "get_settings",
-        "update_preferences"
+        "update_preferences",
+        "get_cache_status",
+        "clear_cache"
       ],
       "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation.",
       "commands": {
@@ -286,6 +288,21 @@
         },
         "CopyClaudeAsync": {
           "uiOnly": "Copies a user-executed Claude Code setup command: preflight the client and local read-only MCP, install/upgrade the unedited bundled skill, then register and verify read-only stdio MCP. The application does not execute it or alter client configuration."
+        },
+        "RefreshCacheAsync": {
+          "operations": [
+            "get_cache_status"
+          ]
+        },
+        "ClearCacheAsync": {
+          "operations": [
+            "clear_cache"
+          ]
+        },
+        "ClearExpiredCacheAsync": {
+          "operations": [
+            "clear_cache"
+          ]
         }
       }
     },

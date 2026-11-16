@@ -121,4 +121,6 @@ Discover the live schema before calling any tool; this guide does not replace ar
 | `delete_chart_drawing` | write | Read get_chart_drawings first; use its revision and zero-based index to remove only the intended line. Other lines remain; stale revisions fail. |
 | `clear_chart_drawings` | write | Clear persisted drawings for one symbol with conflict protection. |
 | `update_preferences` | write | Patch allowlisted local preferences; omitted fields remain unchanged. No proxy URL/credentials, arbitrary paths or window control. Desktop reload/restart required after external changes. |
+| `get_cache_status` | read | Inspect process-local cache counts and shared bar storage policies before maintenance. Memory in another running process is not included; IV/OI history and user data are protected. |
+| `clear_cache` | write | Clear only an explicitly requested registered category. Inspect first; requires write-enabled MCP. Symbol filtering is bars-only, expired mode keeps TTL-free bars, and clearing bars removes offline availability. Never delete the database or browser profile. |
 <!-- mcp-tool-guide:end -->

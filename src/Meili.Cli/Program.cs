@@ -220,7 +220,7 @@ public static class Program
         }
         var command = words[0];
         var aliases = new Dictionary<string, string> { ["quote"] = "get_quotes", ["bars"] = "get_bars", ["search"] = "search_symbols", ["expirations"] = "get_expirations", ["options"] = "get_option_chain", ["fundamentals"] = "get_fundamentals", ["financials"] = "get_financials", ["news"] = "get_news", ["events"] = "get_market_events", ["chart"] = "get_chart_analysis", ["option-analysis"] = "analyze_option_chain", ["insights"] = "get_volatility_insights", ["presets"] = "list_strategy_presets", ["sources"] = "get_source_health", ["price"] = "calculate_option", ["indicators"] = "calculate_indicators" };
-        if (command is "watchlist" or "strategy" or "alerts" or "settings")
+        if (command is "watchlist" or "strategy" or "alerts" or "settings" or "cache")
         {
             if (words.Count < 2) throw new ArgumentException($"{command} needs a subcommand. See --help.");
             var sub = words[1]; words.RemoveAt(1);
@@ -242,6 +242,8 @@ public static class Program
                 ("alerts", "delete") => "delete_alert",
                 ("alerts", "enable") => "set_alert_enabled",
                 ("settings", "show") => "get_settings",
+                ("cache", "status") => "get_cache_status",
+                ("cache", "clear") => "clear_cache",
                 _ => throw new ArgumentException("Unknown subcommand.")
             };
         }

@@ -127,6 +127,7 @@ public class SemanticPaletteTests
         {
             Color C(string key) => ((SolidColorBrush)Application.Current.FindResource(key)).Color;
             var theme = AppServices.Get<ThemeService>();
+            theme.Apply(AppThemeMode.Dark); // Count two actual transitions, independently of previous tests.
             var raised = 0;
             EventHandler h = (_, _) => raised++;
             ThemeService.ColorsChanged += h;

@@ -54,6 +54,14 @@ public sealed partial class AutomationService(DataDirectoryInfo directory, IMark
         object? parsed = name switch { "settings.json" => JsonSerializer.Deserialize<AppSettings>(text, options), "alerts.json" => JsonSerializer.Deserialize<AlertDocument>(text, options), _ => JsonSerializer.Deserialize<List<SavedStrategy>>(text, options) };
         if (parsed is null) throw new JsonException($"{name} must not be null.");
     }
+    private Meili.Caching.CacheManager Caches()
+    {
+        return new(DirectoryInfo.Path, _sources?.Cache ?? _cacheOnly, new Meili.Caching.BarCacheResource(
+            new MarketDb(Path.Combine(DirectoryInfo.Path, "cache", "market.db"))));
+    }
+
+    private readonly ResponseCache _cacheOnly = new();
+
     private async Task<IMarketDataService> Market(CancellationToken ct)
     {
         if (_market is not null) return _market;
@@ -66,6 +74,8 @@ public sealed partial class AutomationService(DataDirectoryInfo directory, IMark
     {
         switch (op)
         {
+            case "get_cache_status": return await Task.Run(() => Caches().Inspect(ct), ct);
+            case "clear_cache": return await Task.Run(() => Caches().Clear(a.Text("category"), a.Text("mode", "all") == "expired", a.Has("symbol") ? a.Text("symbol") : null), ct);
             case "search_symbols": return await (await Market(ct)).SearchAsync(a.Text("query", max: 100), a.Int("limit", 10, 1, 50), ct);
             case "get_quotes":
                 {

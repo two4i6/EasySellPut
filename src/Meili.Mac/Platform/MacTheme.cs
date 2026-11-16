@@ -9,22 +9,31 @@ namespace Meili.Mac.Platform;
 
 /// <summary>
 /// Light / dark / follow-system (the default) plus the red-up / green-up convention. Surfaces and semantic
-/// brushes are written from <see cref="ThemePalette"/> into one swapped dictionary, so a change costs one
-/// resource notification and always matches the shared tokens (App.axaml ThemeDictionaries hold the same
-/// values for design-time, before this runs).
+/// brushes are prebuilt from <see cref="ThemePalette"/> in native variant dictionaries. Theme changes reuse
+/// Avalonia variant resolution without removing/reinstalling application resources; convention changes
+/// replace one cached dictionary. The shared tokens remain the source of truth.
 /// </summary>
 public sealed class MacTheme : IThemeController
 {
     private readonly ResourceDictionary _host = new();
-    private ResourceDictionary? _current;
+    private readonly Dictionary<UpDownColorMode, ResourceDictionary> _palettes = new();
+    private (bool Dark, UpDownColorMode Mode)? _published;
     private UpDownColorMode _upDown = UpDownColorMode.RedUp;
 
-    /// <summary>Raised after the brushes were replaced; view-models holding one fetch it again.</summary>
+    /// <summary>Raised after the effective palette changes; view-models holding a brush fetch it again.</summary>
     public static event EventHandler? ColorsChanged;
 
     public MacTheme()
     {
         var app = Application.Current!;
+        foreach (var mode in Enum.GetValues<UpDownColorMode>())
+        {
+            var pair = new ResourceDictionary();
+            pair.ThemeDictionaries[ThemeVariant.Light] = CreatePalette(false, mode);
+            pair.ThemeDictionaries[ThemeVariant.Dark] = CreatePalette(true, mode);
+            _palettes.Add(mode, pair);
+        }
+        _host.MergedDictionaries.Add(_palettes[_upDown]);
         app.Resources.MergedDictionaries.Add(_host);
         // Follows the system appearance (System Settings › Appearance, including Auto) without polling.
         app.ActualThemeVariantChanged += (_, _) => ApplySemanticColors();
@@ -41,14 +50,24 @@ public sealed class MacTheme : IThemeController
 
     public void ApplyUpDownColors(UpDownColorMode mode)
     {
+        if (_upDown == mode) return;
         _upDown = mode;
+        _host.MergedDictionaries[0] = _palettes[mode];
         ApplySemanticColors();
     }
 
     private void ApplySemanticColors()
     {
-        var p = ThemePalette.For(IsDark);
-        var (up, down) = p.UpDown(_upDown);
+        var state = (IsDark, _upDown);
+        if (_published == state) return;
+        _published = state;
+        ColorsChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private static ResourceDictionary CreatePalette(bool dark, UpDownColorMode mode)
+    {
+        var p = ThemePalette.For(dark);
+        var (up, down) = p.UpDown(mode);
         var dict = new ResourceDictionary();
         foreach (var (key, argb) in p.ResourceBrushes())
             dict[key] = Brush(argb);
@@ -62,10 +81,7 @@ public sealed class MacTheme : IThemeController
         dict["UnknownBrush"] = Brush(p.Unknown);
         dict["RowHighlightBrush"] = Brush(p.RowHighlight);
         dict["ItmBrush"] = Brush(p.ItmTint);
-        if (_current is not null) _host.MergedDictionaries.Remove(_current);
-        _host.MergedDictionaries.Add(dict);
-        _current = dict;
-        ColorsChanged?.Invoke(this, EventArgs.Empty);
+        return dict;
     }
 
     /// <summary>Immutable brushes: shareable between controls and cheap for the renderer.</summary>

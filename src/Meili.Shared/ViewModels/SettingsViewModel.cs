@@ -16,6 +16,61 @@ public partial class SettingsViewModel : ObservableObject
     private readonly IThemeController _theme;
     private readonly INetworkController? _network;
     private readonly bool _ready;
+    private readonly Meili.Caching.CacheManager? _cacheManager;
+    private Meili.Caching.CacheReport? _cacheReport;
+    [ObservableProperty] public partial IReadOnlyList<StorageSegmentView> StorageSegments { get; set; } = [];
+    [ObservableProperty] public partial string StorageTotal { get; set; } = "—";
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(HasStorageStatus))] public partial string StorageStatus { get; set; } = "";
+    public bool HasStorageStatus => !string.IsNullOrEmpty(StorageStatus);
+    private void FormatCacheSummary()
+    {
+        if (_cacheReport?.Storage is { } storage)
+        {
+            StorageSegments = storage.Categories.Select(c => new StorageSegmentView(c.Id, _loc["Storage_" + c.Id], StorageSegmentView.FormatBytes(c.Bytes), storage.TotalBytes == 0 ? 0 : c.Bytes / (double)storage.TotalBytes, c.Bytes)).ToArray();
+            StorageTotal = StorageSegmentView.FormatBytes(storage.TotalBytes);
+            StorageStatus = storage.Complete ? "" : _loc["Storage_Partial"];
+        }
+        if (_cacheReport is not null) CacheSummary = string.Join(" · ", _cacheReport.Caches.Select(c => _loc["Cache_" + c.Id] + " " + c.Entries.ToString("N0")));
+    }
+    private static readonly string[] CacheCategories = ["all", "responses", "bars", "quotes", "search", "rates"];
+    [ObservableProperty] public partial int CacheCategoryIndex { get; set; }
+    [ObservableProperty] public partial string CacheSummary { get; set; } = "—";
+    [ObservableProperty] public partial string CacheFeedback { get; set; } = "";
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanManageCache))]
+    [NotifyCanExecuteChangedFor(nameof(RefreshCacheCommand), nameof(ClearCacheCommand), nameof(ClearExpiredCacheCommand))]
+    public partial bool IsCacheBusy { get; set; }
+    public bool CanManageCache => !IsCacheBusy && _cacheManager is not null;
+    private async Task CacheActionAsync(bool? expiredOnly)
+    {
+        if (!CanManageCache) return;
+        IsCacheBusy = true; CacheFeedback = "";
+        var category = CacheCategories[Math.Clamp(CacheCategoryIndex, 0, CacheCategories.Length - 1)];
+        try
+        {
+            if (expiredOnly == false && !await Ui.Platform.ConfirmAsync(_loc["Cache_Clear"], _loc["Cache_" + category] + "\n\n" + _loc["Cache_Confirm"])) return;
+            var result = await Task.Run(() =>
+            {
+                if (expiredOnly is { } expired) _cacheManager!.Clear(category, expired);
+                return _cacheManager!.Inspect();
+            });
+            _cacheReport = result; FormatCacheSummary();
+            if (expiredOnly is not null) CacheFeedback = _loc["Cache_Done"];
+        }
+        catch (Exception ex)
+        {
+            Meili.Core.Diagnostics.AppLog.Warn("cache", "Cache management failed", ex);
+            CacheFeedback = _loc["Cache_Error"];
+        }
+        finally { IsCacheBusy = false; }
+    }
+    [RelayCommand(CanExecute = nameof(CanManageCache))]
+    private Task RefreshCacheAsync() => CacheActionAsync(null);
+    [RelayCommand(CanExecute = nameof(CanManageCache))]
+    private Task ClearCacheAsync() => CacheActionAsync(false);
+    [RelayCommand(CanExecute = nameof(CanManageCache))]
+    private Task ClearExpiredCacheAsync() => CacheActionAsync(true);
+
 
     [ObservableProperty] public partial int LanguageIndex { get; set; }
     [ObservableProperty] public partial int ThemeIndex { get; set; }
@@ -86,10 +141,11 @@ public partial class SettingsViewModel : ObservableObject
     public SettingsViewModel(SettingsStore store, LocalizationService loc, IThemeController theme, DataDirectoryInfo dataDir, IServiceProvider sp, McpConnectionSetup? connection = null, IUpdateCoordinator? updater = null)
     {
         _store = store; _loc = loc; _theme = theme;
+        _cacheManager = sp.GetService(typeof(Meili.Caching.CacheManager)) as Meili.Caching.CacheManager;
         Updates = updater is not null ? new UpdateViewModel(store, loc, dataDir, updater)
             : sp.GetService(typeof(UpdateViewModel)) as UpdateViewModel ?? new UpdateViewModel(store, loc, dataDir);
         _connection = connection ?? McpConnectionSetup.Bundled(AppContext.BaseDirectory, dataDir.Path);
-        _loc.LanguageChanged += (_, _) => { OnPropertyChanged(nameof(AiConnectionStatus)); OnPropertyChanged(nameof(CodexAvailability)); OnPropertyChanged(nameof(ClaudeAvailability)); OnPropertyChanged(nameof(AiTerminalLabel)); };
+        _loc.LanguageChanged += (_, _) => { FormatCacheSummary(); CacheFeedback = ""; OnPropertyChanged(nameof(AiConnectionStatus)); OnPropertyChanged(nameof(CodexAvailability)); OnPropertyChanged(nameof(ClaudeAvailability)); OnPropertyChanged(nameof(AiTerminalLabel)); };
         _network = sp.GetService(typeof(INetworkController)) as INetworkController;
         var s = store.Current;
         LanguageIndex = s.Language == "en-US" ? 1 : 0;

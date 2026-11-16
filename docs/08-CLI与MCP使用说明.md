@@ -161,8 +161,10 @@ MEILI_LIVE=1 python3 tests/automation/live_cli_mcp_smoke.py --executable /path/t
 
 事件查询的日期精度、预计/确认状态及历史覆盖边界见 [K 线事件时间线](16-K线事件时间线.md)。
 
-完整桌面功能对应、45 项工具及界面/监控/安全例外见 [MCP 全功能覆盖审计](17-MCP全功能覆盖审计.md)。新增写入工具包括 record_option_snapshot、add_chart_drawing、update_chart_drawing、delete_chart_drawing、clear_chart_drawings、update_preferences、clear_alert_history、move_watchlist_symbol，MCP 同样要求 --allow-writes。
+完整桌面功能对应、47 项工具及界面/监控/安全例外见 [MCP 全功能覆盖审计](17-MCP全功能覆盖审计.md)。新增写入工具包括 record_option_snapshot、add_chart_drawing、update_chart_drawing、delete_chart_drawing、clear_chart_drawings、update_preferences、clear_alert_history、move_watchlist_symbol，MCP 同样要求 --allow-writes。
 
 ## 软件更新（本地维护）
 
 `easysellput update check --json` 检查签名的稳定桌面版本；`easysellput update download --json` 下载并验证当前架构包。可加 `--data-dir PATH` 使用相同网络配置。不会自动安装；在桌面设置页阅读更新内容并确认安装/重启。MCP 不开放自我替换可执行文件或任意安装命令。参见 [检查更新与安装](29-检查更新与安装.md)。
+
+缓存维护：`cache status` / `cache clear --category bars --symbol AAPL`；MCP 对应 `get_cache_status` / `clear_cache`。作用范围、历史数据保护与清理语义见 [统一缓存管理](47-统一缓存管理.md)。

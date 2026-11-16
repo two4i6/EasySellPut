@@ -918,4 +918,27 @@
     <sys:String x:Key="Upd_ViewUpdate">查看更新</sys:String>
     <sys:String x:Key="Ch_ControlHelp">滚轮缩放 · 拖动平移 · 点击画线编辑；方向键选择画线，Enter 编辑，Delete 删除，Esc 取消。</sys:String>
     <sys:String x:Key="Upd_Disabled">开发构建未配置更新源</sys:String>
+    <sys:String x:Key="Cache_Title">缓存</sys:String>
+    <sys:String x:Key="Cache_Refresh">刷新统计</sys:String>
+    <sys:String x:Key="Cache_all">全部缓存</sys:String>
+    <sys:String x:Key="Cache_responses">数据响应</sys:String>
+    <sys:String x:Key="Cache_bars">K 线</sys:String>
+    <sys:String x:Key="Cache_quotes">报价</sys:String>
+    <sys:String x:Key="Cache_search">代码搜索</sys:String>
+    <sys:String x:Key="Cache_rates">利率</sys:String>
+    <sys:String x:Key="Cache_Expired">清理过期</sys:String>
+    <sys:String x:Key="Cache_Clear">清理所选</sys:String>
+    <sys:String x:Key="Cache_Help">内存统计和清理仅针对当前进程；K 线缓存由桌面、CLI 和 MCP 共享。清理保留 IV/OI 历史、自选及所有用户数据，不清理网页 Cookie。K 线没有固定过期时间；报价清理会使复用失效并保留最后显示值。</sys:String>
+    <sys:String x:Key="Cache_Confirm">清理后可能需要重新下载数据，离线时所选 K 线将不可用。IV/OI 历史和用户数据不受影响。继续？</sys:String>
+    <sys:String x:Key="Cache_Done">已处理，后续请求会按需重新获取数据。</sys:String>
+    <sys:String x:Key="Cache_Error">缓存操作失败，请重试；详情见日志。</sys:String>
+    <sys:String x:Key="Storage_Title">本地存储</sys:String>
+    <sys:String x:Key="Storage_market">行情数据库</sys:String>
+    <sys:String x:Key="Storage_browser">网页数据</sys:String>
+    <sys:String x:Key="Storage_userdata">用户数据</sys:String>
+    <sys:String x:Key="Storage_logs">日志</sys:String>
+    <sys:String x:Key="Storage_cache">其他缓存</sys:String>
+    <sys:String x:Key="Storage_other">其他</sys:String>
+    <sys:String x:Key="Storage_Partial">部分文件无法统计，当前数值不完整。</sys:String>
+    <sys:String x:Key="Storage_Help">统计应用数据目录内文件的实际大小，不是整块磁盘容量；不包含进程内存。行情数据库包含 K 线和受保护的 IV/OI 历史，不能按整段清空。网页数据、用户数据和日志仅统计，不由下方缓存清理操作删除。扫描不跟随符号链接；数据可能在统计期间变化。</sys:String>
 </ResourceDictionary>

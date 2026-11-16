@@ -95,6 +95,7 @@ public static class DesignTokens
     public const double MotionEnterMs = 220;
     public const double FormFieldWidth = 260;
     public const double WindowHeaderHeight = 36;
+    public const double StorageBarHeight = 24;
     public static IEnumerable<(string Key,uint Argb)> ComponentBrushes(bool dark) => dark ? DarkBrushes : LightBrushes;
     private static readonly (string Key,uint Argb)[] LightBrushes =
     [
@@ -107,6 +108,12 @@ public static class DesignTokens
         ("PressedBrush", 0xFFE8E6DC),
         ("DangerBrush", 0xFFA53E36),
         ("OverlayBrush", 0x55141413),
+        ("StorageMarketBrush", 0xFF416B95),
+        ("StorageBrowserBrush", 0xFF655DA0),
+        ("StorageUserdataBrush", 0xFF9D4C33),
+        ("StorageLogsBrush", 0xFF3D7263),
+        ("StorageCacheBrush", 0xFF8A5F4C),
+        ("StorageOtherBrush", 0xFF66655E),
         ("TextControlBorderBrushFocused", 0xFFC46849),
         ("SystemControlErrorTextForegroundBrush", 0xFFA53E36),
     ];
@@ -121,6 +128,12 @@ public static class DesignTokens
         ("PressedBrush", 0xFF4D4C48),
         ("DangerBrush", 0xFFE5A19A),
         ("OverlayBrush", 0x99000000),
+        ("StorageMarketBrush", 0xFF8CB1D6),
+        ("StorageBrowserBrush", 0xFFCBCADB),
+        ("StorageUserdataBrush", 0xFFE4A38A),
+        ("StorageLogsBrush", 0xFF8AB9A7),
+        ("StorageCacheBrush", 0xFFEBC9B7),
+        ("StorageOtherBrush", 0xFFC2C0B6),
         ("TextControlBorderBrushFocused", 0xFFD97757),
         ("SystemControlErrorTextForegroundBrush", 0xFFE5A19A),
     ];

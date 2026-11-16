@@ -100,6 +100,10 @@ jobs:
         run: |
           python tests/automation/cli_mcp_smoke.py --dll src/Meili.Cli/bin/Release/net10.0/easysellput.dll
           if ($LASTEXITCODE -ne 0) { throw 'Production CLI / MCP process checks failed' }
+      - name: Test cache maintenance & data preservation
+        run: |
+          python tests/automation/cache_management_smoke.py --dll src/Meili.Cli/bin/Release/net10.0/easysellput.dll
+          if ($LASTEXITCODE -ne 0) { throw 'Cache maintenance or protected data checks failed' }
       - name: Build & test CLI package
         run: |
           $os = if ($IsWindows) { 'win' } elseif ($IsMacOS) { 'osx' } else { 'linux' }
@@ -123,6 +127,8 @@ jobs:
           $executable = Join-Path (Join-Path $extract $name) $binary
           python tests/automation/cli_mcp_smoke.py --executable $executable
           if ($LASTEXITCODE -ne 0) { throw 'Extracted CLI / MCP process checks failed' }
+          python tests/automation/cache_management_smoke.py --executable $executable
+          if ($LASTEXITCODE -ne 0) { throw 'Extracted cache maintenance checks failed' }
       - name: Upload CLI package
         uses: actions/upload-artifact@v4
         with:
@@ -165,6 +171,7 @@ jobs:
         env:
           FONTCONFIG_FILE: ${{ github.workspace }}/build/ci-fonts.conf
           MEILI_RENDER_DIR: ${{ github.workspace }}/build/out/ci/render
+          MEILI_THEME_PROFILE: ${{ github.workspace }}/build/out/ci/render/theme-performance.json
         run: |
           mkdir -p "$MEILI_RENDER_DIR"
           dotnet test tests/Meili.Mac.Tests/Meili.Mac.Tests.csproj -c Release -m:3 --blame-crash --blame-crash-dump-type mini --filter 'Category!=Live' --logger 'trx;LogFileName=Mac.trx' --results-directory build/out/ci/tests -v minimal -- RunConfiguration.TreatNoTestsAsError=true

@@ -14,7 +14,7 @@ def outputs():
     aliases={'Brand':'BrandBrush','BrandHover':'BrandHoverBrush','Focus':'FocusBrush','Link':'LinkBrush','Input':'InputBackgroundBrush','Hover':'HoverBrush','Pressed':'PressedBrush','Danger':'DangerBrush','Overlay':'OverlayBrush'}
     aliases.update({'Focus':'FocusBrush','Danger':'DangerBrush'})
     for name,colors in data['components'].items():
-        code+='    private static readonly (string Key,uint Argb)[] '+name.title()+'Brushes =\n    [\n'+''.join(f'        ("{aliases[k]}", {argb(v)}),\n' for k,v in colors.items())+f'        ("TextControlBorderBrushFocused", {argb(colors["Focus"])}),\n        ("SystemControlErrorTextForegroundBrush", {argb(colors["Danger"])}),\n'+'    ];\n'
+        code+='    private static readonly (string Key,uint Argb)[] '+name.title()+'Brushes =\n    [\n'+''.join(f'        ("{aliases.get(k,k+'Brush')}", {argb(v)}),\n' for k,v in colors.items())+f'        ("TextControlBorderBrushFocused", {argb(colors["Focus"])}),\n        ("SystemControlErrorTextForegroundBrush", {argb(colors["Danger"])}),\n'+'    ];\n'
     code+='}\n'
     result={'src/Meili.Shared/Services/DesignTokens.cs':code}
     for platform in ['App','Mac']:

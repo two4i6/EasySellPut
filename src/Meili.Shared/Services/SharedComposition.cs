@@ -35,6 +35,11 @@ public static class SharedComposition
         s.AddSingleton<SymbolSearchService>();
         s.AddSingleton(sp => new Meili.Core.Pricing.RiskFreeRateProvider(sp.GetRequiredService<IMarketDataService>(),
             () => sp.GetRequiredService<SettingsStore>().Current.Pricing));
+        s.AddSingleton(sp => new Meili.Caching.CacheManager(dataDir.Path,
+            sp.GetRequiredService<DataServices>().Cache,
+            new Meili.Caching.BarCacheResource(sp.GetRequiredService<Meili.Data.Cache.MarketDb>()),
+            sp.GetRequiredService<Meili.Core.Quotes.QuoteHub>(), sp.GetRequiredService<SymbolSearchService>(),
+            sp.GetRequiredService<Meili.Core.Pricing.RiskFreeRateProvider>()));
         s.AddSingleton<IIvSource>(sp => new IvSource(
             (symbols, ct) => sp.GetRequiredService<DataServices>().Providers.OfType<Meili.Data.Providers.Cboe.CboeProvider>().First().GetQuotesAsync(symbols, ct),
             sp.GetRequiredService<IMarketDataService>(), sp.GetRequiredService<Meili.Core.Pricing.RiskFreeRateProvider>()));

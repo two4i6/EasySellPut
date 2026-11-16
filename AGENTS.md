@@ -28,6 +28,7 @@ EasySellPut is a local .NET 10 app: Windows WPF, macOS Avalonia, cross-platform 
 - MCP is read-only unless `--allow-writes` is explicit: hide write tools and reject unauthorized invocation. Never expose arbitrary shell/filesystem/browser execution, credentials or self-installation through MCP.
 - Preserve sources, timestamps, freshness, delays, adjustment basis, pricing assumptions and missing-data meaning. Non-finite JSON numbers become null with explanatory metadata. Never fabricate prices, coverage, confirmation or a successful connectivity state.
 - Resolve the same local/portable directory across entry points; support `--data-dir`. JSON writers must use `SnapshotFile` locking, atomic replacement and optimistic revision checks. Surface conflicts; never overwrite stale/corrupt state. Long-running MCP requests reload stores.
+- Register application-data caches through `IManagedCache` and `CacheManager`; keep scope, TTL/capacity, statistics and invalidation explicit. Clearing must preserve IV/OI observations, user data, active subscribers and browser sessions; fence in-flight writes across processes for SQLite. See [cache management](docs/47-统一缓存管理.md).
 - Keep SQLite migrations/concurrency tested. IV/OI recording is an explicit write; read-only insights use existing observations. Preference patches are allowlisted, preserve omitted fields and exclude proxy credentials.
 
 ## UI system
