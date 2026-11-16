@@ -943,4 +943,6 @@
     <sys:String x:Key="Storage_Partial">Some files could not be measured; totals are incomplete.</sys:String>
     <sys:String x:Key="Storage_Help">File sizes inside the app data directory, not whole-disk capacity or process memory. The market database includes bars and protected IV/OI history; the whole segment is not disposable. Web data, user data and logs are measured but not deleted by cache maintenance. Links are skipped and files can change during measurement.</sys:String>
     <sys:String x:Key="Set_MotionDesc">Reduce interface animation and remember this choice. The system reduced-motion preference always takes priority.</sys:String>
+    <sys:String x:Key="Cache_qqq_gex_wire">QQQ GEX derived responses</sys:String>
+    <sys:String x:Key="Storage_gex">GEX archive and derived data</sys:String>
 </ResourceDictionary>

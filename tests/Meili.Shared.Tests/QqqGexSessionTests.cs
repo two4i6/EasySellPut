@@ -37,4 +37,14 @@ public sealed class QqqGexSessionTests
         var external=await http.GetStringAsync(new Uri(session.PageUri,"events?after="+next));
         Assert.Contains(store.RevisionToken(),external);
     }
+    [Fact] public async Task Shared_quote_subscription_follows_visible_demand_and_has_no_quote_timer()
+    {
+        var hub=new Meili.Core.Quotes.QuoteHub(null!);var activity=new DesktopActivity();
+        using(var session=new QqqGexSession(quotes:hub,activity:activity)){
+            Assert.Empty(hub.SubscribedSymbols);activity.SetVisible("test",true);Assert.Equal(new[]{"QQQ"},hub.SubscribedSymbols);
+            using var http=new HttpClient();Assert.Contains("\"quote\":null",await http.GetStringAsync(new Uri(session.PageUri,"api/analysis/qqq/local-quote")));
+            activity.SetVisible("test",false);Assert.Empty(hub.SubscribedSymbols);activity.SetVisible("test",true);
+        }
+        Assert.Empty(hub.SubscribedSymbols);
+    }
 }

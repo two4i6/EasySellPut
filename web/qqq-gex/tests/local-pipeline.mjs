@@ -8,3 +8,7 @@ console.log('PASS: raw input → source GEX calculation → atomic SQLite → or
 execFileSync(process.execPath,[new URL('./local-query.mjs',import.meta.url).pathname,dbPath],{stdio:'inherit'});
 
 execFileSync(process.execPath,[new URL('./local-history.mjs',import.meta.url).pathname,file],{stdio:'inherit'});
+
+const partialDb=path.join(dir,'partial.db');writeFileSync(file,JSON.stringify({...input,bars:[]}));const partial=JSON.parse(execFileSync(process.execPath,['runtime-dist/import.mjs',file,partialDb],{encoding:'utf8'}));assert.equal(partial.status,'partial');let p=new DatabaseSync(partialDb);assert.equal(p.prepare('SELECT count(*) n FROM qqq_gex_local_days').get().n,0);assert.equal(JSON.parse(p.prepare('SELECT payload FROM qqq_gex_partial_days').get().payload).rows.length,4);p.close();writeFileSync(file,JSON.stringify(input));const recovered=JSON.parse(execFileSync(process.execPath,['runtime-dist/import.mjs',file,partialDb],{encoding:'utf8'}));assert.equal(recovered.status,'imported');p=new DatabaseSync(partialDb);assert.equal(p.prepare('SELECT count(*) n FROM qqq_gex_partial_days').get().n,0);assert.equal(JSON.parse(p.prepare('SELECT payload FROM qqq_gex_local_days').get().payload).rows.length,4);p.close();console.log('PASS: missing aligned bars retain partial profiles without publishing a day; original bars promote atomically');
+
+execFileSync(process.execPath,[new URL('./cache-fence.mjs',import.meta.url).pathname,file],{stdio:'inherit'});

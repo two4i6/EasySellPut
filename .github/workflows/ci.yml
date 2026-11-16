@@ -47,7 +47,7 @@ jobs:
         working-directory: web/qqq-gex
       - run: bun test upstream/src/lib/qqqGexInputQuality.test.ts upstream/src/lib/qqqExposureWire.test.ts upstream/src/lib/qqqGammaModel.test.ts upstream/src/lib/engines/analysis/QqqGexResearch.test.ts upstream/src/lib/engines/analysis/QqqIntradayDirectional.test.ts upstream/src/lib/qqqIntradayDirectionalSignals.test.ts upstream/src/lib/qqqGexCalculation.test.ts
         working-directory: web/qqq-gex
-      - run: bun test upstream/src/lib/qqqHeatmapPresentation.test.ts upstream/src/lib/qqqOptionActivityScope.test.ts upstream/src/lib/qqqIntradayIndicators.test.ts upstream/src/lib/qqqExposureSides.test.ts upstream/src/lib/qqqExposureReplay.test.ts upstream/src/lib/qqqMaxPain.test.ts upstream/src/lib/qqqIndicatorConsistency.test.ts upstream/src/lib/qqqExposureArchive.test.ts
+      - run: bun test upstream/src/lib/qqqIntradayDirectionalSummary.test.ts upstream/src/lib/qqqHeatmapPresentation.test.ts upstream/src/lib/qqqOptionActivityScope.test.ts upstream/src/lib/qqqIntradayIndicators.test.ts upstream/src/lib/qqqExposureSides.test.ts upstream/src/lib/qqqExposureReplay.test.ts upstream/src/lib/qqqMaxPain.test.ts upstream/src/lib/qqqIndicatorConsistency.test.ts upstream/src/lib/qqqExposureArchive.test.ts
         working-directory: web/qqq-gex
       - run: npx playwright install --with-deps chromium
         working-directory: web/qqq-gex

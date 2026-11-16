@@ -57,7 +57,7 @@ public sealed partial class AutomationService(DataDirectoryInfo directory, IMark
     private Meili.Caching.CacheManager Caches()
     {
         return new(DirectoryInfo.Path, _sources?.Cache ?? _cacheOnly, new Meili.Caching.BarCacheResource(
-            new MarketDb(Path.Combine(DirectoryInfo.Path, "cache", "market.db"))));
+            new MarketDb(Path.Combine(DirectoryInfo.Path, "cache", "market.db"))),new QqqGexResponseStore(Path.Combine(DirectoryInfo.Path,"cache","qqq-gex.db")));
     }
 
     private readonly ResponseCache _cacheOnly = new();

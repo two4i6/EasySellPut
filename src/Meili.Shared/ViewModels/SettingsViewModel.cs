@@ -49,7 +49,7 @@ public partial class SettingsViewModel : ObservableObject
         }
         if (_cacheReport is not null) CacheSummary = string.Join(" · ", _cacheReport.Caches.Select(c => _loc["Cache_" + c.Id] + " " + c.Entries.ToString("N0")));
     }
-    private static readonly string[] CacheCategories = ["all", "responses", "bars", "quotes", "search", "rates"];
+    private static readonly string[] CacheCategories = ["all", "responses", "bars", "quotes", "search", "rates", "qqq_gex_wire"];
     [ObservableProperty] public partial int CacheCategoryIndex { get; set; }
     [ObservableProperty] public partial string CacheSummary { get; set; } = "—";
     [ObservableProperty] public partial string CacheFeedback { get; set; } = "";

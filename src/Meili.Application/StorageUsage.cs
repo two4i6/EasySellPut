@@ -11,7 +11,7 @@ public static class StorageInventory
     public static StorageUsage Scan(string directory, CancellationToken ct = default, int entryLimit = MaxEntries)
     {
         if (entryLimit is < 1 or > MaxEntries) throw new ArgumentOutOfRangeException(nameof(entryLimit));
-        var totals = new Dictionary<string, (long Bytes, long Files)> { ["market"] = default, ["browser"] = default, ["userdata"] = default, ["logs"] = default, ["cache"] = default, ["other"] = default };
+        var totals = new Dictionary<string, (long Bytes, long Files)> { ["market"] = default, ["gex"] = default, ["browser"] = default, ["userdata"] = default, ["logs"] = default, ["cache"] = default, ["other"] = default };
         var skipped = 0; var examined = 0;
         var pending = new Stack<(string Path, string Relative, int Depth)>(); pending.Push((directory, "", 0));
         ct.ThrowIfCancellationRequested();
@@ -62,6 +62,7 @@ public static class StorageInventory
     {
         var p = path.ToLowerInvariant();
         if (p is "cache/market.db" or "cache/market.db-wal" or "cache/market.db-shm") return "market";
+        if (p.StartsWith("cache/qqq-gex")) return "gex";
         if (p.StartsWith("browser/")) return "browser";
         if (p.StartsWith("logs/") || p.StartsWith("log/") || p.EndsWith(".log")) return "logs";
         if (p.StartsWith("cache/")) return "cache";

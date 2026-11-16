@@ -40,7 +40,7 @@ public static class QqqGexCalculationRunner
     public static Task<object> RunAsync(string directory,CancellationToken ct=default)=>ExecuteAsync(directory,"import.mjs",null,ct);
     public static async Task<object> QueryAsync(string directory,string path,CancellationToken ct=default)
     {
-        if(path.Length>8192||!(path.StartsWith("/api/analysis/qqq/pcs/backtest?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/pcs?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/gex/intraday-context?",StringComparison.Ordinal)))throw new ArgumentException("Unsupported local query");
+        if(path.Length>8192||!(path.StartsWith("/api/analysis/qqq/pcs/backtest?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/pcs?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/gex/intraday-context?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/gex/exposure?",StringComparison.Ordinal)))throw new ArgumentException("Unsupported local query");
         await QueryGate.WaitAsync(ct);try{return await ExecuteAsync(directory,"query.mjs",path,ct);}finally{QueryGate.Release();}
     }
     private static async Task<object> ExecuteAsync(string directory,string script,string? query,CancellationToken ct)
@@ -64,10 +64,11 @@ public static class QqqGexCalculationRunner
         if(process is null)return new {status="runtime_unavailable",complete=false};
         using(process)
         {
-            var stdout=process.StandardOutput.ReadToEndAsync(timeout.Token);var stderr=process.StandardError.ReadToEndAsync(timeout.Token);
+            async Task<string> ReadBounded(Stream stream,int limit){using var buffer=new MemoryStream();var chunk=new byte[8192];int n;while((n=await stream.ReadAsync(chunk,timeout.Token))>0){if(buffer.Length+n>limit){try{process.Kill(true);}catch(InvalidOperationException){}throw new InvalidDataException("GEX process output exceeds bound");}buffer.Write(chunk,0,n);}return Encoding.UTF8.GetString(buffer.GetBuffer(),0,(int)buffer.Length);}
+            var outputLimit=script=="query.mjs"?128*1024*1024:1024*1024;var stdout=ReadBounded(process.StandardOutput.BaseStream,outputLimit);var stderr=ReadBounded(process.StandardError.BaseStream,65536);
             try{await process.WaitForExitAsync(timeout.Token);}catch(OperationCanceledException){try{process.Kill(true);}catch(InvalidOperationException){}throw;}
             var output=await stdout;_ =await stderr;
-            if(process.ExitCode!=0||output.Length>1024*1024)return new {status="calculation_failed",complete=false,exitCode=process.ExitCode,reason="Pinned source runtime rejected input; raw normalized input retained"};
+            if(process.ExitCode!=0||output.Length>outputLimit)return new {status="calculation_failed",complete=false,exitCode=process.ExitCode,reason="Pinned source runtime rejected input; raw normalized input retained"};
             using var doc=JsonDocument.Parse(output);return doc.RootElement.Clone();
         }
     }

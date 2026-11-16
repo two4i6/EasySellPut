@@ -276,6 +276,7 @@
 <ComboBoxItem Content="{DynamicResource Cache_quotes}"/>
 <ComboBoxItem Content="{DynamicResource Cache_search}"/>
 <ComboBoxItem Content="{DynamicResource Cache_rates}"/>
+<ComboBoxItem Content="{DynamicResource Cache_qqq_gex_wire}"/>
                         </ds:AppSelect>
                         <Button Content="{DynamicResource Cache_Expired}" Command="{Binding ClearExpiredCacheCommand}" Margin="0,0,8,8"/>
                         <Button x:Name="ClearManagedCache" Content="{DynamicResource Cache_Clear}" Command="{Binding ClearCacheCommand}" Margin="0,0,0,8"/>

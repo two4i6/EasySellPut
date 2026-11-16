@@ -46,3 +46,20 @@ four textual-conflict files above are unchanged in the repeated three-way previe
 against this latest commit (ten overlaps total). Its CI outcome has not been
 verified; #89 applies only to `216c975`. No root-cause assertion or green status
 is made for the latest commit.
+
+## Integration completed locally
+
+Prior uncommitted work was preserved as `bbb2f23` and in
+`/workspace/qqq-migration-backups/before-upstream-20261116.tar.gz`
+(SHA-256 `b31df9f3f29411c603c174c27f47f2a30215d8bf99fb30eb42054de19662d05f`).
+Upstream bf4d77d was merged locally as `04e0e13`. Four textual conflicts were
+resolved by preserving both GEX and cache-maintenance CI/tests/catalog/build
+requirements. The current branch remains work; no push/deployment occurred.
+The final remote check still reported bf4d77d.
+
+GEX now registers through the merged CacheManager, with derived-only clearing,
+logical capacity stats, settings categories, storage classification, protected
+observations and cross-process generation fencing. Earlier readiness gaps above
+are historical observations superseded by this integration record. Production
+CLI/MCP cache-maintenance checks passed locally, including the GEX registration
+and retained observations; this does not establish the status of remote CI #89.

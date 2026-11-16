@@ -1,0 +1,215 @@
+[
+  {
+    "kind": "synthetic-history-workload",
+    "node": "v24.22.1",
+    "platform": "linux",
+    "arch": "x64",
+    "cpu": "INTEL(R) XEON(R) PLATINUM 8573C",
+    "visibleCpus": 4,
+    "inputBytes": 8618585,
+    "captures": 600,
+    "contracts": 96000,
+    "bars": 75,
+    "databaseBytes": 589246464,
+    "trials": [
+      {
+        "trial": 0,
+        "elapsedMs": 16106.786084,
+        "peakRssKiB": 754552,
+        "result": {
+          "wireCoverage": "capacity-limited",
+          "importVersion": "qqq-local-import-v2",
+          "status": "imported",
+          "partialDates": [],
+          "publishedDates": [
+            "2026-11-02",
+            "2026-11-03",
+            "2026-11-04",
+            "2026-11-05",
+            "2026-11-06"
+          ],
+          "source": "synthetic-benchmark-not-market-data",
+          "revision": "5d231d02a166582623723377cc01784d8482b9b2cf812eb6e1d4e82bff56a092",
+          "dates": [
+            "2026-11-02",
+            "2026-11-03",
+            "2026-11-04",
+            "2026-11-05",
+            "2026-11-06"
+          ],
+          "rows": 600,
+          "priceAligned": true,
+          "inputComplete": true,
+          "missingExpiries": [],
+          "historyCoverage": "only supplied captures; gaps not synthesized"
+        }
+      },
+      {
+        "trial": 1,
+        "elapsedMs": 1111.7443650000005,
+        "peakRssKiB": 481412,
+        "result": {
+          "wireCoverage": "capacity-limited",
+          "importVersion": "qqq-local-import-v2",
+          "status": "imported",
+          "partialDates": [],
+          "publishedDates": [
+            "2026-11-02",
+            "2026-11-03",
+            "2026-11-04",
+            "2026-11-05",
+            "2026-11-06"
+          ],
+          "source": "synthetic-benchmark-not-market-data",
+          "revision": "5d231d02a166582623723377cc01784d8482b9b2cf812eb6e1d4e82bff56a092",
+          "dates": [
+            "2026-11-02",
+            "2026-11-03",
+            "2026-11-04",
+            "2026-11-05",
+            "2026-11-06"
+          ],
+          "rows": 600,
+          "priceAligned": true,
+          "inputComplete": true,
+          "missingExpiries": [],
+          "historyCoverage": "only supplied captures; gaps not synthesized",
+          "reused": true
+        }
+      },
+      {
+        "trial": 2,
+        "elapsedMs": 1009.9142420000026,
+        "peakRssKiB": 482140,
+        "result": {
+          "wireCoverage": "capacity-limited",
+          "importVersion": "qqq-local-import-v2",
+          "status": "imported",
+          "partialDates": [],
+          "publishedDates": [
+            "2026-11-02",
+            "2026-11-03",
+            "2026-11-04",
+            "2026-11-05",
+            "2026-11-06"
+          ],
+          "source": "synthetic-benchmark-not-market-data",
+          "revision": "5d231d02a166582623723377cc01784d8482b9b2cf812eb6e1d4e82bff56a092",
+          "dates": [
+            "2026-11-02",
+            "2026-11-03",
+            "2026-11-04",
+            "2026-11-05",
+            "2026-11-06"
+          ],
+          "rows": 600,
+          "priceAligned": true,
+          "inputComplete": true,
+          "missingExpiries": [],
+          "historyCoverage": "only supplied captures; gaps not synthesized",
+          "reused": true
+        }
+      }
+    ],
+    "summaryQuery": {
+      "elapsedMs": 80.45147800000268,
+      "source": "DAILY_SUMMARY",
+      "completeDays": 0,
+      "observedDates": [
+        "2026-11-02",
+        "2026-11-03",
+        "2026-11-04",
+        "2026-11-05",
+        "2026-11-06"
+      ],
+      "signals": 0
+    },
+    "limitations": "No network/native renderer; one machine; repeated imports. Synthetic runs do not certify real history."
+  },
+  {
+    "kind": "real-retained-provider-input",
+    "node": "v24.22.1",
+    "platform": "linux",
+    "arch": "x64",
+    "cpu": "INTEL(R) XEON(R) PLATINUM 8573C",
+    "visibleCpus": 4,
+    "inputBytes": 1994859,
+    "captures": 29,
+    "contracts": 10602,
+    "bars": 2262,
+    "databaseBytes": 21991424,
+    "trials": [
+      {
+        "trial": 0,
+        "elapsedMs": 665.386622,
+        "peakRssKiB": 183380,
+        "result": {
+          "status": "partial",
+          "partialDates": [
+            "2026-11-15"
+          ],
+          "publishedDates": [],
+          "source": "cboe",
+          "revision": "53de694a99dde99e3964dfbd779227d041b9581c6a54f98e0563c3a9d7f7e553",
+          "dates": [
+            "2026-11-15"
+          ],
+          "rows": 29,
+          "priceAligned": false,
+          "inputComplete": false,
+          "missingExpiries": [],
+          "historyCoverage": "only supplied captures; gaps not synthesized"
+        }
+      },
+      {
+        "trial": 1,
+        "elapsedMs": 1255.185545,
+        "peakRssKiB": 263432,
+        "result": {
+          "status": "partial",
+          "partialDates": [
+            "2026-11-15"
+          ],
+          "publishedDates": [],
+          "source": "cboe",
+          "revision": "53de694a99dde99e3964dfbd779227d041b9581c6a54f98e0563c3a9d7f7e553",
+          "dates": [
+            "2026-11-15"
+          ],
+          "rows": 29,
+          "priceAligned": false,
+          "inputComplete": false,
+          "missingExpiries": [],
+          "historyCoverage": "only supplied captures; gaps not synthesized"
+        }
+      },
+      {
+        "trial": 2,
+        "elapsedMs": 965.489335,
+        "peakRssKiB": 264944,
+        "result": {
+          "status": "partial",
+          "partialDates": [
+            "2026-11-15"
+          ],
+          "publishedDates": [],
+          "source": "cboe",
+          "revision": "53de694a99dde99e3964dfbd779227d041b9581c6a54f98e0563c3a9d7f7e553",
+          "dates": [
+            "2026-11-15"
+          ],
+          "rows": 29,
+          "priceAligned": false,
+          "inputComplete": false,
+          "missingExpiries": [],
+          "historyCoverage": "only supplied captures; gaps not synthesized"
+        }
+      }
+    ],
+    "summaryQuery": {
+      "available": false,
+      "reason": "No publishable aligned history/summary in this input"
+    },
+    "limitations": "No network/native renderer; one machine; repeated imports. Synthetic runs do not certify real history."
+  }
+]

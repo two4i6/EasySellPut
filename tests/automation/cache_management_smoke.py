@@ -13,7 +13,7 @@ def check_cache(command):
     with tempfile.TemporaryDirectory(prefix='EasySellPut cache safety ') as data:
         root = pathlib.Path(data)
         status = run(command, data, 'cache', 'status')['data']
-        assert [c['id'] for c in status['caches']] == ['responses', 'bars']
+        assert [c['id'] for c in status['caches']] == ['responses', 'bars', 'qqq_gex_wire']
         assert 'iv_samples' in status['protectedData']
         protected = {'settings.json': b'{"language":"en-US"}', 'strategies.json': b'[]', 'drawings.json': b'{"fixture":"unchanged"}'}
         for name, body in protected.items():
@@ -24,7 +24,15 @@ def check_cache(command):
                 db.execute('INSERT INTO bar_meta (symbol,interval,adjust,source,fetched_at,realtime,basis) VALUES (?,?,?,?,?,?,?)', (symbol, 'Day1', '', 'fixture', 1, 0, 'Split'))
             db.execute('INSERT INTO iv_samples VALUES (?,?,?,?,?)', ('AAPL', 1, 'ATM', .25, 'fixture'))
             db.execute('INSERT INTO oi_daily VALUES (?,?,?,?)', ('AAPL', 20261101, 'contract', 100))
+        with closing(sqlite3.connect(root / 'cache/qqq-gex.db')) as db, db:
+            db.execute('CREATE TABLE qqq_gex_observed_inputs(identity TEXT PRIMARY KEY, body TEXT)')
+            db.execute('INSERT INTO qqq_gex_observed_inputs VALUES (?,?)', ('retained', 'original observation'))
+            db.execute('INSERT INTO qqq_gex_wire VALUES (?,?,?,?,?,?,?,?)', ('local','fixture','application/json','{}','r1',1,2,'fixture'))
         run(command, data, 'cache', 'clear', '--category', 'all', '--mode', 'expired')
+        with closing(sqlite3.connect(root / 'cache/qqq-gex.db')) as db:
+            assert db.execute('SELECT body FROM qqq_gex_observed_inputs').fetchone()[0] == 'original observation'
+            assert db.execute('SELECT COUNT(*) FROM qqq_gex_wire').fetchone()[0] == 0
+            assert db.execute('SELECT generation FROM qqq_gex_cache_meta').fetchone()[0] == 1
         assert run(command, data, 'cache', 'status')['data']['caches'][1]['entries'] == 2
         reader = Mcp(command, data)
         try:

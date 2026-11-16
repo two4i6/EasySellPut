@@ -1,3 +1,4 @@
+using Meili.Core.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography;
@@ -5,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using Meili.Automation;
 using Meili.Data.Cache;
+using Meili.Core.Quotes;
 
 namespace Meili.Shared.Services;
 
@@ -17,13 +19,18 @@ public sealed class QqqGexSession : IDisposable
     private readonly string token = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
     private readonly QqqGexResponseStore? cache;
     private readonly string snapshot;
+    private readonly QuoteHub? quotes;
+    private readonly DesktopActivity? activity;
+    private readonly string quoteOwner="qqq-gex-"+Guid.NewGuid().ToString("N");
+    private void QuoteActivity(object? sender,EventArgs e){if(activity?.AnyVisible??true)quotes?.Subscribe(quoteOwner,["QQQ"]);else quotes?.Unsubscribe(quoteOwner);}
+    private object? LocalQuote()=>quotes is not null&&quotes.TryGetCached("QQQ",out var quote)?new {quote.Symbol,quote.Price,quote.Source,quote.AsOf,quote.FetchedAt,quote.DelayMinutes,quote.IsRealtime}:null;
     private readonly string? directory;
     private TaskCompletionSource<bool> changed=new(TaskCreationOptions.RunContinuationsAsynchronously);
     public void NotifyDataUpdated(){var old=Interlocked.Exchange(ref changed,new(TaskCreationOptions.RunContinuationsAsynchronously));old.TrySetResult(true);}
     public Uri PageUri { get; }
-    public QqqGexSession(string? databasePath = null, string snapshot = "local")
+    public QqqGexSession(string? databasePath = null, string snapshot = "local", QuoteHub? quotes = null, DesktopActivity? activity = null)
     {
-        this.snapshot=snapshot;directory=databasePath is null?null:Path.GetDirectoryName(Path.GetDirectoryName(Path.GetFullPath(databasePath)))!; if(databasePath is not null)cache=new QqqGexResponseStore(databasePath);
+        this.snapshot=snapshot;this.quotes=quotes;this.activity=activity;if(activity is not null)activity.Changed+=QuoteActivity;QuoteActivity(null,EventArgs.Empty);directory=databasePath is null?null:Path.GetDirectoryName(Path.GetDirectoryName(Path.GetFullPath(databasePath)))!; if(databasePath is not null)cache=new QqqGexResponseStore(databasePath);
         listener.Start();
         PageUri = new Uri($"http://127.0.0.1:{((IPEndPoint)listener.LocalEndpoint).Port}/{token}/index.html");
         _ = Accept();
@@ -52,14 +59,16 @@ public sealed class QqqGexSession : IDisposable
             if(route=="events"){
                 var url=new Uri(PageUri,request[1]);var after=url.Query.StartsWith("?after=",StringComparison.Ordinal)?Uri.UnescapeDataString(url.Query[7..]):"";var notification=Volatile.Read(ref changed);var version=cache?.RevisionToken()??"";
                 if(version==after){try{await notification.Task.WaitAsync(TimeSpan.FromSeconds(5),ct);}catch(TimeoutException){}version=cache?.RevisionToken()??"";}
-                await Reply(stream,200,"application/json",JsonSerializer.SerializeToUtf8Bytes(new {version,latestDate=version==after?null:cache?.LatestLocalDate(DateTimeOffset.UtcNow)}),ct);return;
+                await Reply(stream,200,"application/json",JsonSerializer.SerializeToUtf8Bytes(new {version,partial=cache?.LatestPartial(),quote=LocalQuote(),latestDate=version==after?null:cache?.LatestLocalDate(DateTimeOffset.UtcNow)}),ct);return;
             }
-            if(route=="api/analysis/qqq/local-state"){await Reply(stream,200,"application/json",JsonSerializer.SerializeToUtf8Bytes(new {latestDate=cache?.LatestLocalDate(DateTimeOffset.UtcNow),localOnly=true,revision=cache?.RevisionToken()??""}),ct);return;}
+            if(route=="api/analysis/qqq/local-quote"){await Reply(stream,200,"application/json",JsonSerializer.SerializeToUtf8Bytes(new {quote=LocalQuote()}),ct);return;}
+            if(route=="api/analysis/qqq/local-state"){await Reply(stream,200,"application/json",JsonSerializer.SerializeToUtf8Bytes(new {partial=cache?.LatestPartial(),latestDate=cache?.LatestLocalDate(DateTimeOffset.UtcNow),localOnly=true,revision=cache?.RevisionToken()??""}),ct);return;}
             if(route.StartsWith("api/",StringComparison.Ordinal)) {
                 var path="/"+request[1][(token.Length+2)..];
                 var cached=cache?.Read(snapshot,path,DateTimeOffset.UtcNow)??cache?.ReadLocalDay(path,DateTimeOffset.UtcNow)??cache?.ReadSpreadQuote(path,DateTimeOffset.UtcNow);
-                if(cached is null&&directory is not null&&(path.StartsWith("/api/analysis/qqq/pcs/backtest?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/pcs?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/gex/intraday-context?",StringComparison.Ordinal))){
+                if(cached is null&&directory is not null&&(path.StartsWith("/api/analysis/qqq/pcs/backtest?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/pcs?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/gex/intraday-context?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/gex/exposure?",StringComparison.Ordinal))){
                     var result=await QqqGexCalculationRunner.QueryAsync(directory,path,ct);using var json=JsonSerializer.SerializeToDocument(result);
+                    if(json.RootElement.TryGetProperty("body",out var wireBody)&&json.RootElement.TryGetProperty("contentType",out var wireType)){await Reply(stream,200,wireType.GetString()!,Encoding.UTF8.GetBytes(wireBody.GetString()!),ct);return;}
                     if((json.RootElement.TryGetProperty("available",out var available)&&available.ValueKind==JsonValueKind.True)||json.RootElement.TryGetProperty("intraday",out _)||json.RootElement.TryGetProperty("currentBars",out _)){await Reply(stream,200,"application/json",Encoding.UTF8.GetBytes(json.RootElement.GetRawText()),ct);return;}
                 }
                 if(cached is not null){await Reply(stream,200,cached.ContentType,Encoding.UTF8.GetBytes(cached.Body),ct);return;}
@@ -70,7 +79,7 @@ public sealed class QqqGexSession : IDisposable
             using var memory=new MemoryStream();await asset.CopyToAsync(memory,ct);
             await Reply(stream,200,route.EndsWith(".html",StringComparison.Ordinal)?"text/html; charset=utf-8":route.EndsWith(".css",StringComparison.Ordinal)?"text/css; charset=utf-8":"text/javascript; charset=utf-8",memory.ToArray(),ct);
         }
-        catch(Exception ex) when(ex is IOException or OperationCanceledException or SocketException or ArgumentException) { }
+        catch(Exception ex) when(ex is IOException or OperationCanceledException or SocketException or ArgumentException) { AppLog.Warn("qqq-gex","Local viewer request ended: "+ex.GetType().Name); }
         finally { clients.Release(); }
     }
     private static async Task Reply(Stream s,int status,string type,byte[] body,CancellationToken ct)
@@ -78,5 +87,5 @@ public sealed class QqqGexSession : IDisposable
         var csp="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; worker-src 'self' blob:; base-uri 'none'; frame-ancestors 'none'; form-action 'none'";
         await s.WriteAsync(Encoding.ASCII.GetBytes($"HTTP/1.1 {status} Response\r\nContent-Type: {type}\r\nContent-Length: {body.Length}\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nReferrer-Policy: no-referrer\r\nContent-Security-Policy: {csp}\r\nConnection: close\r\n\r\n"),ct);await s.WriteAsync(body,ct);
     }
-    public void Dispose(){stop.Cancel();listener.Stop();}
+    public void Dispose(){if(activity is not null)activity.Changed-=QuoteActivity;quotes?.Unsubscribe(quoteOwner);stop.Cancel();listener.Stop();}
 }

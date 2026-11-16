@@ -1,3 +1,4 @@
+using Meili.Core.Diagnostics;
 using System.Text.Json;
 using Meili.Automation;
 using Meili.Core.Abstractions;
@@ -22,9 +23,9 @@ public sealed class QqqGexActivity(IMarketDataService market,string directory,De
                     using var capture=JsonSerializer.SerializeToDocument(result);Status=capture.RootElement.GetProperty("status").GetString()!;
                     if(Status=="captured_input"){
                         var computed=await QqqGexCalculationRunner.RunAsync(directory,stop.Token);using var json=JsonSerializer.SerializeToDocument(computed);Status=json.RootElement.GetProperty("status").GetString()!;
-                        if(Status=="imported"&&!stop.IsCancellationRequested)Ui.Platform.Run(()=>{if(!stop.IsCancellationRequested)Published?.Invoke();});
+                        if(Status is "imported" or "partial"&&!stop.IsCancellationRequested)Ui.Platform.Run(()=>{if(!stop.IsCancellationRequested)Published?.Invoke();});
                     }
-                }catch(Exception ex) when(ex is not OperationCanceledException){Status=ex.GetType().Name;}
+                }catch(Exception ex) when(ex is not OperationCanceledException){Status=ex.GetType().Name;AppLog.Warn("qqq-gex","Capture/calculation failed: "+Status);}
                 await Task.Delay(TimeSpan.FromMinutes(2),stop.Token);
             }
         }catch(OperationCanceledException) when(stop.IsCancellationRequested){}

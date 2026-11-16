@@ -1,3 +1,4 @@
+using Meili.Core.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -12,7 +13,7 @@ public sealed class QqqGexPage : Page
     private async Task Start()
     {
         if(session is not null)return;
-        var active=new QqqGexSession(System.IO.Path.Combine(AppServices.DataDirectory.Path,"cache","qqq-gex.db"));session=active;var view=new WebView2();web=view;Content=view;
+        var active=new QqqGexSession(System.IO.Path.Combine(AppServices.DataDirectory.Path,"cache","qqq-gex.db"),quotes:AppServices.Get<Meili.Core.Quotes.QuoteHub>(),activity:AppServices.Get<DesktopActivity>());session=active;var view=new WebView2();web=view;Content=view;
         try {
             var env=await CoreWebView2Environment.CreateAsync(null,Path.Combine(AppServices.DataDirectory.Path,"browser","qqq-gex"));
             if(session!=active)return;await view.EnsureCoreWebView2Async(env);if(session!=active)return;
@@ -21,7 +22,7 @@ public sealed class QqqGexPage : Page
             core.NavigationStarting+=(_,e)=>e.Cancel=!active.IsPageUrl(e.Uri);core.Navigate(active.PageUri.AbsoluteUri);
             capture=new QqqGexActivity(AppServices.Get<Meili.Core.Abstractions.IMarketDataService>(),AppServices.DataDirectory.Path,AppServices.Get<DesktopActivity>());
             capture.Published+=()=>{if(session==active)active.NotifyDataUpdated();};capture.Start();
-        }catch(Exception) {if(session==active)Content=new TextBlock{Text=LocalizationService.Current["Reader_Failed"],Margin=new Thickness(16)};}
+        }catch(Exception ex) {AppLog.Warn("qqq-gex","Native viewer startup failed: "+ex.GetType().Name);if(session==active)Content=new TextBlock{Text=LocalizationService.Current["Reader_Failed"],Margin=new Thickness(16)};}
     }
     private void Stop(){capture?.Dispose();capture=null;session?.Dispose();session=null;web?.Dispose();web=null;Content=null;}
 }

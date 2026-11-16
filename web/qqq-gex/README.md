@@ -1,136 +1,124 @@
 # QQQ GEX workbench migration (in progress)
 
-Source: option-seller remote **work**, commit
-`d60e24b56e308a81723f6c206fb52d22ddc0e9f8`, fetched 2026-11-16.
-`source-manifest.json` records 648 byte-preserved source files. Verify with
-`python3 tools/qqq-gex/verify-source.py`. Source algorithms remain in `upstream`;
-desktop build adapters supply local transport, workers and Next component equivalents.
-The importer resolves literal imports, not every SQL/public-asset dependency.
+Source: option-seller `work@d60e24b56e308a81723f6c206fb52d22ddc0e9f8`.
+649 byte-preserved files are tracked in `source-manifest.json`.
+`python3 tools/qqq-gex/verify-source.py` verifies fidelity. Original calculation,
+research, indicators, replay and archive algorithms remain the single implementation.
+Next component/worker, local transport and storage adapters are maintained here.
 
-## Local workbench
+EasySellPut upstream `work@bf4d77d06cc35a825bf7ae216535d60817963c60` was merged
+locally as `04e0e13`, after preserving prior work in `bbb2f23` and an external
+archive. See [UPSTREAM-STATUS.md](UPSTREAM-STATUS.md). Nothing was pushed/deployed.
+
+## Run and transport
 
 `npm ci && npm run build && npm run build:runtime` builds the original React
-page and original calculation/query engines. Windows/macOS navigation entries
-use existing WebView2/WKWebView runtimes. `QqqGexSession` serves embedded assets
-and local SQLite from random-port/token loopback HTTP, with host/origin checks,
-CSP, bounded clients/deadlines and GET-only access. No remote page or data fallback
-is used; missing requests return explicit `LOCAL_CACHE_MISS`. The viewer is a
-fixed-date historical view; cached prices are never labelled live. Native bridge
-privileges, remote navigation, downloads and popups are disabled.
+page/workers and local model. WPF and Avalonia navigation entries serve embedded
+assets through tokenized loopback HTTP with host/origin checks, bounded clients,
+deadlines, CSP and no remote fallback. The system WebView2/WKWebView is required;
+no Chromium is shipped. Private page downloads/popups/navigation/bridges are denied.
 
-Visible desktop sessions schedule routed QQQ capture/calculation every two minutes,
-using the existing provider selection (including CBOE). Source snapshot, delay,
-original CBOE bytes, SHA, receipt time and normalized observations are retained.
-All expiry records must agree on source/time/spot/revision. Only consecutive,
-closed one-minute observations form two-minute bars. Missing IV/OI, dates, source
-coverage or bars stay missing/partial. Source observations survive unsuccessful
-page publication. No historical snapshot is synthesized.
+Visible desktop sessions capture routed QQQ providers every two minutes and run
+the original model. Live observation uses the existing QuoteHub/QuotePump, releases
+subscriptions while hidden/disposed and labels source time, declared delay and
+expiration. Quotes and GEX capture times remain separate. This replaces the source
+Yahoo SSE transport; it does not manufacture tick streaming or live eligibility.
+History mode preserves date selection. Revision notifications refresh data without
+reloading the WebView. ASK AI previews/copies the original selected-snapshot context
+and prompt locally, without credential entry, automatic transmission or MCP writes.
 
-SQLite stores exact request variants plus hash-verified local days, original full
-profiles, bars, every generated manifest window, provenance and model version.
-Imports publish per transaction, preserve earlier captures and reject conflicting
-same-time data. Read paths verify hashes/expiry; duplicate query keys reject.
-Current derived views expire after 30 days from local publication; retained inputs
-can be explicitly rebuilt. This is a freshness policy, not certification that an
-imported day is complete. The upstream cache-manager integration is still pending
-(see [UPSTREAM-STATUS.md](UPSTREAM-STATUS.md)).
+## Data and cache ownership
 
-Shared CLI/MCP operations: `capture_qqq_gex_input`, `calculate_qqq_gex_local`,
-`get_qqq_gex_replay`, `rebuild_qqq_gex_history`. Input body shape is
-`{symbol:"QQQ",source,captures:[{valuationAt,expiry,spot,result}],bars}`.
-`expiry` uses epoch seconds; `result` retains original options/quote/receivedAt.
-Only actual supplied history is covered. Never import credentials or use test
-fixtures as market data. Optional `runtime/collect.mjs` Yahoo-only collection
-returned HTTP 401 in this environment; the desktop routed provider path does not
-rely on that collector.
+`cache/qqq-gex.db` retains original CBOE bytes, normalized observations, full profiles,
+partial/full days, real two-minute bars, summaries and import progress. Original
+provider source/as-of/receipt/delay and model versions are preserved. All expiry
+reads must agree on source/time/spot/raw revision. Only closed consecutive one-minute
+pairs become two-minute bars. Missing IV/OI/timestamps/candles remain missing.
+No snapshot time is shifted to another trading date.
 
-## Checks and remaining acceptance
+A no-bars input is retained as a hash-verified partial day with visible per-expiry
+metrics and quality. It cannot authorize the original full page/replay. Later real
+aligned bars atomically promote retained captures; no candle is synthesized.
 
-Run `npm run test:pipeline`, the original source tests listed in the CI GEX job,
-and `PLAYWRIGHT_BROWSERS_PATH=... node tests/offline-viewer.mjs` (add `QQQ_TEST_DB`
-for computed fixture). .NET focused tests cover capture, store and local HTTP.
-Screenshots/benchmark JSON under ignored `test-results` are generated evidence,
-not imported market archives. CI hooks are local changes; no remote green run is
-claimed. Nothing was pushed or deployed.
+**CacheManager** registers `qqq_gex_wire` in desktop, CLI and MCP. Settings exposes
+the category; stats include entries, expired and logical response bytes. Derived
+wire responses have explicit expiration and a 256 MiB budget; oldest source times
+are evicted first. `wireCoverage=capacity-limited` is explicit when applicable.
+Clearing invalidates wire/receipt reuse and advances a shared SQLite generation;
+calculations started before clearing cannot publish stale results. Maintenance never
+deletes original observations, partial/full archives, summaries or database files.
+The storage chart separates the mixed GEX database from other caches. Physical
+SQLite file size is not reclaimed bytes. See [cache policy](../../docs/47-统一缓存管理.md).
 
-Incomplete acceptance: original external history/database blobs, >32-day source
-daily summaries, live quote mode/SSE, ASK AI integration, exhaustive user journeys
-and golden parity, native OS execution/signing, locale/theme integration, upstream
-cache-manager reconciliation, and representative real historical end-to-end
-performance. Source server code depending on Supabase is not automatically a local
-service. The explicit local query adapters cover only the variants described below;
-unknown variants remain misses. Current evidence does not establish a complete
-migration or outstanding native/platform compatibility.
+Retained archives have no TTL; wire freshness is separate from historical validity.
+Exact input reuse checks its receipt, scoped revisions and hashes. Cache clearing
+invalidates reuse. Exposure manifests/windows can regenerate read-only from retained
+profiles using the original manifest/wire code, with exact source-window validation.
 
-## Runtime, coverage and validation
+## Local queries
 
-The calculation runtime is now shipped as a pinned official **Node 24.22.1**
-archive by desktop/CLI packagers. Six platform archives and extracted executable
-hashes are recorded in `node-runtime-lock.json`; downloads occur only at build
-time from nodejs.org, with pinned archive and executable SHA-256 verification.
-At application use, the archive is verified against the embedded lock and only
-its exact executable member is extracted atomically into the data directory.
-The extracted executable is reverified and invoked by absolute path; no PATH
-Node, user installation, runtime download or custom script is used. Archives
-remain signed-package data so macOS signing does not change the pinned executable
-bytes. Official Node license text is included. Native platform trust validation
-is still required; the checks below do not claim Windows/macOS execution.
+- Exact wire variants, date/day projections, full/all-expiry exposure manifests and
+  NDJSON windows; mismatched window revision fails closed.
+- Original gex/bars history pagination, expiry selectors, compact profile projection
+  and closed-bar causal join; retained full profiles are never replaced by compact ones.
+- Original directional raw replay up to 32 days; 33–366 days aggregate persisted
+  original daily summaries. Original source day-completeness criteria are extracted
+  at build time rather than maintaining another algorithm. Incomplete days remain
+  excluded by the source summary algorithm. Reads have explicit size/range bounds.
+- Inclusive same-day PCS windows up to 90 minutes; context DTE 0–60 (all/volume),
+  actual preceding 20 trading-day references and explicit missing-reference coverage.
+- Exact historical two-leg quote lookup with the source five-minute causal cutoff.
 
-A Linux x64 self-contained CLI archive was built, checksum/extracted into a path
-with spaces and executed with `PATH` pointing to an empty directory. Its bundled
-model and replay ran successfully, and tampering with the extracted Node binary
-was rejected. General CLI/MCP packaged process smoke also passed. Native CI now
-runs this runtime test on every existing CLI architecture and bundled desktop CLI;
-the required aggregate gate includes the GEX web job. No remote CI run of these
-local changes has occurred.
+CLI/MCP use `capture_qqq_gex_input`, `calculate_qqq_gex_local`,
+`get_qqq_gex_replay`, `rebuild_qqq_gex_history`. Rebuilds resume batches up to 400
+retained inputs with per-input commits, durable failures and explicit retry.
+Unknown dynamic variants are unavailable; they do not trigger remote requests.
 
-Local signals/replay now use the original `replayQqqIntradayDirectional` and
-validation engine, with repeated fingerprint verification, real pagination and
-explicit uncertified day coverage. Local queries are bounded to 32 days/256 MB;
-source daily-summary aggregation for larger ranges is not yet migrated. The
-viewer supports dynamic same-date inclusive PCS windows up to 90 minutes,
-arbitrary context DTE 0–60 (all/volume), and exact two-leg historical quotes whose
-capture and source-availability times both satisfy the original five-minute
-cutoff. No model quote substitutes for an absent historical quote. Day payload
-hashes are checked in direct and runtime reads; legacy day records without hashes
-require explicit reimport.
+## Runtime and checks
 
-`rebuild_qqq_gex_history` resumes batches of up to 400 retained normalized inputs,
-committing each independently. Failures persist and do not block other inputs;
-failed records are retried only with `retryFailed`. Inputs are retained before
-page publication, deduplicated without overwriting first receipt provenance.
-This rebuilds only captured local observations. It does **not** import missing
-option-seller database history automatically. Referenced source maintenance blobs
-(e.g. `qqq-v4-production-capture-20261013-v1.artifact.json`'s relative payload) are
-not present in the cloned repository, and no database export has been supplied.
-The earlier 2026-10-15 snapshot discrepancy remains unverified.
+Pinned official Node 24.22.1 archives/executable hashes cover Windows/macOS x64/ARM64
+and Linux x64/ARM64. Packagers download at build time, verify pinned SHA and ship
+license/provenance. The app extracts only the executable, verifies it on every run
+and invokes its absolute path with NODE_OPTIONS/NODE_PATH/NODE_ICU_DATA cleared.
+No user Node installation or application-side runtime download is required.
 
-The seven-day real provider query returned **2,262** complete 2-minute buckets,
-with Yahoo bars dated 2026-11-09 through 2026-11-13. None match the option source
-snapshot's ET date (2026-11-15), so `matchingBars=0` and full-page publication is
-still rejected. The raw CBOE payload independently confirmed **84** positive-OI
-contracts with IV exactly zero. These cannot be repaired from missing information;
-no alternative source time, zero-filled IV or fabricated historical candle is
-used. Thus real chain-to-complete-page acceptance remains blocked by actual
-source timing/input gaps, despite successful calculation-only and synthetic
-page tests. Local viewer boot explicitly selects a fixed archived date and labels
-it local history, preserving an existing saved date instead of calling it today.
+`npm run test:pipeline` covers algorithm-to-SQLite publication, hashes, incremental
+history, idempotent reuse, partial recovery, queries, long-range summary, exposure
+regeneration and cross-process invalidation. Original source tests are listed in
+CI. `tests/offline-viewer.mjs` exercises Chromium (fixture transport, never native
+acceptance); `QQQ_TEST_DB` selects computed or real retained partial data.
+Generated screenshots/JSON live in ignored `test-results`; compact measured reports
+are in [benchmarks/2026-11-16.json](benchmarks/2026-11-16.json).
 
-Current focused checks: **49 unchanged source tests / 248 assertions** for the
-core model, Gamma, research, direction and wire; a further **58 / 432 assertions**
-for Max Pain, VWAP/RVOL, indicators, causal exposure replay, side coverage,
-heatmap presentation and archive manifests. Historical resume/failure, dynamic
-query and quote tests pass. Catalog parity now covers **49** operations through
-CLI and MCP. Cache-management and native platform coverage remain separate risks.
+## Actual evidence and remaining work
 
+Retained real CBOE input contains 29 expiries/10,602 contracts; 84 positive-OI
+contracts have zero IV. Seven-day prices contain 2,262 complete two-minute buckets
+on Nov 9–13, while the chain's ET capture date is Nov 15. All 29 computed profiles
+are retained and displayed as partial; no complete real day was published.
+No missing option-seller database/blob history or 2026-10-15 snapshot was invented.
 
-Local desktop capture publications now notify the private loopback viewer instead
-of navigating/reloading the WebView. The viewer revalidates the selected historical
-display and replay, preserving its document and saved selected date, and includes
-newly published dates in the rail. A bounded five-second long poll also detects
-commits from independent CLI writers; hidden views stop polling and retry on
-visibility. Shared HTTP tests cover notification/revision behavior. Chromium's
-computed fixture test covers expiry switching and revision refresh without document
-navigation or remote traffic. These are local fixture checks, not native OS or
-real complete-day acceptance. Frontend runtime dependency versions now match the
-pinned option-seller work commit's lockfile exactly.
+Latest synthetic workload: five dates, 600 snapshots, 96,000 contracts, 75 bars;
+16.1 s cold import, 1.01–1.11 s verified repeated import, peak RSS 737 MiB cold /
+471 MiB repeated, summary query 80 ms. The physical SQLite file is ~562 MiB and
+includes freed pages, retained archive and wire data. This exposes ongoing cold
+import/storage/memory bottlenecks; it is **not** performance acceptance. Environment:
+Node 24.22.1/Linux x64/Xeon 8573C/four visible CPUs, one machine with concurrent
+tests. Real retained partial input measured 0.67–1.26 s / peak ~259 MiB before
+receipt optimization; no representative complete real history is available.
+
+Remaining: full live PCS decision/eligibility server localization and its additional
+market inputs, unsupported query variants/out-of-workbench links, exhaustive UI and
+golden parity, theme/locale integration, large-history resource optimization,
+original external history import, native Windows/macOS execution/trust and complete
+real-history end-to-end performance. ASK AI is explicit prompt export rather than
+the source's credential-backed in-page inference. These limits mean the complete
+migration is not yet accepted.
+
+Linux full offline run: Core's new logging violations were fixed and 199 tests
+repassed; Data/Analytics/Shared/Automation and Python/process checks are recorded
+in the task results. Avalonia had 53 failures (73 passes), chiefly glyphTypeface;
+the same NewsSplit failure reproduced on a pure upstream bf4d77d archive. Windows
+WPF testhost cannot run here because Microsoft.WindowsDesktop.App is unavailable.
+Cross-builds and Chromium are not native validation. See [VALIDATION.md](VALIDATION.md)
+for the newest commands/outcomes; no remote CI green status is claimed.

@@ -266,6 +266,11 @@
       "bytes": 8622
     },
     {
+      "path": "src/App.css",
+      "sha256": "f46b064dfe80d41556c813f6f7faf7a181f550925ce9a34059423e1d86d7a42f",
+      "bytes": 16217
+    },
+    {
       "path": "src/app/analysis/qqq/gex/page.component.tsx",
       "sha256": "88c1c767bfb848c44fecc30ee973821bc9fc755ab1961c58092406392b7bcbf1",
       "bytes": 24366
@@ -319,6 +324,11 @@
       "path": "src/app/api/proxy/yahoo/quote-stream/route.ts",
       "sha256": "eab833448816f623f4bf90d80c42ffb444891c4a2174d54fd7734b51a090feb7",
       "bytes": 1766
+    },
+    {
+      "path": "src/app/globals.css",
+      "sha256": "0e270ab66cc99ac05b5c119b836b255cb2d8dc599e16f09f4db314e6b85bf0c0",
+      "bytes": 14756
     },
     {
       "path": "src/components/Button.tsx",
@@ -1771,6 +1781,11 @@
       "bytes": 3114
     },
     {
+      "path": "src/lib/engines/analysis/QqqGexResearch.test.ts",
+      "sha256": "1a7a45bdd8a2376e0dae288238b5ae3c8f23e6f4add82c0545b4881df46dcf6a",
+      "bytes": 6338
+    },
+    {
       "path": "src/lib/engines/analysis/QqqGexResearch.ts",
       "sha256": "018c95c18e3a0d85ebf72076e277b5f84c8ed23533913f1f01d11ab12689d564",
       "bytes": 27739
@@ -1779,6 +1794,11 @@
       "path": "src/lib/engines/analysis/QqqGexTerminalEngine.ts",
       "sha256": "c577dc60a66e904a91547a824289e131502191de61445fc52c97398350f17b64",
       "bytes": 29718
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqIntradayDirectional.test.ts",
+      "sha256": "999d33a171c31e6f070a4f1b841347a39c85665aabd72654e77a9358fee3618c",
+      "bytes": 21786
     },
     {
       "path": "src/lib/engines/analysis/QqqIntradayDirectional.ts",
@@ -2606,6 +2626,11 @@
       "bytes": 11415
     },
     {
+      "path": "src/lib/qqqDayScenario.worker.ts",
+      "sha256": "e90c34de34c27ac490aa0f831b4ea8999fdcf4b2ba0d0e8ccfe327226ef97969",
+      "bytes": 689
+    },
+    {
       "path": "src/lib/qqqDirectionalGexTime.ts",
       "sha256": "20652211cb3712c08929b080428e0bcef98339ac082be0130f604446fa1792b2",
       "bytes": 4526
@@ -2641,6 +2666,11 @@
       "bytes": 2622
     },
     {
+      "path": "src/lib/qqqExposureArchive.test.ts",
+      "sha256": "331dfd56036cd8f3d05cd11ea8096a847a16ffc4db3c242ee7166d6e720ba4a3",
+      "bytes": 2292
+    },
+    {
       "path": "src/lib/qqqExposureArchive.ts",
       "sha256": "eab9abcf69ff890517fa91746b8e12c8a7ddb43a4aad878d7c44451c4c99abb1",
       "bytes": 3531
@@ -2671,9 +2701,19 @@
       "bytes": 5472
     },
     {
+      "path": "src/lib/qqqExposureReplay.test.ts",
+      "sha256": "2c90aff8f1ea14e67850077dfc8aa8e0961dac5dd8b61b929c0cb0c1c4185f2d",
+      "bytes": 10827
+    },
+    {
       "path": "src/lib/qqqExposureReplay.ts",
       "sha256": "6337286dd26fb0230e5a005d3592f1d8241263a764292c7bf6a499be58aa612e",
       "bytes": 12693
+    },
+    {
+      "path": "src/lib/qqqExposureSides.test.ts",
+      "sha256": "0884015d11c15b212b86d4b3a1770ad12b4a4f225cd5ef87944e366996fbda7b",
+      "bytes": 2516
     },
     {
       "path": "src/lib/qqqExposureValidator.ts",
@@ -2681,9 +2721,19 @@
       "bytes": 1374
     },
     {
+      "path": "src/lib/qqqExposureWire.test.ts",
+      "sha256": "a1277013e5869537833c3aeb57313ae62e6dc3903a3ef5052a1fc933a0abceae",
+      "bytes": 3768
+    },
+    {
       "path": "src/lib/qqqExposureWire.ts",
       "sha256": "b79412c78dffb35bf00ab974ecdd9655cb1563b54d6002a5380313134900e22c",
       "bytes": 7624
+    },
+    {
+      "path": "src/lib/qqqExposureWire.worker.ts",
+      "sha256": "4d2d6c73caa18ca83c395305346ac37626bbc46d085d52a8ef77fb5ba4acebdb",
+      "bytes": 369
     },
     {
       "path": "src/lib/qqqExposureWireClient.ts",
@@ -2701,9 +2751,19 @@
       "bytes": 744
     },
     {
+      "path": "src/lib/qqqGammaModel.test.ts",
+      "sha256": "8446b3ef313af8654d155f4fe4f5b636644b7104b9e339f2ae3ad24121306c75",
+      "bytes": 8780
+    },
+    {
       "path": "src/lib/qqqGammaModel.ts",
       "sha256": "4bf4fc502ffd058ccc525c7302ea2501146a14ddfd34d2d74ee5cad5ffcf3aae",
       "bytes": 16835
+    },
+    {
+      "path": "src/lib/qqqGammaModel.worker.ts",
+      "sha256": "baf31b558617135b1826076257fe0152e010652ae9b0ceb4f19333e485b8de4d",
+      "bytes": 721
     },
     {
       "path": "src/lib/qqqGammaModelJob.ts",
@@ -2736,9 +2796,19 @@
       "bytes": 12839
     },
     {
+      "path": "src/lib/qqqGexCalculation.test.ts",
+      "sha256": "05ac1d64f9feccbade08753b726e39652c5b3a1a6ca26c0e62932ffd7e03b3fe",
+      "bytes": 4481
+    },
+    {
       "path": "src/lib/qqqGexCalculation.ts",
       "sha256": "26a5b2531c38ba3a961da0f0813a732ef2f5faf8f6358f05a1fb0168a3272562",
       "bytes": 4704
+    },
+    {
+      "path": "src/lib/qqqGexCaptureBuilder.ts",
+      "sha256": "869be1159b962b7679e75960b5aa04bf09a087892782f50558f0076d1164e293",
+      "bytes": 5233
     },
     {
       "path": "src/lib/qqqGexDateSelection.ts",
@@ -2764,6 +2834,11 @@
       "path": "src/lib/qqqGexHistory.ts",
       "sha256": "4d0c286d6682bf24e1b512c4b97ace990a690bc811356ef6cfe2528af7b89c0f",
       "bytes": 38670
+    },
+    {
+      "path": "src/lib/qqqGexInputQuality.test.ts",
+      "sha256": "a358298d41591e8615aebbb573a380c348aaa8b72e547f6549ac50052052d9f7",
+      "bytes": 1377
     },
     {
       "path": "src/lib/qqqGexInputQuality.ts",
@@ -2811,6 +2886,11 @@
       "bytes": 13136
     },
     {
+      "path": "src/lib/qqqHeatmapPresentation.test.ts",
+      "sha256": "286b0dd5941fa85ccacb9fec485b2bb2603f34cf811dc5aa7a033b4ea71017cf",
+      "bytes": 4200
+    },
+    {
       "path": "src/lib/qqqHeatmapPresentation.ts",
       "sha256": "104527ecaece2ef7c6dbcb63b7bd4f7b3e38736d09f7fda0836116f3df3c74dc",
       "bytes": 5340
@@ -2829,6 +2909,11 @@
       "path": "src/lib/qqqHoverStore.ts",
       "sha256": "daab40e09ae9611e7029fcac6e91856c7efcce06faf8a2328eab682e3984f8d1",
       "bytes": 566
+    },
+    {
+      "path": "src/lib/qqqIndicatorConsistency.test.ts",
+      "sha256": "630954bc21d263a241268cef9da2be8f3a206682bac10723639f2979566c385f",
+      "bytes": 13145
     },
     {
       "path": "src/lib/qqqIntradayBacktestHistory.ts",
@@ -2851,14 +2936,29 @@
       "bytes": 11773
     },
     {
+      "path": "src/lib/qqqIntradayDirectionalSignals.test.ts",
+      "sha256": "00f162025932c818f5e00d38254732c71b9ce591fe45597a06af92ce7115b4ff",
+      "bytes": 1403
+    },
+    {
       "path": "src/lib/qqqIntradayDirectionalSignals.ts",
       "sha256": "341858964dbd34d62d21124119ee4b957d18f49881b23d6f9912ac488cae450d",
       "bytes": 3433
     },
     {
+      "path": "src/lib/qqqIntradayDirectionalSummary.test.ts",
+      "sha256": "24a063b935c90547e29888e947accf68fadc641b33a687a089b49c08c261dd3d",
+      "bytes": 6288
+    },
+    {
       "path": "src/lib/qqqIntradayDirectionalSummary.ts",
       "sha256": "ff032bea0b0e296dba9431e094295f99303296d7c6783ce3d456e699a4f04226",
       "bytes": 18167
+    },
+    {
+      "path": "src/lib/qqqIntradayIndicators.test.ts",
+      "sha256": "0b41bb87da6621b3d0312f45fd2cc84b164845add35e5ae5a48a9f031e8d7ffb",
+      "bytes": 6157
     },
     {
       "path": "src/lib/qqqIntradayIndicators.ts",
@@ -2901,6 +3001,11 @@
       "bytes": 7533
     },
     {
+      "path": "src/lib/qqqMaxPain.test.ts",
+      "sha256": "278baed408a64ec3cf46767f49fd057629a420662b19bb6922b2c3241105984a",
+      "bytes": 5325
+    },
+    {
       "path": "src/lib/qqqMaxPain.ts",
       "sha256": "25ca783c2a034bc413ab4ce64cd784b5436cba460900565077808f143c599c53",
       "bytes": 3403
@@ -2909,6 +3014,11 @@
       "path": "src/lib/qqqNextAction.ts",
       "sha256": "51a00a1f2dd2c51dc8bc12b8fb03da03b19a3f9ad581557bb79b2019e2ad61b7",
       "bytes": 6208
+    },
+    {
+      "path": "src/lib/qqqOptionActivityScope.test.ts",
+      "sha256": "908d1852e9110bc8dccad2dc95525edba6e6d9689bc3e21fe55bcd274da0496b",
+      "bytes": 2311
     },
     {
       "path": "src/lib/qqqOptionActivityScope.ts",
@@ -3149,111 +3259,6 @@
       "path": "src/utils/calculations.ts",
       "sha256": "ac8b22180e93d5b47d3e2b5a597a1a4e1ecc731ce651b77e9644d31028eda4c1",
       "bytes": 46331
-    },
-    {
-      "path": "src/App.css",
-      "sha256": "f46b064dfe80d41556c813f6f7faf7a181f550925ce9a34059423e1d86d7a42f",
-      "bytes": 16217
-    },
-    {
-      "path": "src/app/globals.css",
-      "sha256": "0e270ab66cc99ac05b5c119b836b255cb2d8dc599e16f09f4db314e6b85bf0c0",
-      "bytes": 14756
-    },
-    {
-      "path": "src/lib/qqqExposureWire.test.ts",
-      "sha256": "a1277013e5869537833c3aeb57313ae62e6dc3903a3ef5052a1fc933a0abceae",
-      "bytes": 3768
-    },
-    {
-      "path": "src/lib/qqqGexInputQuality.test.ts",
-      "sha256": "a358298d41591e8615aebbb573a380c348aaa8b72e547f6549ac50052052d9f7",
-      "bytes": 1377
-    },
-    {
-      "path": "src/lib/qqqDayScenario.worker.ts",
-      "sha256": "e90c34de34c27ac490aa0f831b4ea8999fdcf4b2ba0d0e8ccfe327226ef97969",
-      "bytes": 689
-    },
-    {
-      "path": "src/lib/qqqExposureWire.worker.ts",
-      "sha256": "4d2d6c73caa18ca83c395305346ac37626bbc46d085d52a8ef77fb5ba4acebdb",
-      "bytes": 369
-    },
-    {
-      "path": "src/lib/qqqGammaModel.test.ts",
-      "sha256": "8446b3ef313af8654d155f4fe4f5b636644b7104b9e339f2ae3ad24121306c75",
-      "bytes": 8780
-    },
-    {
-      "path": "src/lib/qqqGammaModel.worker.ts",
-      "sha256": "baf31b558617135b1826076257fe0152e010652ae9b0ceb4f19333e485b8de4d",
-      "bytes": 721
-    },
-    {
-      "path": "src/lib/qqqGexCalculation.test.ts",
-      "sha256": "05ac1d64f9feccbade08753b726e39652c5b3a1a6ca26c0e62932ffd7e03b3fe",
-      "bytes": 4481
-    },
-    {
-      "path": "src/lib/qqqGexCaptureBuilder.ts",
-      "sha256": "869be1159b962b7679e75960b5aa04bf09a087892782f50558f0076d1164e293",
-      "bytes": 5233
-    },
-    {
-      "path": "src/lib/engines/analysis/QqqGexResearch.test.ts",
-      "sha256": "1a7a45bdd8a2376e0dae288238b5ae3c8f23e6f4add82c0545b4881df46dcf6a",
-      "bytes": 6338
-    },
-    {
-      "path": "src/lib/qqqIntradayDirectionalSignals.test.ts",
-      "sha256": "00f162025932c818f5e00d38254732c71b9ce591fe45597a06af92ce7115b4ff",
-      "bytes": 1403
-    },
-    {
-      "path": "src/lib/engines/analysis/QqqIntradayDirectional.test.ts",
-      "sha256": "999d33a171c31e6f070a4f1b841347a39c85665aabd72654e77a9358fee3618c",
-      "bytes": 21786
-    },
-    {
-      "path": "src/lib/qqqHeatmapPresentation.test.ts",
-      "sha256": "286b0dd5941fa85ccacb9fec485b2bb2603f34cf811dc5aa7a033b4ea71017cf",
-      "bytes": 4200
-    },
-    {
-      "path": "src/lib/qqqOptionActivityScope.test.ts",
-      "sha256": "908d1852e9110bc8dccad2dc95525edba6e6d9689bc3e21fe55bcd274da0496b",
-      "bytes": 2311
-    },
-    {
-      "path": "src/lib/qqqIntradayIndicators.test.ts",
-      "sha256": "0b41bb87da6621b3d0312f45fd2cc84b164845add35e5ae5a48a9f031e8d7ffb",
-      "bytes": 6157
-    },
-    {
-      "path": "src/lib/qqqExposureSides.test.ts",
-      "sha256": "0884015d11c15b212b86d4b3a1770ad12b4a4f225cd5ef87944e366996fbda7b",
-      "bytes": 2516
-    },
-    {
-      "path": "src/lib/qqqExposureReplay.test.ts",
-      "sha256": "2c90aff8f1ea14e67850077dfc8aa8e0961dac5dd8b61b929c0cb0c1c4185f2d",
-      "bytes": 10827
-    },
-    {
-      "path": "src/lib/qqqMaxPain.test.ts",
-      "sha256": "278baed408a64ec3cf46767f49fd057629a420662b19bb6922b2c3241105984a",
-      "bytes": 5325
-    },
-    {
-      "path": "src/lib/qqqIndicatorConsistency.test.ts",
-      "sha256": "630954bc21d263a241268cef9da2be8f3a206682bac10723639f2979566c385f",
-      "bytes": 13145
-    },
-    {
-      "path": "src/lib/qqqExposureArchive.test.ts",
-      "sha256": "331dfd56036cd8f3d05cd11ea8096a847a16ffc4db3c242ee7166d6e720ba4a3",
-      "bytes": 2292
     }
   ],
   "externalPackages": [
@@ -3305,6 +3310,7 @@
     "src/App.css",
     "src/app/globals.css",
     "src/lib/qqqExposureWire.test.ts",
-    "src/lib/qqqGexInputQuality.test.ts"
+    "src/lib/qqqGexInputQuality.test.ts",
+    "src/lib/qqqIntradayDirectionalSummary.test.ts"
   ]
 }

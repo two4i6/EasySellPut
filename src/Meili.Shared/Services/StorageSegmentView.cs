@@ -3,7 +3,7 @@ namespace Meili.Shared.Services;
 public sealed record StorageSegmentView(string Id, string Label, string Value, double Fraction, long Bytes)
 {
     public string Description => Label + " · " + Value;
-    public string BrushKey => "Storage" + char.ToUpperInvariant(Id[0]) + Id[1..] + "Brush";
+    public string BrushKey => Id=="gex"?"StorageMarketBrush":"Storage" + char.ToUpperInvariant(Id[0]) + Id[1..] + "Brush";
     public static string FormatBytes(long bytes)
     {
         string[] units = ["B", "KB", "MB", "GB", "TB"];

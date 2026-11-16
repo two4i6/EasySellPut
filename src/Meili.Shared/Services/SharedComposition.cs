@@ -40,7 +40,7 @@ public static class SharedComposition
             sp.GetRequiredService<DataServices>().Cache,
             new Meili.Caching.BarCacheResource(sp.GetRequiredService<Meili.Data.Cache.MarketDb>()),
             sp.GetRequiredService<Meili.Core.Quotes.QuoteHub>(), sp.GetRequiredService<SymbolSearchService>(),
-            sp.GetRequiredService<Meili.Core.Pricing.RiskFreeRateProvider>()));
+            sp.GetRequiredService<Meili.Core.Pricing.RiskFreeRateProvider>(),new Meili.Data.Cache.QqqGexResponseStore(System.IO.Path.Combine(dataDir.Path,"cache","qqq-gex.db"))));
         s.AddSingleton<IIvSource>(sp => new IvSource(
             (symbols, ct) => sp.GetRequiredService<DataServices>().Providers.OfType<Meili.Data.Providers.Cboe.CboeProvider>().First().GetQuotesAsync(symbols, ct),
             sp.GetRequiredService<IMarketDataService>(), sp.GetRequiredService<Meili.Core.Pricing.RiskFreeRateProvider>()));

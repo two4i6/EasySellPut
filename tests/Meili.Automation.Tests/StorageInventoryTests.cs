@@ -7,13 +7,13 @@ public sealed class StorageInventoryTests : IDisposable
     public void Dispose() { if (Directory.Exists(_dir)) Directory.Delete(_dir, true); }
     [Fact] public void Categories_include_all_regular_files_without_confusing_database_history_with_disposable_cache()
     {
-        FileOf("cache/market.db", 100); FileOf("cache/market.db-wal", 20); FileOf("cache/other.bin", 30);
+        FileOf("cache/qqq-gex.db", 25);FileOf("cache/market.db", 100); FileOf("cache/market.db-wal", 20); FileOf("cache/other.bin", 30);
         FileOf("browser/webview2/profile", 40); FileOf("settings.json", 50); FileOf("drawings.json.bak", 10); FileOf("logs/app.log", 60); FileOf("other.bin", 70);
-        var usage = StorageInventory.Scan(_dir); Assert.True(usage.Complete); Assert.Equal(380, usage.TotalBytes);
+        var usage = StorageInventory.Scan(_dir); Assert.True(usage.Complete); Assert.Equal(405, usage.TotalBytes);
         Assert.Equal(120, usage.Categories.Single(x => x.Id == "market").Bytes);
         Assert.Equal(60, usage.Categories.Single(x => x.Id == "userdata").Bytes);
         Assert.Equal(usage.TotalBytes, usage.Categories.Sum(x => x.Bytes));
-        Assert.Equal(8, usage.Categories.Sum(x => x.Files));
+        Assert.Equal(9, usage.Categories.Sum(x => x.Files));Assert.Equal(25,usage.Categories.Single(x=>x.Id=="gex").Bytes);
     }
     [Fact] public void Bounded_scan_and_cancellation_do_not_claim_complete_totals()
     {
