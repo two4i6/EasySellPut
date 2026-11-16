@@ -406,7 +406,7 @@ macOS NSStatusItem 与 Windows 托盘/可固定行情面板提供逐 symbol 报�
 
 安装 helper 位于安装树外，预检后等待精确父进程退出，执行同卷替换/失败回滚并保留用户数据；运行中的安装实例/MCP 可能阻止不安全替换。没有 MCP 安装器或任意 feed override。
 
-**上游发布前必须处理：当前 official repository 指向 fork `two4i6/EasySellPut`，更新公钥为开发引导配置。上游应设置自己的官方仓库、正式签名公钥与发布环境；不能直接发布一个继续信任 fork 的上游安装包。**
+**更新源现已自动绑定构建仓库：上游 Actions 构建读取上游，fork 构建读取 fork；本地构建默认禁用更新。正式发布前仍需维护者首次配置自己的签名公钥/私钥与发布环境。**
 
 以下 0.7.0 是测试更新服务的夹具，只展示状态，不存在对应公开 Release。
 
@@ -461,6 +461,12 @@ TradingView 不再作为常驻文字行显示。图表 header 的紧凑 Lucide I
 原先左侧“休市”和右侧“数据源 0/8 正常”合并为单个 `休市 · 0/8` 入口。比例与圆点表示数据源健康情况，市场时段仍明确显示；完整说明与网络信息收进复用 `AppHelp` 的 hover/focus tooltip 和点击弹层。未知状态不冒充正常，degraded/down 使用警告色；隐藏时仍停止状态时钟，无新增轮询或 MCP 操作。对应共享状态及 WPF/Avalonia 明暗、中英文、窄屏/Full HD 测试已加入现有全量 CI 自动发现范围。后续修正统一了状态栏高度、行高和文字/圆点/图标的垂直中心；设置页“关于”数据来源与使用说明恢复为常显文本。
 
 [最新 1080p 原图与实现说明](https://github.com/two4i6/EasySellPut/blob/work/docs/status-bar/README.md)。本节变更晚于前述 045f680 安装包；该旧包不包含这次底栏合并，新包以本节对应 work CI 为准。
+
+### 8.7 后续追加：自动绑定更新仓库
+
+CI 使用当前 `GITHUB_REPOSITORY` 编译更新源，不再固定 fork URL；运行时不能被环境变量、remote 或设置覆盖。本地默认禁用检查。新增只读维护命令 `update source --json`，用于离线审查内置源和公钥指纹；不增加 MCP 业务操作。签名索引增加仓库字段，客户端/安装助手同一规则拒绝跨仓库更新。真实上游/fork/local 构建场景、非法覆盖、错源/错公钥检查进入 CI；原生 GUI/CLI 包及签名后的包均验证编译绑定。main-only 发行政策和首次密钥配置要求不变。
+
+此追加晚于前文 045f680 安装包；旧包继续绑定旧源，新行为以本次源码及新 CI 产物为准。[详细规则](https://github.com/two4i6/EasySellPut/blob/work/docs/29-检查更新与安装.md)。
 
 ## 9. CI、打包、签名与发布政策
 
@@ -524,7 +530,7 @@ main push CI success
 
 ### 10.3 仍需上游/人工完成
 
-- 上游官方更新源、公钥、正式签名/notary secrets、main-only Environment 与 required check 分支规则配置。
+- 上游首次配置正式更新公钥/私钥、平台签名/notary secrets、main-only Environment 与 required check 分支规则；更新源已由构建自动绑定，无需手改 URL。
 - 正式签名/公证链尚未成功，下面包为未签名或 ad-hoc 的 CI 审查包；不能称为正式 trusted release。
 - Linux 是已验证的 CLI x64 目标；Avalonia fallback 不代表新增正式 Linux GUI 安装包。
 - 原生平台触摸板/多显示器/DPI、traffic lights/任务栏、长期后台能耗仍需在目标硬件人工验收；不根据 Headless 图片推断。

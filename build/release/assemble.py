@@ -19,7 +19,7 @@ spec.loader.exec_module(update)
 def prepare(packages, output, version, plan):
     if not re.fullmatch('[0-9a-f]{40}', plan['sourceCommit']) or plan.get('schemaVersion') != 1:
         raise ValueError('Invalid release provenance')
-    manifest = update.prepare(packages, output, version)
+    manifest = update.prepare(packages, output, version, plan["repository"])
     assets = [dict(a, kind='desktop') for a in manifest['assets']]
     for rid in CLI_RIDS:
         extension = '.zip' if rid.startswith('win-') else '.tar.gz'

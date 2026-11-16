@@ -23,7 +23,7 @@ public static class Program
         {
             if(args.FirstOrDefault()=="update")
             {
-                if(args.Skip(1).SequenceEqual(new[]{"--help"})){Console.WriteLine("update check|download [--data-dir PATH] [--json]\nReads signed stable GitHub Releases. Download verifies signature/size/SHA-256; installation requires desktop confirmation. update apply --plan PATH is the internal desktop handoff, never an MCP tool.");return 0;}
+                if(args.Skip(1).SequenceEqual(new[]{"--help"})){Console.WriteLine("update source [--json] | update check|download [--data-dir PATH] [--json]\nReads signed stable GitHub Releases. Download verifies signature/size/SHA-256; installation requires desktop confirmation. update apply --plan PATH is the internal desktop handoff, never an MCP tool.");return 0;}
                 var updateResult=await UpdateCommand.RunAsync(args,stop.Token);
                 if(json)Console.WriteLine(WireJson.Element(WireJson.Success(updateResult)).GetRawText());else if(args.ElementAtOrDefault(1)!="apply")PrintHuman(WireJson.Element(updateResult));
                 return 0;

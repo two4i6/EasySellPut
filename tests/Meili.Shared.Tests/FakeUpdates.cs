@@ -6,6 +6,7 @@ namespace Meili.Shared.Tests;
 
 public sealed class FakeUpdates : IUpdateCoordinator
 {
+    public bool IsConfigured { get; set; } = true;
     public bool CanInstall { get; set; } = true;
     public string Status { get; set; } = "available";
     public Exception? CheckError { get; set; }

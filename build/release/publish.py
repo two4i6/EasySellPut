@@ -34,7 +34,7 @@ def verify_assets(directory, index):
         require(package.with_suffix(package.suffix + '.sha256').read_text(encoding='ascii').strip() == actual + '  ' + name, 'Checksum file mismatch')
     require(found == expected, 'Missing release targets')
     update = json.loads((directory / 'EasySellPut-update.json').read_text(encoding='utf-8'))
-    require(update.get('schemaVersion') == 1 and update.get('version') == version, 'Update index differs')
+    require(update.get('schemaVersion') == 1 and update.get('version') == version and update.get('repository') == index['repository'], 'Update index differs')
     desktop = [{k: a[k] for k in ('rid', 'fileName', 'sha256', 'size')} for a in index['assets'] if a['kind'] == 'desktop']
     require(update['assets'] == desktop, 'Update asset list differs from signed release')
     expected_files = {a['fileName'] for a in index['assets']}

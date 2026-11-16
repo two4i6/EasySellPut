@@ -52,5 +52,14 @@
     "renderer": "Avalonia Headless / Skia, actual app controls, 100% scale",
     "upscaled": false,
     "sha256": "5ca8322096e559233052229fd2ff57f3e785dcda61e77a4f12ab05413f12fd92"
+  },
+  {
+    "file": "mac-updates-development-unconfigured-1080p.png",
+    "width": 1920,
+    "height": 1080,
+    "fixture": true,
+    "renderer": "Avalonia Headless / Skia; unconfigured development updater",
+    "upscaled": false,
+    "sha256": "a4c4a20b7f9087778eeb6acf9f8cfccf114b4bfa723ba70489924c03ce1d887d"
   }
 ]

@@ -299,6 +299,7 @@ public sealed class SmokeRunner
         lock (Errors) errors = [.. Errors];
         var report = new
         {
+            UpdateSource = Meili.Automation.UpdateClient.SourceConfiguration,
             Version = typeof(SmokeRunner).Assembly.GetName().Version?.ToString(),
             Process = Environment.ProcessPath,
             StartedAt = DateTimeOffset.Now - elapsed,

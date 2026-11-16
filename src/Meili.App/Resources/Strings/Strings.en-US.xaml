@@ -917,4 +917,5 @@
     <sys:String x:Key="Upd_Later">Later</sys:String>
     <sys:String x:Key="Upd_ViewUpdate">View update</sys:String>
     <sys:String x:Key="Ch_ControlHelp">Scroll to zoom · Drag to pan · Click a drawing to edit. Arrow keys select, Enter edits, Delete removes, Esc cancels.</sys:String>
+    <sys:String x:Key="Upd_Disabled">Updates are not configured for this development build</sys:String>
 </ResourceDictionary>

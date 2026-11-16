@@ -12,27 +12,28 @@ public sealed class UpdateTests : IDisposable
     private readonly string _folder = Path.Combine(Path.GetTempPath(), "update-tests-" + Guid.NewGuid().ToString("N"));
     private readonly ECDsa _key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
+    private const string TestRepository = "tests/EasySellPut";
     private sealed class Handler(Func<HttpRequestMessage, HttpResponseMessage> response) : HttpMessageHandler
     {
         public List<string> Requests { get; } = [];
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct) { ct.ThrowIfCancellationRequested(); Requests.Add(request.RequestUri!.AbsoluteUri); return Task.FromResult(response(request)); }
     }
-    private (UpdateClient Client, Handler Handler, byte[] Package) Fixture(bool corruptSignature = false, bool corruptHash = false)
+    private (UpdateClient Client, Handler Handler, byte[] Package) Fixture(bool corruptSignature = false, bool corruptHash = false, string manifestRepository = TestRepository)
     {
         var package = Encoding.UTF8.GetBytes("verified test package, never executable");
         var name = "EasySellPut-Desktop-0.7.0-win-x64.zip";
         var asset = new UpdateAsset("win-x64", name, corruptHash ? new string('0', 64) : Convert.ToHexString(SHA256.HashData(package)), package.Length);
-        var manifest = JsonSerializer.SerializeToUtf8Bytes(new UpdateManifest(1, "0.7.0", [asset]), Json);
+        var manifest = JsonSerializer.SerializeToUtf8Bytes(new UpdateManifest(1, "0.7.0", [asset], manifestRepository), Json);
         var signature = _key.SignData(manifest, HashAlgorithmName.SHA256, DSASignatureFormat.Rfc3279DerSequence);
         if (corruptSignature) manifest[^2] ^= 1;
         var names = new[] { name, UpdateClient.ManifestName, UpdateClient.ManifestName + ".sig" };
-        var release = JsonSerializer.SerializeToUtf8Bytes(new { draft = false, prerelease = false, tag_name = "v0.7.0", body = "Changes <script>literal</script>", assets = names.Select(n => new { name = n, browser_download_url = $"https://github.com/{UpdateClient.Repository}/releases/download/v0.7.0/{n}" }) });
+        var release = JsonSerializer.SerializeToUtf8Bytes(new { draft = false, prerelease = false, tag_name = "v0.7.0", body = "Changes <script>literal</script>", assets = names.Select(n => new { name = n, browser_download_url = $"https://github.com/{TestRepository}/releases/download/v0.7.0/{n}" }) });
         var handler = new Handler(request =>
         {
             var bytes = request.RequestUri!.Host == "api.github.com" ? release : request.RequestUri.AbsolutePath.EndsWith(".sig") ? signature : request.RequestUri.AbsolutePath.EndsWith(".json") ? manifest : package;
             return new(HttpStatusCode.OK) { Content = new ByteArrayContent(bytes) };
         });
-        return (new UpdateClient(new HttpClient(handler), "win-x64", new Version(0, 6, 0)) { VerificationKey = _key.ExportSubjectPublicKeyInfoPem() }, handler, package);
+        return (new UpdateClient(new HttpClient(handler), "win-x64", new Version(0, 6, 0)) { SourceRepository = TestRepository, VerificationKey = _key.ExportSubjectPublicKeyInfoPem() }, handler, package);
     }
     [Fact]
     public async Task Signed_release_selects_architecture_and_verifies_streamed_download()
@@ -63,11 +64,11 @@ public sealed class UpdateTests : IDisposable
     [Fact]
     public async Task Missing_release_is_distinct_from_network_failure_and_redirects_are_restricted()
     {
-        var empty = new UpdateClient(new HttpClient(new Handler(_ => new(HttpStatusCode.NotFound))), "osx-arm64", new(0, 6, 0));
+        var empty = new UpdateClient(new HttpClient(new Handler(_ => new(HttpStatusCode.NotFound))), "osx-arm64", new(0, 6, 0)) { SourceRepository = TestRepository };
         Assert.Equal("no_release", (await empty.CheckAsync(default)).Status);
-        var redirect = new UpdateClient(new HttpClient(new Handler(_ => { var response = new HttpResponseMessage(HttpStatusCode.Redirect); response.Headers.Location = new("http://127.0.0.1/not-an-update"); return response; })), "win-x64", new(0, 6, 0));
+        var redirect = new UpdateClient(new HttpClient(new Handler(_ => { var response = new HttpResponseMessage(HttpStatusCode.Redirect); response.Headers.Location = new("http://127.0.0.1/not-an-update"); return response; })), "win-x64", new(0, 6, 0)) { SourceRepository = TestRepository };
         await Assert.ThrowsAsync<InvalidDataException>(() => redirect.CheckAsync(default));
-        var failed = new UpdateClient(new HttpClient(new Handler(_ => new(HttpStatusCode.ServiceUnavailable))), "win-x64", new(0, 6, 0));
+        var failed = new UpdateClient(new HttpClient(new Handler(_ => new(HttpStatusCode.ServiceUnavailable))), "win-x64", new(0, 6, 0)) { SourceRepository = TestRepository };
         await Assert.ThrowsAsync<HttpRequestException>(() => failed.CheckAsync(default));
     }
     [Fact]
@@ -77,6 +78,42 @@ public sealed class UpdateTests : IDisposable
         using var other = ECDsa.Create(ECCurve.NamedCurves.nistP256); var bytes = Encoding.UTF8.GetBytes("manifest");
         var signature = other.SignData(bytes, HashAlgorithmName.SHA256, DSASignatureFormat.Rfc3279DerSequence);
         Assert.Throws<InvalidDataException>(() => UpdateClient.VerifyManifest(bytes, signature, _key.ExportSubjectPublicKeyInfoPem()));
+    }
+    [Theory]
+    [InlineData("win-x64")]
+    [InlineData("linux-x64")]
+    public async Task Unconfigured_build_never_contacts_a_release_server(string rid)
+    {
+        var handler = new Handler(_ => throw new InvalidOperationException("Network must not be used"));
+        var client = new UpdateClient(new HttpClient(handler), rid, new(0, 6, 0)) { SourceRepository = "" };
+        Assert.Equal("disabled", (await client.CheckAsync(default)).Status); Assert.Empty(handler.Requests);
+    }
+    [Theory]
+    [InlineData("https://github.com/owner/repo")]
+    [InlineData("owner/../other")]
+    [InlineData("owner/..")]
+    [InlineData("owner/repo?x=1")]
+    public async Task Invalid_repository_is_rejected_before_any_request(string repository)
+    {
+        var handler = new Handler(_ => throw new InvalidOperationException("Network must not be used"));
+        var client = new UpdateClient(new HttpClient(handler), "win-x64", new(0, 6, 0)) { SourceRepository = repository };
+        await Assert.ThrowsAsync<InvalidDataException>(() => client.CheckAsync(default)); Assert.Empty(handler.Requests);
+    }
+    [Fact]
+    public async Task Signed_manifest_for_another_repository_is_rejected()
+    {
+        var (client, handler, _) = Fixture(manifestRepository: "other/EasySellPut");
+        await Assert.ThrowsAsync<InvalidDataException>(() => client.CheckAsync(default));
+        Assert.DoesNotContain(handler.Requests, u => u.EndsWith(".zip"));
+    }
+    [Fact]
+    public void Client_and_installer_share_the_same_signed_repository_guard()
+    {
+        var manifest = new UpdateManifest(1, "0.7.0", [], TestRepository);
+        UpdateClient.VerifyRepository(manifest, TestRepository);
+        Assert.Throws<InvalidDataException>(() => UpdateClient.VerifyRepository(manifest, ""));
+        Assert.Throws<InvalidDataException>(() => UpdateClient.VerifyRepository(manifest, "other/EasySellPut"));
+        Assert.Throws<InvalidDataException>(() => UpdateClient.VerifyRepository(manifest with { Repository = null }, TestRepository));
     }
     private string Zip(string entry, int mode = 0)
     {

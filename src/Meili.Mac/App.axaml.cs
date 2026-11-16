@@ -158,7 +158,7 @@ public partial class App : Application
         catch (Exception ex) { AppLog.Error("package-smoke", "Packaged desktop self-check failed", ex); failures.Add(ex.ToString()); }
         var report = options.SmokeReport ?? Path.Combine(AppServices.DataDirectory.Path, "logs", "smoke.json");
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(report))!);
-        await File.WriteAllTextAsync(report, System.Text.Json.JsonSerializer.Serialize(new { Failures = failures.Count, Errors = failures, Checks = new[] { "real_window", "settings", "bundled_automation", "clipboard", "resources", "sqlite", "packaged_webview_chart", "native_menu_bar_quote", "native_quote_panel", "background_restore" }, Architecture = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString(), BackgroundStartupVerified=options.StartInBackground }));
+        await File.WriteAllTextAsync(report, System.Text.Json.JsonSerializer.Serialize(new { UpdateSource = Meili.Automation.UpdateClient.SourceConfiguration, Failures = failures.Count, Errors = failures, Checks = new[] { "real_window", "settings", "bundled_automation", "clipboard", "resources", "sqlite", "packaged_webview_chart", "native_menu_bar_quote", "native_quote_panel", "background_restore" }, Architecture = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString(), BackgroundStartupVerified=options.StartInBackground }));
         window.RunInBackground();window.AllowClose();
         desktop.Shutdown(failures.Count == 0 ? 0 : 1);
     }

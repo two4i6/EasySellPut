@@ -18,6 +18,7 @@ public partial class UpdateViewModel : ObservableObject, IDisposable
         _updater = updater ?? new UpdateCoordinator(store, dataDir.Path, AppContext.BaseDirectory);
         _loc.LanguageChanged += OnLanguageChanged;
         ReadUpdateResult();
+        if (!_updater.IsConfigured) _updateState = "Upd_Disabled";
     }
     private void OnLanguageChanged(object? sender, EventArgs e) => RefreshUpdateBindings();
     private readonly IUpdateCoordinator _updater;
@@ -36,7 +37,8 @@ public partial class UpdateViewModel : ObservableObject, IDisposable
     public bool ShowUpdateProgress=>IsUpdating;
     public bool ShowUpdateFolder=>_updateArchive is not null&&(!_updater.CanInstall||_updateState=="Upd_Failed");
     public bool IsUpdateIndeterminate=>_updateState!="Upd_Downloading";
-    public bool CanCheckUpdates=>!IsUpdating;
+    public bool CanCheckUpdates=>_updater.IsConfigured && !IsUpdating;
+    public bool HasUpdateHistory => UpdateClient.ReleaseHistoryUrl is not null;
     public bool CanDownloadUpdate=>!IsUpdating&&ShowDownloadUpdate;
     public bool CanInstallUpdate=>!IsUpdating&&ShowInstallUpdate&&_updater.CanInstall;
     partial void OnIsUpdatingChanged(bool value)=>RefreshUpdateBindings();
@@ -51,7 +53,7 @@ public partial class UpdateViewModel : ObservableObject, IDisposable
     {
         _updateArchive=null;_updateRelease=null;
         var result=await _updater.CheckAsync(ct);_updateRelease=result.Release;
-        _updateState=result.Status switch{"available"=>"Upd_Available","current"=>"Upd_Current","no_release"=>"Upd_NoRelease",_=>"Upd_Failed"};
+        _updateState=result.Status switch{"available"=>"Upd_Available","current"=>"Upd_Current","no_release"=>"Upd_NoRelease","disabled"=>"Upd_Disabled",_=>"Upd_Failed"};
     }, cancellation);
     [RelayCommand(CanExecute=nameof(CanDownloadUpdate))]
     private Task DownloadUpdateAsync()=>RunUpdateAsync("Upd_Downloading",async ct=>
@@ -75,11 +77,11 @@ public partial class UpdateViewModel : ObservableObject, IDisposable
     private void CancelUpdate()=>_updateStop?.Cancel();
     [RelayCommand]
     private void OpenUpdateFolder(){if(_updateArchive is not null)Ui.Platform.OpenFolder(Path.GetDirectoryName(_updateArchive)!);}
-    [RelayCommand]
-    private void OpenUpdateHistory()=>Ui.Platform.OpenUrl("https://github.com/"+UpdateClient.Repository+"/releases");
+    [RelayCommand(CanExecute = nameof(HasUpdateHistory))]
+    private void OpenUpdateHistory() { if (UpdateClient.ReleaseHistoryUrl is { } url) Ui.Platform.OpenUrl(url); }
     private async Task RunUpdateAsync(string state,Func<CancellationToken,Task> work, CancellationToken cancellation = default)
     {
-        if(IsUpdating || _disposed)return;
+        if(IsUpdating || _disposed || !_updater.IsConfigured)return;
         using var stop=CancellationTokenSource.CreateLinkedTokenSource(cancellation);_updateStop=stop;_updateState=state;IsUpdating=true;
         try{await work(stop.Token);}
         catch(OperationCanceledException){_updateState=stop.IsCancellationRequested?"Upd_Cancelled":"Upd_Timeout";}
@@ -125,7 +127,7 @@ public partial class UpdateViewModel : ObservableObject, IDisposable
     }
     private void ScheduleStartupCheck()
     {
-        if (_started && _visible && !_startupAttempted && _updateRelease is null) _ = CheckAfterStartupAsync();
+        if (_updater.IsConfigured && _started && _visible && !_startupAttempted && _updateRelease is null) _ = CheckAfterStartupAsync();
     }
     internal TimeSpan StartupDelay { get; set; } = TimeSpan.FromSeconds(10);
     private async Task CheckAfterStartupAsync()

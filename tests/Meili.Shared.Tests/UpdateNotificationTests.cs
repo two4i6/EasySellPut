@@ -81,5 +81,14 @@ public sealed class UpdateNotificationTests : IDisposable
         Assert.Contains("待安装", vm.UpdateBadgeText);
         loc.Apply("en-US"); Assert.Equal("v0.7.0 ready", vm.UpdateBadgeText); Assert.Equal("Version 0.7.0 is available", vm.UpdatePromptTitle);
     }
+    [Fact]
+    public async Task Unconfigured_development_coordinator_never_checks_or_schedules_notifications()
+    {
+        var source = new FakeUpdates { IsConfigured = false }; using var vm = Create(source);
+        vm.SetPresentationVisible(true); vm.StartNotifications();
+        Assert.False(vm.CanCheckUpdates); Assert.Equal(LocalizationService.Current["Upd_Disabled"], vm.UpdateStatusText);
+        await vm.CheckUpdatesCommand.ExecuteAsync(null);
+        Assert.Equal(0, source.Checks); Assert.False(vm.HasAvailableUpdate); Assert.False(vm.IsUpdatePromptOpen);
+    }
     public void Dispose() { if (Directory.Exists(_directory)) Directory.Delete(_directory, true); }
 }

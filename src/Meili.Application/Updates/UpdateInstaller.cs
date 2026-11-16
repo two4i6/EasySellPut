@@ -129,6 +129,7 @@ public static class UpdateInstaller
         var bytes = Convert.FromBase64String(plan.SignedManifest);
         UpdateClient.VerifyManifest(bytes, Convert.FromBase64String(plan.Signature), UpdateClient.PublicKey);
         var manifest = JsonSerializer.Deserialize<UpdateManifest>(bytes, Json) ?? throw new InvalidDataException("Missing signed manifest.");
+        UpdateClient.VerifyRepository(manifest, UpdateClient.Repository);
         if (manifest.SchemaVersion != 1 || !Version.TryParse(manifest.Version, out var version) || version <= new Version(UpdateClient.CurrentVersion.ToString(3))) throw new InvalidDataException("Refusing an incompatible or older update.");
         var asset = manifest.Assets.Single(a => a.Rid == plan.Rid);
         if (asset.FileName != $"EasySellPut-Desktop-{manifest.Version}-{plan.Rid}.zip" || asset.Size is <= 0 or > UpdateClient.MaxPackageBytes) throw new InvalidDataException("Invalid signed asset.");

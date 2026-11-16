@@ -917,4 +917,5 @@
     <sys:String x:Key="Upd_Later">稍后</sys:String>
     <sys:String x:Key="Upd_ViewUpdate">查看更新</sys:String>
     <sys:String x:Key="Ch_ControlHelp">滚轮缩放 · 拖动平移 · 点击画线编辑；方向键选择画线，Enter 编辑，Delete 删除，Esc 取消。</sys:String>
+    <sys:String x:Key="Upd_Disabled">开发构建未配置更新源</sys:String>
 </ResourceDictionary>

@@ -44,6 +44,24 @@ public sealed class UpdatePanelTests
         }
         finally { window.Close(); loc.Apply(original); theme.Apply(AppThemeMode.System); Directory.Delete(directory, true); }
     }
+    [AvaloniaFact]
+    public void Development_build_without_source_disables_checking_and_explains_why()
+    {
+        MacHost.EnsureComposed(); var loc = AppServices.Get<LocalizationService>();
+        var source = new FakeUpdates { IsConfigured = false };
+        var vm = new SettingsViewModel(new(MacHost.DataDir), loc, AppServices.Get<MacTheme>(), AppServices.DataDirectory, AppServices.Provider, updater: source);
+        var window = new MainWindow();
+        try
+        {
+            window.Show(); window.Width = 1920; window.Height = 1080; window.Navigate(AppPage.Settings);
+            var page = (SettingsPage)window.CurrentView!; page.DataContext = vm; MacHost.Pump();
+            var panel = page.FindControl<Border>("UpdatePanel")!;
+            var check = panel.GetVisualDescendants().OfType<Button>().Single(b => b.Command == vm.Updates.CheckUpdatesCommand);
+            Assert.False(check.IsEffectivelyEnabled); Assert.False(check.Command!.CanExecute(null)); Assert.Equal(loc["Upd_Disabled"], vm.Updates.UpdateStatusText); Assert.Equal(0, source.Checks);
+            MacHost.Save(window, "updates-development-unconfigured-1080p");
+        }
+        finally { window.AllowClose(); window.Close(); vm.Updates.Dispose(); }
+    }
     private static void Save(Control control, string name)
     {
         if (Environment.GetEnvironmentVariable("MEILI_RENDER_DIR") is not { Length: > 0 } directory) return;
