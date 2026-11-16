@@ -61,8 +61,8 @@
                                     <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
                                 <DockPanel LastChildFill="False">
-                                    <Button DockPanel.Dock="Right" Width="28" Height="28" MinWidth="28" MinHeight="28" Padding="0" Margin="6,0,0,0" Command="{Binding $parent[UserControl].((vm:DashboardViewModel)DataContext).OpenChartCommand}" CommandParameter="{Binding Symbol}" AutomationProperties.Name="{Binding ChartActionLabel}" ToolTip.Tip="{Binding ChartActionLabel}"><ux:LucideIcon Kind="Charts" Width="16" Height="16"/></Button><TextBlock DockPanel.Dock="Left" Text="{Binding Symbol}" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                                    <Border DockPanel.Dock="Right" CornerRadius="4" Padding="6,1" Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                                    <Button DockPanel.Dock="Right" Width="28" Height="28" MinWidth="28" MinHeight="28" Padding="0" Margin="6,0,0,0" Command="{Binding $parent[UserControl].((vm:DashboardViewModel)DataContext).OpenChartCommand}" CommandParameter="{Binding Symbol}" AutomationProperties.Name="{Binding ChartActionLabel}" ToolTip.Tip="{Binding ChartActionLabel}"><ux:LucideIcon Kind="Charts" Width="16" Height="16"/></Button><TextBlock DockPanel.Dock="Left" VerticalAlignment="Center" Text="{Binding Symbol}" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                                    <Border DockPanel.Dock="Right" VerticalAlignment="Center" CornerRadius="4" Padding="6,1" Background="{DynamicResource ControlFillColorSecondaryBrush}"
                                             ToolTip.Tip="{Binding TimingTip}">
                                         <TextBlock Classes="Caption" Text="{Binding SourceText}" />
                                     </Border>
