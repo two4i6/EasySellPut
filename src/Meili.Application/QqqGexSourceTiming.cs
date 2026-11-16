@@ -8,7 +8,7 @@ internal static class QqqGexSourceTiming
     {
         if (chain.AsOf is not { } publication) return null;
         if (!string.Equals(chain.Source, "cboe", StringComparison.OrdinalIgnoreCase))
-            return chain.UnderlyingLastTradeAt is { } trade && trade.UtcDateTime.Date != publication.UtcDateTime.Date ? null : publication;
+            return chain.UnderlyingLastTradeAt is { } trade && Meili.Core.Time.MarketClock.ToEastern(trade).Date != Meili.Core.Time.MarketClock.ToEastern(publication).Date ? null : publication;
         // CBOE root.timestamp is publication, not market time. Its liquid QQQ underlying trade
         // supplies the actual event anchor; declared delay only validates it, never manufactures it.
         if (chain.UnderlyingLastTradeAt is not { } eventAt || chain.DelayMinutes is not >= 0) return null;
