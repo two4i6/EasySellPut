@@ -3,6 +3,13 @@ using Meili.Shared.Services;
 using Meili.Automation;
 // Cloud test harness only; never included in application distributions.
 if(args is ["--serve",var database]){using var session=new QqqGexSession(Path.GetFullPath(database));Console.WriteLine(JsonSerializer.Serialize(new{pageUri=session.PageUri.AbsoluteUri}));await Console.In.ReadLineAsync();return 0;}
+if(args is ["--measure-query-wire",var wireDirectory,var wirePath]){
+    var result=(JsonElement)await QqqGexCalculationRunner.QueryAsync(wireDirectory,wirePath);var options=new JsonSerializerOptions{Encoder=System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping};
+    byte[] Encode(bool direct)=>direct?JsonSerializer.SerializeToUtf8Bytes(result,options):System.Text.Encoding.UTF8.GetBytes(result.GetRawText());
+    var original=Encode(false);if(!original.AsSpan().SequenceEqual(Encode(true)))throw new InvalidOperationException("Query HTTP wire bytes changed");
+    var runs=new List<object>();foreach(var direct in new[]{false,true}){Encode(direct);var allocated=GC.GetAllocatedBytesForCurrentThread();var clock=System.Diagnostics.Stopwatch.StartNew();for(var n=0;n<10;n++)Encode(direct);runs.Add(new{direct,iterations=10,elapsedMs=clock.Elapsed.TotalMilliseconds,allocatedBytes=GC.GetAllocatedBytesForCurrentThread()-allocated});}
+    Console.WriteLine(JsonSerializer.Serialize(new{responseBytes=original.Length,exactBytesEqual=true,runs}));return 0;
+}
 if(args is ["--measure-query",var queryDirectory,var queryPath]){
     var allocated=GC.GetTotalAllocatedBytes(true);var clock=System.Diagnostics.Stopwatch.StartNew();
     var result=await QqqGexCalculationRunner.QueryAsync(queryDirectory,queryPath);

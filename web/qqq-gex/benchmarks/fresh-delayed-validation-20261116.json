@@ -1,0 +1,273 @@
+{
+  "kind": "cloud public CBOE read-only provider acquisition and explicit isolated local recording",
+  "captureSequences": [
+    [
+      {
+        "stage": "core-capture",
+        "seconds": 1.7746222,
+        "data": {
+          "status": "captured_input",
+          "symbol": "QQQ",
+          "basis": "normalized-provider-input",
+          "complete": false,
+          "providerCoverageComplete": false,
+          "calculated": false,
+          "contextDeferred": true,
+          "expectedExpiries": 29,
+          "capturedExpiries": 29,
+          "missingExpiries": 0,
+          "bars": 2239,
+          "matchingBars": 306,
+          "matchingRegularBars": 169,
+          "sourceTimeAligned": true,
+          "missingOi": 0,
+          "missingIv": 161,
+          "timing": "same-market-date-bars-present",
+          "source": "cboe",
+          "asOf": "2026-11-16T20:24:46+00:00",
+          "sourceMarketAt": "2026-11-16T15:09:45-05:00",
+          "sourceDelayMinutes": 15,
+          "inputPath": "/tmp/qqq-validation-fresh-20261116/cache/qqq-gex-input.json",
+          "runtime": "Run the pinned source calculation importer; this operation does not claim a published archive"
+        }
+      },
+      {
+        "stage": "core-publish",
+        "seconds": 4.8086128,
+        "data": {
+          "wireCoverage": "canonical-warm",
+          "queryCoverage": "Full profiles are retained; all-expiry manifest, latest window and one overview are warm; parameter variants reconstruct read-only from protected local profiles",
+          "importVersion": "qqq-local-import-v8",
+          "status": "imported",
+          "partialDates": [],
+          "publishedDates": [
+            "2026-11-16"
+          ],
+          "source": "cboe",
+          "revision": "f93d6eb8ea48075b4c8174abe2c12a9cea4d1630c4e2847a135518c769a66b89",
+          "dates": [
+            "2026-11-16"
+          ],
+          "rows": 29,
+          "regularPriceAligned": true,
+          "priceAligned": true,
+          "inputComplete": false,
+          "missingExpiries": [],
+          "historyCoverage": "only supplied captures; gaps not synthesized"
+        }
+      },
+      {
+        "stage": "context-capture",
+        "seconds": 16.3701624,
+        "data": {
+          "status": "captured_input",
+          "symbol": "QQQ",
+          "basis": "normalized-provider-input",
+          "complete": false,
+          "providerCoverageComplete": false,
+          "calculated": false,
+          "contextDeferred": false,
+          "expectedExpiries": 29,
+          "capturedExpiries": 29,
+          "missingExpiries": 0,
+          "bars": 2239,
+          "matchingBars": 306,
+          "matchingRegularBars": 169,
+          "sourceTimeAligned": true,
+          "missingOi": 0,
+          "missingIv": 161,
+          "timing": "same-market-date-bars-present",
+          "source": "cboe",
+          "asOf": "2026-11-16T20:24:46+00:00",
+          "sourceMarketAt": "2026-11-16T15:09:45-05:00",
+          "sourceDelayMinutes": 15,
+          "inputPath": "/tmp/qqq-validation-fresh-20261116/cache/qqq-gex-input.json",
+          "runtime": "Run the pinned source calculation importer; this operation does not claim a published archive"
+        }
+      },
+      {
+        "stage": "context-publish",
+        "seconds": 2.6716184,
+        "data": {
+          "wireCoverage": "canonical-warm",
+          "queryCoverage": "Full profiles are retained; all-expiry manifest, latest window and one overview are warm; parameter variants reconstruct read-only from protected local profiles",
+          "importVersion": "qqq-local-import-v8",
+          "status": "imported",
+          "partialDates": [],
+          "publishedDates": [
+            "2026-11-16"
+          ],
+          "source": "cboe",
+          "revision": "dc62d7a3fab299a4a204a964807de994bb63dc9d7a2f1c46c02a274a5b23d76a",
+          "dates": [
+            "2026-11-16"
+          ],
+          "rows": 29,
+          "regularPriceAligned": true,
+          "priceAligned": true,
+          "inputComplete": false,
+          "missingExpiries": [],
+          "historyCoverage": "only supplied captures; gaps not synthesized"
+        }
+      }
+    ],
+    [
+      {
+        "stage": "core-capture",
+        "seconds": 1.8141852,
+        "data": {
+          "status": "captured_input",
+          "symbol": "QQQ",
+          "basis": "normalized-provider-input",
+          "complete": false,
+          "providerCoverageComplete": false,
+          "calculated": false,
+          "contextDeferred": true,
+          "expectedExpiries": 29,
+          "capturedExpiries": 29,
+          "missingExpiries": 0,
+          "bars": 2239,
+          "matchingBars": 308,
+          "matchingRegularBars": 171,
+          "sourceTimeAligned": true,
+          "missingOi": 0,
+          "missingIv": 349,
+          "timing": "same-market-date-bars-present",
+          "source": "cboe",
+          "asOf": "2026-11-16T20:28:46+00:00",
+          "sourceMarketAt": "2026-11-16T15:13:45-05:00",
+          "sourceDelayMinutes": 15,
+          "inputPath": "/tmp/qqq-validation-fresh-20261116/cache/qqq-gex-input.json",
+          "runtime": "Run the pinned source calculation importer; this operation does not claim a published archive"
+        }
+      },
+      {
+        "stage": "core-publish",
+        "seconds": 3.5857466,
+        "data": {
+          "wireCoverage": "canonical-warm",
+          "queryCoverage": "Full profiles are retained; all-expiry manifest, latest window and one overview are warm; parameter variants reconstruct read-only from protected local profiles",
+          "importVersion": "qqq-local-import-v8",
+          "status": "imported",
+          "partialDates": [],
+          "publishedDates": [
+            "2026-11-16"
+          ],
+          "source": "cboe",
+          "revision": "49f8105594d30b4cd2fd27eaeedfeb3eaf26640345898af29f8f837122651175",
+          "dates": [
+            "2026-11-16"
+          ],
+          "rows": 29,
+          "regularPriceAligned": true,
+          "priceAligned": true,
+          "inputComplete": false,
+          "missingExpiries": [],
+          "historyCoverage": "only supplied captures; gaps not synthesized"
+        }
+      },
+      {
+        "stage": "context-capture",
+        "seconds": 16.9139746,
+        "data": {
+          "status": "captured_input",
+          "symbol": "QQQ",
+          "basis": "normalized-provider-input",
+          "complete": false,
+          "providerCoverageComplete": false,
+          "calculated": false,
+          "contextDeferred": false,
+          "expectedExpiries": 29,
+          "capturedExpiries": 29,
+          "missingExpiries": 0,
+          "bars": 2239,
+          "matchingBars": 308,
+          "matchingRegularBars": 171,
+          "sourceTimeAligned": true,
+          "missingOi": 0,
+          "missingIv": 349,
+          "timing": "same-market-date-bars-present",
+          "source": "cboe",
+          "asOf": "2026-11-16T20:28:46+00:00",
+          "sourceMarketAt": "2026-11-16T15:13:45-05:00",
+          "sourceDelayMinutes": 15,
+          "inputPath": "/tmp/qqq-validation-fresh-20261116/cache/qqq-gex-input.json",
+          "runtime": "Run the pinned source calculation importer; this operation does not claim a published archive"
+        }
+      },
+      {
+        "stage": "context-publish",
+        "seconds": 3.391167,
+        "data": {
+          "wireCoverage": "canonical-warm",
+          "queryCoverage": "Full profiles are retained; all-expiry manifest, latest window and one overview are warm; parameter variants reconstruct read-only from protected local profiles",
+          "importVersion": "qqq-local-import-v8",
+          "status": "imported",
+          "partialDates": [],
+          "publishedDates": [
+            "2026-11-16"
+          ],
+          "source": "cboe",
+          "revision": "809412da3f0cbc808c2e068867c669c0d6d46e841bd8855a00e25a1d6460f7d0",
+          "dates": [
+            "2026-11-16"
+          ],
+          "rows": 29,
+          "regularPriceAligned": true,
+          "priceAligned": true,
+          "inputComplete": false,
+          "missingExpiries": [],
+          "historyCoverage": "only supplied captures; gaps not synthesized"
+        }
+      }
+    ]
+  ],
+  "retainedAfterSeparateProcessRestart": {
+    "rows": 58,
+    "expiries": 29,
+    "sourceCaptureTimes": [
+      "2026-11-16T20:09:45.0000000+00:00",
+      "2026-11-16T20:13:45.0000000+00:00"
+    ],
+    "bars": 171,
+    "integrityCheck": "ok",
+    "databaseBytes": 17166336
+  },
+  "liveDecision": {
+    "asOf": "2026-11-16T20:27:12.574Z",
+    "dataStatus": "DELAYED",
+    "status": "INSUFFICIENT_DATA",
+    "dataQuality": {
+      "evaluatedAt": "2026-11-16T20:27:12.574Z",
+      "barAgeSeconds": 1152.574,
+      "gexAgeSeconds": null,
+      "barCount": 169,
+      "validExpiries": 0,
+      "partialGex": false,
+      "selectedExpiries": [],
+      "quoteCoverage": {
+        "available": 0,
+        "total": 0,
+        "ratio": null
+      }
+    },
+    "persistedSignals": 0
+  },
+  "parityTests": [
+    "PASS UI/application MCP parity: context 30128 bytes",
+    "PASS UI/application MCP parity: evidence 939 bytes",
+    "PASS UI/application MCP parity: manifest 28256 bytes",
+    "PASS UI/application MCP parity: spread 91 bytes",
+    "PASS UI/application MCP lossless exposure-window multi-chunk byte parity: 109093 bytes",
+    "PASS original UI kernel operation: exposure 57092 bytes",
+    "PASS original UI kernel operation: replayTable 237890 bytes",
+    "PASS original UI kernel operation: gammaModel 1735 bytes",
+    "PASS original UI kernel operation: atmIv 594 bytes",
+    "PASS original UI kernel operation: maxPain 673 bytes",
+    "PASS original UI kernel operation: pulse 55661 bytes",
+    "PASS original UI kernel operation: optionOverview 990 bytes",
+    "PASS original UI kernel operation: dayScenario 1106 bytes",
+    "PASS original UI kernel operation: wallTouches 932 bytes"
+  ],
+  "limitations": "CBOE delayed about15min and missing IV; not real-time quote or complete-history proof. Two explicit capture/calculation processes retained two distinct source snapshots, not automatic scheduler cadence acceptance. No actionable current signal, so real fresh alert delivery not tested. Empty stale spread response parity does not prove positive two-leg quote."
+}

@@ -81,6 +81,33 @@ public class ThemeSwitchTests
     }
 
     [Fact]
+    public void Selected_option_chain_row_uses_the_current_theme_after_switch()
+    {
+        WpfHost.Run(async () =>
+        {
+            var vm=AppServices.Get<OptionsViewModel>();var page=new Views.Pages.OptionsPage();
+            using var host=new OffscreenHost(page,1280,800,asMainWindow:true);
+            try
+            {
+                vm.SymbolText="SPY";await vm.LoadAsync();await ScreenRenderTests.Settle(2);
+                var list=UiAudit.Descendants<ListView>(page).Single();Assert.NotEmpty(vm.Rows);list.SelectedIndex=0;list.ScrollIntoView(list.SelectedItem);
+                foreach(var dark in new[]{false,true,false})
+                {
+                    Theme(dark);await ScreenRenderTests.Settle();host.Layout();
+                    var item=Assert.IsType<Wpf.Ui.Controls.ListViewItem>(list.ItemContainerGenerator.ContainerFromIndex(0));
+                    Assert.True(item.IsSelected);item.ApplyTemplate();
+                    var border=Assert.IsType<Border>(item.Template.FindName("Border",item));
+                    var actual=Assert.IsType<SolidColorBrush>(border.Background).Color;
+                    var expected=((SolidColorBrush)Application.Current.FindResource("ListViewItemBackgroundPointerOver")).Color;
+                    Assert.Equal(expected,actual);
+
+                }
+            }
+            finally{Theme(true);}
+        });
+    }
+
+    [Fact]
     public void Up_down_convention_switch_retones_resolved_brushes_and_view_models()
     {
         WpfHost.Run(async () =>

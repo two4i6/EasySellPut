@@ -23,7 +23,7 @@
             <Setter Property="Padding" Value="6,8" />
             <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
         </Style>
-        <Style TargetType="ListViewItem">
+        <Style x:Key="OptionChainItem" TargetType="ui:ListViewItem" BasedOn="{StaticResource ListViewItemStyle}">
             <Setter Property="AutomationProperties.Name" Value="{Binding StrikeText}" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="MinHeight" Value="36" />
@@ -128,7 +128,7 @@
             <TextBlock Style="{StaticResource Secondary}" VerticalAlignment="Center" HorizontalAlignment="Center"
                        Text="{DynamicResource Op_Empty}"
                        Visibility="{Binding HasRows, Converter={StaticResource InverseBoolToVis}}" />
-            <ListView x:Name="ChainList"
+            <ui:ListView x:Name="ChainList" ItemContainerStyle="{StaticResource OptionChainItem}"
                       Background="Transparent" Foreground="{DynamicResource TextFillColorPrimaryBrush}" AutomationProperties.AutomationId="OptionsChain"
                       ItemsSource="{Binding Rows}"
                       SelectedItem="{Binding SelectedRow}"
@@ -136,7 +136,7 @@
                       Visibility="{Binding HasRows, Converter={StaticResource BoolToVis}}"
                       ScrollViewer.HorizontalScrollBarVisibility="Auto"
                       ScrollViewer.VerticalScrollBarVisibility="Auto">
-                <ListView.ContextMenu>
+                <ui:ListView.ContextMenu>
                     <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                         <MenuItem Header="{DynamicResource Op_BuildStrategy}">
                             <MenuItem Header="{DynamicResource Op_SeedLongCall}" Command="{Binding BuildStrategyCommand}" CommandParameter="LC" />
@@ -145,13 +145,13 @@
                             <MenuItem Header="{DynamicResource Op_SeedShortPut}" Command="{Binding BuildStrategyCommand}" CommandParameter="SP" />
                         </MenuItem>
                     </ContextMenu>
-                </ListView.ContextMenu>
-                <ListView.View>
+                </ui:ListView.ContextMenu>
+                <ui:ListView.View>
                     <GridView x:Name="ChainView" AllowsColumnReorder="False">
                         <!-- Call side (filled in code so column show/hide stays in sync) -->
                     </GridView>
-                </ListView.View>
-            </ListView>
+                </ui:ListView.View>
+            </ui:ListView>
         </Grid>
     </DockPanel>
     </ScrollViewer>

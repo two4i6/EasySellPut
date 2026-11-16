@@ -136,7 +136,7 @@ public sealed class QqqGexSession : IDisposable
                 if(cached is null&&directory is not null&&(path.StartsWith("/api/analysis/qqq/pcs/backtest?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/pcs?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/gex/intraday-context?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/gex/exposure?",StringComparison.Ordinal)||(path=="/api/analysis/qqq/pcs/local-decision"||path.StartsWith("/api/analysis/qqq/pcs/local-decision?",StringComparison.Ordinal)))){
                     var result=await QqqGexCalculationRunner.QueryAsync(directory,path,ct);var json=result is JsonElement element?element:JsonSerializer.SerializeToElement(result);
                     if(json.TryGetProperty("body",out var wireBody)&&json.TryGetProperty("contentType",out var wireType)){await Send(200,wireType.GetString()!,Encoding.UTF8.GetBytes(wireBody.GetString()!),ct);return;}
-                    if((json.TryGetProperty("available",out var available)&&available.ValueKind==JsonValueKind.True)||json.TryGetProperty("intraday",out _)||json.TryGetProperty("currentBars",out _)){await Send(200,"application/json",Encoding.UTF8.GetBytes(json.GetRawText()),ct);return;}
+                    if((json.TryGetProperty("available",out var available)&&available.ValueKind==JsonValueKind.True)||json.TryGetProperty("intraday",out _)||json.TryGetProperty("currentBars",out _)){await Send(200,"application/json",SerializeQuery(json),ct);return;}
                 }
                 if(cached is not null){await Send(200,cached.ContentType,Encoding.UTF8.GetBytes(cached.Body),ct);return;}
                 await Send(503,"application/json",Encoding.UTF8.GetBytes("{\"error\":\"本地缓存中尚无该请求的数据\",\"code\":\"LOCAL_CACHE_MISS\",\"offline\":true}"),ct);return; }finally{dataReadGate.Release();}}
@@ -159,6 +159,9 @@ public sealed class QqqGexSession : IDisposable
         AppLog.Warn("qqq-gex","Frontend "+type.GetString()+" "+category.GetString()+" "+string.Join(" ",positions));return true;
     }
     private static string AssetType(string route)=>Path.GetExtension(route) switch{".html"=>"text/html; charset=utf-8",".css"=>"text/css; charset=utf-8",".js" or ".mjs"=>"text/javascript; charset=utf-8",".woff2"=>"font/woff2",".woff"=>"font/woff",".svg"=>"image/svg+xml",_=>"application/octet-stream"};
+    // Avoid a full UTF-16 response copy between the owned query document and HTTP bytes.
+    internal static byte[] SerializeQuery(JsonElement value)=>JsonSerializer.SerializeToUtf8Bytes(value,QueryWireOptions);
+    private static readonly JsonSerializerOptions QueryWireOptions=new(){Encoder=System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping};
     private static bool AcceptsGzip(string? value)=>value?.Split(',').Any(part=>System.Net.Http.Headers.StringWithQualityHeaderValue.TryParse(part.Trim(),out var token)&&token.Value.Equals("gzip",StringComparison.OrdinalIgnoreCase)&&(token.Quality??1)>0)==true;
     private static async Task Reply(Stream s,int status,string type,byte[] body,CancellationToken ct,bool gzip=false,long elapsed=0)
     {
