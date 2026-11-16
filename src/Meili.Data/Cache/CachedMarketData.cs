@@ -165,7 +165,8 @@ public sealed class CachedMarketData : IMarketDataService, IManagedCache
 
     private static BarSeries Shape(BarRequest request, BarSeries meta, IReadOnlyList<Bar> bars)
     {
-        var list = request.From is { } f ? bars.Where(b => b.Time >= f).ToList() : bars;
+        var visible = VisibleCachedBars(request, bars, meta.Source);
+        var list = request.From is { } f ? visible.Where(b => b.Time >= f).ToList() : visible;
         return meta with { Symbol = request.Symbol, Interval = request.Interval, Bars = list };
     }
 
@@ -173,10 +174,16 @@ public sealed class CachedMarketData : IMarketDataService, IManagedCache
         new()
         {
             Symbol = request.Symbol, Interval = request.Interval,
-            Bars = request.From is { } f ? bars.Where(b => b.Time >= f).ToList() : bars,
+            Bars = request.From is { } f ? VisibleCachedBars(request, bars, meta.Source).Where(b => b.Time >= f).ToList() : VisibleCachedBars(request, bars, meta.Source),
             Source = meta.Source, AsOf = meta.AsOf, FetchedAt = meta.FetchedAt, DelayMinutes = meta.DelayMinutes,
             IsRealtime = false, OfflineCache = true, Adjustment = meta.Basis,
         };
+
+    // Older Yahoo caches can retain its quote-time endpoint. Keep stored source evidence intact,
+    // but never expose that endpoint as an extra interval candle (including offline recovery).
+    private static IReadOnlyList<Bar> VisibleCachedBars(BarRequest request, IReadOnlyList<Bar> bars, string source) =>
+        source == "yahoo" && request.Interval.IsIntraday()
+            ? bars.Where(b => b.Time.ToUnixTimeSeconds() % 60 == 0).ToArray() : bars;
 
     // ---------------- pass-through ----------------
     public Task<IReadOnlyList<Quote>> GetQuotesAsync(IReadOnlyList<string> symbols, CancellationToken ct = default) => _inner.GetQuotesAsync(symbols, ct);

@@ -54,6 +54,21 @@ public sealed class BarCacheTests : IDisposable
     }
 
     [Fact]
+    public async Task Legacy_Yahoo_quote_time_point_is_not_an_offline_candle_and_cache_evidence_is_preserved()
+    {
+        var (svc, inner) = Make();
+        var bars = Enumerable.Range(0, 7).Select(i => new Bar(D0.AddMinutes(i), 100, 101, 99, 100, 10))
+            .Append(new(D0.AddMinutes(7).AddSeconds(16), 102, 102, 102, 102, 0)).ToArray();
+        svc.Db.SaveBars("AAPL", BarInterval.Minute1, bars, new BarCacheMeta("yahoo", D0, D0, null, false));
+        inner.Down = true;
+        var result = await svc.GetBarsAsync(new("AAPL", BarInterval.Minute1));
+        Assert.True(result.OfflineCache);
+        Assert.Equal(7, result.Bars.Count);
+        Assert.All(result.Bars, b => Assert.Equal(0, b.Time.Second));
+        Assert.Equal(8, svc.Db.LoadBars("AAPL", BarInterval.Minute1).Bars.Count);
+    }
+
+    [Fact]
     public async Task Round_trips_bars_including_missing_fields()
     {
         var db = new MarketDb(Path.Combine(_dir, "rt.db"));
