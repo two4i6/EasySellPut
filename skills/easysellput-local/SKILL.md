@@ -1,7 +1,7 @@
 ---
 name: easysellput-local
 metadata:
-  version: "2.2"
+  version: "2.3"
   mcp-server: easysellput
 description: Use the local EasySellPut MCP server for US equity quotes, OHLCV and chart indicators, company financials/news/events, US funding/liquidity indicators and sector ETF activity proxies, option chains and IV/Greeks, volatility history, strategy presets/payoffs/what-if analysis, and explicitly requested local watchlist/strategy/alert/preferences changes. Use when the user asks to research or analyze these through EasySellPut; not for placing orders or controlling desktop windows.
 ---
