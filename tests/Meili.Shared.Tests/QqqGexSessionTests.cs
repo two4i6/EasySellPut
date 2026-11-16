@@ -47,4 +47,29 @@ public sealed class QqqGexSessionTests
         }
         Assert.Empty(hub.SubscribedSymbols);
     }
+    private sealed class CountingContext:SynchronizationContext
+    {
+        public int Posts;public override void Post(SendOrPostCallback callback,object? state){Interlocked.Increment(ref Posts);ThreadPool.QueueUserWorkItem(_=>callback(state));}
+    }
+    [Fact] public async Task Loopback_io_does_not_capture_the_desktop_synchronization_context()
+    {
+        var context=new CountingContext();var previous=SynchronizationContext.Current;QqqGexSession session;
+        try{SynchronizationContext.SetSynchronizationContext(context);session=new QqqGexSession();}finally{SynchronizationContext.SetSynchronizationContext(previous);}
+        using(session)using(var http=new HttpClient()){var result=await http.GetAsync(session.PageUri);result.EnsureSuccessStatusCode();Assert.Equal(0,context.Posts);}
+    }
+    [Fact] public async Task View_preferences_survive_ports_and_reject_conflicts_credentials_and_foreign_origins()
+    {
+        var directory=Path.Combine(Path.GetTempPath(),Guid.NewGuid().ToString());Directory.CreateDirectory(Path.Combine(directory,"cache"));var db=Path.Combine(directory,"cache","qqq-gex.db");
+        using var session=new QqqGexSession(db);using var http=new HttpClient();
+        var uri=new Uri(session.PageUri,"preferences");var initial=System.Text.Json.JsonSerializer.Deserialize<QqqGexPreferences.State>(await http.GetStringAsync(uri))!;
+        async Task<System.Net.HttpStatusCode> Patch(string revision,Dictionary<string,string?> changes,string? origin=null){using var request=new HttpRequestMessage(HttpMethod.Post,uri);request.Headers.Add("Origin",origin??session.PageUri.GetLeftPart(UriPartial.Authority));request.Content=new StringContent(System.Text.Json.JsonSerializer.Serialize(new{revision,changes}),System.Text.Encoding.UTF8,"application/json");using var response=await http.SendAsync(request);return response.StatusCode;}
+        Assert.Equal(System.Net.HttpStatusCode.OK,await Patch(initial.revision,new(){{"qqq-gex:snapshot-date:v1","2026-01-02"}}));
+        Assert.Equal(System.Net.HttpStatusCode.Conflict,await Patch(initial.revision,new(){{"qqq-local:mode","latest"}}));
+        var state=System.Text.Json.JsonSerializer.Deserialize<QqqGexPreferences.State>(await http.GetStringAsync(uri))!;
+        Assert.Equal(System.Net.HttpStatusCode.BadRequest,await Patch(state.revision,new(){{"qqq-local:api_key","forbidden"}}));
+        Assert.Equal(System.Net.HttpStatusCode.Forbidden,await Patch(state.revision,new(){{"qqq-local:mode","latest"}},"https://foreign.example"));
+        using var reopened=new QqqGexSession(db);var restored=System.Text.Json.JsonSerializer.Deserialize<QqqGexPreferences.State>(await http.GetStringAsync(new Uri(reopened.PageUri,"preferences")))!;Assert.Equal("2026-01-02",restored.values["qqq-gex:snapshot-date:v1"]);Assert.Single(restored.values);
+        var bytes=File.ReadAllText(Path.Combine(directory,"qqq-gex-view.json"));Assert.Throws<ArgumentException>(()=>new QqqGexPreferences(directory).Patch(state.revision,new(){{"qqq-local:mode",new string('x',8193)}}));Assert.Equal(bytes,File.ReadAllText(Path.Combine(directory,"qqq-gex-view.json")));
+    }
+
 }

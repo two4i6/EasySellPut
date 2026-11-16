@@ -15,7 +15,8 @@ def check_cache(command):
         status = run(command, data, 'cache', 'status')['data']
         assert [c['id'] for c in status['caches']] == ['responses', 'bars', 'qqq_gex_wire']
         assert 'iv_samples' in status['protectedData']
-        protected = {'settings.json': b'{"language":"en-US"}', 'strategies.json': b'[]', 'drawings.json': b'{"fixture":"unchanged"}'}
+        assert {'qqq_gex_live_signals','qqq_gex_pcs_lifecycle','qqq_gex_view_preferences'} <= set(status['protectedData'])
+        protected = {'settings.json': b'{"language":"en-US"}', 'strategies.json': b'[]', 'qqq-gex-view.json': b'{"qqq-local:mode":"history"}', 'drawings.json': b'{"fixture":"unchanged"}'}
         for name, body in protected.items():
             (root / name).write_bytes(body)
         with closing(sqlite3.connect(root / 'cache/market.db')) as db, db:
@@ -27,11 +28,16 @@ def check_cache(command):
         with closing(sqlite3.connect(root / 'cache/qqq-gex.db')) as db, db:
             db.execute('CREATE TABLE qqq_gex_observed_inputs(identity TEXT PRIMARY KEY, body TEXT)')
             db.execute('INSERT INTO qqq_gex_observed_inputs VALUES (?,?)', ('retained', 'original observation'))
+            for table in ('qqq_gex_live_signals','qqq_gex_pcs_lifecycle'):
+                db.execute(f'CREATE TABLE {table}(body TEXT)')
+                db.execute(f'INSERT INTO {table} VALUES (?)', ('retained source observation',))
             db.execute('INSERT INTO qqq_gex_wire VALUES (?,?,?,?,?,?,?,?)', ('local','fixture','application/json','{}','r1',1,2,'fixture'))
         run(command, data, 'cache', 'clear', '--category', 'all', '--mode', 'expired')
         with closing(sqlite3.connect(root / 'cache/qqq-gex.db')) as db:
             assert db.execute('SELECT body FROM qqq_gex_observed_inputs').fetchone()[0] == 'original observation'
             assert db.execute('SELECT COUNT(*) FROM qqq_gex_wire').fetchone()[0] == 0
+            for table in ('qqq_gex_live_signals','qqq_gex_pcs_lifecycle'):
+                assert db.execute(f'SELECT body FROM {table}').fetchone()[0] == 'retained source observation'
             assert db.execute('SELECT generation FROM qqq_gex_cache_meta').fetchone()[0] == 1
         assert run(command, data, 'cache', 'status')['data']['caches'][1]['entries'] == 2
         reader = Mcp(command, data)

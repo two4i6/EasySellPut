@@ -25,6 +25,14 @@ public sealed record SmokeCheck(string Name, SmokeStatus Status, string Detail, 
 /// </summary>
 public sealed class SmokeRunner
 {
+    internal static System.Windows.Controls.Primitives.ButtonBase NavigationButton(MainWindow window,AppPage target)
+    {
+        if(target==AppPage.DataSources)return (System.Windows.Controls.Primitives.ButtonBase)window.FindName("MarketStatusIndicator");
+        if(target==AppPage.Dashboard)return (System.Windows.Controls.Primitives.ButtonBase)window.FindName("HomeWorkspace");
+        if(target==AppPage.Settings)return (System.Windows.Controls.Primitives.ButtonBase)window.FindName("SettingsButton");
+        return ((System.Windows.Controls.StackPanel)window.FindName("BuiltinRail")).Children.OfType<System.Windows.Controls.Primitives.ToggleButton>().Single(b=>Equals(b.Tag,target));
+    }
+
     private readonly List<SmokeCheck> _checks = [];
     private static readonly List<string> Errors = [];
 
@@ -93,8 +101,8 @@ public sealed class SmokeRunner
                 var home=(System.Windows.Controls.Primitives.ToggleButton)window.FindName("HomeWorkspace");
                 var target=Enum.Parse<AppPage>(page.Name.Replace("Page",""));
                 var settingsButton=(System.Windows.Controls.Primitives.ToggleButton)window.FindName("SettingsButton");
-                var button=target==AppPage.Dashboard?home:target==AppPage.Settings?settingsButton:rail.Children.OfType<System.Windows.Controls.Primitives.ToggleButton>().Single(b=>Equals(b.Tag,target));
-                button.BringIntoView();button.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
+                var button=NavigationButton(window,target);
+                button.BringIntoView();if(target==AppPage.DataSources){if(button.Command?.CanExecute(button.CommandParameter)!=true)throw new InvalidOperationException("Source-health footer command is unavailable");button.Command.Execute(button.CommandParameter);}else button.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
                 await Task.Delay(1500);
                 await window.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
                 string[] newErrors;
@@ -103,7 +111,7 @@ public sealed class SmokeRunner
                 if (window.CurrentPageType != page) throw new InvalidOperationException($"navigation ended on {window.CurrentPageType?.Name ?? "none"}");
                 var workspace=(System.Windows.Controls.Grid)window.FindName("WorkspaceGrid");
                 if(workspace.ColumnDefinitions.Count!=2 || workspace.ColumnDefinitions[0].ActualWidth!=64 || window.FindName("ChannelNav") is not null)throw new InvalidOperationException("The wide navigation column returned");
-                if(rail.Children.OfType<System.Windows.Controls.Primitives.ToggleButton>().Append(home).Append(settingsButton).Count(b=>b.IsChecked==true)!=1 || button.IsChecked!=true)throw new InvalidOperationException("Navigation rail selection is inconsistent");
+                if(rail.Children.OfType<System.Windows.Controls.Primitives.ToggleButton>().Append(home).Append(settingsButton).Count(b=>b.IsChecked==true)!=(target==AppPage.DataSources?0:1) || target!=AppPage.DataSources && (button as System.Windows.Controls.Primitives.ToggleButton)?.IsChecked!=true)throw new InvalidOperationException("Navigation rail selection is inconsistent");
                 if(window.FindName("BackgroundButton") is not null || window.FindName("MotionButton") is not null)throw new InvalidOperationException("Removed footer controls returned");
                 foreach(var name in new[]{"SettingsButton","LanguageButton","ThemeButton"})
                 {
@@ -112,7 +120,7 @@ public sealed class SmokeRunner
                     var icon=(System.Windows.Controls.Viewbox)action.Content;var center=icon.TranslatePoint(new Point(icon.ActualWidth/2,icon.ActualHeight/2),action);
                     if(Math.Abs(center.X-action.ActualWidth/2)>.6 || Math.Abs(center.Y-action.ActualHeight/2)>.6)throw new InvalidOperationException("Off-center status icon: "+name);
                 }
-                return "loaded via single-rail button";
+                return target==AppPage.DataSources?"loaded via footer source-health entry":"loaded via single-rail button";
             });
         }
         if (Directory.Exists(Path.Combine(AppContext.BaseDirectory, "automation"))) await CheckAsync("ai-connection", async () =>

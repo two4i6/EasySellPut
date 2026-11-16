@@ -25,15 +25,17 @@ public sealed class QqqGexSession : IDisposable
     private void QuoteActivity(object? sender,EventArgs e){if(activity?.AnyVisible??true)quotes?.Subscribe(quoteOwner,["QQQ"]);else quotes?.Unsubscribe(quoteOwner);}
     private object? LocalQuote()=>quotes is not null&&quotes.TryGetCached("QQQ",out var quote)?new {quote.Symbol,quote.Price,quote.Source,quote.AsOf,quote.FetchedAt,quote.DelayMinutes,quote.IsRealtime}:null;
     private readonly string? directory;
+    private readonly QqqGexPreferences? preferences;
     private TaskCompletionSource<bool> changed=new(TaskCreationOptions.RunContinuationsAsynchronously);
     public void NotifyDataUpdated(){var old=Interlocked.Exchange(ref changed,new(TaskCreationOptions.RunContinuationsAsynchronously));old.TrySetResult(true);}
     public Uri PageUri { get; }
     public QqqGexSession(string? databasePath = null, string snapshot = "local", QuoteHub? quotes = null, DesktopActivity? activity = null)
     {
         this.snapshot=snapshot;this.quotes=quotes;this.activity=activity;if(activity is not null)activity.Changed+=QuoteActivity;QuoteActivity(null,EventArgs.Empty);directory=databasePath is null?null:Path.GetDirectoryName(Path.GetDirectoryName(Path.GetFullPath(databasePath)))!; if(databasePath is not null)cache=new QqqGexResponseStore(databasePath);
+        preferences=directory is null?null:new QqqGexPreferences(directory);
         listener.Start();
         PageUri = new Uri($"http://127.0.0.1:{((IPEndPoint)listener.LocalEndpoint).Port}/{token}/index.html");
-        _ = Accept();
+        _ = Task.Run(Accept);
     }
     public bool IsPageUrl(string url) => Uri.TryCreate(url, UriKind.Absolute, out var u) && u.AbsoluteUri == PageUri.AbsoluteUri;
     private async Task Accept()
@@ -54,8 +56,21 @@ public sealed class QqqGexSession : IDisposable
             var headers = new Dictionary<string,string>(StringComparer.OrdinalIgnoreCase);
             foreach(var line in lines.Skip(1).Where(x=>x.Length>0)) { var i=line.IndexOf(':'); if(i<=0 || !headers.TryAdd(line[..i],line[(i+1)..].Trim())) { await Reply(stream,400,"text/plain",[],ct);return; } }
             var origin=PageUri.GetLeftPart(UriPartial.Authority);
-            if(raw.Count>=16384 || request.Length!=3 || request[0]!="GET" || headers.GetValueOrDefault("Host")!=PageUri.Authority || !request[1].StartsWith($"/{token}/",StringComparison.Ordinal) || headers.ContainsKey("Transfer-Encoding") || headers.ContainsKey("Content-Length") || headers.TryGetValue("Origin",out var sentOrigin)&&sentOrigin!=origin || headers.GetValueOrDefault("Sec-Fetch-Site")=="cross-site") { await Reply(stream,403,"text/plain",[],ct);return; }
+            var preferenceWrite=request.Length==3&&request[0]=="POST"&&request[1]==$"/{token}/preferences";
+            if(raw.Count>=16384 || request.Length!=3 || request[0]!="GET"&&!preferenceWrite || headers.GetValueOrDefault("Host")!=PageUri.Authority || !request[1].StartsWith($"/{token}/",StringComparison.Ordinal) || headers.ContainsKey("Transfer-Encoding") || !preferenceWrite&&headers.ContainsKey("Content-Length") || headers.TryGetValue("Origin",out var sentOrigin)&&sentOrigin!=origin || headers.GetValueOrDefault("Sec-Fetch-Site")=="cross-site"||preferenceWrite&&headers.GetValueOrDefault("Origin")!=origin) { await Reply(stream,403,"text/plain",[],ct);return; }
             var route=request[1][(token.Length+2)..].Split('?')[0];
+            if(route=="preferences"){
+                if(preferences is null){await Reply(stream,503,"application/json",Encoding.UTF8.GetBytes("{}"),ct);return;}
+                try{
+                    if(!preferenceWrite){await Reply(stream,200,"application/json",JsonSerializer.SerializeToUtf8Bytes(preferences.Read()),ct);return;}
+                    var lengthText=headers.GetValueOrDefault("Content-Length")??"";if(lengthText.Length==0||lengthText.Any(c=>!char.IsAsciiDigit(c))||!int.TryParse(lengthText,out var length)||length is <1 or >65536||!(headers.GetValueOrDefault("Content-Type")??"").StartsWith("application/json",StringComparison.OrdinalIgnoreCase)){await Reply(stream,400,"application/json",Encoding.UTF8.GetBytes("{}"),ct);return;}
+                    var body=new byte[length];var offset=0;while(offset<length){var count=await stream.ReadAsync(body.AsMemory(offset),ct);if(count==0){await Reply(stream,400,"application/json",Encoding.UTF8.GetBytes("{}"),ct);return;}offset+=count;}
+                    using var json=JsonDocument.Parse(body);if(json.RootElement.ValueKind!=JsonValueKind.Object||json.RootElement.EnumerateObject().Count()!=2||json.RootElement.EnumerateObject().Select(p=>p.Name).Distinct().Count()!=2||json.RootElement.EnumerateObject().Any(p=>p.Name is not ("revision" or "changes")))throw new ArgumentException("Invalid preference envelope");
+                    var revision=json.RootElement.GetProperty("revision").GetString()??"";var changes=json.RootElement.GetProperty("changes").Deserialize<Dictionary<string,string?>>()??throw new ArgumentException("Missing preference changes");
+                    await Reply(stream,200,"application/json",JsonSerializer.SerializeToUtf8Bytes(preferences.Patch(revision,changes)),ct);return;
+                }catch(Meili.Core.Settings.DataConflictException){await Reply(stream,409,"application/json",Encoding.UTF8.GetBytes("{\"code\":\"VIEW_PREFERENCE_CONFLICT\"}"),ct);return;}
+                catch(Exception ex)when(ex is ArgumentException or JsonException or InvalidOperationException or KeyNotFoundException){AppLog.Warn("qqq-gex","Rejected view preference: "+ex.GetType().Name);await Reply(stream,400,"application/json",Encoding.UTF8.GetBytes("{\"code\":\"INVALID_VIEW_PREFERENCE\"}"),ct);return;}
+            }
             if(route=="events"){
                 var url=new Uri(PageUri,request[1]);var after=url.Query.StartsWith("?after=",StringComparison.Ordinal)?Uri.UnescapeDataString(url.Query[7..]):"";var notification=Volatile.Read(ref changed);var version=cache?.RevisionToken()??"";
                 if(version==after){try{await notification.Task.WaitAsync(TimeSpan.FromSeconds(5),ct);}catch(TimeoutException){}version=cache?.RevisionToken()??"";}
@@ -66,7 +81,7 @@ public sealed class QqqGexSession : IDisposable
             if(route.StartsWith("api/",StringComparison.Ordinal)) {
                 var path="/"+request[1][(token.Length+2)..];
                 var cached=cache?.Read(snapshot,path,DateTimeOffset.UtcNow)??cache?.ReadLocalDay(path,DateTimeOffset.UtcNow)??cache?.ReadSpreadQuote(path,DateTimeOffset.UtcNow);
-                if(cached is null&&directory is not null&&(path.StartsWith("/api/analysis/qqq/pcs/backtest?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/pcs?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/gex/intraday-context?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/gex/exposure?",StringComparison.Ordinal))){
+                if(cached is null&&directory is not null&&(path.StartsWith("/api/analysis/qqq/pcs/backtest?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/pcs?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/gex/intraday-context?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/gex/exposure?",StringComparison.Ordinal)||path=="/api/analysis/qqq/pcs/local-decision")){
                     var result=await QqqGexCalculationRunner.QueryAsync(directory,path,ct);using var json=JsonSerializer.SerializeToDocument(result);
                     if(json.RootElement.TryGetProperty("body",out var wireBody)&&json.RootElement.TryGetProperty("contentType",out var wireType)){await Reply(stream,200,wireType.GetString()!,Encoding.UTF8.GetBytes(wireBody.GetString()!),ct);return;}
                     if((json.RootElement.TryGetProperty("available",out var available)&&available.ValueKind==JsonValueKind.True)||json.RootElement.TryGetProperty("intraday",out _)||json.RootElement.TryGetProperty("currentBars",out _)){await Reply(stream,200,"application/json",Encoding.UTF8.GetBytes(json.RootElement.GetRawText()),ct);return;}

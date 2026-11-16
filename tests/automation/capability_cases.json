@@ -1023,6 +1023,18 @@
         "/data/status",
         "/data/processed"
       ]
+    },
+    {
+      "operation": "get_qqq_gex_live_decision",
+      "arguments": {},
+      "expect": {
+        "/data/status": {
+          "equals": "cache_miss"
+        }
+      },
+      "compare": [
+        "/data/status"
+      ]
     }
   ]
 }

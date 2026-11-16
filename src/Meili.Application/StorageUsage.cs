@@ -7,7 +7,7 @@ public sealed record StorageUsage(long TotalBytes, IReadOnlyList<StorageCategory
 public static class StorageInventory
 {
     public const int MaxEntries = 200_000;
-    private static readonly string[] UserFiles = ["settings.json", "alerts.json", "drawings.json", "strategies.json", "watchlists.json", "bookmarks.json"];
+    private static readonly string[] UserFiles = ["settings.json", "qqq-gex-view.json", "alerts.json", "drawings.json", "strategies.json", "watchlists.json", "bookmarks.json"];
     public static StorageUsage Scan(string directory, CancellationToken ct = default, int entryLimit = MaxEntries)
     {
         if (entryLimit is < 1 or > MaxEntries) throw new ArgumentOutOfRangeException(nameof(entryLimit));

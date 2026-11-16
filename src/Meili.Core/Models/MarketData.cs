@@ -197,6 +197,8 @@ public sealed record OptionChain : SourcedData
     public ReadOnlyMemory<byte> RawSourcePayload { get; init; }
 
     public required string Underlying { get; init; }
+    /// <summary>Explicit provider underlying last trade; distinct from chain publication/quote time.</summary>
+    public DateTimeOffset? UnderlyingLastTradeAt { get; init; }
     public double? UnderlyingPrice { get; init; }
     /// <summary>All expirations the source knows about.</summary>
     public required IReadOnlyList<DateOnly> Expirations { get; init; }

@@ -1526,6 +1526,11 @@
       "bytes": 6187
     },
     {
+      "path": "src/lib/engines/analysis/PcsReactiveRule.test.ts",
+      "sha256": "7f5f738d0d1f0f938478ebc3b203627902ab5803a6936f92e464df0b3346f9f4",
+      "bytes": 2200
+    },
+    {
       "path": "src/lib/engines/analysis/PcsReactiveRule.ts",
       "sha256": "1e4168cc02e0f408cfe38b1af3b0b83b8e6336cb550dd185bd49ac6ee0f7e0f2",
       "bytes": 2520
@@ -1544,6 +1549,11 @@
       "path": "src/lib/engines/analysis/QqqCompositeReplaySession.ts",
       "sha256": "62a78891314ffb7e0da8e4cd6f3a6e27dd551bedcffc6b1becae1a2816903bdd",
       "bytes": 2794
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqDailyMarketBase.test.ts",
+      "sha256": "46bf683128a5d97c8face46f26080d95931e95d0cb77c4c98879593edd8c1456",
+      "bytes": 1050
     },
     {
       "path": "src/lib/engines/analysis/QqqDailyMarketBase.ts",
@@ -1819,6 +1829,11 @@
       "path": "src/lib/engines/analysis/QqqPcsBacktestSpec.ts",
       "sha256": "079045fc70b85a3bb1a26f6588db73cd15f551e3117c4d909633b24533efb1d9",
       "bytes": 17382
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqPcsEntrySnapshot.test.ts",
+      "sha256": "1b228e190cd1a50e73c224fd781e33448f9bde4fdf0aeef0e21d3e63347bce62",
+      "bytes": 3972
     },
     {
       "path": "src/lib/engines/analysis/QqqPcsEntrySnapshot.ts",
@@ -2366,6 +2381,11 @@
       "bytes": 14079
     },
     {
+      "path": "src/lib/engines/leveraged-overlay/v2/strategies/pcs-contract-profile.test.ts",
+      "sha256": "3dcab75f63bb2075d15a6719bab729161a62a2fbba62ef5e289e776496908d9d",
+      "bytes": 1920
+    },
+    {
       "path": "src/lib/engines/leveraged-overlay/v2/strategies/pcs-contract-profile.ts",
       "sha256": "98080393058c288eaffcbb5c432e97ca492d55e41b8d3f176d76c2a8741901f2",
       "bytes": 2689
@@ -2389,6 +2409,11 @@
       "path": "src/lib/engines/leveraged-overlay/v2/strategies/pcs-survival-selector.ts",
       "sha256": "f757f0a764cfc9ca0d1538ca621f29707bf45e6406985ea53e57315bf31d67bb",
       "bytes": 9892
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/strategies/put-credit-spread.test.ts",
+      "sha256": "8f88118d7cbc53bc91050f4eb151a917bfc8ea35030e709e8f5c14689d2aea38",
+      "bytes": 27660
     },
     {
       "path": "src/lib/engines/leveraged-overlay/v2/strategies/put-credit-spread.ts",
@@ -3311,6 +3336,11 @@
     "src/app/globals.css",
     "src/lib/qqqExposureWire.test.ts",
     "src/lib/qqqGexInputQuality.test.ts",
-    "src/lib/qqqIntradayDirectionalSummary.test.ts"
+    "src/lib/qqqIntradayDirectionalSummary.test.ts",
+    "src/lib/engines/analysis/QqqPcsEntrySnapshot.test.ts",
+    "src/lib/engines/analysis/QqqDailyMarketBase.test.ts",
+    "src/lib/engines/analysis/PcsReactiveRule.test.ts",
+    "src/lib/engines/leveraged-overlay/v2/strategies/pcs-contract-profile.test.ts",
+    "src/lib/engines/leveraged-overlay/v2/strategies/put-credit-spread.test.ts"
   ]
 }

@@ -11,7 +11,7 @@ public sealed class QqqGexActivity(IMarketDataService market,string directory,De
     public event Action? Published;
     public string Status {get;private set;}="idle";
     private int started;
-    public void Start(){if(Interlocked.Exchange(ref started,1)==0)_ = Run();}
+    public void Start(){if(Interlocked.Exchange(ref started,1)==0)_ = Task.Run(Run);}
     private async Task Run()
     {
         try {
@@ -25,7 +25,8 @@ public sealed class QqqGexActivity(IMarketDataService market,string directory,De
                         var computed=await QqqGexCalculationRunner.RunAsync(directory,stop.Token);using var json=JsonSerializer.SerializeToDocument(computed);Status=json.RootElement.GetProperty("status").GetString()!;
                         if(Status is "imported" or "partial"&&!stop.IsCancellationRequested)Ui.Platform.Run(()=>{if(!stop.IsCancellationRequested)Published?.Invoke();});
                     }
-                }catch(Exception ex) when(ex is not OperationCanceledException){Status=ex.GetType().Name;AppLog.Warn("qqq-gex","Capture/calculation failed: "+Status);}
+                }catch(OperationCanceledException)when(!stop.IsCancellationRequested){Status="source_timeout";AppLog.Warn("qqq-gex","Source deadline reached; next capture remains scheduled");}
+                catch(Exception ex) when(ex is not OperationCanceledException){Status=ex.GetType().Name;AppLog.Warn("qqq-gex","Capture/calculation failed: "+Status);}
                 await Task.Delay(TimeSpan.FromMinutes(2),stop.Token);
             }
         }catch(OperationCanceledException) when(stop.IsCancellationRequested){}

@@ -27,6 +27,9 @@ public sealed partial class AutomationService
             case "rebuild_qqq_gex_history":
                 if(!File.Exists(Path.Combine(DirectoryInfo.Path,"cache","qqq-gex.db"))||!new QqqGexResponseStore(Path.Combine(DirectoryInfo.Path,"cache","qqq-gex.db")).HasLocalHistory())return new {status="no_observed_inputs",complete=false,processed=0};
                 return await QqqGexCalculationRunner.RebuildHistoryAsync(DirectoryInfo.Path,a.Int("limit",100,1,400),a.Bool("retryFailed"),ct);
+            case "get_qqq_gex_live_decision":
+                if(!File.Exists(Path.Combine(DirectoryInfo.Path,"cache","qqq-gex.db"))||!new QqqGexResponseStore(Path.Combine(DirectoryInfo.Path,"cache","qqq-gex.db")).HasObservedInput())return new {status="cache_miss",available=false,complete=false};
+                return await QqqGexCalculationRunner.QueryAsync(DirectoryInfo.Path,"/api/analysis/qqq/pcs/local-decision",ct);
             case "get_qqq_gex_replay":
                 {
                     var from=a.Instant("from")!.Value.ToUniversalTime();var to=a.Instant("to")!.Value.ToUniversalTime();

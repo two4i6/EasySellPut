@@ -164,7 +164,7 @@ public sealed class CboeProvider(HttpGateway http, ResponseCache cache) : Provid
                 list[i] = list[i] with { InTheMoney = list[i].Right == OptionRight.Call ? spot > list[i].Strike : spot < list[i].Strike };
         return new OptionChain
         {
-            Underlying = underlying, UnderlyingPrice = spot, Contracts = list,
+            Underlying = underlying, UnderlyingPrice = spot, UnderlyingLastTradeAt = Eastern.Parse(d?.Str("last_trade_time")), Contracts = list,
             Expirations = list.Select(c => c.Expiration).Distinct().Order().ToList(),
             Source = "cboe", DelayMinutes = 15, AsOf = Utc(root.Str("timestamp")),
         };

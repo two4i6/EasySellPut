@@ -26,6 +26,7 @@ public class CboeTests
     {
         using var d = Fx.Json("cboe_options.json");
         var c = CboeProvider.ParseOptions(d.RootElement, "AAPL", new DateOnly(2026, 11, 1));
+        Assert.Equal(DateTimeOffset.Parse("2026-11-12T01:05:08Z"),c.AsOf);Assert.Equal(DateTimeOffset.Parse("2026-11-11T20:59:59Z"),c.UnderlyingLastTradeAt);
         Assert.Equal(120, c.Contracts.Count);
         Assert.Equal(2, c.Expirations.Count);
         Assert.Contains(c.Contracts, x => x.Delta is not null && x.Gamma is not null && x.Vega is not null && x.ImpliedVolatility is > 0);

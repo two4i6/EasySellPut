@@ -19,6 +19,7 @@ public sealed class MarketStatusTests
             {
                 w.UseUpdateState(update); w.Show(); await update.CheckUpdatesCommand.ExecuteAsync(null); update.DismissUpdatePromptCommand.Execute(null); await ScreenRenderTests.Settle();
                 var shell = AppServices.Get<ShellViewModel>(); var status = (Button)w.FindName("MarketStatusIndicator");
+                Assert.Same(status,SmokeRunner.NavigationButton(w,AppPage.DataSources));
                 Assert.Equal(shell.MarketStatusTip, status.ToolTip);
                 Assert.Equal(shell.MarketStatusTip, System.Windows.Automation.AutomationProperties.GetName(status));
                 Assert.InRange(status.ActualWidth, 40, 220);

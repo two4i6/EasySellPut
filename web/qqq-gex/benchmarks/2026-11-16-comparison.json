@@ -1,0 +1,634 @@
+{
+  "apiParity": "Selected original PCS wire response and original all-expiry exposure manifests match read-only reconstructed responses",
+  "inputSha256": "5d231d02a166582623723377cc01784d8482b9b2cf812eb6e1d4e82bff56a092",
+  "inputBytes": 8618585,
+  "node": "v24.22.1",
+  "platform": "linux",
+  "arch": "x64",
+  "cpu": "INTEL(R) XEON(R) PLATINUM 8573C",
+  "visibleCpus": 4,
+  "parity": "All five retained day row hashes (including every profile/indicator), bar hashes and original summary fingerprints match across all six cold runs",
+  "limitations": "Synthetic retained-input workload; separate fresh databases; alternating single-host trials; excludes network/native render; not real-history performance acceptance; other verification processes were running, so wall times reflect shared-host contention",
+  "runs": [
+    {
+      "name": "before",
+      "trial": 0,
+      "elapsedMs": 15103.814514,
+      "peakRssKiB": 803480,
+      "databaseBytes": 589246464,
+      "rows": [
+        [
+          "2026-11-02",
+          "c92a86b734d1b6c75c137026c96aa046b2854ee1cb770cc561d23da26d1b5a03"
+        ],
+        [
+          "2026-11-03",
+          "dcb0a34d2db47b83146d4bff8ac17130dfb46a5a43e3af87fde65c2d05d0fd07"
+        ],
+        [
+          "2026-11-04",
+          "82348461e382364159ef193413772115471d276b9fa1b51119e861d05a54cf66"
+        ],
+        [
+          "2026-11-05",
+          "2744333c4d749471270c95fc382478274b430ab23980c40fda30223b7701cef0"
+        ],
+        [
+          "2026-11-06",
+          "340c772064c23193dbdf44a11a3486262df021f470204dbb863c8c290ce4ef5e"
+        ]
+      ],
+      "bars": [
+        [
+          "2026-11-02",
+          "ac04932eb949bad00c8908112acae525b01f696d797f5c6bccf45fa8287f9536"
+        ],
+        [
+          "2026-11-03",
+          "2c95d3a064e1c9d3d9b5ccd645910be57cf30c0cba5f55f384aa626fa8c4c17d"
+        ],
+        [
+          "2026-11-04",
+          "dde359f01f0a0e139dfbc9e0085f4bf65539c1a1b48add2a37861f6ee3ad1c5e"
+        ],
+        [
+          "2026-11-05",
+          "f76394070abd7f20e69fd680db77a41788cda23e202bf82edaf86d680513ab93"
+        ],
+        [
+          "2026-11-06",
+          "4c48ca1870e3532724d4f465c851826ff451d0052ae16220551fb1b6c342ac0f"
+        ]
+      ],
+      "summaries": [
+        [
+          "2026-11-02",
+          "d16df2575ecc191bec38ea1e3a38044efaba6ac294030249aadd634192c6e4e6"
+        ],
+        [
+          "2026-11-03",
+          "270bf536f6b000b6fa77f9508043b8e28cb284cf820ffc434cd9d38a1e589add"
+        ],
+        [
+          "2026-11-04",
+          "93e2b2711d4f70280eebf2cd79d3b197e5a5fb4321f46ad4c842ed7e259a0444"
+        ],
+        [
+          "2026-11-05",
+          "d08fc242b3c775b93ebb31c28929336fc0b650cd7b8806f138c2535b4b7d829a"
+        ],
+        [
+          "2026-11-06",
+          "a803b0bee8ce87a480ddd931c719a19027e52a4b3f0802f1ace053164313a734"
+        ]
+      ],
+      "wireBytes": 260945416,
+      "result": {
+        "wireCoverage": "capacity-limited",
+        "importVersion": "qqq-local-import-v2",
+        "status": "imported",
+        "partialDates": [],
+        "publishedDates": [
+          "2026-11-02",
+          "2026-11-03",
+          "2026-11-04",
+          "2026-11-05",
+          "2026-11-06"
+        ],
+        "source": "synthetic-benchmark-not-market-data",
+        "revision": "5d231d02a166582623723377cc01784d8482b9b2cf812eb6e1d4e82bff56a092",
+        "dates": [
+          "2026-11-02",
+          "2026-11-03",
+          "2026-11-04",
+          "2026-11-05",
+          "2026-11-06"
+        ],
+        "rows": 600,
+        "priceAligned": true,
+        "inputComplete": true,
+        "missingExpiries": [],
+        "historyCoverage": "only supplied captures; gaps not synthesized"
+      }
+    },
+    {
+      "name": "after",
+      "trial": 0,
+      "elapsedMs": 3197.8594230000017,
+      "peakRssKiB": 468552,
+      "databaseBytes": 87126016,
+      "rows": [
+        [
+          "2026-11-02",
+          "c92a86b734d1b6c75c137026c96aa046b2854ee1cb770cc561d23da26d1b5a03"
+        ],
+        [
+          "2026-11-03",
+          "dcb0a34d2db47b83146d4bff8ac17130dfb46a5a43e3af87fde65c2d05d0fd07"
+        ],
+        [
+          "2026-11-04",
+          "82348461e382364159ef193413772115471d276b9fa1b51119e861d05a54cf66"
+        ],
+        [
+          "2026-11-05",
+          "2744333c4d749471270c95fc382478274b430ab23980c40fda30223b7701cef0"
+        ],
+        [
+          "2026-11-06",
+          "340c772064c23193dbdf44a11a3486262df021f470204dbb863c8c290ce4ef5e"
+        ]
+      ],
+      "bars": [
+        [
+          "2026-11-02",
+          "ac04932eb949bad00c8908112acae525b01f696d797f5c6bccf45fa8287f9536"
+        ],
+        [
+          "2026-11-03",
+          "2c95d3a064e1c9d3d9b5ccd645910be57cf30c0cba5f55f384aa626fa8c4c17d"
+        ],
+        [
+          "2026-11-04",
+          "dde359f01f0a0e139dfbc9e0085f4bf65539c1a1b48add2a37861f6ee3ad1c5e"
+        ],
+        [
+          "2026-11-05",
+          "f76394070abd7f20e69fd680db77a41788cda23e202bf82edaf86d680513ab93"
+        ],
+        [
+          "2026-11-06",
+          "4c48ca1870e3532724d4f465c851826ff451d0052ae16220551fb1b6c342ac0f"
+        ]
+      ],
+      "summaries": [
+        [
+          "2026-11-02",
+          "d16df2575ecc191bec38ea1e3a38044efaba6ac294030249aadd634192c6e4e6"
+        ],
+        [
+          "2026-11-03",
+          "270bf536f6b000b6fa77f9508043b8e28cb284cf820ffc434cd9d38a1e589add"
+        ],
+        [
+          "2026-11-04",
+          "93e2b2711d4f70280eebf2cd79d3b197e5a5fb4321f46ad4c842ed7e259a0444"
+        ],
+        [
+          "2026-11-05",
+          "d08fc242b3c775b93ebb31c28929336fc0b650cd7b8806f138c2535b4b7d829a"
+        ],
+        [
+          "2026-11-06",
+          "a803b0bee8ce87a480ddd931c719a19027e52a4b3f0802f1ace053164313a734"
+        ]
+      ],
+      "wireBytes": 24149529,
+      "result": {
+        "wireCoverage": "canonical-warm",
+        "queryCoverage": "All-expiry archive and one latest overview are warm; parameter variants reconstruct read-only from protected local profiles",
+        "importVersion": "qqq-local-import-v5",
+        "status": "imported",
+        "partialDates": [],
+        "publishedDates": [
+          "2026-11-02",
+          "2026-11-03",
+          "2026-11-04",
+          "2026-11-05",
+          "2026-11-06"
+        ],
+        "source": "synthetic-benchmark-not-market-data",
+        "revision": "5d231d02a166582623723377cc01784d8482b9b2cf812eb6e1d4e82bff56a092",
+        "dates": [
+          "2026-11-02",
+          "2026-11-03",
+          "2026-11-04",
+          "2026-11-05",
+          "2026-11-06"
+        ],
+        "rows": 600,
+        "regularPriceAligned": true,
+        "priceAligned": true,
+        "inputComplete": true,
+        "missingExpiries": [],
+        "historyCoverage": "only supplied captures; gaps not synthesized"
+      }
+    },
+    {
+      "name": "before",
+      "trial": 1,
+      "elapsedMs": 11542.154359,
+      "peakRssKiB": 752928,
+      "databaseBytes": 589246464,
+      "rows": [
+        [
+          "2026-11-02",
+          "c92a86b734d1b6c75c137026c96aa046b2854ee1cb770cc561d23da26d1b5a03"
+        ],
+        [
+          "2026-11-03",
+          "dcb0a34d2db47b83146d4bff8ac17130dfb46a5a43e3af87fde65c2d05d0fd07"
+        ],
+        [
+          "2026-11-04",
+          "82348461e382364159ef193413772115471d276b9fa1b51119e861d05a54cf66"
+        ],
+        [
+          "2026-11-05",
+          "2744333c4d749471270c95fc382478274b430ab23980c40fda30223b7701cef0"
+        ],
+        [
+          "2026-11-06",
+          "340c772064c23193dbdf44a11a3486262df021f470204dbb863c8c290ce4ef5e"
+        ]
+      ],
+      "bars": [
+        [
+          "2026-11-02",
+          "ac04932eb949bad00c8908112acae525b01f696d797f5c6bccf45fa8287f9536"
+        ],
+        [
+          "2026-11-03",
+          "2c95d3a064e1c9d3d9b5ccd645910be57cf30c0cba5f55f384aa626fa8c4c17d"
+        ],
+        [
+          "2026-11-04",
+          "dde359f01f0a0e139dfbc9e0085f4bf65539c1a1b48add2a37861f6ee3ad1c5e"
+        ],
+        [
+          "2026-11-05",
+          "f76394070abd7f20e69fd680db77a41788cda23e202bf82edaf86d680513ab93"
+        ],
+        [
+          "2026-11-06",
+          "4c48ca1870e3532724d4f465c851826ff451d0052ae16220551fb1b6c342ac0f"
+        ]
+      ],
+      "summaries": [
+        [
+          "2026-11-02",
+          "d16df2575ecc191bec38ea1e3a38044efaba6ac294030249aadd634192c6e4e6"
+        ],
+        [
+          "2026-11-03",
+          "270bf536f6b000b6fa77f9508043b8e28cb284cf820ffc434cd9d38a1e589add"
+        ],
+        [
+          "2026-11-04",
+          "93e2b2711d4f70280eebf2cd79d3b197e5a5fb4321f46ad4c842ed7e259a0444"
+        ],
+        [
+          "2026-11-05",
+          "d08fc242b3c775b93ebb31c28929336fc0b650cd7b8806f138c2535b4b7d829a"
+        ],
+        [
+          "2026-11-06",
+          "a803b0bee8ce87a480ddd931c719a19027e52a4b3f0802f1ace053164313a734"
+        ]
+      ],
+      "wireBytes": 260945416,
+      "result": {
+        "wireCoverage": "capacity-limited",
+        "importVersion": "qqq-local-import-v2",
+        "status": "imported",
+        "partialDates": [],
+        "publishedDates": [
+          "2026-11-02",
+          "2026-11-03",
+          "2026-11-04",
+          "2026-11-05",
+          "2026-11-06"
+        ],
+        "source": "synthetic-benchmark-not-market-data",
+        "revision": "5d231d02a166582623723377cc01784d8482b9b2cf812eb6e1d4e82bff56a092",
+        "dates": [
+          "2026-11-02",
+          "2026-11-03",
+          "2026-11-04",
+          "2026-11-05",
+          "2026-11-06"
+        ],
+        "rows": 600,
+        "priceAligned": true,
+        "inputComplete": true,
+        "missingExpiries": [],
+        "historyCoverage": "only supplied captures; gaps not synthesized"
+      }
+    },
+    {
+      "name": "after",
+      "trial": 1,
+      "elapsedMs": 4117.758394000004,
+      "peakRssKiB": 444700,
+      "databaseBytes": 87126016,
+      "rows": [
+        [
+          "2026-11-02",
+          "c92a86b734d1b6c75c137026c96aa046b2854ee1cb770cc561d23da26d1b5a03"
+        ],
+        [
+          "2026-11-03",
+          "dcb0a34d2db47b83146d4bff8ac17130dfb46a5a43e3af87fde65c2d05d0fd07"
+        ],
+        [
+          "2026-11-04",
+          "82348461e382364159ef193413772115471d276b9fa1b51119e861d05a54cf66"
+        ],
+        [
+          "2026-11-05",
+          "2744333c4d749471270c95fc382478274b430ab23980c40fda30223b7701cef0"
+        ],
+        [
+          "2026-11-06",
+          "340c772064c23193dbdf44a11a3486262df021f470204dbb863c8c290ce4ef5e"
+        ]
+      ],
+      "bars": [
+        [
+          "2026-11-02",
+          "ac04932eb949bad00c8908112acae525b01f696d797f5c6bccf45fa8287f9536"
+        ],
+        [
+          "2026-11-03",
+          "2c95d3a064e1c9d3d9b5ccd645910be57cf30c0cba5f55f384aa626fa8c4c17d"
+        ],
+        [
+          "2026-11-04",
+          "dde359f01f0a0e139dfbc9e0085f4bf65539c1a1b48add2a37861f6ee3ad1c5e"
+        ],
+        [
+          "2026-11-05",
+          "f76394070abd7f20e69fd680db77a41788cda23e202bf82edaf86d680513ab93"
+        ],
+        [
+          "2026-11-06",
+          "4c48ca1870e3532724d4f465c851826ff451d0052ae16220551fb1b6c342ac0f"
+        ]
+      ],
+      "summaries": [
+        [
+          "2026-11-02",
+          "d16df2575ecc191bec38ea1e3a38044efaba6ac294030249aadd634192c6e4e6"
+        ],
+        [
+          "2026-11-03",
+          "270bf536f6b000b6fa77f9508043b8e28cb284cf820ffc434cd9d38a1e589add"
+        ],
+        [
+          "2026-11-04",
+          "93e2b2711d4f70280eebf2cd79d3b197e5a5fb4321f46ad4c842ed7e259a0444"
+        ],
+        [
+          "2026-11-05",
+          "d08fc242b3c775b93ebb31c28929336fc0b650cd7b8806f138c2535b4b7d829a"
+        ],
+        [
+          "2026-11-06",
+          "a803b0bee8ce87a480ddd931c719a19027e52a4b3f0802f1ace053164313a734"
+        ]
+      ],
+      "wireBytes": 24149529,
+      "result": {
+        "wireCoverage": "canonical-warm",
+        "queryCoverage": "All-expiry archive and one latest overview are warm; parameter variants reconstruct read-only from protected local profiles",
+        "importVersion": "qqq-local-import-v5",
+        "status": "imported",
+        "partialDates": [],
+        "publishedDates": [
+          "2026-11-02",
+          "2026-11-03",
+          "2026-11-04",
+          "2026-11-05",
+          "2026-11-06"
+        ],
+        "source": "synthetic-benchmark-not-market-data",
+        "revision": "5d231d02a166582623723377cc01784d8482b9b2cf812eb6e1d4e82bff56a092",
+        "dates": [
+          "2026-11-02",
+          "2026-11-03",
+          "2026-11-04",
+          "2026-11-05",
+          "2026-11-06"
+        ],
+        "rows": 600,
+        "regularPriceAligned": true,
+        "priceAligned": true,
+        "inputComplete": true,
+        "missingExpiries": [],
+        "historyCoverage": "only supplied captures; gaps not synthesized"
+      }
+    },
+    {
+      "name": "before",
+      "trial": 2,
+      "elapsedMs": 12616.615492999998,
+      "peakRssKiB": 799536,
+      "databaseBytes": 589246464,
+      "rows": [
+        [
+          "2026-11-02",
+          "c92a86b734d1b6c75c137026c96aa046b2854ee1cb770cc561d23da26d1b5a03"
+        ],
+        [
+          "2026-11-03",
+          "dcb0a34d2db47b83146d4bff8ac17130dfb46a5a43e3af87fde65c2d05d0fd07"
+        ],
+        [
+          "2026-11-04",
+          "82348461e382364159ef193413772115471d276b9fa1b51119e861d05a54cf66"
+        ],
+        [
+          "2026-11-05",
+          "2744333c4d749471270c95fc382478274b430ab23980c40fda30223b7701cef0"
+        ],
+        [
+          "2026-11-06",
+          "340c772064c23193dbdf44a11a3486262df021f470204dbb863c8c290ce4ef5e"
+        ]
+      ],
+      "bars": [
+        [
+          "2026-11-02",
+          "ac04932eb949bad00c8908112acae525b01f696d797f5c6bccf45fa8287f9536"
+        ],
+        [
+          "2026-11-03",
+          "2c95d3a064e1c9d3d9b5ccd645910be57cf30c0cba5f55f384aa626fa8c4c17d"
+        ],
+        [
+          "2026-11-04",
+          "dde359f01f0a0e139dfbc9e0085f4bf65539c1a1b48add2a37861f6ee3ad1c5e"
+        ],
+        [
+          "2026-11-05",
+          "f76394070abd7f20e69fd680db77a41788cda23e202bf82edaf86d680513ab93"
+        ],
+        [
+          "2026-11-06",
+          "4c48ca1870e3532724d4f465c851826ff451d0052ae16220551fb1b6c342ac0f"
+        ]
+      ],
+      "summaries": [
+        [
+          "2026-11-02",
+          "d16df2575ecc191bec38ea1e3a38044efaba6ac294030249aadd634192c6e4e6"
+        ],
+        [
+          "2026-11-03",
+          "270bf536f6b000b6fa77f9508043b8e28cb284cf820ffc434cd9d38a1e589add"
+        ],
+        [
+          "2026-11-04",
+          "93e2b2711d4f70280eebf2cd79d3b197e5a5fb4321f46ad4c842ed7e259a0444"
+        ],
+        [
+          "2026-11-05",
+          "d08fc242b3c775b93ebb31c28929336fc0b650cd7b8806f138c2535b4b7d829a"
+        ],
+        [
+          "2026-11-06",
+          "a803b0bee8ce87a480ddd931c719a19027e52a4b3f0802f1ace053164313a734"
+        ]
+      ],
+      "wireBytes": 260945416,
+      "result": {
+        "wireCoverage": "capacity-limited",
+        "importVersion": "qqq-local-import-v2",
+        "status": "imported",
+        "partialDates": [],
+        "publishedDates": [
+          "2026-11-02",
+          "2026-11-03",
+          "2026-11-04",
+          "2026-11-05",
+          "2026-11-06"
+        ],
+        "source": "synthetic-benchmark-not-market-data",
+        "revision": "5d231d02a166582623723377cc01784d8482b9b2cf812eb6e1d4e82bff56a092",
+        "dates": [
+          "2026-11-02",
+          "2026-11-03",
+          "2026-11-04",
+          "2026-11-05",
+          "2026-11-06"
+        ],
+        "rows": 600,
+        "priceAligned": true,
+        "inputComplete": true,
+        "missingExpiries": [],
+        "historyCoverage": "only supplied captures; gaps not synthesized"
+      }
+    },
+    {
+      "name": "after",
+      "trial": 2,
+      "elapsedMs": 3632.2673390000054,
+      "peakRssKiB": 465300,
+      "databaseBytes": 87126016,
+      "rows": [
+        [
+          "2026-11-02",
+          "c92a86b734d1b6c75c137026c96aa046b2854ee1cb770cc561d23da26d1b5a03"
+        ],
+        [
+          "2026-11-03",
+          "dcb0a34d2db47b83146d4bff8ac17130dfb46a5a43e3af87fde65c2d05d0fd07"
+        ],
+        [
+          "2026-11-04",
+          "82348461e382364159ef193413772115471d276b9fa1b51119e861d05a54cf66"
+        ],
+        [
+          "2026-11-05",
+          "2744333c4d749471270c95fc382478274b430ab23980c40fda30223b7701cef0"
+        ],
+        [
+          "2026-11-06",
+          "340c772064c23193dbdf44a11a3486262df021f470204dbb863c8c290ce4ef5e"
+        ]
+      ],
+      "bars": [
+        [
+          "2026-11-02",
+          "ac04932eb949bad00c8908112acae525b01f696d797f5c6bccf45fa8287f9536"
+        ],
+        [
+          "2026-11-03",
+          "2c95d3a064e1c9d3d9b5ccd645910be57cf30c0cba5f55f384aa626fa8c4c17d"
+        ],
+        [
+          "2026-11-04",
+          "dde359f01f0a0e139dfbc9e0085f4bf65539c1a1b48add2a37861f6ee3ad1c5e"
+        ],
+        [
+          "2026-11-05",
+          "f76394070abd7f20e69fd680db77a41788cda23e202bf82edaf86d680513ab93"
+        ],
+        [
+          "2026-11-06",
+          "4c48ca1870e3532724d4f465c851826ff451d0052ae16220551fb1b6c342ac0f"
+        ]
+      ],
+      "summaries": [
+        [
+          "2026-11-02",
+          "d16df2575ecc191bec38ea1e3a38044efaba6ac294030249aadd634192c6e4e6"
+        ],
+        [
+          "2026-11-03",
+          "270bf536f6b000b6fa77f9508043b8e28cb284cf820ffc434cd9d38a1e589add"
+        ],
+        [
+          "2026-11-04",
+          "93e2b2711d4f70280eebf2cd79d3b197e5a5fb4321f46ad4c842ed7e259a0444"
+        ],
+        [
+          "2026-11-05",
+          "d08fc242b3c775b93ebb31c28929336fc0b650cd7b8806f138c2535b4b7d829a"
+        ],
+        [
+          "2026-11-06",
+          "a803b0bee8ce87a480ddd931c719a19027e52a4b3f0802f1ace053164313a734"
+        ]
+      ],
+      "wireBytes": 24149529,
+      "result": {
+        "wireCoverage": "canonical-warm",
+        "queryCoverage": "All-expiry archive and one latest overview are warm; parameter variants reconstruct read-only from protected local profiles",
+        "importVersion": "qqq-local-import-v5",
+        "status": "imported",
+        "partialDates": [],
+        "publishedDates": [
+          "2026-11-02",
+          "2026-11-03",
+          "2026-11-04",
+          "2026-11-05",
+          "2026-11-06"
+        ],
+        "source": "synthetic-benchmark-not-market-data",
+        "revision": "5d231d02a166582623723377cc01784d8482b9b2cf812eb6e1d4e82bff56a092",
+        "dates": [
+          "2026-11-02",
+          "2026-11-03",
+          "2026-11-04",
+          "2026-11-05",
+          "2026-11-06"
+        ],
+        "rows": 600,
+        "regularPriceAligned": true,
+        "priceAligned": true,
+        "inputComplete": true,
+        "missingExpiries": [],
+        "historyCoverage": "only supplied captures; gaps not synthesized"
+      }
+    }
+  ],
+  "baseline": "8d33943 preserved standalone importer, pre-optimization",
+  "integratedUpstream": "627a875, local merge 3de30b6",
+  "workload": {
+    "dates": 5,
+    "snapshots": 600,
+    "contracts": 96000,
+    "bars": 75
+  }
+}

@@ -1,13 +1,13 @@
 # QQQ GEX workbench migration (in progress)
 
 Source: option-seller `work@d60e24b56e308a81723f6c206fb52d22ddc0e9f8`.
-649 byte-preserved files are tracked in `source-manifest.json`.
+654 byte-preserved files are tracked in `source-manifest.json`.
 `python3 tools/qqq-gex/verify-source.py` verifies fidelity. Original calculation,
 research, indicators, replay and archive algorithms remain the single implementation.
 Next component/worker, local transport and storage adapters are maintained here.
 
-EasySellPut upstream `work@bf4d77d06cc35a825bf7ae216535d60817963c60` was merged
-locally as `04e0e13`, after preserving prior work in `bbb2f23` and an external
+EasySellPut upstream `work@627a875` was merged
+locally as `3de30b6`, after preserving prior work in `bbb2f23` and an external
 archive. See [UPSTREAM-STATUS.md](UPSTREAM-STATUS.md). Nothing was pushed/deployed.
 
 ## Run and transport
@@ -98,22 +98,17 @@ on Nov 9–13, while the chain's ET capture date is Nov 15. All 29 computed prof
 are retained and displayed as partial; no complete real day was published.
 No missing option-seller database/blob history or 2026-10-15 snapshot was invented.
 
-Latest synthetic workload: five dates, 600 snapshots, 96,000 contracts, 75 bars;
-16.1 s cold import, 1.01–1.11 s verified repeated import, peak RSS 737 MiB cold /
-471 MiB repeated, summary query 80 ms. The physical SQLite file is ~562 MiB and
-includes freed pages, retained archive and wire data. This exposes ongoing cold
-import/storage/memory bottlenecks; it is **not** performance acceptance. Environment:
-Node 24.22.1/Linux x64/Xeon 8573C/four visible CPUs, one machine with concurrent
-tests. Real retained partial input measured 0.67–1.26 s / peak ~259 MiB before
-receipt optimization; no representative complete real history is available.
+The controlled-input comparison in [benchmarks/2026-11-16-comparison.json](benchmarks/2026-11-16-comparison.json) uses the identical five dates / 600 snapshots / 96,000 contracts / 75 bars, alternating three fresh databases per version. Median import is 12.62 s → 3.63 s; median child peak RSS 780.8 → 454.4 MiB; database 562 → 83.1 MiB; derived wire bytes 248.9 → 23.0 MiB. All full row/profile, bar and summary fingerprints match, as do the sampled PCS wire response and two all-expiry manifests. These are synthetic shared-host results, not real-history or native performance acceptance. The older 16.1 s result remains in the dated original report.
 
-Remaining: full live PCS decision/eligibility server localization and its additional
-market inputs, unsupported query variants/out-of-workbench links, exhaustive UI and
-golden parity, theme/locale integration, large-history resource optimization,
-original external history import, native Windows/macOS execution/trust and complete
-real-history end-to-end performance. ASK AI is explicit prompt export rather than
-the source's credential-backed in-page inference. These limits mean the complete
-migration is not yet accepted.
+The lossless v2 archive stores each profile once; original historical display algorithms reconstruct expiry projections on demand. Only all-expiry exposure and one canonical overview are prewarmed. Unsupported variants remain unavailable. Regular versus extended-session buckets and observed-span gaps remain explicit; no outer/full-day coverage is inferred.
+
+The local PCS evaluator extracts the pinned route's original pure functions and factor-building pipeline at build time, reusing its daily eligibility, prior-close gate, intraday timing, contract-profile/target and actual-chain candidate rules. Captures retain routed daily QQQ/VIX/VIX3M/VXN observations and their provenance. Completed close dates must align; stale or missing inputs block qualification. Native quote subscriptions and model capture timestamps stay distinct. Canonical alerts and source lifecycle points are persisted only by fresh capture/calculation writes; reads do not invent alerts or historical observations. `get_qqq_gex_live_decision` exposes this read-only result to CLI/MCP. Source contract fixtures verify OPEN/NOW/READY, stale/misaligned/inherited BLOCK and no network fallback.
+
+Presentation preferences use a token/Origin-protected local endpoint and SnapshotFile compare-and-swap at `qqq-gex-view.json`; this is a UI-state exception, not a business operation or credential store. Only named GEX/PCS presentation prefixes, bounded keys/values and partial patches are accepted. Conflicts surface in the page rather than overwriting another session. Random loopback ports no longer discard selected date, mode or chart options. CacheManager does not remove this file.
+
+A newer actual capture at 2026-11-16 12:10 UTC retained all 29 expiries, 2,245 complete observed two-minute buckets (43 same date, all premarket), and 86 positive-OI contracts without IV. Option publication was 11:06:40 UTC; underlying last trade remained Nov 13 15:59:59 ET. It was correctly retained as partial with no complete day. The live source PCS evaluation produced BLOCK using Nov 13 completed daily close, PREMARKET/INSUFFICIENT_DATA and no candidate or saved alert. This is genuine partial-data evidence, not successful full live-to-page acceptance.
+
+Remaining: complete original macro/regime source orchestration and additional route variants, historical lifecycle chart integration and exhaustive source page interactions/golden fixtures; original external historical database/blobs and unresolved 2026-10-15 discrepancy; theme/locale integration; native Windows/macOS execution/trust; representative complete real-history end-to-end performance. ASK AI remains explicit prompt export rather than source credential-backed in-page inference. Full migration is **not yet accepted**.
 
 Linux full offline run: Core's new logging violations were fixed and 199 tests
 repassed; Data/Analytics/Shared/Automation and Python/process checks are recorded

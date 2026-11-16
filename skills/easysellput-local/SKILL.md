@@ -127,4 +127,5 @@ Discover the live schema before calling any tool; this guide does not replace ar
 | `rebuild_qqq_gex_history` | write | Resume imports of retained normalized observations; bounded batches, independent commits and explicit retry of failed inputs; never fills missing history. |
 | `get_cache_status` | read | Inspect process-local cache counts and shared bar storage policies before maintenance. Memory in another running process is not included; IV/OI history and user data are protected. |
 | `clear_cache` | write | Clear only an explicitly requested registered category. Inspect first; requires write-enabled MCP. Symbol filtering is bars-only, expired mode keeps TTL-free bars, and clearing bars removes offline availability. Never delete the database or browser profile. |
+| `get_qqq_gex_live_decision` | read | Evaluate original PCS gates/timing and real-chain references using retained local inputs only. Preserve expiry/delay/missing input meaning; no network, synthetic trade substitute, account permission or order path. |
 <!-- mcp-tool-guide:end -->

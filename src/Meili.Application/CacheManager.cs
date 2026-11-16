@@ -15,7 +15,7 @@ public sealed class CacheManager
         _stores = stores.ToArray();
     }
     public CacheReport Inspect(CancellationToken ct = default) => new(_stores.Select(s => s.Inspect()).ToArray(),
-        ["iv_samples", "oi_daily", "qqq_gex_observations", "qqq_gex_raw_provenance", "qqq_gex_archives", "qqq_gex_daily_summaries", "qqq_gex_import_progress", "settings", "watchlists", "alerts", "drawings", "strategies", "bookmarks"],
+        ["iv_samples", "oi_daily", "qqq_gex_observations", "qqq_gex_raw_provenance", "qqq_gex_archives", "qqq_gex_daily_summaries", "qqq_gex_import_progress", "qqq_gex_live_signals", "qqq_gex_pcs_lifecycle", "qqq_gex_view_preferences", "settings", "watchlists", "alerts", "drawings", "strategies", "bookmarks"],
         ["OS-owned WebView profiles/cookies", "UI page instances and personal web sessions", "provider authentication and health state", "update downloads"], _dataDirectory is null ? null : StorageInventory.Scan(_dataDirectory, ct));
     public IReadOnlyList<CacheClearResult> Clear(string category, bool expiredOnly = false, string? symbol = null)
     {
