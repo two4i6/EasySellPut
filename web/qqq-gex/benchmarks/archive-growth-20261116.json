@@ -1,0 +1,154 @@
+{
+  "logicalProfileHashesIdentical": true,
+  "legacy": {
+    "kind": "read-only archive growth model",
+    "dataset": {
+      "sessions": 1,
+      "observedCaptureTimes": 6,
+      "expiries": 29,
+      "snapshots": 174,
+      "strikePoints": 31806
+    },
+    "protectedLogicalBytes": 110853019,
+    "tables": [
+      {
+        "table": "qqq_gex_local_rows",
+        "count": 174,
+        "bytes": 41023941
+      },
+      {
+        "table": "qqq_gex_observed_inputs",
+        "count": 6,
+        "bytes": 20506758
+      },
+      {
+        "table": "qqq_gex_provider_raw",
+        "count": 6,
+        "bytes": 28230904
+      },
+      {
+        "table": "qqq_gex_raw",
+        "count": 6,
+        "bytes": 20506758
+      },
+      {
+        "table": "qqq_gex_local_days",
+        "count": 1,
+        "bytes": 584658
+      },
+      {
+        "table": "qqq_gex_partial_days",
+        "count": 0,
+        "bytes": 0
+      }
+    ],
+    "physical": {
+      "databaseBytes": 162975744,
+      "walBytes": 0,
+      "pageCount": 39789,
+      "freePageBytes": 1536000
+    },
+    "estimate": {
+      "bytesPerObservedCaptureUpperBound": 18475503.166666668,
+      "scenarios": [
+        {
+          "capturesPerSession": 100,
+          "oneSessionBytes": 1847550317,
+          "fiveSessionsBytes": 9237751584
+        },
+        {
+          "capturesPerSession": 195,
+          "oneSessionBytes": 3602723118,
+          "fiveSessionsBytes": 18013615588
+        },
+        {
+          "capturesPerSession": 203,
+          "oneSessionBytes": 3750527143,
+          "fiveSessionsBytes": 18752635715
+        }
+      ],
+      "warningBytes": 1073741824,
+      "reserveBytes": 268435456,
+      "wireLogicalLimitBytes": 67108864,
+      "wireImportTargetBytes": 50331648
+    },
+    "policy": "Only derived wire is evictable. Unique history has no automatic deletion or hard eviction limit. Warning is not a cap; low-space writes pause before the 256 MiB reserve. Export to separately verified storage and any later deletion require explicit user action.",
+    "limitations": "Measured small retained partial sample only; not a complete-day growth measurement. Protected bytes include fixed day metadata and all retained provider/manual inputs, so per-capture is an upper-bound average for this dataset, not an incremental slope. More expiries, strikes, revisions, raw providers or lossless fields can change growth. Physical SQLite/WAL/runtime sizes are separate; clearing wire does not shrink unique history."
+  },
+  "compressed": {
+    "kind": "read-only archive growth model",
+    "dataset": {
+      "sessions": 1,
+      "observedCaptureTimes": 6,
+      "expiries": 29,
+      "snapshots": 174,
+      "strikePoints": 31806
+    },
+    "protectedLogicalBytes": 22543964,
+    "tables": [
+      {
+        "table": "qqq_gex_local_rows",
+        "count": 174,
+        "bytes": 10649906
+      },
+      {
+        "table": "qqq_gex_observed_inputs",
+        "count": 6,
+        "bytes": 4595485
+      },
+      {
+        "table": "qqq_gex_provider_raw",
+        "count": 6,
+        "bytes": 6713453
+      },
+      {
+        "table": "qqq_gex_raw",
+        "count": 6,
+        "bytes": 462
+      },
+      {
+        "table": "qqq_gex_local_days",
+        "count": 1,
+        "bytes": 584658
+      },
+      {
+        "table": "qqq_gex_partial_days",
+        "count": 0,
+        "bytes": 0
+      }
+    ],
+    "physical": {
+      "databaseBytes": 22949888,
+      "walBytes": 0,
+      "pageCount": 5603,
+      "freePageBytes": 0
+    },
+    "estimate": {
+      "bytesPerObservedCaptureUpperBound": 3757327.3333333335,
+      "scenarios": [
+        {
+          "capturesPerSession": 100,
+          "oneSessionBytes": 375732734,
+          "fiveSessionsBytes": 1878663667
+        },
+        {
+          "capturesPerSession": 195,
+          "oneSessionBytes": 732678830,
+          "fiveSessionsBytes": 3663394150
+        },
+        {
+          "capturesPerSession": 203,
+          "oneSessionBytes": 762737449,
+          "fiveSessionsBytes": 3813687244
+        }
+      ],
+      "warningBytes": 1073741824,
+      "reserveBytes": 268435456,
+      "wireLogicalLimitBytes": 67108864,
+      "wireImportTargetBytes": 50331648
+    },
+    "policy": "Only derived wire is evictable. Unique history has no automatic deletion or hard eviction limit. Warning is not a cap; low-space writes pause before the 256 MiB reserve. Export to separately verified storage and any later deletion require explicit user action.",
+    "limitations": "Measured small retained partial sample only; not a complete-day growth measurement. Protected bytes include fixed day metadata and all retained provider/manual inputs, so per-capture is an upper-bound average for this dataset, not an incremental slope. More expiries, strikes, revisions, raw providers or lossless fields can change growth. Physical SQLite/WAL/runtime sizes are separate; clearing wire does not shrink unique history."
+  },
+  "note": "Existing private captured sample and its previously compressed copy, read-only; no archive was modified by this measurement."
+}

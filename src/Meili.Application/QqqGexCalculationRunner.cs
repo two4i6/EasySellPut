@@ -44,7 +44,7 @@ public static class QqqGexCalculationRunner
     public static Task<object> RunAsync(string directory,CancellationToken ct=default)=>ExecuteAsync(directory,"import.mjs",null,ct);
     public static async Task<object> QueryAsync(string directory,string path,CancellationToken ct=default)
     {
-        if(path.Length>8192||!(path.StartsWith("/api/analysis/qqq/local-analysis?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/local-archive?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/pcs/backtest?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/pcs?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/gex/intraday-context?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/gex/exposure?",StringComparison.Ordinal)||(path=="/api/analysis/qqq/pcs/local-decision"||path.StartsWith("/api/analysis/qqq/pcs/local-decision?",StringComparison.Ordinal))))throw new ArgumentException("Unsupported local query");
+        if(Encoding.UTF8.GetByteCount(path)>65536||!(path.StartsWith("/api/analysis/qqq/local-analysis?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/local-archive?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/pcs/backtest?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/pcs?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/gex/intraday-context?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/gex/exposure?",StringComparison.Ordinal)||(path=="/api/analysis/qqq/pcs/local-decision"||path.StartsWith("/api/analysis/qqq/pcs/local-decision?",StringComparison.Ordinal))))throw new ArgumentException("Unsupported local query");
         await QueryGate.WaitAsync(ct);try{return await ExecuteAsync(directory,"query.mjs",path,ct);}finally{QueryGate.Release();}
     }
     private static async Task<object> ExecuteAsync(string directory,string script,string? query,CancellationToken ct)
@@ -57,11 +57,12 @@ public static class QqqGexCalculationRunner
         else new SnapshotFile(runtime).Write(Encoding.UTF8.GetString(bytes));
         var executable=await ExtractNodeAsync(directory,ct);
         if(executable is null)return new {status="runtime_unavailable",complete=false,reason="Pinned bundled Node archive is missing for this platform"};
-        var start=new ProcessStartInfo(executable){UseShellExecute=false,RedirectStandardOutput=true,RedirectStandardError=true,CreateNoWindow=true};
+        var queryStdin=script=="query.mjs"&&query is not null&&query.Length>8192;
+        var start=new ProcessStartInfo(executable){UseShellExecute=false,RedirectStandardOutput=true,RedirectStandardError=true,RedirectStandardInput=queryStdin,CreateNoWindow=true};
         start.Environment.Remove("NODE_OPTIONS");start.Environment.Remove("NODE_PATH");start.Environment.Remove("NODE_ICU_DATA");
         start.ArgumentList.Add(runtime);
         if(query is null){start.ArgumentList.Add(Path.Combine(directory,"cache","qqq-gex-input.json"));start.ArgumentList.Add(Path.Combine(directory,"cache","qqq-gex.db"));}
-        else {start.ArgumentList.Add(Path.Combine(directory,"cache","qqq-gex.db"));start.ArgumentList.Add(query);}
+        else {start.ArgumentList.Add(Path.Combine(directory,"cache","qqq-gex.db"));start.ArgumentList.Add(queryStdin?"--query-stdin":query);}
         using var timeout=CancellationTokenSource.CreateLinkedTokenSource(ct);timeout.CancelAfter(TimeSpan.FromMinutes(2));
         Process? process;
         try{process=Process.Start(start);}catch(System.ComponentModel.Win32Exception){return new {status="runtime_unavailable",complete=false,reason="Node 24+ is required; no runtime is downloaded or installed automatically"};}
@@ -70,6 +71,7 @@ public static class QqqGexCalculationRunner
         {
             async Task<byte[]> ReadBounded(Stream stream,int limit){using var buffer=new MemoryStream();var chunk=new byte[8192];int n;while((n=await stream.ReadAsync(chunk,timeout.Token))>0){if(buffer.Length+n>limit){try{process.Kill(true);}catch(InvalidOperationException){}throw new InvalidDataException("GEX process output exceeds bound");}buffer.Write(chunk,0,n);}return buffer.ToArray();}
             var outputLimit=script=="query.mjs"?128*1024*1024:1024*1024;var stdout=ReadBounded(process.StandardOutput.BaseStream,outputLimit);var stderr=ReadBounded(process.StandardError.BaseStream,65536);
+            if(queryStdin){await process.StandardInput.BaseStream.WriteAsync(Encoding.UTF8.GetBytes(query!),timeout.Token);process.StandardInput.Close();}
             try{await process.WaitForExitAsync(timeout.Token);}catch(OperationCanceledException){try{process.Kill(true);}catch(InvalidOperationException){}throw;}
             var output=await stdout;_ =await stderr;
             if(process.ExitCode!=0||output.Length>outputLimit)return new {status="calculation_failed",complete=false,exitCode=process.ExitCode,reason="Pinned source runtime rejected input; raw normalized input retained"};

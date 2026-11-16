@@ -1,0 +1,1471 @@
+{
+  "kind": "production-local-session-real-delayed-sample",
+  "environment": {
+    "node": "v24.22.1",
+    "platform": "linux",
+    "architecture": "x64",
+    "cpu": "INTEL(R) XEON(R) PLATINUM 8573C",
+    "logicalCpus": 5,
+    "systemMemoryBytes": 18882662400,
+    "chromium": "141.0.7390.37",
+    "hostFramework": ".NET 10"
+  },
+  "dataset": {
+    "days": 1,
+    "expirySnapshots": 174,
+    "strikePoints": 31806,
+    "bars": 9,
+    "quality": "Actual retained partial delayed sample; not a complete trading day"
+  },
+  "runs": [
+    {
+      "phase": "cold",
+      "firstCanvasMs": 2242.189096,
+      "navigation": {
+        "responseEnd": 33.899999998509884,
+        "domInteractive": 40.70000000298023,
+        "domContentLoaded": 143,
+        "load": 143
+      },
+      "initialResources": [
+        {
+          "asset": "QqqExposureWorkbench-XE4ACHBL.css",
+          "local": true,
+          "type": "link",
+          "startMs": 36.600000001490116,
+          "endMs": 53,
+          "durationMs": 16.399999998509884,
+          "bytes": 18242
+        },
+        {
+          "asset": "QqqGexMatrix-VYHVNCMX.css",
+          "local": true,
+          "type": "link",
+          "startMs": 36.79999999701977,
+          "endMs": 44.899999998509884,
+          "durationMs": 8.100000001490116,
+          "bytes": 11211
+        },
+        {
+          "asset": "QqqPcsIntradayChart-Y3OTZ2K6.css",
+          "local": true,
+          "type": "link",
+          "startMs": 36.899999998509884,
+          "endMs": 49.399999998509884,
+          "durationMs": 12.5,
+          "bytes": 3250
+        },
+        {
+          "asset": "page.component-I6L7YVTA.css",
+          "local": true,
+          "type": "link",
+          "startMs": 36.899999998509884,
+          "endMs": 53.29999999701977,
+          "durationMs": 16.399999998509884,
+          "bytes": 54482
+        },
+        {
+          "asset": "main.css",
+          "local": true,
+          "type": "link",
+          "startMs": 36.899999998509884,
+          "endMs": 53.899999998509884,
+          "durationMs": 17,
+          "bytes": 80424
+        },
+        {
+          "asset": "main.js",
+          "local": true,
+          "type": "script",
+          "startMs": 37,
+          "endMs": 55,
+          "durationMs": 18,
+          "bytes": 239558
+        },
+        {
+          "asset": "chunk-WGAPZITF.js",
+          "local": true,
+          "type": "script",
+          "startMs": 64.70000000298023,
+          "endMs": 90.89999999850988,
+          "durationMs": 26.19999999552965,
+          "bytes": 645
+        },
+        {
+          "asset": "chunk-VDRCTHDD.js",
+          "local": true,
+          "type": "script",
+          "startMs": 64.70000000298023,
+          "endMs": 90.79999999701977,
+          "durationMs": 26.099999994039536,
+          "bytes": 52630
+        },
+        {
+          "asset": "chunk-P5AR32QI.js",
+          "local": true,
+          "type": "script",
+          "startMs": 64.70000000298023,
+          "endMs": 92.20000000298023,
+          "durationMs": 27.5,
+          "bytes": 5950
+        },
+        {
+          "asset": "chunk-C6R7KNRC.js",
+          "local": true,
+          "type": "script",
+          "startMs": 64.79999999701977,
+          "endMs": 92.70000000298023,
+          "durationMs": 27.900000005960464,
+          "bytes": 117420
+        },
+        {
+          "asset": "chunk-T4VEAWEV.js",
+          "local": true,
+          "type": "script",
+          "startMs": 64.89999999850988,
+          "endMs": 92,
+          "durationMs": 27.100000001490116,
+          "bytes": 8975
+        },
+        {
+          "asset": "chunk-5TBO732O.js",
+          "local": true,
+          "type": "script",
+          "startMs": 65,
+          "endMs": 91.60000000149012,
+          "durationMs": 26.600000001490116,
+          "bytes": 605
+        },
+        {
+          "asset": "preferences",
+          "local": true,
+          "type": "fetch",
+          "startMs": 142.89999999850988,
+          "endMs": 155.89999999850988,
+          "durationMs": 13,
+          "bytes": 941
+        },
+        {
+          "asset": "presentation",
+          "local": true,
+          "type": "fetch",
+          "startMs": 157.5,
+          "endMs": 160.29999999701977,
+          "durationMs": 2.7999999970197678,
+          "bytes": 4
+        },
+        {
+          "asset": "/api/analysis/qqq/local-state",
+          "local": true,
+          "type": "fetch",
+          "startMs": 161,
+          "endMs": 458.79999999701977,
+          "durationMs": 297.79999999701977,
+          "bytes": 861
+        },
+        {
+          "asset": "page.component-OF7BHP7A.js",
+          "local": true,
+          "type": "script",
+          "startMs": 460.3999999985099,
+          "endMs": 468.5,
+          "durationMs": 8.100000001490116,
+          "bytes": 205004
+        },
+        {
+          "asset": "chunk-GJYKVVSO.js",
+          "local": true,
+          "type": "script",
+          "startMs": 472.5,
+          "endMs": 477.5,
+          "durationMs": 5,
+          "bytes": 6263
+        },
+        {
+          "asset": "chunk-ZXPNQUXU.js",
+          "local": true,
+          "type": "script",
+          "startMs": 472.5,
+          "endMs": 480.1000000014901,
+          "durationMs": 7.600000001490116,
+          "bytes": 24580
+        },
+        {
+          "asset": "chunk-LCC5YYSF.js",
+          "local": true,
+          "type": "script",
+          "startMs": 472.6000000014901,
+          "endMs": 487,
+          "durationMs": 14.399999998509884,
+          "bytes": 28861
+        },
+        {
+          "asset": "chunk-GMPAE2YJ.js",
+          "local": true,
+          "type": "script",
+          "startMs": 472.6000000014901,
+          "endMs": 486.70000000298023,
+          "durationMs": 14.100000001490116,
+          "bytes": 5419
+        },
+        {
+          "asset": "chunk-HFKETO6F.js",
+          "local": true,
+          "type": "script",
+          "startMs": 472.70000000298023,
+          "endMs": 480.29999999701977,
+          "durationMs": 7.5999999940395355,
+          "bytes": 17407
+        },
+        {
+          "asset": "chunk-NIUVFPG6.js",
+          "local": true,
+          "type": "script",
+          "startMs": 472.70000000298023,
+          "endMs": 487.20000000298023,
+          "durationMs": 14.5,
+          "bytes": 8853
+        },
+        {
+          "asset": "/api/analysis/qqq/cache-status",
+          "local": true,
+          "type": "fetch",
+          "startMs": 614.6000000014901,
+          "endMs": 645.2999999970198,
+          "durationMs": 30.69999999552965,
+          "bytes": 779
+        },
+        {
+          "asset": "/api/analysis/qqq/pcs/backtest",
+          "local": true,
+          "type": "fetch",
+          "startMs": 618.7999999970198,
+          "endMs": 662.7999999970198,
+          "durationMs": 44,
+          "bytes": 136
+        },
+        {
+          "asset": "/api/analysis/qqq/gex/day",
+          "local": true,
+          "type": "fetch",
+          "startMs": 628.2000000029802,
+          "endMs": 1362.3999999985099,
+          "durationMs": 734.1999999955297,
+          "bytes": 8307085
+        },
+        {
+          "asset": "/api/analysis/qqq/gex/exposure",
+          "local": true,
+          "type": "fetch",
+          "startMs": 629,
+          "endMs": 1282.7999999970198,
+          "durationMs": 653.7999999970198,
+          "bytes": 2195
+        },
+        {
+          "asset": "/api/analysis/qqq/pcs/backtest",
+          "local": true,
+          "type": "fetch",
+          "startMs": 629.5,
+          "endMs": 2189.10000000149,
+          "durationMs": 1559.6000000014901,
+          "bytes": 3110
+        },
+        {
+          "asset": "preferences",
+          "local": true,
+          "type": "fetch",
+          "startMs": 877.7000000029802,
+          "endMs": 1332.1000000014901,
+          "durationMs": 454.3999999985099,
+          "bytes": 941
+        },
+        {
+          "asset": "QqqPcsIntradayChart-IBYGL6IH.js",
+          "local": true,
+          "type": "script",
+          "startMs": 1654.1000000014901,
+          "endMs": 1675.1000000014901,
+          "durationMs": 21,
+          "bytes": 293924
+        },
+        {
+          "asset": "QqqExposureWorkbench-HDLB6UGV.js",
+          "local": true,
+          "type": "script",
+          "startMs": 1655.2000000029802,
+          "endMs": 1674.3999999985099,
+          "durationMs": 19.19999999552965,
+          "bytes": 133979
+        },
+        {
+          "asset": "/api/analysis/qqq/cache-status",
+          "local": true,
+          "type": "fetch",
+          "startMs": 1660.8999999985099,
+          "endMs": 1722.1000000014901,
+          "durationMs": 61.20000000298023,
+          "bytes": 779
+        },
+        {
+          "asset": "chunk-J4FV6ORF.js",
+          "local": true,
+          "type": "script",
+          "startMs": 1739.7999999970198,
+          "endMs": 1766.6000000014901,
+          "durationMs": 26.80000000447035,
+          "bytes": 15259
+        },
+        {
+          "asset": "chunk-L45JEGKF.js",
+          "local": true,
+          "type": "script",
+          "startMs": 1739.8999999985099,
+          "endMs": 1766.7000000029802,
+          "durationMs": 26.80000000447035,
+          "bytes": 3685
+        },
+        {
+          "asset": "chunk-TQPRDFHL.js",
+          "local": true,
+          "type": "script",
+          "startMs": 1741,
+          "endMs": 1778.7000000029802,
+          "durationMs": 37.70000000298023,
+          "bytes": 2478
+        },
+        {
+          "asset": "qqqGammaModel.worker.js",
+          "local": true,
+          "type": "other",
+          "startMs": 1743.7999999970198,
+          "endMs": 1686.8999999985099,
+          "durationMs": -56.899999998509884,
+          "bytes": 11008
+        },
+        {
+          "asset": "preferences",
+          "local": true,
+          "type": "fetch",
+          "startMs": 2034.2000000029802,
+          "endMs": 2040.8999999985099,
+          "durationMs": 6.699999995529652,
+          "bytes": 941
+        }
+      ],
+      "failedRequests": [
+        {
+          "type": "fetch",
+          "asset": "/api/analysis/qqq/gex/exposure",
+          "code": "net::ERR_ABORTED"
+        },
+        {
+          "type": "fetch",
+          "asset": "/api/analysis/qqq/gex/exposure",
+          "code": "net::ERR_ABORTED"
+        }
+      ],
+      "flowMs": 5881.4562670000005,
+      "visibleSnapshotRows": 6,
+      "apiEncodedBodyBytes": 4360112,
+      "apiDecodedBodyBytes": 17033643,
+      "rendererJsHeapSampleBytes": 34519428,
+      "longTasksMs": [
+        67,
+        90,
+        156,
+        59,
+        134,
+        61,
+        59,
+        55,
+        55,
+        81
+      ],
+      "requests": [
+        {
+          "path": "/api/analysis/qqq/local-state",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=294",
+          "encodedBodyBytes": 861,
+          "durationMs": 297.807
+        },
+        {
+          "path": "/api/analysis/qqq/cache-status",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=28",
+          "encodedBodyBytes": 779,
+          "durationMs": 31.096
+        },
+        {
+          "path": "/api/analysis/qqq/pcs/backtest",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=36",
+          "encodedBodyBytes": 136,
+          "durationMs": 44.07
+        },
+        {
+          "path": "/api/analysis/qqq/gex/day",
+          "status": 200,
+          "encoding": "gzip",
+          "serverTiming": "local;dur=587",
+          "encodedBodyBytes": 2088139,
+          "durationMs": 734.302
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=0",
+          "encodedBodyBytes": 2195,
+          "durationMs": 653.947
+        },
+        {
+          "path": "/api/analysis/qqq/cache-status",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=36",
+          "encodedBodyBytes": 779,
+          "durationMs": 61.595
+        },
+        {
+          "path": "/api/analysis/qqq/pcs/backtest",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=904",
+          "encodedBodyBytes": 3110,
+          "durationMs": 1559.687
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=1143",
+          "encodedBodyBytes": 1831,
+          "durationMs": 1151.059
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=393",
+          "encodedBodyBytes": 2195,
+          "durationMs": 406.384
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "gzip",
+          "serverTiming": "local;dur=495",
+          "encodedBodyBytes": 179569,
+          "durationMs": 506.513
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=833",
+          "encodedBodyBytes": 1831,
+          "durationMs": 836.92
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=346",
+          "encodedBodyBytes": 1831,
+          "durationMs": 355.637
+        },
+        {
+          "path": "/api/analysis/qqq/gex/day",
+          "status": 200,
+          "encoding": "gzip",
+          "serverTiming": "local;dur=182",
+          "encodedBodyBytes": 2075025,
+          "durationMs": 238.476
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=582",
+          "encodedBodyBytes": 1831,
+          "durationMs": 597.041
+        }
+      ],
+      "recovery": null,
+      "errors": []
+    },
+    {
+      "phase": "warm",
+      "firstCanvasMs": 1049.7981420000006,
+      "navigation": {
+        "responseEnd": 11.700000002980232,
+        "domInteractive": 22.100000001490116,
+        "domContentLoaded": 118.80000000447035,
+        "load": 118.89999999850988
+      },
+      "initialResources": [
+        {
+          "asset": "QqqExposureWorkbench-XE4ACHBL.css",
+          "local": true,
+          "type": "link",
+          "startMs": 17,
+          "endMs": 30.899999998509884,
+          "durationMs": 13.899999998509884,
+          "bytes": 18242
+        },
+        {
+          "asset": "QqqGexMatrix-VYHVNCMX.css",
+          "local": true,
+          "type": "link",
+          "startMs": 17.30000000447035,
+          "endMs": 32.5,
+          "durationMs": 15.199999995529652,
+          "bytes": 11211
+        },
+        {
+          "asset": "QqqPcsIntradayChart-Y3OTZ2K6.css",
+          "local": true,
+          "type": "link",
+          "startMs": 17.399999998509884,
+          "endMs": 31.700000002980232,
+          "durationMs": 14.300000004470348,
+          "bytes": 3250
+        },
+        {
+          "asset": "page.component-I6L7YVTA.css",
+          "local": true,
+          "type": "link",
+          "startMs": 17.5,
+          "endMs": 33.20000000298023,
+          "durationMs": 15.700000002980232,
+          "bytes": 54482
+        },
+        {
+          "asset": "main.css",
+          "local": true,
+          "type": "link",
+          "startMs": 17.5,
+          "endMs": 33.399999998509884,
+          "durationMs": 15.899999998509884,
+          "bytes": 80424
+        },
+        {
+          "asset": "main.js",
+          "local": true,
+          "type": "script",
+          "startMs": 17.5,
+          "endMs": 38.30000000447035,
+          "durationMs": 20.80000000447035,
+          "bytes": 239558
+        },
+        {
+          "asset": "chunk-WGAPZITF.js",
+          "local": true,
+          "type": "script",
+          "startMs": 49,
+          "endMs": 55.70000000298023,
+          "durationMs": 6.700000002980232,
+          "bytes": 645
+        },
+        {
+          "asset": "chunk-VDRCTHDD.js",
+          "local": true,
+          "type": "script",
+          "startMs": 49.20000000298023,
+          "endMs": 56.600000001490116,
+          "durationMs": 7.399999998509884,
+          "bytes": 52630
+        },
+        {
+          "asset": "chunk-P5AR32QI.js",
+          "local": true,
+          "type": "script",
+          "startMs": 49.899999998509884,
+          "endMs": 60.5,
+          "durationMs": 10.600000001490116,
+          "bytes": 5950
+        },
+        {
+          "asset": "chunk-C6R7KNRC.js",
+          "local": true,
+          "type": "script",
+          "startMs": 50,
+          "endMs": 68.30000000447035,
+          "durationMs": 18.30000000447035,
+          "bytes": 117420
+        },
+        {
+          "asset": "chunk-T4VEAWEV.js",
+          "local": true,
+          "type": "script",
+          "startMs": 50.100000001490116,
+          "endMs": 67.60000000149012,
+          "durationMs": 17.5,
+          "bytes": 8975
+        },
+        {
+          "asset": "chunk-5TBO732O.js",
+          "local": true,
+          "type": "script",
+          "startMs": 50.399999998509884,
+          "endMs": 61.600000001490116,
+          "durationMs": 11.200000002980232,
+          "bytes": 605
+        },
+        {
+          "asset": "preferences",
+          "local": true,
+          "type": "fetch",
+          "startMs": 118.70000000298023,
+          "endMs": 121.80000000447035,
+          "durationMs": 3.100000001490116,
+          "bytes": 941
+        },
+        {
+          "asset": "presentation",
+          "local": true,
+          "type": "fetch",
+          "startMs": 124.20000000298023,
+          "endMs": 128.60000000149012,
+          "durationMs": 4.399999998509884,
+          "bytes": 4
+        },
+        {
+          "asset": "/api/analysis/qqq/local-state",
+          "local": true,
+          "type": "fetch",
+          "startMs": 141.5,
+          "endMs": 180.30000000447035,
+          "durationMs": 38.80000000447035,
+          "bytes": 861
+        },
+        {
+          "asset": "page.component-OF7BHP7A.js",
+          "local": true,
+          "type": "script",
+          "startMs": 181.20000000298023,
+          "endMs": 185.30000000447035,
+          "durationMs": 4.100000001490116,
+          "bytes": 205004
+        },
+        {
+          "asset": "chunk-GJYKVVSO.js",
+          "local": true,
+          "type": "script",
+          "startMs": 190.20000000298023,
+          "endMs": 195.30000000447035,
+          "durationMs": 5.100000001490116,
+          "bytes": 6263
+        },
+        {
+          "asset": "chunk-ZXPNQUXU.js",
+          "local": true,
+          "type": "script",
+          "startMs": 190.30000000447035,
+          "endMs": 198.5,
+          "durationMs": 8.199999995529652,
+          "bytes": 24580
+        },
+        {
+          "asset": "chunk-GMPAE2YJ.js",
+          "local": true,
+          "type": "script",
+          "startMs": 190.30000000447035,
+          "endMs": 198.70000000298023,
+          "durationMs": 8.399999998509884,
+          "bytes": 5419
+        },
+        {
+          "asset": "chunk-LCC5YYSF.js",
+          "local": true,
+          "type": "script",
+          "startMs": 190.30000000447035,
+          "endMs": 199,
+          "durationMs": 8.699999995529652,
+          "bytes": 28861
+        },
+        {
+          "asset": "chunk-NIUVFPG6.js",
+          "local": true,
+          "type": "script",
+          "startMs": 190.39999999850988,
+          "endMs": 198.70000000298023,
+          "durationMs": 8.300000004470348,
+          "bytes": 8853
+        },
+        {
+          "asset": "chunk-HFKETO6F.js",
+          "local": true,
+          "type": "script",
+          "startMs": 190.39999999850988,
+          "endMs": 198.89999999850988,
+          "durationMs": 8.5,
+          "bytes": 17407
+        },
+        {
+          "asset": "/api/analysis/qqq/cache-status",
+          "local": true,
+          "type": "fetch",
+          "startMs": 280.80000000447035,
+          "endMs": 320.70000000298023,
+          "durationMs": 39.899999998509884,
+          "bytes": 779
+        },
+        {
+          "asset": "/api/analysis/qqq/pcs/backtest",
+          "local": true,
+          "type": "fetch",
+          "startMs": 285.8999999985099,
+          "endMs": 321.6000000014901,
+          "durationMs": 35.70000000298023,
+          "bytes": 136
+        },
+        {
+          "asset": "/api/analysis/qqq/gex/day",
+          "local": true,
+          "type": "fetch",
+          "startMs": 303.70000000298023,
+          "endMs": 552,
+          "durationMs": 248.29999999701977,
+          "bytes": 8307085
+        },
+        {
+          "asset": "/api/analysis/qqq/gex/exposure",
+          "local": true,
+          "type": "fetch",
+          "startMs": 304.30000000447035,
+          "endMs": 513.3000000044703,
+          "durationMs": 209,
+          "bytes": 2195
+        },
+        {
+          "asset": "/api/analysis/qqq/pcs/backtest",
+          "local": true,
+          "type": "fetch",
+          "startMs": 305,
+          "endMs": 871.8000000044703,
+          "durationMs": 566.8000000044703,
+          "bytes": 3110
+        },
+        {
+          "asset": "preferences",
+          "local": true,
+          "type": "fetch",
+          "startMs": 595.8000000044703,
+          "endMs": 609.6000000014901,
+          "durationMs": 13.799999997019768,
+          "bytes": 941
+        },
+        {
+          "asset": "QqqPcsIntradayChart-IBYGL6IH.js",
+          "local": true,
+          "type": "script",
+          "startMs": 769.3999999985099,
+          "endMs": 785.6000000014901,
+          "durationMs": 16.200000002980232,
+          "bytes": 293924
+        },
+        {
+          "asset": "QqqExposureWorkbench-HDLB6UGV.js",
+          "local": true,
+          "type": "script",
+          "startMs": 770.7000000029802,
+          "endMs": 784.3999999985099,
+          "durationMs": 13.699999995529652,
+          "bytes": 133979
+        },
+        {
+          "asset": "/api/analysis/qqq/cache-status",
+          "local": true,
+          "type": "fetch",
+          "startMs": 779.5,
+          "endMs": 845.6000000014901,
+          "durationMs": 66.10000000149012,
+          "bytes": 779
+        },
+        {
+          "asset": "chunk-J4FV6ORF.js",
+          "local": true,
+          "type": "script",
+          "startMs": 836.1000000014901,
+          "endMs": 854.5,
+          "durationMs": 18.399999998509884,
+          "bytes": 15259
+        },
+        {
+          "asset": "chunk-L45JEGKF.js",
+          "local": true,
+          "type": "script",
+          "startMs": 836.2000000029802,
+          "endMs": 854.5,
+          "durationMs": 18.299999997019768,
+          "bytes": 3685
+        },
+        {
+          "asset": "chunk-TQPRDFHL.js",
+          "local": true,
+          "type": "script",
+          "startMs": 836.3000000044703,
+          "endMs": 854.3999999985099,
+          "durationMs": 18.099999994039536,
+          "bytes": 2478
+        },
+        {
+          "asset": "qqqGammaModel.worker.js",
+          "local": true,
+          "type": "other",
+          "startMs": 850.8000000044703,
+          "endMs": 846.3999999985099,
+          "durationMs": -4.4000000059604645,
+          "bytes": 11008
+        }
+      ],
+      "failedRequests": [
+        {
+          "type": "fetch",
+          "asset": "/api/analysis/qqq/gex/exposure",
+          "code": "net::ERR_ABORTED"
+        },
+        {
+          "type": "fetch",
+          "asset": "/api/analysis/qqq/gex/exposure",
+          "code": "net::ERR_ABORTED"
+        },
+        {
+          "type": "fetch",
+          "asset": "events",
+          "code": "net::ERR_EMPTY_RESPONSE"
+        }
+      ],
+      "flowMs": 18191.238165,
+      "visibleSnapshotRows": 6,
+      "apiEncodedBodyBytes": 10107065,
+      "apiDecodedBodyBytes": 31833822,
+      "rendererJsHeapSampleBytes": 45920548,
+      "longTasksMs": [
+        91,
+        125,
+        76,
+        94,
+        116,
+        75,
+        99
+      ],
+      "requests": [
+        {
+          "path": "/api/analysis/qqq/local-state",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=35",
+          "encodedBodyBytes": 861,
+          "durationMs": 38.862
+        },
+        {
+          "path": "/api/analysis/qqq/cache-status",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=35",
+          "encodedBodyBytes": 779,
+          "durationMs": 40.039
+        },
+        {
+          "path": "/api/analysis/qqq/pcs/backtest",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=0",
+          "encodedBodyBytes": 136,
+          "durationMs": 35.84
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=0",
+          "encodedBodyBytes": 2195,
+          "durationMs": 209.058
+        },
+        {
+          "path": "/api/analysis/qqq/gex/day",
+          "status": 200,
+          "encoding": "gzip",
+          "serverTiming": "local;dur=162",
+          "encodedBodyBytes": 2088139,
+          "durationMs": 248.326
+        },
+        {
+          "path": "/api/analysis/qqq/cache-status",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=47",
+          "encodedBodyBytes": 779,
+          "durationMs": 66.481
+        },
+        {
+          "path": "/api/analysis/qqq/pcs/backtest",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=358",
+          "encodedBodyBytes": 3110,
+          "durationMs": 566.922
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=494",
+          "encodedBodyBytes": 1831,
+          "durationMs": 507.425
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=1",
+          "encodedBodyBytes": 2195,
+          "durationMs": 5.836
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "gzip",
+          "serverTiming": "local;dur=404",
+          "encodedBodyBytes": 179569,
+          "durationMs": 413.24
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "gzip",
+          "serverTiming": "local;dur=606",
+          "encodedBodyBytes": 5746953,
+          "durationMs": 890.054
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=551",
+          "encodedBodyBytes": 1831,
+          "durationMs": 554.118
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=302",
+          "encodedBodyBytes": 1831,
+          "durationMs": 310.217
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=363",
+          "encodedBodyBytes": 1831,
+          "durationMs": 366.244
+        },
+        {
+          "path": "/api/analysis/qqq/gex/day",
+          "status": 200,
+          "encoding": "gzip",
+          "serverTiming": "local;dur=455",
+          "encodedBodyBytes": 2075025,
+          "durationMs": 507.266
+        }
+      ],
+      "recovery": {
+        "pageFreezeResume": true,
+        "offlineOnline": true,
+        "hostPauseSeconds": 12,
+        "heartbeatResumed": true,
+        "retainedVisibleRows": 6
+      },
+      "errors": []
+    },
+    {
+      "phase": "warm-repeat",
+      "firstCanvasMs": 1044.4236500000006,
+      "navigation": {
+        "responseEnd": 34.5,
+        "domInteractive": 47.29999999701977,
+        "domContentLoaded": 141.60000000149012,
+        "load": 141.70000000298023
+      },
+      "initialResources": [
+        {
+          "asset": "QqqExposureWorkbench-XE4ACHBL.css",
+          "local": true,
+          "type": "link",
+          "startMs": 41.20000000298023,
+          "endMs": 51.399999998509884,
+          "durationMs": 10.199999995529652,
+          "bytes": 18242
+        },
+        {
+          "asset": "QqqGexMatrix-VYHVNCMX.css",
+          "local": true,
+          "type": "link",
+          "startMs": 41.5,
+          "endMs": 53.79999999701977,
+          "durationMs": 12.299999997019768,
+          "bytes": 11211
+        },
+        {
+          "asset": "QqqPcsIntradayChart-Y3OTZ2K6.css",
+          "local": true,
+          "type": "link",
+          "startMs": 41.600000001490116,
+          "endMs": 53.29999999701977,
+          "durationMs": 11.699999995529652,
+          "bytes": 3250
+        },
+        {
+          "asset": "main.css",
+          "local": true,
+          "type": "link",
+          "startMs": 41.70000000298023,
+          "endMs": 54,
+          "durationMs": 12.299999997019768,
+          "bytes": 80424
+        },
+        {
+          "asset": "page.component-I6L7YVTA.css",
+          "local": true,
+          "type": "link",
+          "startMs": 41.79999999701977,
+          "endMs": 54,
+          "durationMs": 12.200000002980232,
+          "bytes": 54482
+        },
+        {
+          "asset": "main.js",
+          "local": true,
+          "type": "script",
+          "startMs": 42.5,
+          "endMs": 57.79999999701977,
+          "durationMs": 15.299999997019768,
+          "bytes": 239558
+        },
+        {
+          "asset": "chunk-WGAPZITF.js",
+          "local": true,
+          "type": "script",
+          "startMs": 67.79999999701977,
+          "endMs": 72.60000000149012,
+          "durationMs": 4.800000004470348,
+          "bytes": 645
+        },
+        {
+          "asset": "chunk-VDRCTHDD.js",
+          "local": true,
+          "type": "script",
+          "startMs": 68,
+          "endMs": 88.39999999850988,
+          "durationMs": 20.399999998509884,
+          "bytes": 52630
+        },
+        {
+          "asset": "chunk-P5AR32QI.js",
+          "local": true,
+          "type": "script",
+          "startMs": 68,
+          "endMs": 89,
+          "durationMs": 21,
+          "bytes": 5950
+        },
+        {
+          "asset": "chunk-T4VEAWEV.js",
+          "local": true,
+          "type": "script",
+          "startMs": 68.10000000149012,
+          "endMs": 89.20000000298023,
+          "durationMs": 21.100000001490116,
+          "bytes": 8975
+        },
+        {
+          "asset": "chunk-C6R7KNRC.js",
+          "local": true,
+          "type": "script",
+          "startMs": 68.10000000149012,
+          "endMs": 89.5,
+          "durationMs": 21.399999998509884,
+          "bytes": 117420
+        },
+        {
+          "asset": "chunk-5TBO732O.js",
+          "local": true,
+          "type": "script",
+          "startMs": 68.20000000298023,
+          "endMs": 88.89999999850988,
+          "durationMs": 20.69999999552965,
+          "bytes": 605
+        },
+        {
+          "asset": "preferences",
+          "local": true,
+          "type": "fetch",
+          "startMs": 141.5,
+          "endMs": 144.20000000298023,
+          "durationMs": 2.7000000029802322,
+          "bytes": 941
+        },
+        {
+          "asset": "presentation",
+          "local": true,
+          "type": "fetch",
+          "startMs": 150.29999999701977,
+          "endMs": 153.10000000149012,
+          "durationMs": 2.8000000044703484,
+          "bytes": 4
+        },
+        {
+          "asset": "/api/analysis/qqq/local-state",
+          "local": true,
+          "type": "fetch",
+          "startMs": 163.5,
+          "endMs": 197.10000000149012,
+          "durationMs": 33.600000001490116,
+          "bytes": 861
+        },
+        {
+          "asset": "page.component-OF7BHP7A.js",
+          "local": true,
+          "type": "script",
+          "startMs": 199.39999999850988,
+          "endMs": 204.39999999850988,
+          "durationMs": 5,
+          "bytes": 205004
+        },
+        {
+          "asset": "chunk-GJYKVVSO.js",
+          "local": true,
+          "type": "script",
+          "startMs": 211.79999999701977,
+          "endMs": 217,
+          "durationMs": 5.200000002980232,
+          "bytes": 6263
+        },
+        {
+          "asset": "chunk-ZXPNQUXU.js",
+          "local": true,
+          "type": "script",
+          "startMs": 211.89999999850988,
+          "endMs": 223.20000000298023,
+          "durationMs": 11.300000004470348,
+          "bytes": 24580
+        },
+        {
+          "asset": "chunk-GMPAE2YJ.js",
+          "local": true,
+          "type": "script",
+          "startMs": 211.89999999850988,
+          "endMs": 224.29999999701977,
+          "durationMs": 12.399999998509884,
+          "bytes": 5419
+        },
+        {
+          "asset": "chunk-LCC5YYSF.js",
+          "local": true,
+          "type": "script",
+          "startMs": 211.89999999850988,
+          "endMs": 224.10000000149012,
+          "durationMs": 12.200000002980232,
+          "bytes": 28861
+        },
+        {
+          "asset": "chunk-HFKETO6F.js",
+          "local": true,
+          "type": "script",
+          "startMs": 212.10000000149012,
+          "endMs": 224.70000000298023,
+          "durationMs": 12.600000001490116,
+          "bytes": 17407
+        },
+        {
+          "asset": "chunk-NIUVFPG6.js",
+          "local": true,
+          "type": "script",
+          "startMs": 212.10000000149012,
+          "endMs": 224.5,
+          "durationMs": 12.399999998509884,
+          "bytes": 8853
+        },
+        {
+          "asset": "/api/analysis/qqq/cache-status",
+          "local": true,
+          "type": "fetch",
+          "startMs": 326.1000000014901,
+          "endMs": 366.8999999985099,
+          "durationMs": 40.79999999701977,
+          "bytes": 779
+        },
+        {
+          "asset": "/api/analysis/qqq/pcs/backtest",
+          "local": true,
+          "type": "fetch",
+          "startMs": 332.3999999985099,
+          "endMs": 408.1000000014901,
+          "durationMs": 75.70000000298023,
+          "bytes": 136
+        },
+        {
+          "asset": "/api/analysis/qqq/gex/day",
+          "local": true,
+          "type": "fetch",
+          "startMs": 348.20000000298023,
+          "endMs": 581.2999999970198,
+          "durationMs": 233.09999999403954,
+          "bytes": 8307085
+        },
+        {
+          "asset": "/api/analysis/qqq/gex/exposure",
+          "local": true,
+          "type": "fetch",
+          "startMs": 348.8999999985099,
+          "endMs": 538.5,
+          "durationMs": 189.60000000149012,
+          "bytes": 2195
+        },
+        {
+          "asset": "/api/analysis/qqq/pcs/backtest",
+          "local": true,
+          "type": "fetch",
+          "startMs": 349.20000000298023,
+          "endMs": 923,
+          "durationMs": 573.7999999970198,
+          "bytes": 3110
+        },
+        {
+          "asset": "preferences",
+          "local": true,
+          "type": "fetch",
+          "startMs": 698.7999999970198,
+          "endMs": 703.1000000014901,
+          "durationMs": 4.300000004470348,
+          "bytes": 941
+        },
+        {
+          "asset": "QqqPcsIntradayChart-IBYGL6IH.js",
+          "local": true,
+          "type": "script",
+          "startMs": 788.5,
+          "endMs": 801.7999999970198,
+          "durationMs": 13.299999997019768,
+          "bytes": 293924
+        },
+        {
+          "asset": "QqqExposureWorkbench-HDLB6UGV.js",
+          "local": true,
+          "type": "script",
+          "startMs": 790.2999999970198,
+          "endMs": 798.3999999985099,
+          "durationMs": 8.100000001490116,
+          "bytes": 133979
+        },
+        {
+          "asset": "/api/analysis/qqq/cache-status",
+          "local": true,
+          "type": "fetch",
+          "startMs": 799.2999999970198,
+          "endMs": 842.1000000014901,
+          "durationMs": 42.80000000447035,
+          "bytes": 779
+        },
+        {
+          "asset": "chunk-J4FV6ORF.js",
+          "local": true,
+          "type": "script",
+          "startMs": 867.8999999985099,
+          "endMs": 877.7000000029802,
+          "durationMs": 9.800000004470348,
+          "bytes": 15259
+        },
+        {
+          "asset": "chunk-L45JEGKF.js",
+          "local": true,
+          "type": "script",
+          "startMs": 868.1000000014901,
+          "endMs": 877.7999999970198,
+          "durationMs": 9.699999995529652,
+          "bytes": 3685
+        },
+        {
+          "asset": "chunk-TQPRDFHL.js",
+          "local": true,
+          "type": "script",
+          "startMs": 868.7000000029802,
+          "endMs": 877.6000000014901,
+          "durationMs": 8.899999998509884,
+          "bytes": 2478
+        },
+        {
+          "asset": "qqqGammaModel.worker.js",
+          "local": true,
+          "type": "other",
+          "startMs": 872.7000000029802,
+          "endMs": 808.1000000014901,
+          "durationMs": -64.60000000149012,
+          "bytes": 11008
+        }
+      ],
+      "failedRequests": [
+        {
+          "type": "fetch",
+          "asset": "/api/analysis/qqq/gex/exposure",
+          "code": "net::ERR_ABORTED"
+        },
+        {
+          "type": "fetch",
+          "asset": "/api/analysis/qqq/gex/exposure",
+          "code": "net::ERR_ABORTED"
+        }
+      ],
+      "flowMs": 5039.222280000002,
+      "visibleSnapshotRows": 6,
+      "apiEncodedBodyBytes": 10107065,
+      "apiDecodedBodyBytes": 31833822,
+      "rendererJsHeapSampleBytes": 37004608,
+      "longTasksMs": [
+        89,
+        148,
+        67,
+        61,
+        50,
+        63,
+        60
+      ],
+      "requests": [
+        {
+          "path": "/api/analysis/qqq/local-state",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=31",
+          "encodedBodyBytes": 861,
+          "durationMs": 33.603
+        },
+        {
+          "path": "/api/analysis/qqq/cache-status",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=32",
+          "encodedBodyBytes": 779,
+          "durationMs": 41.079
+        },
+        {
+          "path": "/api/analysis/qqq/pcs/backtest",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=42",
+          "encodedBodyBytes": 136,
+          "durationMs": 76.721
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=174",
+          "encodedBodyBytes": 2195,
+          "durationMs": 189.808
+        },
+        {
+          "path": "/api/analysis/qqq/gex/day",
+          "status": 200,
+          "encoding": "gzip",
+          "serverTiming": "local;dur=140",
+          "encodedBodyBytes": 2088139,
+          "durationMs": 233.502
+        },
+        {
+          "path": "/api/analysis/qqq/cache-status",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=37",
+          "encodedBodyBytes": 779,
+          "durationMs": 43.176
+        },
+        {
+          "path": "/api/analysis/qqq/pcs/backtest",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=556",
+          "encodedBodyBytes": 3110,
+          "durationMs": 573.897
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=639",
+          "encodedBodyBytes": 1831,
+          "durationMs": 642.208
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=117",
+          "encodedBodyBytes": 2195,
+          "durationMs": 119.99
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "gzip",
+          "serverTiming": "local;dur=356",
+          "encodedBodyBytes": 179569,
+          "durationMs": 363.774
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "gzip",
+          "serverTiming": "local;dur=441",
+          "encodedBodyBytes": 5746953,
+          "durationMs": 605.108
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=536",
+          "encodedBodyBytes": 1831,
+          "durationMs": 547.215
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=356",
+          "encodedBodyBytes": 1831,
+          "durationMs": 360.083
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=364",
+          "encodedBodyBytes": 1831,
+          "durationMs": 372.245
+        },
+        {
+          "path": "/api/analysis/qqq/gex/day",
+          "status": 200,
+          "encoding": "gzip",
+          "serverTiming": "local;dur=470",
+          "encodedBodyBytes": 2075025,
+          "durationMs": 536.204
+        }
+      ],
+      "recovery": null,
+      "errors": []
+    }
+  ],
+  "protectedProfileDigestUnchanged": true,
+  "serverPeakRssKiB": 432800,
+  "limitations": "Cloud Linux Chromium, actual QqqGexSession and retained partial CBOE sample. Process/browser cold, OS page cache not cleared. No native Mac or physical sleep validation; renderer heap samples are not peak OS memory."
+}

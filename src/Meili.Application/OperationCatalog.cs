@@ -127,7 +127,7 @@ public static partial class OperationCatalog
             var n = value.GetDouble();
             if ((schema.TryGetProperty("minimum", out var minN) && n < minN.GetDouble()) || (schema.TryGetProperty("maximum", out var maxN) && n > maxN.GetDouble())) throw new ArgumentException($"{path} is out of range.");
         }
-        if (schema.TryGetProperty("enum", out var choices) && !choices.EnumerateArray().Any(x => x.GetString() == value.GetString())) throw new ArgumentException($"Invalid value for {path}.");
+        if (schema.TryGetProperty("enum", out var choices) && !choices.EnumerateArray().Any(x => JsonElement.DeepEquals(x, value))) throw new ArgumentException($"Invalid value for {path}.");
         if (type == "object")
         {
             var props = schema.GetProperty("properties");

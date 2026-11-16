@@ -18,7 +18,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.macos_arm_runner || 'macos-26' }}
   cancel-in-progress: true
 
 env:
@@ -50,6 +50,8 @@ jobs:
         working-directory: web/qqq-gex
       - run: bun test upstream/src/lib/qqqIntradayDirectionalSummary.test.ts upstream/src/lib/qqqHeatmapPresentation.test.ts upstream/src/lib/qqqOptionActivityScope.test.ts upstream/src/lib/qqqIntradayIndicators.test.ts upstream/src/lib/qqqExposureSides.test.ts upstream/src/lib/qqqExposureReplay.test.ts upstream/src/lib/qqqMaxPain.test.ts upstream/src/lib/qqqIndicatorConsistency.test.ts upstream/src/lib/qqqExposureArchive.test.ts
         working-directory: web/qqq-gex
+      - run: bun test upstream/src/lib/qqqIntradaySetup.test.ts upstream/src/lib/qqqChartObservationBands.test.ts upstream/src/lib/qqqHeatmapDiscovery.test.ts upstream/src/components/Strategy/qqq/qqqDirectionalChartMarkers.test.ts upstream/src/components/Strategy/qqq/qqqChartDisplayPreferences.test.ts
+        working-directory: web/qqq-gex
       - run: bun test upstream/src/components/Strategy/qqq/QqqIntradayLifecycle.test.tsx upstream/src/lib/engines/analysis/QqqPcsEntrySnapshot.test.ts upstream/src/lib/engines/analysis/QqqDailyMarketBase.test.ts upstream/src/lib/engines/analysis/PcsReactiveRule.test.ts upstream/src/lib/engines/leveraged-overlay/v2/strategies/pcs-contract-profile.test.ts upstream/src/lib/engines/leveraged-overlay/v2/strategies/put-credit-spread.test.ts
         working-directory: web/qqq-gex
       - run: npx playwright install --with-deps chromium
@@ -59,7 +61,7 @@ jobs:
         working-directory: web/qqq-gex
       - run: node tests/offline-viewer.mjs
         working-directory: web/qqq-gex
-      - run: npm run build:runtime && node test-results/pcs-contract.mjs && node tests/live-display.mjs && node tests/storage-faults.mjs && node tests/wire-capacity.mjs && node tests/mcp-archive.mjs && node tests/recovery.mjs && npm run test:pipeline && node tests/mcp-analysis-fixture.mjs && node test-results/mcp-kernel-parity.mjs
+      - run: npm run build:runtime && node test-results/pcs-contract.mjs && node tests/live-display.mjs && node tests/storage-faults.mjs && node tests/wire-capacity.mjs && node tests/mcp-archive.mjs && node tests/recovery.mjs && npm run test:pipeline && node tests/mcp-analysis-fixture.mjs && node test-results/mcp-kernel-parity.mjs && node test-results/chart-positive-parity.mjs && node test-results/chart-real-parity.mjs
         working-directory: web/qqq-gex
       - run: QQQ_TEST_DB="$(node -p "JSON.parse(require('fs').readFileSync('test-results/pipeline-location.json')).dbPath")" QQQ_TEST_DECISION=test-results/pcs-positive.json node tests/offline-viewer.mjs
         working-directory: web/qqq-gex

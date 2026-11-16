@@ -1,0 +1,162 @@
+{
+  "environment": {
+    "node": "v24.22.1",
+    "platform": "linux",
+    "arch": "x64",
+    "cpu": "INTEL(R) XEON(R) PLATINUM 8573C"
+  },
+  "dataset": {
+    "date": "2026-11-16",
+    "expiry": "2026-11-16",
+    "expirySnapshots": 174,
+    "strikePoints": 31806,
+    "bars": 9
+  },
+  "responseBytesIdentical": true,
+  "trials": [
+    {
+      "scope": "selected",
+      "trial": 0,
+      "version": "before",
+      "elapsedMs": 1179.133587,
+      "peakRssKiB": 200296,
+      "heapUsed": 65044752,
+      "responseBytes": 57534,
+      "sha256": "480d134571399ff15dba763bf00e5e6efedbb3bbc1ff19236e4a3a750f97b95d"
+    },
+    {
+      "scope": "selected",
+      "trial": 0,
+      "version": "after",
+      "elapsedMs": 162.0825440000001,
+      "peakRssKiB": 58472,
+      "heapUsed": 12928712,
+      "responseBytes": 57534,
+      "sha256": "480d134571399ff15dba763bf00e5e6efedbb3bbc1ff19236e4a3a750f97b95d"
+    },
+    {
+      "scope": "selected",
+      "trial": 1,
+      "version": "before",
+      "elapsedMs": 873.8133970000001,
+      "peakRssKiB": 200052,
+      "heapUsed": 63152608,
+      "responseBytes": 57534,
+      "sha256": "480d134571399ff15dba763bf00e5e6efedbb3bbc1ff19236e4a3a750f97b95d"
+    },
+    {
+      "scope": "selected",
+      "trial": 1,
+      "version": "after",
+      "elapsedMs": 158.0452720000003,
+      "peakRssKiB": 58068,
+      "heapUsed": 12960248,
+      "responseBytes": 57534,
+      "sha256": "480d134571399ff15dba763bf00e5e6efedbb3bbc1ff19236e4a3a750f97b95d"
+    },
+    {
+      "scope": "selected",
+      "trial": 2,
+      "version": "before",
+      "elapsedMs": 926.7263469999998,
+      "peakRssKiB": 203132,
+      "heapUsed": 62386056,
+      "responseBytes": 57534,
+      "sha256": "480d134571399ff15dba763bf00e5e6efedbb3bbc1ff19236e4a3a750f97b95d"
+    },
+    {
+      "scope": "selected",
+      "trial": 2,
+      "version": "after",
+      "elapsedMs": 181.7445499999999,
+      "peakRssKiB": 58076,
+      "heapUsed": 12941120,
+      "responseBytes": 57534,
+      "sha256": "480d134571399ff15dba763bf00e5e6efedbb3bbc1ff19236e4a3a750f97b95d"
+    },
+    {
+      "scope": "all",
+      "trial": 0,
+      "version": "before",
+      "elapsedMs": 832.8980590000001,
+      "peakRssKiB": 202516,
+      "heapUsed": 60120696,
+      "responseBytes": 43480,
+      "sha256": "02d3688c7a6d64c956284d421576612bfd6650cffac9dab8ada807d933aee839"
+    },
+    {
+      "scope": "all",
+      "trial": 0,
+      "version": "after",
+      "elapsedMs": 945.6408069999998,
+      "peakRssKiB": 201048,
+      "heapUsed": 65164704,
+      "responseBytes": 43480,
+      "sha256": "02d3688c7a6d64c956284d421576612bfd6650cffac9dab8ada807d933aee839"
+    },
+    {
+      "scope": "all",
+      "trial": 1,
+      "version": "before",
+      "elapsedMs": 824.01764,
+      "peakRssKiB": 199940,
+      "heapUsed": 60398008,
+      "responseBytes": 43480,
+      "sha256": "02d3688c7a6d64c956284d421576612bfd6650cffac9dab8ada807d933aee839"
+    },
+    {
+      "scope": "all",
+      "trial": 1,
+      "version": "after",
+      "elapsedMs": 784.3499229999998,
+      "peakRssKiB": 200244,
+      "heapUsed": 61989712,
+      "responseBytes": 43480,
+      "sha256": "02d3688c7a6d64c956284d421576612bfd6650cffac9dab8ada807d933aee839"
+    },
+    {
+      "scope": "all",
+      "trial": 2,
+      "version": "before",
+      "elapsedMs": 1119.4504110000007,
+      "peakRssKiB": 202332,
+      "heapUsed": 61893664,
+      "responseBytes": 43480,
+      "sha256": "02d3688c7a6d64c956284d421576612bfd6650cffac9dab8ada807d933aee839"
+    },
+    {
+      "scope": "all",
+      "trial": 2,
+      "version": "after",
+      "elapsedMs": 872.5552379999999,
+      "peakRssKiB": 200528,
+      "heapUsed": 64246928,
+      "responseBytes": 43480,
+      "sha256": "02d3688c7a6d64c956284d421576612bfd6650cffac9dab8ada807d933aee839"
+    }
+  ],
+  "limitations": "Only MCP exposure query process memory; not desktop server/renderer memory. Dataset provenance must be supplied alongside report. OS page cache warm, no complete-day claim.",
+  "baseline": "Clean61041a4 query runtime, previously byte-identical to a09036c; same retained real partial sample; follow-up current modules imported",
+  "medians": {
+    "selected": {
+      "before": {
+        "elapsedMs": 926.7263469999998,
+        "peakRssKiB": 200296
+      },
+      "after": {
+        "elapsedMs": 162.0825440000001,
+        "peakRssKiB": 58076
+      }
+    },
+    "all": {
+      "before": {
+        "elapsedMs": 832.8980590000001,
+        "peakRssKiB": 202332
+      },
+      "after": {
+        "elapsedMs": 872.5552379999999,
+        "peakRssKiB": 200528
+      }
+    }
+  }
+}

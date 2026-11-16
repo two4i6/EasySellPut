@@ -35,7 +35,12 @@
     "src/lib/qqqExposureWire.test.ts",
     "src/lib/qqqGexInputQuality.test.ts",
     "src/app/analysis/qqq/gex/page.component.tsx",
-    "src/app/api/analysis/qqq/pcs/route.ts"
+    "src/app/api/analysis/qqq/pcs/route.ts",
+    "src/lib/qqqIntradaySetup.test.ts",
+    "src/lib/qqqChartObservationBands.test.ts",
+    "src/lib/qqqHeatmapDiscovery.test.ts",
+    "src/components/Strategy/qqq/qqqDirectionalChartMarkers.test.ts",
+    "src/components/Strategy/qqq/qqqChartDisplayPreferences.test.ts"
   ],
   "files": [
     {
@@ -256,6 +261,11 @@
       "bytes": 893
     },
     {
+      "path": "src/components/Strategy/qqq/qqqChartDisplayPreferences.test.ts",
+      "sha256": "0a56c3a8218f6c6a6ee7f2c338e65e3418c9492c73bbd509ea1c82b70d7ed0de",
+      "bytes": 4278
+    },
+    {
       "path": "src/components/Strategy/qqq/qqqChartDisplayPreferences.ts",
       "sha256": "5756fe85c2ac50609eaaaafd81fc27bc77ea5051d5bf47da38d057e554b20286",
       "bytes": 4842
@@ -264,6 +274,11 @@
       "path": "src/components/Strategy/qqq/qqqDayScenarioRenderModel.ts",
       "sha256": "4279046cb4c370e17bf885bf8fe6c200d78edf51a59cb263c6b83195e938441c",
       "bytes": 3276
+    },
+    {
+      "path": "src/components/Strategy/qqq/qqqDirectionalChartMarkers.test.ts",
+      "sha256": "87844c4bb8ea9a323f03be365424098f4aa4e260aeb33e43e0347532bcfbcb1d",
+      "bytes": 1893
     },
     {
       "path": "src/components/Strategy/qqq/qqqDirectionalChartMarkers.ts",
@@ -1026,6 +1041,11 @@
       "bytes": 1707
     },
     {
+      "path": "src/lib/qqqChartObservationBands.test.ts",
+      "sha256": "971f38a1928ce511fd228dd6c930bfccb0474e08fc66056c56d444e278b45771",
+      "bytes": 3401
+    },
+    {
       "path": "src/lib/qqqChartObservationBands.ts",
       "sha256": "f1198c6b12eab08e60766ea69bb0b23a14638638882833765fe08cc8d0d80386",
       "bytes": 9701
@@ -1301,6 +1321,11 @@
       "bytes": 1880
     },
     {
+      "path": "src/lib/qqqHeatmapDiscovery.test.ts",
+      "sha256": "4dceb077b2768241a75dd6d091dc2f5a95fbf6d9c7b15e7b231c168b8ae3df89",
+      "bytes": 14658
+    },
+    {
       "path": "src/lib/qqqHeatmapDiscovery.ts",
       "sha256": "7490278370a027e246fabc9d919f83df3e2324d19e0789ff295f49b30aeacc1d",
       "bytes": 16018
@@ -1384,6 +1409,11 @@
       "path": "src/lib/qqqIntradayIndicators.ts",
       "sha256": "48e0d86d7c4e2f32dc4188dddc3a8ef1a92bcb7d11666fef92c30069d4f23058",
       "bytes": 8955
+    },
+    {
+      "path": "src/lib/qqqIntradaySetup.test.ts",
+      "sha256": "a8ff23546afab7f99b47d4ddff713ee9ddb9babe881dae284074f2c6995dc809",
+      "bytes": 25116
     },
     {
       "path": "src/lib/qqqIntradaySetup.ts",
@@ -1657,7 +1687,7 @@
   "unresolvedImports": [],
   "dependencySelection": {
     "path": "tools/qqq-gex/source-selection.json",
-    "sha256": "b92c19b2b244f09487ea1e43ca7a7d46ed6d3e07d4f84bac1659a22f5f8e34ee",
+    "sha256": "a4fe4f72d7ebe6477ae4b69059fc94a74af4f10b8e6d0e118f40ce63c3890cf9",
     "sourceDataOnly": [
       "src/app/api/analysis/qqq/pcs/route.ts",
       "src/services/orchestrators/macroDataService.ts",

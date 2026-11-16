@@ -23,7 +23,7 @@ import {createHash} from 'node:crypto';
 import {DatabaseSync} from 'node:sqlite';
 import {replayQqqIntradayDirectional,validateQqqIntradayDirectional} from '../upstream/src/lib/engines/analysis/QqqIntradayDirectionalReplay';
 import {qqqStoredGexTiming} from '../upstream/src/lib/qqqDirectionalGexTime';
-const [dbPath,path]=process.argv.slice(2),url=new URL(path,'http://local');
+const [dbPath,queryArgument]=process.argv.slice(2);let path=queryArgument;if(queryArgument==='--query-stdin'){const {readSync}=await import('node:fs'),parts:Buffer[]=[];let bytes=0;for(;;){const chunk=Buffer.alloc(8192),count=readSync(0,chunk,0,chunk.length,null);if(!count)break;bytes+=count;if(bytes>65536)throw Error('Bounded local query exceeds 64 KiB');parts.push(chunk.subarray(0,count));}path=Buffer.concat(parts,bytes).toString('utf8');}if(Buffer.byteLength(path)>65536)throw Error('Bounded local query exceeds 64 KiB');const url=new URL(path,'http://local');
 if(url.pathname==='/api/analysis/qqq/local-analysis'){console.log(analysisJson(await readMcpAnalysis(dbPath,url)));await new Promise<void>(resolve=>process.stdout.write('',()=>resolve()));process.exit(0);}
 if(url.pathname==='/api/analysis/qqq/local-archive'){console.log(JSON.stringify(readMcpArchive(dbPath,url)));await new Promise<void>(resolve=>process.stdout.write('',()=>resolve()));process.exit(0);}
 async function readLocalPcs(database:any,regimeMode='unified'){
