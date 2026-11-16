@@ -1,0 +1,211 @@
+{
+  "node": "v24.22.1",
+  "platform": "linux",
+  "arch": "x64",
+  "cpu": "INTEL(R) XEON(R) PLATINUM 8573C",
+  "visibleCpus": 4,
+  "sourceSha256": "05637fe0bb18748aff7bd855a4c67dcc5fb75b0af6950a7c15d8cd7426a3a861",
+  "hypotheticalFrames": 195,
+  "sourceExpiries": 29,
+  "rows": 5655,
+  "profilePoints": 1033695,
+  "metadataBytes": 85062990,
+  "databaseBytes": 1757020160,
+  "trials": [
+    {
+      "from": 0,
+      "frames": 30,
+      "elapsedMs": 10452.837843000001,
+      "peakRssKiB": 683636,
+      "result": {
+        "wireCoverage": "canonical-warm",
+        "queryCoverage": "Full profiles are retained; all-expiry manifest, latest window and one overview are warm; parameter variants reconstruct read-only from protected local profiles",
+        "importVersion": "qqq-local-import-v6",
+        "status": "imported",
+        "partialDates": [],
+        "publishedDates": [
+          "2026-11-13"
+        ],
+        "source": "synthetic-full-session-with-real-contract-shape-NOT-market-history",
+        "revision": "5f4b997ec066d2c3a98b9152e6b6ad5ec5965bd80c8d715a2835fac5d5e367f2",
+        "dates": [
+          "2026-11-13"
+        ],
+        "rows": 870,
+        "regularPriceAligned": true,
+        "priceAligned": true,
+        "inputComplete": false,
+        "missingExpiries": [],
+        "historyCoverage": "only supplied captures; gaps not synthesized"
+      }
+    },
+    {
+      "from": 30,
+      "frames": 30,
+      "elapsedMs": 15049.099589000001,
+      "peakRssKiB": 1038080,
+      "result": {
+        "wireCoverage": "canonical-warm",
+        "queryCoverage": "Full profiles are retained; all-expiry manifest, latest window and one overview are warm; parameter variants reconstruct read-only from protected local profiles",
+        "importVersion": "qqq-local-import-v6",
+        "status": "imported",
+        "partialDates": [],
+        "publishedDates": [
+          "2026-11-13"
+        ],
+        "source": "synthetic-full-session-with-real-contract-shape-NOT-market-history",
+        "revision": "afd83a585fdbd122f5d9d1349a48235a03bebc85ed7d81418ce4196ba247d16b",
+        "dates": [
+          "2026-11-13"
+        ],
+        "rows": 870,
+        "regularPriceAligned": true,
+        "priceAligned": true,
+        "inputComplete": false,
+        "missingExpiries": [],
+        "historyCoverage": "only supplied captures; gaps not synthesized"
+      }
+    },
+    {
+      "from": 60,
+      "frames": 30,
+      "elapsedMs": 17967.876717000003,
+      "peakRssKiB": 1294652,
+      "result": {
+        "wireCoverage": "canonical-warm",
+        "queryCoverage": "Full profiles are retained; all-expiry manifest, latest window and one overview are warm; parameter variants reconstruct read-only from protected local profiles",
+        "importVersion": "qqq-local-import-v6",
+        "status": "imported",
+        "partialDates": [],
+        "publishedDates": [
+          "2026-11-13"
+        ],
+        "source": "synthetic-full-session-with-real-contract-shape-NOT-market-history",
+        "revision": "5b4cbdc91f785022a1ddb396eb693d10ec75b38330272a9ab20ef7fc838edcd1",
+        "dates": [
+          "2026-11-13"
+        ],
+        "rows": 870,
+        "regularPriceAligned": true,
+        "priceAligned": true,
+        "inputComplete": false,
+        "missingExpiries": [],
+        "historyCoverage": "only supplied captures; gaps not synthesized"
+      }
+    },
+    {
+      "from": 90,
+      "frames": 30,
+      "elapsedMs": 21200.165219999995,
+      "peakRssKiB": 1613600,
+      "result": {
+        "wireCoverage": "canonical-warm",
+        "queryCoverage": "Full profiles are retained; all-expiry manifest, latest window and one overview are warm; parameter variants reconstruct read-only from protected local profiles",
+        "importVersion": "qqq-local-import-v6",
+        "status": "imported",
+        "partialDates": [],
+        "publishedDates": [
+          "2026-11-13"
+        ],
+        "source": "synthetic-full-session-with-real-contract-shape-NOT-market-history",
+        "revision": "5a882b75eb6297fc273de229aeb1a2a7d7f918b7a27d4e95e34dfa3338bd36c9",
+        "dates": [
+          "2026-11-13"
+        ],
+        "rows": 870,
+        "regularPriceAligned": true,
+        "priceAligned": true,
+        "inputComplete": false,
+        "missingExpiries": [],
+        "historyCoverage": "only supplied captures; gaps not synthesized"
+      }
+    },
+    {
+      "from": 120,
+      "frames": 30,
+      "elapsedMs": 23235.632774000012,
+      "peakRssKiB": 1880144,
+      "result": {
+        "wireCoverage": "canonical-warm",
+        "queryCoverage": "Full profiles are retained; all-expiry manifest, latest window and one overview are warm; parameter variants reconstruct read-only from protected local profiles",
+        "importVersion": "qqq-local-import-v6",
+        "status": "imported",
+        "partialDates": [],
+        "publishedDates": [
+          "2026-11-13"
+        ],
+        "source": "synthetic-full-session-with-real-contract-shape-NOT-market-history",
+        "revision": "e8b142dded329e4411555724197d9b1dd5c0242f4160c59a5b2bfe4f49134d94",
+        "dates": [
+          "2026-11-13"
+        ],
+        "rows": 870,
+        "regularPriceAligned": true,
+        "priceAligned": true,
+        "inputComplete": false,
+        "missingExpiries": [],
+        "historyCoverage": "only supplied captures; gaps not synthesized"
+      }
+    },
+    {
+      "from": 150,
+      "frames": 30,
+      "elapsedMs": 25728.848981000003,
+      "peakRssKiB": 2213592,
+      "result": {
+        "wireCoverage": "canonical-warm",
+        "queryCoverage": "Full profiles are retained; all-expiry manifest, latest window and one overview are warm; parameter variants reconstruct read-only from protected local profiles",
+        "importVersion": "qqq-local-import-v6",
+        "status": "imported",
+        "partialDates": [],
+        "publishedDates": [
+          "2026-11-13"
+        ],
+        "source": "synthetic-full-session-with-real-contract-shape-NOT-market-history",
+        "revision": "1e8f022c29179e94eac5dac02b192f70501bc864a45787bcd86ac01ba80e9a11",
+        "dates": [
+          "2026-11-13"
+        ],
+        "rows": 870,
+        "regularPriceAligned": true,
+        "priceAligned": true,
+        "inputComplete": false,
+        "missingExpiries": [],
+        "historyCoverage": "only supplied captures; gaps not synthesized"
+      }
+    },
+    {
+      "from": 180,
+      "frames": 15,
+      "elapsedMs": 38432.451620999986,
+      "peakRssKiB": 2468224,
+      "result": {
+        "wireCoverage": "canonical-warm",
+        "queryCoverage": "Full profiles are retained; all-expiry manifest, latest window and one overview are warm; parameter variants reconstruct read-only from protected local profiles",
+        "importVersion": "qqq-local-import-v6",
+        "status": "imported",
+        "partialDates": [],
+        "publishedDates": [
+          "2026-11-13"
+        ],
+        "source": "synthetic-full-session-with-real-contract-shape-NOT-market-history",
+        "revision": "3caf66e787df91037db3e1b96129d5b04f8729af95a69de1e71ad6e522b913b2",
+        "dates": [
+          "2026-11-13"
+        ],
+        "rows": 435,
+        "regularPriceAligned": true,
+        "priceAligned": true,
+        "inputComplete": false,
+        "missingExpiries": [],
+        "historyCoverage": "only supplied captures; gaps not synthesized"
+      }
+    }
+  ],
+  "query": {
+    "available": true,
+    "elapsedMs": 3152.685602999991,
+    "bytes": 21600356
+  },
+  "limitations": "Not real historical observations: repeated actual contract values at hypothetical regular-session times, flat price and zero volume, private temporary database. No user history populated. Single host with concurrent checks; no native rendering."
+}

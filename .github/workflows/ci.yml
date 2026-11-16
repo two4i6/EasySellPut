@@ -49,13 +49,13 @@ jobs:
         working-directory: web/qqq-gex
       - run: bun test upstream/src/lib/qqqIntradayDirectionalSummary.test.ts upstream/src/lib/qqqHeatmapPresentation.test.ts upstream/src/lib/qqqOptionActivityScope.test.ts upstream/src/lib/qqqIntradayIndicators.test.ts upstream/src/lib/qqqExposureSides.test.ts upstream/src/lib/qqqExposureReplay.test.ts upstream/src/lib/qqqMaxPain.test.ts upstream/src/lib/qqqIndicatorConsistency.test.ts upstream/src/lib/qqqExposureArchive.test.ts
         working-directory: web/qqq-gex
-      - run: bun test upstream/src/lib/engines/analysis/QqqPcsEntrySnapshot.test.ts upstream/src/lib/engines/analysis/QqqDailyMarketBase.test.ts upstream/src/lib/engines/analysis/PcsReactiveRule.test.ts upstream/src/lib/engines/leveraged-overlay/v2/strategies/pcs-contract-profile.test.ts upstream/src/lib/engines/leveraged-overlay/v2/strategies/put-credit-spread.test.ts
+      - run: bun test upstream/src/components/Strategy/qqq/QqqIntradayLifecycle.test.tsx upstream/src/lib/engines/analysis/QqqPcsEntrySnapshot.test.ts upstream/src/lib/engines/analysis/QqqDailyMarketBase.test.ts upstream/src/lib/engines/analysis/PcsReactiveRule.test.ts upstream/src/lib/engines/leveraged-overlay/v2/strategies/pcs-contract-profile.test.ts upstream/src/lib/engines/leveraged-overlay/v2/strategies/put-credit-spread.test.ts
         working-directory: web/qqq-gex
       - run: npx playwright install --with-deps chromium
         working-directory: web/qqq-gex
       - run: node tests/offline-viewer.mjs
         working-directory: web/qqq-gex
-      - run: npm run build:runtime && node test-results/pcs-contract.mjs && npm run test:pipeline
+      - run: npm run build:runtime && node test-results/pcs-contract.mjs && node tests/live-display.mjs && npm run test:pipeline
         working-directory: web/qqq-gex
       - run: QQQ_TEST_DB="$(node -p "JSON.parse(require('fs').readFileSync('test-results/pipeline-location.json')).dbPath")" QQQ_TEST_DECISION=test-results/pcs-positive.json node tests/offline-viewer.mjs
         working-directory: web/qqq-gex

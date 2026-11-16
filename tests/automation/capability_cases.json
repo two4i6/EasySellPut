@@ -1065,6 +1065,26 @@
         "/data/heatmapBasis",
         "/data/pressureIndex"
       ]
+    },
+    {
+      "operation": "get_qqq_gex_lifecycle",
+      "arguments": {
+        "date": "2026-01-02"
+      },
+      "expect": {
+        "/data/date": {
+          "equals": "2026-01-02"
+        },
+        "/data/recorded": {
+          "equals": false
+        },
+        "/data/complete": {
+          "equals": false
+        }
+      },
+      "compare": [
+        "/data"
+      ]
     }
   ]
 }

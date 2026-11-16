@@ -19,6 +19,8 @@ public sealed class QqqGexSession : IDisposable
     private readonly string token = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
     private readonly QqqGexResponseStore? cache;
     private readonly string snapshot;
+    private object? presentation;
+    public void UpdatePresentation(ChartPalette palette){Volatile.Write(ref presentation,WebChartSnapshot.Theme(palette));NotifyDataUpdated();}
     private readonly QuoteHub? quotes;
     private readonly DesktopActivity? activity;
     private readonly string quoteOwner="qqq-gex-"+Guid.NewGuid().ToString("N");
@@ -59,6 +61,7 @@ public sealed class QqqGexSession : IDisposable
             var preferenceWrite=request.Length==3&&request[0]=="POST"&&request[1]==$"/{token}/preferences";
             if(raw.Count>=16384 || request.Length!=3 || request[0]!="GET"&&!preferenceWrite || headers.GetValueOrDefault("Host")!=PageUri.Authority || !request[1].StartsWith($"/{token}/",StringComparison.Ordinal) || headers.ContainsKey("Transfer-Encoding") || !preferenceWrite&&headers.ContainsKey("Content-Length") || headers.TryGetValue("Origin",out var sentOrigin)&&sentOrigin!=origin || headers.GetValueOrDefault("Sec-Fetch-Site")=="cross-site"||preferenceWrite&&headers.GetValueOrDefault("Origin")!=origin) { await Reply(stream,403,"text/plain",[],ct);return; }
             var route=request[1][(token.Length+2)..].Split('?')[0];
+            if(route=="presentation"){await Reply(stream,200,"application/json",JsonSerializer.SerializeToUtf8Bytes(Volatile.Read(ref presentation)),ct);return;}
             if(route=="preferences"){
                 if(preferences is null){await Reply(stream,503,"application/json",Encoding.UTF8.GetBytes("{}"),ct);return;}
                 try{
@@ -74,14 +77,14 @@ public sealed class QqqGexSession : IDisposable
             if(route=="events"){
                 var url=new Uri(PageUri,request[1]);var after=url.Query.StartsWith("?after=",StringComparison.Ordinal)?Uri.UnescapeDataString(url.Query[7..]):"";var notification=Volatile.Read(ref changed);var version=cache?.RevisionToken()??"";
                 if(version==after){try{await notification.Task.WaitAsync(TimeSpan.FromSeconds(5),ct);}catch(TimeoutException){}version=cache?.RevisionToken()??"";}
-                await Reply(stream,200,"application/json",JsonSerializer.SerializeToUtf8Bytes(new {version,partial=cache?.LatestPartial(),quote=LocalQuote(),latestDate=version==after?null:cache?.LatestLocalDate(DateTimeOffset.UtcNow)}),ct);return;
+                await Reply(stream,200,"application/json",JsonSerializer.SerializeToUtf8Bytes(new {version,presentation=Volatile.Read(ref presentation),partial=cache?.LatestPartial(),quote=LocalQuote(),latestDate=version==after?null:cache?.LatestLocalDate(DateTimeOffset.UtcNow)}),ct);return;
             }
             if(route=="api/analysis/qqq/local-quote"){await Reply(stream,200,"application/json",JsonSerializer.SerializeToUtf8Bytes(new {quote=LocalQuote()}),ct);return;}
             if(route=="api/analysis/qqq/local-state"){await Reply(stream,200,"application/json",JsonSerializer.SerializeToUtf8Bytes(new {partial=cache?.LatestPartial(),latestDate=cache?.LatestLocalDate(DateTimeOffset.UtcNow),localOnly=true,revision=cache?.RevisionToken()??""}),ct);return;}
             if(route.StartsWith("api/",StringComparison.Ordinal)) {
                 var path="/"+request[1][(token.Length+2)..];
-                var cached=cache?.Read(snapshot,path,DateTimeOffset.UtcNow)??cache?.ReadLocalDay(path,DateTimeOffset.UtcNow)??cache?.ReadSpreadQuote(path,DateTimeOffset.UtcNow);
-                if(cached is null&&directory is not null&&(path.StartsWith("/api/analysis/qqq/pcs/backtest?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/pcs?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/gex/intraday-context?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/gex/exposure?",StringComparison.Ordinal)||path=="/api/analysis/qqq/pcs/local-decision")){
+                var cached=cache?.Read(snapshot,path,DateTimeOffset.UtcNow)??cache?.ReadLocalDay(path,DateTimeOffset.UtcNow)??cache?.ReadSpreadQuote(path,DateTimeOffset.UtcNow)??cache?.ReadLifecycle(path);
+                if(cached is null&&directory is not null&&(path.StartsWith("/api/analysis/qqq/pcs/backtest?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/pcs?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/gex/intraday-context?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/gex/exposure?",StringComparison.Ordinal)||(path=="/api/analysis/qqq/pcs/local-decision"||path.StartsWith("/api/analysis/qqq/pcs/local-decision?",StringComparison.Ordinal)))){
                     var result=await QqqGexCalculationRunner.QueryAsync(directory,path,ct);using var json=JsonSerializer.SerializeToDocument(result);
                     if(json.RootElement.TryGetProperty("body",out var wireBody)&&json.RootElement.TryGetProperty("contentType",out var wireType)){await Reply(stream,200,wireType.GetString()!,Encoding.UTF8.GetBytes(wireBody.GetString()!),ct);return;}
                     if((json.RootElement.TryGetProperty("available",out var available)&&available.ValueKind==JsonValueKind.True)||json.RootElement.TryGetProperty("intraday",out _)||json.RootElement.TryGetProperty("currentBars",out _)){await Reply(stream,200,"application/json",Encoding.UTF8.GetBytes(json.RootElement.GetRawText()),ct);return;}

@@ -72,4 +72,12 @@ public sealed class QqqGexSessionTests
         var bytes=File.ReadAllText(Path.Combine(directory,"qqq-gex-view.json"));Assert.Throws<ArgumentException>(()=>new QqqGexPreferences(directory).Patch(state.revision,new(){{"qqq-local:mode",new string('x',8193)}}));Assert.Equal(bytes,File.ReadAllText(Path.Combine(directory,"qqq-gex-view.json")));
     }
 
+    [Fact] public async Task Native_palette_is_readonly_and_updates_without_replacing_the_session()
+    {
+        using var session=new QqqGexSession();using var http=new HttpClient();var address=session.PageUri;
+        var color=new ScottPlot.Color(1,2,3);session.UpdatePresentation(ChartPalette.Create(false,color,color,color,color,ThemePalette.Light));
+        var body=await http.GetStringAsync(new Uri(address,"presentation"));Assert.Contains("\"dark\":false",body);Assert.Contains("#010203",body);
+        session.UpdatePresentation(ChartPalette.Create(true,color,color,color,color,ThemePalette.Dark));Assert.Equal(address,session.PageUri);Assert.Contains("\"dark\":true",await http.GetStringAsync(new Uri(address,"presentation")));
+    }
+
 }

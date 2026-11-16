@@ -5,3 +5,5 @@ html,body,#root{height:100%;width:100%;margin:0;overflow:hidden}
 .qqq-local-view{position:relative;flex:1;min-height:0;min-width:0}
 .qqq-local-view>main{position:absolute!important;inset:0!important;height:auto!important}
 .qqq-local-shell>details{flex-shrink:0;max-height:25vh;overflow:auto;border-bottom:1px solid var(--border-color)}
+
+:root[data-reduced-motion='true'] *, :root[data-reduced-motion='true'] *::before, :root[data-reduced-motion='true'] *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}

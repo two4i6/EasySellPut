@@ -12,7 +12,9 @@
     "src/app/api/analysis/qqq/gex/intraday-context/route.ts",
     "src/app/api/analysis/qqq/gex/spread-quote/route.ts",
     "src/app/api/proxy/yahoo/quote-stream/route.ts",
-    "src/app/api/proxy/yahoo/history/route.ts"
+    "src/app/api/proxy/yahoo/history/route.ts",
+    "src/components/Strategy/qqq/QqqIntradayLifecycle.tsx",
+    "src/components/Strategy/qqq/QqqIntradayLifecycle.test.tsx"
   ],
   "files": [
     {
@@ -464,6 +466,21 @@
       "path": "src/components/Strategy/qqq/QqqInfoTooltip.tsx",
       "sha256": "06cd389e33acf18fe7919665da1e09dd94dd1d0340b180f18d2a85e10eb6c6d5",
       "bytes": 855
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqIntradayExecutionScoreCard.tsx",
+      "bytes": 4942,
+      "sha256": "5ffcce8fafdb9571bf4040992ff32f0a80c2602bf41b9a4db460e814ae80d2df"
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqIntradayLifecycle.test.tsx",
+      "bytes": 1036,
+      "sha256": "ceb6128b418eda27400dfc606163890c9f6541cac9ce7bc17f154a6a315af42d"
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqIntradayLifecycle.tsx",
+      "sha256": "750ba16d2935cc9e36266b4ccf45d9216c1137d4fdcd9625f6e224b19118c8ac",
+      "bytes": 12068
     },
     {
       "path": "src/components/Strategy/qqq/QqqNextActionCard.module.css",
@@ -1549,6 +1566,11 @@
       "path": "src/lib/engines/analysis/QqqCompositeReplaySession.ts",
       "sha256": "62a78891314ffb7e0da8e4cd6f3a6e27dd551bedcffc6b1becae1a2816903bdd",
       "bytes": 2794
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqCsEntrySnapshot.ts",
+      "bytes": 8470,
+      "sha256": "ebe4dc85431ac5bbe625a3b966b4b65b4e439f53bac27135b5307f9e9c0b92e9"
     },
     {
       "path": "src/lib/engines/analysis/QqqDailyMarketBase.test.ts",

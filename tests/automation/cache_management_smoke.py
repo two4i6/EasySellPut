@@ -28,7 +28,7 @@ def check_cache(command):
         with closing(sqlite3.connect(root / 'cache/qqq-gex.db')) as db, db:
             db.execute('CREATE TABLE qqq_gex_observed_inputs(identity TEXT PRIMARY KEY, body TEXT)')
             db.execute('INSERT INTO qqq_gex_observed_inputs VALUES (?,?)', ('retained', 'original observation'))
-            for table in ('qqq_gex_live_signals','qqq_gex_pcs_lifecycle'):
+            for table in ('qqq_gex_live_signals','qqq_gex_pcs_lifecycle','qqq_gex_local_rows'):
                 db.execute(f'CREATE TABLE {table}(body TEXT)')
                 db.execute(f'INSERT INTO {table} VALUES (?)', ('retained source observation',))
             db.execute('INSERT INTO qqq_gex_wire VALUES (?,?,?,?,?,?,?,?)', ('local','fixture','application/json','{}','r1',1,2,'fixture'))
@@ -36,7 +36,7 @@ def check_cache(command):
         with closing(sqlite3.connect(root / 'cache/qqq-gex.db')) as db:
             assert db.execute('SELECT body FROM qqq_gex_observed_inputs').fetchone()[0] == 'original observation'
             assert db.execute('SELECT COUNT(*) FROM qqq_gex_wire').fetchone()[0] == 0
-            for table in ('qqq_gex_live_signals','qqq_gex_pcs_lifecycle'):
+            for table in ('qqq_gex_live_signals','qqq_gex_pcs_lifecycle','qqq_gex_local_rows'):
                 assert db.execute(f'SELECT body FROM {table}').fetchone()[0] == 'retained source observation'
             assert db.execute('SELECT generation FROM qqq_gex_cache_meta').fetchone()[0] == 1
         assert run(command, data, 'cache', 'status')['data']['caches'][1]['entries'] == 2
