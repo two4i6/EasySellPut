@@ -273,9 +273,10 @@ public sealed class SmokeRunner
                         var actual = ((System.Windows.Media.SolidColorBrush)element.FindResource(key)).Color;
                         if (expected != actual) throw new InvalidOperationException($"{name}: {part} resolves {key} as {actual}, application has {expected}");
                     }
-                    var i = (int)at.Y * stride + (int)at.X * 4;
-                    var lum = (0.0722 * px[i] + 0.7152 * px[i + 1] + 0.2126 * px[i + 2]) / 255;   // Pbgra32
-                    if (dark ? lum > 0.35 : lum < 0.6) throw new InvalidOperationException($"{name}: {part} pixel at {at} has lightness {lum:0.00}");
+                    // A single pixel can land on a correctly white option-price glyph in dark mode.
+                    // Validate the surrounding background patch while preserving the same thresholds/resource checks.
+                    var lum = ThemeSurfaceSample.MedianLightness(px, stride / 4, px.Length / stride, stride, (int)at.X, (int)at.Y);
+                    if (dark ? lum > 0.35 : lum < 0.6) throw new InvalidOperationException($"{name}: {part} background patch at {at} has lightness {lum:0.00}");
                     notes.Add($"{name}/{part} {lum:0.00}");
                 }
             }
