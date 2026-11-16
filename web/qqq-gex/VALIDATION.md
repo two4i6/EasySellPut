@@ -83,3 +83,65 @@ Ignored local evidence: `test-results/qqq-computed-fixture.png`,
 `test-results/qqq-ask-ai-local.png`, `test-results/computed-viewer.json`,
 `test-results/import-comparison.json`. Test fixtures and synthetic benchmarks
 never stand in for real complete market data.
+
+## Checkpoint 27fe440 — integrated cbd0c4e
+
+This section supersedes older counts/remaining-work descriptions above. The
+normalized **v3 day / v7 importer** retains each original full row in an indexed,
+hash-verified SQLite table. Day metadata references it; old v1/v2 archives remain
+readable. Per-row hashes are pinned by the protected day hash. Selected profiles
+are reconstructed without parsing all expiry histories. Original source HTTP
+projection, macro feature/HMM/unified pipeline, routed macro inputs, completed-day
+alignment, Unified/Overlay selection, live detail/evidence, saved lifecycle display
+and historical lifecycle reads are connected. Live factors preserve current/model
+observation times separately. Causal directional profile reads have complete and
+partial/mixed-version factor-and-decision parity tests. Incremental research and
+summaries match a one-shot source calculation. Cache clears preserve indexed rows.
+
+Native theme/motion changes reach the existing document. ASK AI can explicitly
+include a separate-time local PCS evaluation in the preview; it still copies the
+prompt to the user's client and performs no in-page provider inference or automatic
+transmission. `get_qqq_gex_lifecycle` adds a read-only date-scoped operation. All
+**54** catalog operations have real CLI/MCP cases; Source lifecycle tests raise the
+original suite to **155 tests / 854 assertions**. Data **144 pass / 15 live skips**,
+Shared **110 pass**, Automation **77 pass**, Core **199 pass**, Analytics **209 pass**,
+Python **54 pass**. Local live-display fixture tests cover actual import → source
+OPEN/NOW/READY, lifecycle persistence, evidence and research-engine selection.
+
+The actual full WPF suite aborted on Linux (WindowsDesktop runtime missing).
+Latest Avalonia headless run: **55 failed / 85 passed**. Pure upstream cbd0c4e
+NewsSplit reproduces the same `$Default` glyphTypeface failure; this establishes
+only that specific failure's baseline origin, not that all failures are harmless.
+Both desktop/test projects compile. No native Mac/Windows/ARM64 acceptance is claimed.
+
+The new [normalized comparison](benchmarks/2026-11-16-normalized-comparison.json)
+retains all row/profile/bar/summary fingerprints and matches original projected
+PCS plus manifests. The [full-session comparison](benchmarks/2026-11-16-full-session-after-lazy.json)
+uses **195 hypothetical times × 29 actual contract-shape expiries**, 5,655 snapshots
+and 1,033,695 profile points, in seven isolated batches. It is not real history.
+All source row hashes match the eager version. Peak import RSS fell **2,410 → 906
+MiB**, total seven-batch import **152.1 → 125.1 s**, metadata **85.1 → 7.05 MB**;
+final view query **2.15 s / 21.6 MB**. Physical DB remains **1.62 GB**, exposing
+archive-size work still needed rather than proving excellent performance.
+[Browser scale evidence](benchmarks/2026-11-16-full-session-browser.json): original
+page/canvas rendered in **5.35 s**, matrix/heatmap interactions completed in **10.21 s**,
+no script errors/remote traffic, sampled renderer JS heap **61.5/114.0 MB**. This is
+Chromium fixture transport, not native WebView or peak renderer OS memory.
+
+New genuine capture: 29 expiries, 2,239 complete observed 2-minute buckets,
+98 same-date **premarket** buckets, zero regular buckets and 99 missing-IV contracts.
+Publication was Nov 16 13:12:34 UTC; underlying/source alignment remains incomplete.
+It was retained as partial, with no complete day published. Macro quote inputs were
+incomplete/stale for six symbols; the source macro was explicitly unavailable and
+PCS remained BLOCK/UNAVAILABLE. No dates, IV, snapshots or missing historical blobs
+were fabricated. Repository metadata has no homepage; deployment lookup returned
+HTTP 403 `Resource not accessible by integration`; Personal Context is unavailable
+and room search returned no manifest URL. No original historical DB/blob access or
+native machine connection was found. Source work is unchanged at d60e24b.
+
+Outstanding: original historical DB/blob migration and the 2026-10-15 discrepancy;
+fully exhaustive source UI/query acceptance and out-of-workbench navigation;
+in-page credential-backed inference versus the current private prompt workflow;
+complete locale integration and native/trusted-package acceptance. Cache gzip,
+smaller budgets, disk-full/crash recovery and reclamation are ongoing local work,
+backed up independently and excluded from this checkpoint push until validated.

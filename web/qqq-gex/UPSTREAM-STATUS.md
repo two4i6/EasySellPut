@@ -34,3 +34,14 @@ no VACUUM/history deletion is used to disguise storage costs.
 
 Algorithm/page source remains option-seller **work**
 `d60e24b56e308a81723f6c206fb52d22ddc0e9f8`; 654 imported file hashes match.
+
+## Current checkpoint (supersedes the unmerged status above)
+
+Upstream `cbd0c4ef8183d0215b82d0096a065cd8ff743767` was safely integrated as
+`f44cf48`. The four conflicts preserved GEX and liquidity catalog cases/skill,
+test provider overrides and the upstream footer smoke behavior. Migration code
+was then saved as `27fe440`. A final read-only check still found cbd0c4e on work;
+option-seller work still points to d60e24b. Both source repositories' existing work
+was retained. The checkpoint is validated from a separate source archive before
+pushing; uncommitted gzip/cache-budget experiments are backed up separately and
+are **not** included in that push. No force push or deployment is authorized.

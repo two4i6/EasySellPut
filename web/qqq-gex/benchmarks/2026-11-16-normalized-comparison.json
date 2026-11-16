@@ -13,8 +13,8 @@
     {
       "name": "before",
       "trial": 0,
-      "elapsedMs": 12116.64839,
-      "peakRssKiB": 800560,
+      "elapsedMs": 14022.351914,
+      "peakRssKiB": 799648,
       "databaseBytes": 589246464,
       "rows": [
         [
@@ -114,9 +114,9 @@
     {
       "name": "after",
       "trial": 0,
-      "elapsedMs": 4096.136198000002,
-      "peakRssKiB": 366704,
-      "databaseBytes": 81838080,
+      "elapsedMs": 4389.388663,
+      "peakRssKiB": 337708,
+      "databaseBytes": 78602240,
       "rows": [
         [
           "2026-11-02",
@@ -187,7 +187,7 @@
       "result": {
         "wireCoverage": "canonical-warm",
         "queryCoverage": "Full profiles are retained; all-expiry manifest, latest window and one overview are warm; parameter variants reconstruct read-only from protected local profiles",
-        "importVersion": "qqq-local-import-v6",
+        "importVersion": "qqq-local-import-v7",
         "status": "imported",
         "partialDates": [],
         "publishedDates": [
@@ -217,8 +217,8 @@
     {
       "name": "before",
       "trial": 1,
-      "elapsedMs": 11761.259337,
-      "peakRssKiB": 802116,
+      "elapsedMs": 14899.007270000002,
+      "peakRssKiB": 751820,
       "databaseBytes": 589246464,
       "rows": [
         [
@@ -318,9 +318,9 @@
     {
       "name": "after",
       "trial": 1,
-      "elapsedMs": 3619.1555869999975,
-      "peakRssKiB": 370288,
-      "databaseBytes": 81838080,
+      "elapsedMs": 3849.850301999999,
+      "peakRssKiB": 336936,
+      "databaseBytes": 78602240,
       "rows": [
         [
           "2026-11-02",
@@ -391,7 +391,7 @@
       "result": {
         "wireCoverage": "canonical-warm",
         "queryCoverage": "Full profiles are retained; all-expiry manifest, latest window and one overview are warm; parameter variants reconstruct read-only from protected local profiles",
-        "importVersion": "qqq-local-import-v6",
+        "importVersion": "qqq-local-import-v7",
         "status": "imported",
         "partialDates": [],
         "publishedDates": [
@@ -421,8 +421,8 @@
     {
       "name": "before",
       "trial": 2,
-      "elapsedMs": 18198.024473999998,
-      "peakRssKiB": 799760,
+      "elapsedMs": 11936.192064999996,
+      "peakRssKiB": 798676,
       "databaseBytes": 589246464,
       "rows": [
         [
@@ -522,9 +522,9 @@
     {
       "name": "after",
       "trial": 2,
-      "elapsedMs": 6418.213993000005,
-      "peakRssKiB": 353140,
-      "databaseBytes": 81838080,
+      "elapsedMs": 4158.569803000006,
+      "peakRssKiB": 336364,
+      "databaseBytes": 78602240,
       "rows": [
         [
           "2026-11-02",
@@ -595,7 +595,7 @@
       "result": {
         "wireCoverage": "canonical-warm",
         "queryCoverage": "Full profiles are retained; all-expiry manifest, latest window and one overview are warm; parameter variants reconstruct read-only from protected local profiles",
-        "importVersion": "qqq-local-import-v6",
+        "importVersion": "qqq-local-import-v7",
         "status": "imported",
         "partialDates": [],
         "publishedDates": [
@@ -624,6 +624,5 @@
     }
   ],
   "baseline": "8d33943 preserved standalone importer",
-  "algorithmSource": "option-seller work d60e24b",
-  "note": "Current v3 normalized profile rows and original HTTP projection; source row/bar/summary hashes match. See actual trial data and source projection parity; no real-history or native acceptance."
+  "version": "qqq-local-import-v7, indexed and lazy profile reads"
 }

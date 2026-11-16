@@ -117,3 +117,12 @@ the same NewsSplit failure reproduced on a pure upstream bf4d77d archive. Window
 WPF testhost cannot run here because Microsoft.WindowsDesktop.App is unavailable.
 Cross-builds and Chromium are not native validation. See [VALIDATION.md](VALIDATION.md)
 for the newest commands/outcomes; no remote CI green status is claimed.
+
+## Latest saved checkpoint
+
+`27fe440` incorporates upstream cbd0c4e and adds indexed lossless v3 profiles,
+source macro/regime orchestration, live detail/evidence, saved lifecycle/history,
+native theme/motion and optional separate-time PCS context in ASK AI. See the
+newest section of [VALIDATION.md](VALIDATION.md) for results and outstanding scope;
+older phase descriptions above are superseded by that section. Full migration
+acceptance remains pending. Experimental gzip/storage-budget work is separate.

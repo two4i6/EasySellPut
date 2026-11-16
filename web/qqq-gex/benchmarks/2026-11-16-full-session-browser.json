@@ -1,0 +1,19 @@
+{
+  "kind": "hypothetical-full-session-real-contract-shape",
+  "date": "2026-11-13",
+  "snapshots": 5655,
+  "profilePoints": 1033695,
+  "bars": 195,
+  "firstRenderMs": 5349.198638,
+  "totalMs": 10209.174536,
+  "apiRequests": 16,
+  "apiResponseBytes": 56952924,
+  "rendererJsHeapSamplesBytes": [
+    61539440,
+    114005936
+  ],
+  "serverPeakRssKiB": 453620,
+  "errors": [],
+  "remote": [],
+  "limitations": "Chromium fixture transport, no native WebView, hypothetical times/flat candles/zero volume; not real history. Renderer samples are not peak OS/native memory. Shared host."
+}
