@@ -172,3 +172,14 @@ MEILI_LIVE=1 python3 tests/automation/live_cli_mcp_smoke.py --executable /path/t
 ## 市场流动性
 
 `easysellput liquidity --json` 或 MCP `get_market_liquidity {}` 返回同一报告：实验性0–100资金压力分数/公式/权重/日期、六项FRED宏观指标、11个行业ETF的日频成交活跃度与Amihud代理。缺少/陈旧输入不出分数，不是VIX、实时深度或资金净流入。无需写权限。详见[数据口径与验收](52-市场流动性与行业热力图.md)。
+
+
+### QQQ GEX 本地只读归档与页面数据
+
+`get_qqq_gex_archive` 的 `resource` 为 `dates`、`snapshots`、`profile` 或 `bars`。除日期索引外需 `date`；完整 profile 还需快照列表原样返回的 `expiry` 和 `capturedAt`。每页最多 200 项，后续页必须带首批 `revision`；`revision_changed` 后从第一页重读。profile 不经过 compact、舍入或缺失补零。
+
+`get_qqq_gex_view` 支持 `display`、`evidence`、`context`、`exposureManifest`、`exposureWindow`、`spreadQuote`、`analysis`。大结果用 base64 分块（默认 64 KiB，最大 256 KiB）；解码拼接后验证完整 `sha256`，再解析 JSON/NDJSON。后续块提交 `offset` 和首块 `sha256`，内容变化返回 `revision_changed`，不得拼接旧块。context 的 `at` 固定响应时间，缺少参考日期仍明确报告。manifest 只接收日期及可选 expiry；窗口需使用 manifest 的精确 from/to/source，最长一小时，读完全部窗口后重读 manifest 验证 revision。
+
+analysis 复用导入的 UI 内核：exposure、replayTable、gammaModel、atmIv、maxPain、pulse、optionOverview、dayScenario、wallTouches、spreadStudy、structureEvents、activityResponse、overlays、chart、heatmapField。需 date、at 游标，selected scope 还需 expiry；mode 支持 gamma/gamma-call/gamma-put/delta/charm，metric 支持 gex/oi/volume。工具的 complete=false 不等于传输丢失：它明确不认证缺失历史或全日覆盖。每个快照仍保留自己的输入质量、来源、源时间、延迟和计算版本。不能把这些工具的新增视为所有 UI 分析已完成逐项验收，详见 web/qqq-gex/MIGRATION-MATRIX.md。
+
+这些读取工具无需 --allow-writes，不采集远程行情或生成观察记录。capture_qqq_gex_input、calculate_qqq_gex_local、rebuild_qqq_gex_history、clear_cache 仍是独立写操作。

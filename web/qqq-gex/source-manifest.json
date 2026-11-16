@@ -1,8 +1,37 @@
 {
   "repository": "https://github.com/two4i6/option",
-  "commit": "d60e24b56e308a81723f6c206fb52d22ddc0e9f8",
+  "commit": "8abee90a260071cbe9b1519a56548e8bf5a8d18e",
   "status": "source-import-only",
   "seeds": [
+    "src/components/Strategy/qqq/QqqIntradayLifecycle.test.tsx",
+    "src/components/Strategy/qqq/QqqIntradayLifecycle.tsx",
+    "src/lib/engines/analysis/QqqPcsEntrySnapshot.test.ts",
+    "src/lib/engines/analysis/QqqDailyMarketBase.test.ts",
+    "src/lib/engines/analysis/PcsReactiveRule.test.ts",
+    "src/lib/engines/leveraged-overlay/v2/strategies/pcs-contract-profile.test.ts",
+    "src/lib/engines/leveraged-overlay/v2/strategies/put-credit-spread.test.ts",
+    "src/lib/qqqIntradayDirectionalSummary.test.ts",
+    "src/lib/qqqHeatmapPresentation.test.ts",
+    "src/lib/qqqOptionActivityScope.test.ts",
+    "src/lib/qqqIntradayIndicators.test.ts",
+    "src/lib/qqqExposureSides.test.ts",
+    "src/lib/qqqExposureReplay.test.ts",
+    "src/lib/qqqMaxPain.test.ts",
+    "src/lib/qqqIndicatorConsistency.test.ts",
+    "src/lib/qqqExposureArchive.test.ts",
+    "src/lib/engines/analysis/QqqIntradayDirectional.test.ts",
+    "src/lib/qqqIntradayDirectionalSignals.test.ts",
+    "src/lib/engines/analysis/QqqGexResearch.test.ts",
+    "src/lib/qqqGexCaptureBuilder.ts",
+    "src/lib/qqqGexCalculation.test.ts",
+    "src/lib/qqqGammaModel.test.ts",
+    "src/lib/qqqGammaModel.worker.ts",
+    "src/lib/qqqExposureWire.worker.ts",
+    "src/lib/qqqDayScenario.worker.ts",
+    "src/App.css",
+    "src/app/globals.css",
+    "src/lib/qqqExposureWire.test.ts",
+    "src/lib/qqqGexInputQuality.test.ts",
     "src/app/analysis/qqq/gex/page.tsx",
     "src/app/analysis/qqq/gex/page.component.tsx",
     "src/app/api/analysis/qqq/pcs/route.ts",
@@ -12,9 +41,7 @@
     "src/app/api/analysis/qqq/gex/intraday-context/route.ts",
     "src/app/api/analysis/qqq/gex/spread-quote/route.ts",
     "src/app/api/proxy/yahoo/quote-stream/route.ts",
-    "src/app/api/proxy/yahoo/history/route.ts",
-    "src/components/Strategy/qqq/QqqIntradayLifecycle.tsx",
-    "src/components/Strategy/qqq/QqqIntradayLifecycle.test.tsx"
+    "src/app/api/proxy/yahoo/history/route.ts"
   ],
   "files": [
     {
@@ -469,13 +496,13 @@
     },
     {
       "path": "src/components/Strategy/qqq/QqqIntradayExecutionScoreCard.tsx",
-      "bytes": 4942,
-      "sha256": "5ffcce8fafdb9571bf4040992ff32f0a80c2602bf41b9a4db460e814ae80d2df"
+      "sha256": "5ffcce8fafdb9571bf4040992ff32f0a80c2602bf41b9a4db460e814ae80d2df",
+      "bytes": 4942
     },
     {
       "path": "src/components/Strategy/qqq/QqqIntradayLifecycle.test.tsx",
-      "bytes": 1036,
-      "sha256": "ceb6128b418eda27400dfc606163890c9f6541cac9ce7bc17f154a6a315af42d"
+      "sha256": "ceb6128b418eda27400dfc606163890c9f6541cac9ce7bc17f154a6a315af42d",
+      "bytes": 1036
     },
     {
       "path": "src/components/Strategy/qqq/QqqIntradayLifecycle.tsx",
@@ -1008,11 +1035,6 @@
       "bytes": 6041
     },
     {
-      "path": "src/lib/backtest-scripts/r-core-entry-signal-filter-v1.ts",
-      "sha256": "e23cf350a7a9aebc7e2e259e8e1b21b305a6d633d3c950fc2bc4a834902dbe58",
-      "bytes": 3944
-    },
-    {
       "path": "src/lib/backtest-scripts/r-quote-only-rescue-v1.ts",
       "sha256": "a556ebe6489693b484b1b205b2be3c21847e9598b87311f3a5fba2a0f8831423",
       "bytes": 2789
@@ -1124,8 +1146,8 @@
     },
     {
       "path": "src/lib/backtest-scripts/standalone-research-v3.ts",
-      "sha256": "b3c55e42e55e2e8ec010dc8d36a15adf19fa3f2f117b83ab5f2e121396406ecb",
-      "bytes": 21322
+      "sha256": "7f864bd5e830cb27a7607276cdcfef507bb77c374157ce6d3f64746857546b7e",
+      "bytes": 21354
     },
     {
       "path": "src/lib/backtest-scripts/standalone-risk-v1.ts",
@@ -1134,12 +1156,12 @@
     },
     {
       "path": "src/lib/backtest-scripts/standalone-strategy-catalog-v4.ts",
-      "sha256": "ec7fff383f6d4db42fe23905d431f99499d1a2655c71bdd2f68c7882d5059562",
-      "bytes": 4041
+      "sha256": "76caf53237fd05936989c9d45bdda16cdccbb4bc5e2ab8da0059720725271221",
+      "bytes": 4038
     },
     {
       "path": "src/lib/backtest-scripts/standalone-strategy-loader-v4.ts",
-      "sha256": "2b54c4832a633f381b47ad3900d01a12785df1ba20b651b12c8bf537f340eeed",
+      "sha256": "fbb3b7ee91b97a7a22ad1db0e215147a3f026554e956e02d2fd8c257246c0a4e",
       "bytes": 1862
     },
     {
@@ -1151,6 +1173,51 @@
       "path": "src/lib/backtest-scripts/strategies/ccs-c3-e856-standalone-v1.ts",
       "sha256": "d18fd6b8b5590d8b7b0fbc91dd38aa29a301995958f95bbd466869a03ef478da",
       "bytes": 27063
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e10467/base.ts",
+      "sha256": "1154d72fbb107f5370635af5d7f3fbce64e33e4d4ac23241565a44e966989b9d",
+      "bytes": 6037
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e10467/strategy.ts",
+      "sha256": "ed793d3c9a9b26e8a5a7c06f47c89fefab99774d97b70ed4ae28624ff6ec83b0",
+      "bytes": 3400
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e10467-standalone-v1.ts",
+      "sha256": "631425c562aee7fe569b262cb63dfd8c5eaa4bfed74b74c0c091d5086758ce3f",
+      "bytes": 151
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e10576/e10495.ts",
+      "sha256": "4a5b77334c58bcddce37144591c9c505f3b75bdd36c6375a528360436d6bcf1d",
+      "bytes": 1691
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e10576/e10530.ts",
+      "sha256": "fab39d927bcc93ae65127444e2b6412c825f91101bd37a9814ecdc69b17bae73",
+      "bytes": 3670
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e10576/e10548.ts",
+      "sha256": "bbe739ea184238686da262b2d9478ecd3fa8e6693c1c793e6a37556e35d7b072",
+      "bytes": 3626
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e10576/e10572.ts",
+      "sha256": "12901e1b3b146a24ed0ff545b02d7e692c6470d873d362ca1bc4c62fce0872dc",
+      "bytes": 2021
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e10576/strategy.ts",
+      "sha256": "8ab42aa8b5305ec8bc1c47cec0982aed25de6e9af3b1b78ebf3d693a9040c00a",
+      "bytes": 3476
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e10576-standalone-v1.ts",
+      "sha256": "1d571340a7792cb163128478918f161e09deea073b900984b167d53f43715d28",
+      "bytes": 151
     },
     {
       "path": "src/lib/backtest-scripts/strategies/e209-policy-v7.ts",
@@ -1211,11 +1278,6 @@
       "path": "src/lib/backtest-scripts/strategies/e9332/program-v1.ts",
       "sha256": "02d41f9771ed2edccad2d73ed0fc8988a6929fe53c3e278367a2997f1df79c8d",
       "bytes": 54744
-    },
-    {
-      "path": "src/lib/backtest-scripts/strategies/e9332/strategy.ts",
-      "sha256": "f08fbb80682341126f5935985288c01128e83a7a447d6364b93285a63885bd5e",
-      "bytes": 7420
     },
     {
       "path": "src/lib/backtest-scripts/strategies/e9332/unit-kernel.ts",
@@ -1328,11 +1390,6 @@
       "bytes": 2404
     },
     {
-      "path": "src/lib/backtest-scripts/strategies/eb8-9332-standalone-v1.ts",
-      "sha256": "824cec5ecaf01f309103818f72af197922d2e242995926c417129569f176f6e3",
-      "bytes": 355
-    },
-    {
       "path": "src/lib/backtest-scripts/strategies/eb8-940-standalone-v1.ts",
       "sha256": "00046815417601292c09ebf8b554b2bfe450ff57d62e518f52cbb2b057d85671",
       "bytes": 4502
@@ -1438,19 +1495,19 @@
       "bytes": 6762
     },
     {
-      "path": "src/lib/backtest-scripts/strategies/pcs-epr-standalone-v20.ts",
-      "sha256": "575ee99f5173f5b1114aabf5de411527a51541a9a94e9f8176425ff2bad1a0bf",
-      "bytes": 7313
+      "path": "src/lib/backtest-scripts/strategies/pcs-epr-standalone-v23.ts",
+      "sha256": "2aecd443cb43190d50a60a15ac4f7c117aa8f632676816248b2b5c6a9cf33405",
+      "bytes": 7269
     },
     {
-      "path": "src/lib/backtest-scripts/strategies/r10-2333-execution-contract-v1.ts",
-      "sha256": "b53b578f3b213568ae2b7912841cf3ea07684101a58664481e82761480030f2d",
-      "bytes": 1457
+      "path": "src/lib/backtest-scripts/strategies/r2465-execution-contract-v1.ts",
+      "sha256": "f6431c1946b4af87f59a58df31c86c6af6b94e63bc5acec233983706cbcff35a",
+      "bytes": 1439
     },
     {
-      "path": "src/lib/backtest-scripts/strategies/r10-2333-standalone-v1.ts",
-      "sha256": "56b79322c90d669c8cfae5bd71d3dc6aab8d0db250c4101452d3b3794bb977d9",
-      "bytes": 61281
+      "path": "src/lib/backtest-scripts/strategies/r2465-simplified-v2.ts",
+      "sha256": "19a52acca7f46774b021196b69514a582dec0ad2ff46834f58bd8081374e5bd4",
+      "bytes": 36480
     },
     {
       "path": "src/lib/backtest-scripts/strategies/r9-e226-main-pcs-v3.ts",
@@ -1569,8 +1626,8 @@
     },
     {
       "path": "src/lib/engines/analysis/QqqCsEntrySnapshot.ts",
-      "bytes": 8470,
-      "sha256": "ebe4dc85431ac5bbe625a3b966b4b65b4e439f53bac27135b5307f9e9c0b92e9"
+      "sha256": "ebe4dc85431ac5bbe625a3b966b4b65b4e439f53bac27135b5307f9e9c0b92e9",
+      "bytes": 8470
     },
     {
       "path": "src/lib/engines/analysis/QqqDailyMarketBase.test.ts",
@@ -3314,12 +3371,12 @@
     ");\n  const to = params.get(",
     ")??",
     ",",
-    ":35,",
     "?imports:requires).has(name))continue;\n          const entry=mode===",
     "@ai-sdk/openai",
     "@base-ui/react",
     "@supabase/supabase-js",
     "ai",
+    "bun:test",
     "clsx",
     "crypto",
     "framer-motion",
@@ -3351,18 +3408,5 @@
     "yahoo-finance2",
     "zustand"
   ],
-  "unresolvedImports": [],
-  "sourceBranch": "work",
-  "additionalSeeds": [
-    "src/App.css",
-    "src/app/globals.css",
-    "src/lib/qqqExposureWire.test.ts",
-    "src/lib/qqqGexInputQuality.test.ts",
-    "src/lib/qqqIntradayDirectionalSummary.test.ts",
-    "src/lib/engines/analysis/QqqPcsEntrySnapshot.test.ts",
-    "src/lib/engines/analysis/QqqDailyMarketBase.test.ts",
-    "src/lib/engines/analysis/PcsReactiveRule.test.ts",
-    "src/lib/engines/leveraged-overlay/v2/strategies/pcs-contract-profile.test.ts",
-    "src/lib/engines/leveraged-overlay/v2/strategies/put-credit-spread.test.ts"
-  ]
+  "unresolvedImports": []
 }

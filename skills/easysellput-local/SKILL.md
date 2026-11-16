@@ -1,7 +1,7 @@
 ---
 name: easysellput-local
 metadata:
-  version: "2.1"
+  version: "2.2"
   mcp-server: easysellput
 description: Use the local EasySellPut MCP server for US equity quotes, OHLCV and chart indicators, company financials/news/events, US funding/liquidity indicators and sector ETF activity proxies, option chains and IV/Greeks, volatility history, strategy presets/payoffs/what-if analysis, and explicitly requested local watchlist/strategy/alert/preferences changes. Use when the user asks to research or analyze these through EasySellPut; not for placing orders or controlling desktop windows.
 ---
@@ -127,6 +127,8 @@ Discover the live schema before calling any tool; this guide does not replace ar
 | `update_preferences` | write | Patch allowlisted local preferences; omitted fields remain unchanged. No proxy URL/credentials, arbitrary paths or window control. Desktop reload/restart required after external changes. |
 | `capture_qqq_gex_input` | write | Capture coherent QQQ provider inputs locally, preserving source delay and gaps; this does not publish calculated history. |
 | `calculate_qqq_gex_local` | write | Run the bundled original calculation on captured local inputs; uses the bundled pinned Node runtime and reports missing runtime or rejected data explicitly. |
+| `get_qqq_gex_view` | read | Exact local display/evidence/context/exposure/spread/original-analysis responses in bounded base64 chunks, SHA256 continuation protection; decode before parsing. No remote fallback; re-read manifest after windows. |
+| `get_qqq_gex_archive` | read | Discover retained dates and snapshot metadata, or page lossless strike profiles and 2-minute bars. Maximum 200 items per page; continuation requires revision, changes restart pagination. No remote capture, history completeness never implied. |
 | `get_qqq_gex_replay` | read | Replay imported local history through the original causal engine; maximum 366 days; above 32 days uses original daily summaries, no remote fallback, incomplete coverage stays explicit. |
 | `rebuild_qqq_gex_history` | write | Resume imports of retained normalized observations; bounded batches, independent commits and explicit retry of failed inputs; never fills missing history. |
 | `get_cache_status` | read | Inspect process-local cache counts and shared bar storage policies before maintenance. Memory in another running process is not included; IV/OI history and user data are protected. |

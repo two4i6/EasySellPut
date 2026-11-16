@@ -11,3 +11,5 @@ await build({absWorkingDir:root,entryPoints:['runtime/history.ts'],plugins:[summ
 await build({absWorkingDir:root,entryPoints:['tests/pcs-contract.ts'],plugins:[summaryAdapter],bundle:true,platform:'node',format:'esm',outfile:'test-results/pcs-contract.mjs',target:'node24',alias:{'@':path.join(root,'upstream/src')}});
 
 await build({absWorkingDir:root,entryPoints:['tests/project-source.ts'],plugins:[summaryAdapter],bundle:true,platform:'node',format:'esm',outfile:'test-results/project-source.mjs',target:'node24',alias:{'@':path.join(root,'upstream/src')}});
+
+await build({absWorkingDir:root,entryPoints:['tests/mcp-kernel-parity.ts'],plugins:[summaryAdapter],bundle:true,platform:'node',format:'esm',outfile:'test-results/mcp-kernel-parity.mjs',target:'node24',alias:{'@':path.join(root,'upstream/src')}});

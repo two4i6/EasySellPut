@@ -43,4 +43,9 @@ public sealed class QqqGexCaptureTests
         Assert.Equal(1,input.GetProperty("quality").GetProperty("missingIv").GetInt32());Assert.False(input.GetProperty("providerCoverageComplete").GetBoolean());
         if(aligned){Assert.Single(input.GetProperty("bars").EnumerateArray());Assert.Equal(eventAt,DateTimeOffset.Parse(input.GetProperty("barMetadata").GetProperty("priceCutoff").GetString()!));}
     }
+    [Fact] public async Task Core_bootstrap_defers_daily_and_macro_context_without_claiming_full_coverage()
+    {
+        var at=DateTimeOffset.Parse("2026-11-16T15:02:00Z");var expiry=new DateOnly(2027,6,18);var calls=0;var chain=new OptionChain{Underlying="QQQ",Source="fixture",AsOf=at,FetchedAt=at,UnderlyingPrice=600,Expirations=[expiry],Contracts=[new(){Underlying="QQQ",ContractSymbol="c",Right=OptionRight.Call,Strike=600,Expiration=expiry,OpenInterest=100,ImpliedVolatility=.2},new(){Underlying="QQQ",ContractSymbol="p",Right=OptionRight.Put,Strike=600,Expiration=expiry,OpenInterest=100,ImpliedVolatility=.2}]};
+        var market=new FakeMarket{ChainOverride=chain,BarsOverride=(request,ct)=>{if(request.Interval==BarInterval.Day1)Interlocked.Increment(ref calls);return Task.FromResult(new BarSeries{Symbol=request.Symbol,Interval=request.Interval,Source="fixture",Bars=[]});}};var dir=Path.Combine(Path.GetTempPath(),Guid.NewGuid().ToString("N"));await new QqqGexCaptureService(market,dir).CaptureAsync(includeContext:false);using var input=JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(dir,"cache","qqq-gex-input.json")));Assert.Equal(0,calls);Assert.True(input.RootElement.GetProperty("marketInputs").GetProperty("contextDeferred").GetBoolean());Assert.Empty(input.RootElement.GetProperty("marketInputs").GetProperty("macro").GetProperty("quotes").EnumerateArray());Assert.False(input.RootElement.GetProperty("complete").GetBoolean());Assert.Single(input.RootElement.GetProperty("captures").EnumerateArray());
+    }
 }

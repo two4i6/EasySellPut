@@ -27,6 +27,19 @@ public sealed partial class AutomationService
             case "rebuild_qqq_gex_history":
                 if(!File.Exists(Path.Combine(DirectoryInfo.Path,"cache","qqq-gex.db"))||!new QqqGexResponseStore(Path.Combine(DirectoryInfo.Path,"cache","qqq-gex.db")).HasLocalHistory())return new {status="no_observed_inputs",complete=false,processed=0};
                 return await QqqGexCalculationRunner.RebuildHistoryAsync(DirectoryInfo.Path,a.Int("limit",100,1,400),a.Bool("retryFailed"),ct);
+            case "get_qqq_gex_view": return await ReadQqqViewAsync(a,ct);
+            case "get_qqq_gex_archive":
+                {
+                    var resource=a.Text("resource");var page=a.Int("page",1,1,100000);var pageSize=a.Int("pageSize",100,1,200);
+                    if(resource!="dates"&&!a.Has("date"))throw new ArgumentException("Trading date is required");
+                    if(resource=="profile"&&(!a.Has("expiry")||!a.Has("capturedAt")))throw new ArgumentException("Profile requires expiry and capturedAt from snapshots");
+                    if(page>1&&!a.Has("revision"))throw new ArgumentException("Continuation requires revision");
+                    var query="/api/analysis/qqq/local-archive?resource="+Uri.EscapeDataString(resource)+"&page="+page+"&pageSize="+pageSize;
+                    foreach(var key in new[]{"date","expiry"})if(a.Has(key))query+="&"+key+"="+a.Date(key)!.Value.ToString("yyyy-MM-dd");
+                    foreach(var key in new[]{"capturedAt","revision"})if(a.Has(key))query+="&"+key+"="+Uri.EscapeDataString(a.Text(key));
+                    if(!File.Exists(Path.Combine(DirectoryInfo.Path,"cache","qqq-gex.db")))return new {status="cache_miss",available=false,complete=false};
+                    return await QqqGexCalculationRunner.QueryAsync(DirectoryInfo.Path,query,ct);
+                }
             case "get_qqq_gex_lifecycle":
                 {var date=a.Date("date")!.Value.ToString("yyyy-MM-dd");if(!File.Exists(Path.Combine(DirectoryInfo.Path,"cache","qqq-gex.db")))return new {available=true,storageAvailable=false,date,recorded=false,complete=false,points=Array.Empty<object>(),coverage="Only explicitly captured local PCS observations; missing historical blobs are not reconstructed"};var response=new QqqGexResponseStore(Path.Combine(DirectoryInfo.Path,"cache","qqq-gex.db")).ReadLifecycle("/api/analysis/qqq/pcs/lifecycle?date="+date)!;using var document=JsonDocument.Parse(response.Body);return document.RootElement.Clone();}
             case "get_qqq_gex_live_decision":

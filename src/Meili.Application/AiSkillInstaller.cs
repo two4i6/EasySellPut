@@ -10,7 +10,7 @@ public sealed class SkillInstallConflictException(string message) : IOException(
 public static class AiSkillInstaller
 {
     public const string SkillName = "easysellput-local";
-    public const string SkillVersion = "2.1";
+    public const string SkillVersion = "2.2";
     public static string Content
     {
         get
@@ -29,7 +29,7 @@ public static class AiSkillInstaller
     };
 
     // Only exact previously shipped content can be upgraded automatically; edited skills remain user-owned.
-    private static readonly HashSet<string> PreviousVersions = ["261A5E09DC235A1E8124F0EDC83024D96C06FB3140A041E5AD12FA3FF30ADC80", "D7AFE8DCE54D95C2FE04DB8246F3AA9C22C5685165C13A2C97E6538539C2F722", "EA52A6EAFD2150E510FBF79BB6C08B4D7864F4487B01AFFBD58676AC13C3A2B5", "78ED60852D730C26AE83D00F0BB3F2C1BA45419EDBC9F980F873ECB473798990"];
+    private static readonly HashSet<string> PreviousVersions = ["5A3D3FF176D0D3B01094A4153A8201E7B94C263543993DEC44AFC9D2D16E0711", "261A5E09DC235A1E8124F0EDC83024D96C06FB3140A041E5AD12FA3FF30ADC80", "D7AFE8DCE54D95C2FE04DB8246F3AA9C22C5685165C13A2C97E6538539C2F722", "EA52A6EAFD2150E510FBF79BB6C08B4D7864F4487B01AFFBD58676AC13C3A2B5", "78ED60852D730C26AE83D00F0BB3F2C1BA45419EDBC9F980F873ECB473798990"];
     private static string Destination(string client, string root, bool create)
     {
         var destination = Path.GetFullPath(root);

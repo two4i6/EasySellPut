@@ -1,29 +1,29 @@
 /** Research composition: independent child books propose; the adapter arbitrates future fills. */
 import { assertFixedStrategyParams, freezeStrategyData, type BarStrategyModule, type StrategyJson,
   type StrategyObject, type StrategySnapshot, type StrategyIntent } from '../strategy-module-v2';
-import {eb89332StandaloneV1} from './eb8-9332-standalone-v1';
+import {e10576StandaloneV1} from './e10576-standalone-v1';
 import {p11262StandaloneV1} from './p11262-standalone-v1';
-import {r102333StandaloneV1 as defaultR} from './r10-2333-standalone-v1';
+import {r2465StandaloneV1 as defaultR} from './r2465-simplified-v2';
 import { E209_SOURCE_BOOKS } from './e209-source-contract-v1';
 import {R9_E226_SOURCE_CONTRACT} from './r9-e226-source-contract-v1';
 
-export function createEpr9332P11262R102333Composition(r102333StandaloneV1:BarStrategyModule=defaultR):BarStrategyModule{
-if(r102333StandaloneV1.manifest.id!=='R10.2333'||r102333StandaloneV1.params.selectedPolicyMarginLimit!==null)throw Error('Expected complete R10.2333 child');
+export function createEpr10576P11262R2465Composition(r2465StandaloneV1:BarStrategyModule=defaultR):BarStrategyModule{
+if(r2465StandaloneV1.manifest.id!=='R2465'||r2465StandaloneV1.params.selectedPolicyMarginLimit!==null)throw Error('Expected complete R2465 child');
 const layers = ['e', 'p', 'r'] as const;
-const PCS_EPR_9332_11262_R102333_PARAMS = freezeStrategyData({
-  lineage: ['EB8.9332', 'P11262', 'R10.2333'], priority: [...layers],
-  executionVersion: 'epr-future-bar-priority-v1',commissionPerContract:0,rParams:r102333StandaloneV1.params,
-  childVersions: { e: eb89332StandaloneV1.manifest.version,
-    p: p11262StandaloneV1.manifest.version, r: r102333StandaloneV1.manifest.version },
+const PCS_EPR_10576_11262_R2465_PARAMS = freezeStrategyData({
+  lineage: ['E10576', 'P11262', 'R2465'], priority: [...layers],
+  executionVersion: 'epr-future-bar-priority-v1',commissionPerContract:0,rParams:r2465StandaloneV1.params,
+  childVersions: { e: e10576StandaloneV1.manifest.version,
+    p: p11262StandaloneV1.manifest.version, r: r2465StandaloneV1.manifest.version },
 });
-const children = { e: eb89332StandaloneV1, p: p11262StandaloneV1, r: r102333StandaloneV1 };
+const children = { e: e10576StandaloneV1, p: p11262StandaloneV1, r: r2465StandaloneV1 };
 const shadowIds = { e: 'e209', p: 'p6', r: 'r9' } as const;
 type Layer = keyof typeof children;
 type State = Record<Layer, StrategyJson>;
 type Book = Pick<StrategySnapshot, 'market' | 'account' | 'positions'>;
 function assertParams(params: Readonly<StrategyObject>) {
-  assertFixedStrategyParams(params, PCS_EPR_9332_11262_R102333_PARAMS);
-  for (const layer of layers) if (children[layer].manifest.version !== PCS_EPR_9332_11262_R102333_PARAMS.childVersions[layer])
+  assertFixedStrategyParams(params, PCS_EPR_10576_11262_R2465_PARAMS);
+  for (const layer of layers) if (children[layer].manifest.version !== PCS_EPR_10576_11262_R2465_PARAMS.childVersions[layer])
     throw new Error(`EPR child version mismatch: ${layer}`);
 }
 function unwrap(value: string, layer: Layer) {
@@ -38,9 +38,9 @@ function childBook(books: Record<string, Book>, id: string, layer: Layer): Book 
 }
 
 return {
-  manifest: { sdkVersion: 2, id: 'PCS.EPR', version: 'pcs-epr-eb8-9332-p11262-r10-2333-zero-cost-v1', researchOnly: true,
+  manifest: { sdkVersion: 2, id: 'PCS.EPR', version: 'pcs-epr-e10576-p11262-r2465-zero-cost-v1', researchOnly: true,
     migration: { complete: true, missing: [] } },
-  params: PCS_EPR_9332_11262_R102333_PARAMS,
+  params: PCS_EPR_10576_11262_R2465_PARAMS,
   initialize(params) {
     assertParams(params);
     return Object.fromEntries(layers.map(layer => [layer, children[layer].initialize(children[layer].params)]));
@@ -118,4 +118,4 @@ return {
 };
 
 }
-export const pcsEprStandaloneV20=createEpr9332P11262R102333Composition();
+export const pcsEprStandaloneV23=createEpr10576P11262R2465Composition();

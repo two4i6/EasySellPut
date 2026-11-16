@@ -44,7 +44,7 @@ public static class QqqGexCalculationRunner
     public static Task<object> RunAsync(string directory,CancellationToken ct=default)=>ExecuteAsync(directory,"import.mjs",null,ct);
     public static async Task<object> QueryAsync(string directory,string path,CancellationToken ct=default)
     {
-        if(path.Length>8192||!(path.StartsWith("/api/analysis/qqq/pcs/backtest?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/pcs?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/gex/intraday-context?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/gex/exposure?",StringComparison.Ordinal)||(path=="/api/analysis/qqq/pcs/local-decision"||path.StartsWith("/api/analysis/qqq/pcs/local-decision?",StringComparison.Ordinal))))throw new ArgumentException("Unsupported local query");
+        if(path.Length>8192||!(path.StartsWith("/api/analysis/qqq/local-analysis?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/local-archive?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/pcs/backtest?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/pcs?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/gex/intraday-context?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/gex/exposure?",StringComparison.Ordinal)||(path=="/api/analysis/qqq/pcs/local-decision"||path.StartsWith("/api/analysis/qqq/pcs/local-decision?",StringComparison.Ordinal))))throw new ArgumentException("Unsupported local query");
         await QueryGate.WaitAsync(ct);try{return await ExecuteAsync(directory,"query.mjs",path,ct);}finally{QueryGate.Release();}
     }
     private static async Task<object> ExecuteAsync(string directory,string script,string? query,CancellationToken ct)

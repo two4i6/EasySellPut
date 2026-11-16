@@ -1,6 +1,6 @@
 # QQQ GEX workbench migration (in progress)
 
-Source: option-seller `work@d60e24b56e308a81723f6c206fb52d22ddc0e9f8`.
+Source: option-seller `work@8abee90a260071cbe9b1519a56548e8bf5a8d18e`.
 654 byte-preserved files are tracked in `source-manifest.json`.
 `python3 tools/qqq-gex/verify-source.py` verifies fidelity. Original calculation,
 research, indicators, replay and archive algorithms remain the single implementation.

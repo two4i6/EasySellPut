@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import {DatabaseSync} from 'node:sqlite';
+import {readMcpAnalysis,analysisJson} from '../runtime/mcp-analysis';import {hydrateDay} from '../runtime/local-rows';import {displayLocalDay} from '../runtime/display-day';
+import {exposureFrames,prepareAggregateGammaFrames,exposureSpotIndex,exposureValues,exposureStrikeMetric,exposureStrikeComparisons} from '../upstream/src/lib/qqqExposureWorkbench';
+import {qqqOptionOverview} from '../upstream/src/lib/qqqOptionObservation';import {prepareQqqMaxPain,qqqMaxPainAt} from '../upstream/src/lib/qqqMaxPain';import {prepareQqqAtmIvObservation,qqqAtmIvAt} from '../upstream/src/lib/qqqAtmIvObservation';
+import {prepareHedgeObservations,hedgeObservationWindow} from '../upstream/src/lib/qqqHedgeObservations';import {prepareHeatmapDiscovery} from '../upstream/src/lib/qqqHeatmapDiscovery';import {prepareHeatmapOverlays} from '../upstream/src/lib/qqqHeatmapOverlays';import {buildDayScenario,dayScenarioInput} from '../upstream/src/lib/qqqDayScenario';
+const dbPath=JSON.parse(readFileSync('test-results/pipeline-location.json','utf8')).dbPath,db=new DatabaseSync(dbPath,{readOnly:true}),date='2026-01-02',expiry=date,at='2026-01-02T14:35:00Z',cutoff=Date.parse(at),day=hydrateDay(db,JSON.parse((db.prepare('SELECT payload FROM qqq_gex_local_days WHERE day=?').get(date) as any).payload)),data=displayLocalDay(day,date,expiry),all=data.intraday!.gexExpiries!,bars=day.bars,spotAt=exposureSpotIndex(bars),signal=new AbortController().signal;
+const call=(analysis:string,params:Record<string,string>={})=>readMcpAnalysis(dbPath,new URL('/api/analysis/qqq/local-analysis?'+new URLSearchParams({date,expiry,at,analysis,...params}),'http://local'));
+const equal=(actual:any,expected:any)=>assert.deepEqual(JSON.parse(analysisJson(actual)),JSON.parse(analysisJson(expected)));
+try{for(const scope of ['selected','0dte','all'] as const){const expiries=all.filter(e=>scope==='all'||e.expiryDate===expiry),raw=exposureFrames(all,cutoff,scope,expiry,date),frames=scope==='all'?await prepareAggregateGammaFrames(raw,spotAt,signal):raw,frame=frames.at(-1)!;assert.ok(frame);
+ for(const mode of ['gamma','gamma-call','gamma-put','delta','charm'])for(const metric of ['gex','oi','volume']){const result=await call('exposure',{scope,mode,metric});assert.equal(result.available,true);equal(result.result.values,[...exposureValues(frame,mode as any,spotAt(frame.time))]);equal(result.result.strikeMetric,[...exposureStrikeMetric(frame,metric as any)]);equal(result.result.comparisons,exposureStrikeComparisons(frames,frame,metric as any));}
+ equal((await call('optionOverview',{scope})).result,qqqOptionOverview(frame.profiles.flatMap(p=>p.strikes)));
+ equal((await call('maxPain',{scope})).result,qqqMaxPainAt(await prepareQqqMaxPain(expiries,raw,date,signal),cutoff));
+ equal((await call('atmIv',{scope})).result,qqqAtmIvAt(await prepareQqqAtmIvObservation(expiries,raw,bars,date,signal),cutoff));
+ equal((await call('structureEvents',{scope})).result,await prepareHeatmapDiscovery({frames,bars,expiry,scope:scope==='all'?'all':'selected'},undefined,signal));
+ equal((await call('overlays',{scope})).result,await prepareHeatmapOverlays({frames,bars,date,expiry,scope:scope==='all'?'all':'selected',flags:{vwap:true,delta:true,iv:true,putCall:true}},signal));
+ const series=await prepareHedgeObservations({frames,bars},signal);for(const minutes of [2,10,30])equal((await call('activityResponse',{scope,minutes:String(minutes)})).result,{series,window:hedgeObservationWindow(series,cutoff,minutes)});
+ equal((await call('dayScenario',{scope})).result,buildDayScenario(dayScenarioInput(raw.at(-1),date,spotAt(frame.time)),'gamma','complete'));
+ }
+ console.log('PASS UI→MCP kernel numerical parity: 3 expiry scopes × 5 exposure modes × 3 metrics; ATM IV/Max Pain/overview/discovery/overlays/2,10,30-minute activity/scenario match original UI kernels, including missing values. Fixture only, not all UI filters/markers accepted.');
+}finally{db.close();}

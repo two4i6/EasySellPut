@@ -87,4 +87,30 @@ public sealed class QqqGexSessionTests
         using var state=System.Text.Json.JsonDocument.Parse(await http.GetStringAsync(new Uri(session.PageUri,"api/analysis/qqq/local-state")));Assert.False(state.RootElement.GetProperty("storage").GetProperty("canCapture").GetBoolean());Assert.Equal("storage_unavailable",state.RootElement.GetProperty("storage").GetProperty("error").GetString());
         var unavailable=await http.GetAsync(new Uri(session.PageUri,"api/analysis/qqq/pcs?gexWindow=latest"));Assert.Equal(System.Net.HttpStatusCode.ServiceUnavailable,unavailable.StatusCode);await using var file=new FileStream(path,FileMode.Open,FileAccess.Read,FileShare.ReadWrite|FileShare.Delete);using var bytes=new MemoryStream();await file.CopyToAsync(bytes);Assert.Equal(original,bytes.ToArray());
     }
+    [Fact] public async Task Capture_phase_does_not_claim_readable_page_before_verified_publication()
+    {
+        var path=Path.Combine(Path.GetTempPath(),Guid.NewGuid()+".db");using var session=new QqqGexSession(path);using var http=new HttpClient();
+        foreach(var phase in new[]{"idle","capturing","calculating","imported","partial","failed"}){
+            session.UpdateCaptureState(new(phase,DateTimeOffset.UtcNow,MissingIv:3,DelayMinutes:15,InputComplete:false));
+            using var data=System.Text.Json.JsonDocument.Parse(await http.GetStringAsync(new Uri(session.PageUri,"api/analysis/qqq/cache-status")));Assert.False(data.RootElement.GetProperty("ready").GetBoolean());Assert.Equal(phase,data.RootElement.GetProperty("capture").GetProperty("phase").GetString());Assert.Equal(phase is "capturing" or "calculating",data.RootElement.GetProperty("pending").GetBoolean());Assert.NotEqual("AVAILABLE",data.RootElement.GetProperty("status").GetString());
+        }
+    }
+    [Fact] public async Task Hidden_collector_pauses_and_visible_demand_wakes_without_waiting_two_minutes()
+    {
+        var activity=new DesktopActivity();var market=new PricingSnapshotTests.SnapshotData{Chain=new Meili.Core.Models.OptionChain{Underlying="QQQ",Contracts=[],Expirations=[]}};
+        using var collector=new QqqGexActivity(market,Path.Combine(Path.GetTempPath(),Guid.NewGuid().ToString("N")),activity);var paused=new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);var capturing=new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        collector.StateChanged+=()=>{if(collector.Status=="paused")paused.TrySetResult();if(collector.Status=="capturing")capturing.TrySetResult();};collector.Start();await paused.Task.WaitAsync(TimeSpan.FromSeconds(5));Assert.False(capturing.Task.IsCompleted);activity.SetVisible("test",true);await capturing.Task.WaitAsync(TimeSpan.FromSeconds(5));
+    }
+    [Fact] public async Task Large_local_responses_negotiate_lossless_gzip_and_honor_disabled_encoding()
+    {
+        var path=Path.Combine(Path.GetTempPath(),Guid.NewGuid()+".db");var store=new QqqGexResponseStore(path);var body="{\"syntheticTransportFixture\":\""+new string('x',200000)+"\"}";const string route="api/analysis/qqq/pcs?fixture=1";store.Save("local","/"+route,new("application/json",body,"fixture",DateTimeOffset.UtcNow,DateTimeOffset.MaxValue));using var session=new QqqGexSession(path);using var http=new HttpClient();
+        using var request=new HttpRequestMessage(HttpMethod.Get,new Uri(session.PageUri,route));request.Headers.TryAddWithoutValidation("Accept-Encoding","gzip");using var response=await http.SendAsync(request);Assert.Contains("gzip",response.Content.Headers.ContentEncoding);var compressed=await response.Content.ReadAsByteArrayAsync();Assert.True(compressed.Length<body.Length/10);using var zipped=new System.IO.Compression.GZipStream(new MemoryStream(compressed),System.IO.Compression.CompressionMode.Decompress);using var reader=new StreamReader(zipped);Assert.Equal(body,await reader.ReadToEndAsync());Assert.True(response.Headers.Contains("Server-Timing"));
+        using var disabled=new HttpRequestMessage(HttpMethod.Get,new Uri(session.PageUri,route));disabled.Headers.TryAddWithoutValidation("Accept-Encoding","gzip;q=0");using var plain=await http.SendAsync(disabled);Assert.Empty(plain.Content.Headers.ContentEncoding);Assert.Equal(body,await plain.Content.ReadAsStringAsync());
+    }
+    [Fact] public async Task Renderer_diagnostics_are_bounded_typed_and_reject_raw_payloads_or_foreign_origin()
+    {
+        using var session=new QqqGexSession();using var http=new HttpClient();var uri=new Uri(session.PageUri,"diagnostics");const string body="{\"code\":\"RENDER_FAILED\",\"type\":\"TypeError\",\"category\":\"null_access\",\"frames\":[{\"asset\":\"main.js\",\"line\":1,\"column\":77}]}";
+        async Task<System.Net.HttpStatusCode> Post(string payload,string origin){using var request=new HttpRequestMessage(HttpMethod.Post,uri){Content=new StringContent(payload,System.Text.Encoding.UTF8,"application/json")};request.Headers.Add("Origin",origin);using var response=await http.SendAsync(request);return response.StatusCode;}
+        Assert.Equal(System.Net.HttpStatusCode.OK,await Post(body,session.PageUri.GetLeftPart(UriPartial.Authority)));Assert.Equal(System.Net.HttpStatusCode.BadRequest,await Post(body[..^1]+",\"message\":\"Bearer secret-token\"}",session.PageUri.GetLeftPart(UriPartial.Authority)));Assert.Equal(System.Net.HttpStatusCode.Forbidden,await Post(body,"https://foreign.example"));
+    }
 }

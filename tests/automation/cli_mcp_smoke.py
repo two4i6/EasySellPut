@@ -152,6 +152,12 @@ def main():
             actual = server.call('calculate_option', {'right': 'call', 'spot': 100, 'strike': 100, 'years': 1, 'rate': 0.05, 'volatility': 0.2})
             assert actual['structuredContent']['data'] == price['data']
             assert server.call('calculate_indicators', {'closes': [1, 2, 3, 4], 'period': 3})['structuredContent']['data']['sma'] == [None, None, 2, 3]
+            for tool, arguments in [('get_qqq_gex_archive', {'resource':'dates'}), ('get_qqq_gex_view', {'resource':'context','date':'2026-11-16','at':'2026-11-16T15:00:00Z'})]:
+                result=server.call(tool,arguments)
+                assert not result.get('isError') and result['structuredContent']['data']['status']=='cache_miss',result
+            assert server.call('get_qqq_gex_view', {'resource':'exposureManifest','date':'2026-11-16','from':'2026-11-16T15:00:00Z'})['isError']
+            assert server.call('capture_qqq_gex_input', {})['structuredContent']['error']['code']=='permission_denied'
+            assert not (pathlib.Path(data)/'cache'/'qqq-gex.db').exists()
             prompts=server.request('prompts/list')['result']['prompts']
             assert {p['name'] for p in prompts}=={'market_brief','option_research','strategy_review','connection_check'}
             for prompt in prompts:

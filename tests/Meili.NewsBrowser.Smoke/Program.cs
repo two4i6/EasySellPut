@@ -267,7 +267,7 @@ internal static class Program
             browser.Navigate(session.PageUri.AbsoluteUri);
             await Until(()=>browser.DocumentTitle=="QQQ GEX · 缓存缺失","native GEX client local cache miss");
 #endif
-            Console.WriteLine("PASS: QQQ GEX original client loads in the native engine and reports local cache miss; no native calculation/data acceptance implied.");
+            Console.WriteLine("PASS: QQQ GEX local shell loads in the native engine and reports unavailable cache; original data view, native calculation and real-data acceptance are not implied.");
         }finally{window.Content=null;window.Close();
 #if WINDOWS_READER
             browser.Dispose();

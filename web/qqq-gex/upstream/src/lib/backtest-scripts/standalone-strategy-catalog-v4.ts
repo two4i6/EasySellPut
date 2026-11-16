@@ -18,7 +18,7 @@ export const standaloneStrategyCatalog={
   'EB7.E209.PRUNE':{path:'./strategies/eb7-e209-pruned-v1',adapter:'qqq-source-adapter-v2',executionProfiles:SPREAD_EXECUTION_PROFILES,composition:e209Composition},
   'P6.E385':{path:'./strategies/p6-3922-standalone-v1',adapter:'qqq-observed-spread-adapter-v2',executionProfiles:[],composition:[...p6Composition,'./strategies/p6-3922-execution-contract-v1']},
   'R9.E226':{path:'./strategies/r9-e226-standalone-v4',adapter:'qqq-source-adapter-v2',executionProfiles:[],composition:r9Composition},
-  'PCS.EPR':{path:'./strategies/pcs-epr-standalone-v20',adapter:'qqq-source-adapter-v2',executionProfiles:[],composition:['./e9230-market-contract-v1',...e209Composition,...p6Composition,...r9Composition,'./strategies/r10-2333-execution-contract-v1','./strategies/p6-3922-execution-contract-v1']},
+  'PCS.EPR':{path:'./strategies/pcs-epr-standalone-v23',adapter:'qqq-source-adapter-v2',executionProfiles:[],composition:['./e9230-market-contract-v1',...e209Composition,...p6Composition,...r9Composition,'./strategies/r2465-execution-contract-v1','./strategies/p6-3922-execution-contract-v1']},
   'PCS.EPR.PRUNE':{path:'./strategies/pcs-epr-pruned-v1',adapter:'qqq-source-adapter-v2',executionProfiles:[],composition:[...e209Composition,...p6Composition,...r9Composition]},
   'CCS.C3.E856':{path:'./strategies/ccs-c3-e856-standalone-v1',adapter:'qqq-observed-spread-adapter-v2',executionProfiles:[],composition:ccsComposition},
 } as const;

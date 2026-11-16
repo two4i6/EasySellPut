@@ -90,7 +90,7 @@ db.exec('PRAGMA busy_timeout=5000');db.exec('BEGIN IMMEDIATE');try{
  const manifest=await exposureArchiveManifest(date,source,observedAt,bars);const scope=expiry?{expiryDate:expiry}:{};
  save('/api/analysis/qqq/gex/exposure',{date,format:'manifest-v2',...scope},manifest,asOf);
  for(const window of manifest.windows.slice(-1)){const start=Date.parse(window.from),end=Date.parse(window.to);const value={date,observedAt,revision:manifest.revision,items:scopedRows.filter((r:any)=>Date.parse(r.capturedAt)>=start&&Date.parse(r.capturedAt)<end).map((r:any)=>{const row=hydrateRow(db,r);return {capturedAt:row.capturedAt,expiryDate:row.expiryDate,dte:row.dte,profile:row.profile};}),bars:bars.filter((b:any)=>Date.parse(b.timestamp)>=start&&Date.parse(b.timestamp)<end)};
- save('/api/analysis/qqq/gex/exposure',{date,format:'lines-v2',from:window.from,to:window.to,source:window.version,...scope},serializeExposureWire(value,true),asOf,'application/x-ndjson; charset=utf-8');}
+ save('/api/analysis/qqq/gex/exposure',{date,format:'lines-v2',profiles:'true',from:window.from,to:window.to,source:window.version,...scope},serializeExposureWire(value,true),asOf,'application/x-ndjson; charset=utf-8');}
  }
  const dayBody=JSON.stringify(retained);
  db.prepare('INSERT INTO qqq_gex_local_days VALUES(?,?,?,?) ON CONFLICT(day) DO UPDATE SET revision=excluded.revision,payload=excluded.payload,updated_at=excluded.updated_at').run(date,revision,dayBody,Date.now());

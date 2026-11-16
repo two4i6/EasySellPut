@@ -130,10 +130,11 @@ public sealed class CboeProvider(HttpGateway http, ResponseCache cache) : Provid
         return Cache.GetOrAddAsync($"cboe:opt:{sym}", RefreshCadence.OptionChainCache, async c =>
         {
             var payload = await GetAsync($"{Base}/options/{Enc(sym)}.json", c, timeout: TimeSpan.FromSeconds(45)).ConfigureAwait(false);
+            var receivedAt=DateTimeOffset.UtcNow; // Preserve actual download receipt across all cached expiry reads.
             // Large (AAPL ~1.5 MB, SPX ~14 MB): parse off the UI thread.
             var chain = await Task.Run(() => { using var doc = ParseJson(payload.Body); return ParseOptions(doc.RootElement, Norm(symbol), Eastern.Today); }, c).ConfigureAwait(false);
             if (chain.Contracts.Count == 0) throw NoData($"no options for {symbol}");
-            return chain with { RawSourcePayload = payload.Body };
+            return chain with { RawSourcePayload = payload.Body, FetchedAt=receivedAt };
         }, ct);
     }
 

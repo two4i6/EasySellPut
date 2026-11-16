@@ -93,7 +93,7 @@ export const standalonePlugins:Record<StandaloneId,{module:BarStrategyModule;pat
       assertStandaloneExecutionProfile('PCS.EPR',request.executionProfile);
       const c=composeEpr(data,request,'EB8.3896',true);
       const eLineage=(standalonePlugins['PCS.EPR'].module.params.lineage as readonly string[])[0];
-      if(eLineage!=='EB8.9230'&&eLineage!=='EB8.9332')return c;
+      if(eLineage!=='EB8.9230'&&eLineage!=='EB8.9332'&&eLineage!=='E10467'&&eLineage!=='E10576')return c;
       const {createE9230SnapshotMapper,E9230_PUT_DTES}=require('./e9230-market-contract-v1') as typeof import('./e9230-market-contract-v1');
       const eConfig={...c.definitions.find(b=>b.id==='e209')!.config,putTargetDtes:[...E9230_PUT_DTES]};
       return {...c,portfolioConfig:{...c.portfolioConfig,putTargetDtes:[...new Set([...(c.portfolioConfig.putTargetDtes??[]),...E9230_PUT_DTES])].sort((a,b)=>a-b)},
@@ -210,9 +210,9 @@ function composeEpr(data:MarketDataSet,request:RunWindow,eStrategy:'EB7.E209'|'E
         fillContractGroups:{...Object.fromEntries(eBooks.map(id=>[id,eBooks])),p6:['p6'],
           ...Object.fromEntries(rBooks.map(id=>[id,rBooks])),e:eBooks,p:['p6'],r:rBooks}};
       if(eStrategy==='EB8.3896'){
-        const {withR102333ExecutionContract}=require('./strategies/r10-2333-execution-contract-v1') as typeof import('./strategies/r10-2333-execution-contract-v1');
+        const {withR2465ExecutionContract}=require('./strategies/r2465-execution-contract-v1') as typeof import('./strategies/r2465-execution-contract-v1');
         const {withP63922ExecutionContract}=require('./strategies/p6-3922-execution-contract-v1') as typeof import('./strategies/p6-3922-execution-contract-v1');
-        return withP63922ExecutionContract(withR102333ExecutionContract(composition));
+        return withP63922ExecutionContract(withR2465ExecutionContract(composition));
       }
       return composition;
 }

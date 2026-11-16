@@ -23,7 +23,7 @@ public sealed class QqqGexPage : Page
             core.PermissionRequested+=(_,e)=>e.State=CoreWebView2PermissionState.Deny;core.DownloadStarting+=(_,e)=>e.Cancel=true;core.NewWindowRequested+=(_,e)=>e.Handled=true;
             core.NavigationStarting+=(_,e)=>e.Cancel=!active.IsPageUrl(e.Uri);core.Navigate(active.PageUri.AbsoluteUri);
             capture=new QqqGexActivity(AppServices.Get<Meili.Core.Abstractions.IMarketDataService>(),AppServices.DataDirectory.Path,AppServices.Get<DesktopActivity>());
-            capture.Published+=()=>{if(session==active)active.NotifyDataUpdated();};capture.Start();
+            capture.Published+=()=>{if(session==active)active.NotifyDataUpdated();};var running=capture;capture.StateChanged+=()=>{if(session==active)active.UpdateCaptureState(running.State);};capture.Start();
         }catch(Exception ex) {AppLog.Warn("qqq-gex","Native viewer startup failed: "+ex.GetType().Name);if(session==active)Content=new TextBlock{Text=LocalizationService.Current["Reader_Failed"],Margin=new Thickness(16)};}
     }
     private void Stop(){ThemeService.ColorsChanged-=PresentationChanged;DesignMotion.Changed-=PresentationChanged;capture?.Dispose();capture=null;session?.Dispose();session=null;web?.Dispose();web=null;Content=null;}
