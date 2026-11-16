@@ -55,7 +55,9 @@ public sealed class DesignSystemTests
         var invalid=new TextBox{PlaceholderText=T("请输入地址","Enter an address"),Text="https://",Classes={"error"}};
         Card(T("表单","Form"),new AppFormHeader{Title=T("界面语言","Interface language"),HelpText=T("统一对齐的表单标题与帮助。","Aligned form label and help.")},input,select,invalid);
         var loading=new AppLoading();var loadingRow=new StackPanel{Orientation=Orientation.Horizontal,Spacing=12,Children={loading,new TextBlock{Text=T("加载中","Loading"),Classes={"Caption"},VerticalAlignment=VerticalAlignment.Center}}};
-        Card(T("状态","States"),new CheckBox{Content=T("显示新闻","Show news"),IsChecked=true},new ToggleSwitch{Content=T("自动刷新","Auto refresh"),IsChecked=true},loadingRow);
+        var statusLabel=new TextBlock{Text=T("休市 · 0/8","Closed · 0/8"),Classes={"StatusText"}};
+        var statusRow=new StackPanel{Orientation=Orientation.Horizontal,Spacing=12,Children={new Button{Classes={"StatusEntry"},Content=statusLabel},new TextBlock{Text="ET 09:30 · BJ 22:30",Classes={"StatusText"}}}};
+        Card(T("状态","States"),new CheckBox{Content=T("显示新闻","Show news"),IsChecked=true},new ToggleSwitch{Content=T("自动刷新","Auto refresh"),IsChecked=true},loadingRow,statusRow);
         var drawerInput=new TextBox{Text="20"};var drawer=new AppDrawer{ReturnFocusTarget=(Button)actions.Children[0],IsOpen=true,Padding=new Thickness(20),Child=new StackPanel{Spacing=16,Children={new TextBlock{Text=T("指标","Indicators"),Classes={"SectionTitle"},Margin=default},new CheckBox{Content="MA",IsChecked=true},drawerInput,new TextBlock{Text=T("Esc 关闭","Esc to close"),Classes={"Caption"}}}}};Grid.SetColumn(drawer,1);root.Children.Add(drawer);
         var window=new Window{Width=1120,Height=820,Content=root};window.Show();MacHost.Pump();
         try

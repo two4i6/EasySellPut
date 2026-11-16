@@ -34,6 +34,11 @@
         <Setter Property="TextWrapping" Value="Wrap" />
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
     </Style>
+    <Style Selector="TextBlock.StatusText">
+        <Setter Property="FontSize" Value="{StaticResource CaptionFontSize}"/><Setter Property="LineHeight" Value="{StaticResource StatusLineHeight}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/><Setter Property="TextWrapping" Value="NoWrap"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}"/>
+    </Style>
     <Style Selector="ScrollViewer.PageScroller">
         <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
         <Setter Property="HorizontalScrollBarVisibility" Value="Disabled" />

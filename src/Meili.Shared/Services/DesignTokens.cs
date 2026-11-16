@@ -72,6 +72,9 @@ public static class DesignTokens
         PreMarketTint: 0x22CBCADB,
         AfterHoursTint: 0x22EBC9B7);
     public const double CaptionFontSize = 12;
+    public const double StatusItemHeight = 24;
+    public const double StatusLineHeight = 16;
+    public const double StatusDotSize = 6;
     public const double BodyFontSize = 15;
     public const double SubtitleFontSize = 16;
     public const double TitleFontSize = 20;

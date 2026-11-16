@@ -281,7 +281,7 @@
                             </TextBlock>
                         </StackPanel>
                     </StackPanel>
-                    <ux:AppHelp HelpText="{DynamicResource Set_AboutDesc}" DockPanel.Dock="Right" Margin="8,0,0,0"/>
+                    <TextBlock x:Name="AboutDescription" Classes="Body" Text="{DynamicResource Set_AboutDesc}" TextWrapping="Wrap" Margin="0,8,0,0"/>
                 </StackPanel>
             </ds:AppCard>
         </StackPanel>

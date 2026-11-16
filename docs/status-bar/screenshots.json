@@ -6,7 +6,7 @@
     "fixture": true,
     "renderer": "Avalonia Headless / Skia, actual app controls, 100% scale",
     "upscaled": false,
-    "sha256": "9531eb6ded0962ffa77811ac89f0d02ff9676bc9325d832dfa2b1c3e61a4f9e9"
+    "sha256": "edfa607d6ab6a955b1b97699195703432822716ac4368731624fb8b439f2514e"
   },
   {
     "file": "mac-market-status-details-zh-CN-False.png",
@@ -15,7 +15,25 @@
     "fixture": true,
     "renderer": "Avalonia Headless / Skia, actual app controls, 100% scale",
     "upscaled": false,
-    "sha256": "4cf3121ca5c942a92d7bea30d6fe9c5e11a8b08e966433ffc47d6c738526064c"
+    "sha256": "d92661000192b4b82640b916ba77e11157f1707581f7f67113b080e30df1cfb8"
+  },
+  {
+    "file": "mac-about-visible-1080p-en-US-True.png",
+    "width": 1920,
+    "height": 1080,
+    "fixture": true,
+    "renderer": "Avalonia Headless / Skia, actual app controls, 100% scale",
+    "upscaled": false,
+    "sha256": "92297f30cb010163eac2a334af404151250b50e30e12e5de14181d650232357b"
+  },
+  {
+    "file": "mac-about-visible-1080p-zh-CN-False.png",
+    "width": 1920,
+    "height": 1080,
+    "fixture": true,
+    "renderer": "Avalonia Headless / Skia, actual app controls, 100% scale",
+    "upscaled": false,
+    "sha256": "f6c31e8d35b3150e4d72f86eb9120d1ee9f021dfea74e201ebba39f85d455586"
   },
   {
     "file": "mac-market-status-details-en-US-True.png",
@@ -24,7 +42,7 @@
     "fixture": true,
     "renderer": "Avalonia Headless / Skia, actual app controls, 100% scale",
     "upscaled": false,
-    "sha256": "fe47fb04761bc261380095ba135480480cc3aaac55a37562e649d0f682696919"
+    "sha256": "4d978eb6f45a1179b29c78cf769dd9e3bf83bbc8f02b82b46dac696107411258"
   },
   {
     "file": "mac-market-status-1080p-zh-CN-False.png",
@@ -33,6 +51,6 @@
     "fixture": true,
     "renderer": "Avalonia Headless / Skia, actual app controls, 100% scale",
     "upscaled": false,
-    "sha256": "ecfc326f01ea6acc261bddd451c6eaafc68d10e3d24e7e895e9a9e67cb59101a"
+    "sha256": "5ca8322096e559233052229fd2ff57f3e785dcda61e77a4f12ab05413f12fd92"
   }
 ]
