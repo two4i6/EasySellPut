@@ -19,7 +19,7 @@ public class FreshnessTextTests
             var unknown = sina with { AsOf = null };
             var unknownText = FreshnessText.SourceAndTiming(unknown, loc, regular);
             Assert.Contains("延迟未知", unknownText);
-            Assert.Contains(loc["Quote_Poll"], unknownText);
+            Assert.Contains(loc["Quote_Polling"], unknownText);
             Assert.DoesNotContain("实时", unknownText);
             Assert.Equal("行情时间未知", FreshnessText.AsOf(null, loc));
             var chain = new OptionChain { Underlying = "AAPL", Expirations = [], Contracts = [], Source = "nasdaq", DelayMinutes = 15, FetchedAt = regular };

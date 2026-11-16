@@ -1,0 +1,329 @@
+{
+  "kind": "production-local-session-real-delayed-sample",
+  "environment": {
+    "node": "v24.22.1",
+    "platform": "linux",
+    "architecture": "x64",
+    "cpu": "INTEL(R) XEON(R) PLATINUM 8573C",
+    "logicalCpus": 5,
+    "systemMemoryBytes": 18882662400,
+    "chromium": "141.0.7390.37",
+    "hostFramework": ".NET 10"
+  },
+  "dataset": {
+    "days": 1,
+    "expirySnapshots": 174,
+    "strikePoints": 31806,
+    "bars": 9,
+    "quality": "Actual retained partial delayed sample; not a complete trading day"
+  },
+  "runs": [
+    {
+      "phase": "cold",
+      "firstCanvasMs": 2282.483915,
+      "flowMs": 7111.095085999999,
+      "visibleSnapshotRows": 6,
+      "apiEncodedBodyBytes": 4528909,
+      "apiDecodedBodyBytes": 17504756,
+      "rendererJsHeapSampleBytes": 49817952,
+      "longTasksMs": [
+        92,
+        99,
+        193,
+        98,
+        84,
+        58,
+        93,
+        83,
+        111,
+        111
+      ],
+      "requests": [
+        {
+          "path": "/api/analysis/qqq/local-state",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=211",
+          "encodedBodyBytes": 861,
+          "durationMs": 217.794
+        },
+        {
+          "path": "/api/analysis/qqq/cache-status",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=45",
+          "encodedBodyBytes": 779,
+          "durationMs": 59.459
+        },
+        {
+          "path": "/api/analysis/qqq/pcs/backtest",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=34",
+          "encodedBodyBytes": 136,
+          "durationMs": 92.037
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=0",
+          "encodedBodyBytes": 2195,
+          "durationMs": 791.603
+        },
+        {
+          "path": "/api/analysis/qqq/gex/day",
+          "status": 200,
+          "encoding": "gzip",
+          "serverTiming": "local;dur=674",
+          "encodedBodyBytes": 2088139,
+          "durationMs": 859.488
+        },
+        {
+          "path": "/api/analysis/qqq/cache-status",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=38",
+          "encodedBodyBytes": 779,
+          "durationMs": 73.846
+        },
+        {
+          "path": "/api/analysis/qqq/pcs/backtest",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=821",
+          "encodedBodyBytes": 3110,
+          "durationMs": 1624.306
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=1033",
+          "encodedBodyBytes": 1831,
+          "durationMs": 1036.268
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=103",
+          "encodedBodyBytes": 2195,
+          "durationMs": 108.224
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "gzip",
+          "serverTiming": "local;dur=407",
+          "encodedBodyBytes": 179569,
+          "durationMs": 415.54
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=864",
+          "encodedBodyBytes": 1831,
+          "durationMs": 868.641
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=350",
+          "encodedBodyBytes": 1831,
+          "durationMs": 354.456
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=410",
+          "encodedBodyBytes": 1831,
+          "durationMs": 428.489
+        },
+        {
+          "path": "/api/analysis/qqq/gex/day",
+          "status": 200,
+          "encoding": "gzip",
+          "serverTiming": "local;dur=896",
+          "encodedBodyBytes": 2075025,
+          "durationMs": 1027.418
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "gzip",
+          "serverTiming": "local;dur=1024",
+          "encodedBodyBytes": 168797,
+          "durationMs": 1038.966
+        }
+      ],
+      "recovery": null,
+      "errors": []
+    },
+    {
+      "phase": "warm",
+      "firstCanvasMs": 1533.7554459999992,
+      "flowMs": 18299.429551,
+      "visibleSnapshotRows": 6,
+      "apiEncodedBodyBytes": 10109260,
+      "apiDecodedBodyBytes": 31833822,
+      "rendererJsHeapSampleBytes": 36808792,
+      "longTasksMs": [
+        54,
+        68,
+        114,
+        69,
+        53,
+        99,
+        58,
+        185,
+        106,
+        71
+      ],
+      "requests": [
+        {
+          "path": "/api/analysis/qqq/local-state",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=43",
+          "encodedBodyBytes": 861,
+          "durationMs": 46.135
+        },
+        {
+          "path": "/api/analysis/qqq/cache-status",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=35",
+          "encodedBodyBytes": 779,
+          "durationMs": 45.136
+        },
+        {
+          "path": "/api/analysis/qqq/pcs/backtest",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=0",
+          "encodedBodyBytes": 136,
+          "durationMs": 43.411
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=0",
+          "encodedBodyBytes": 2195,
+          "durationMs": 267.118
+        },
+        {
+          "path": "/api/analysis/qqq/gex/day",
+          "status": 200,
+          "encoding": "gzip",
+          "serverTiming": "local;dur=206",
+          "encodedBodyBytes": 2088139,
+          "durationMs": 295.893
+        },
+        {
+          "path": "/api/analysis/qqq/cache-status",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=37",
+          "encodedBodyBytes": 779,
+          "durationMs": 51.303
+        },
+        {
+          "path": "/api/analysis/qqq/pcs/backtest",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=365",
+          "encodedBodyBytes": 3110,
+          "durationMs": 628.429
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=627",
+          "encodedBodyBytes": 1831,
+          "durationMs": 632.289
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "gzip",
+          "serverTiming": "local;dur=412",
+          "encodedBodyBytes": 179569,
+          "durationMs": 428.415
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=252",
+          "encodedBodyBytes": 2195,
+          "durationMs": 262.478
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "gzip",
+          "serverTiming": "local;dur=103",
+          "encodedBodyBytes": 5746953,
+          "durationMs": 271.842
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=627",
+          "encodedBodyBytes": 1831,
+          "durationMs": 639.445
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=343",
+          "encodedBodyBytes": 1831,
+          "durationMs": 352.187
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=318",
+          "encodedBodyBytes": 1831,
+          "durationMs": 323.953
+        },
+        {
+          "path": "/api/analysis/qqq/gex/day",
+          "status": 200,
+          "encoding": "gzip",
+          "serverTiming": "local;dur=389",
+          "encodedBodyBytes": 2075025,
+          "durationMs": 441.899
+        },
+        {
+          "path": "/api/analysis/qqq/gex/exposure",
+          "status": 200,
+          "encoding": "identity",
+          "serverTiming": "local;dur=1",
+          "encodedBodyBytes": 2195,
+          "durationMs": 9.948
+        }
+      ],
+      "recovery": {
+        "pageFreezeResume": true,
+        "offlineOnline": true,
+        "hostPauseSeconds": 12,
+        "heartbeatResumed": true,
+        "retainedVisibleRows": 6
+      },
+      "errors": []
+    }
+  ],
+  "protectedProfileDigestUnchanged": true,
+  "serverPeakRssKiB": 498120,
+  "limitations": "Cloud Linux Chromium, actual QqqGexSession and retained partial CBOE sample. Process/browser cold, OS page cache not cleared. No native Mac or physical sleep validation; renderer heap samples are not peak OS memory."
+}

@@ -15,6 +15,13 @@ public sealed class QqqGexReadToolsTests
     [InlineData("{\"resource\":\"exposureManifest\",\"date\":\"2026-11-16\",\"from\":\"2026-11-16T15:00:00Z\"}")]
     [InlineData("{\"resource\":\"context\",\"date\":\"2026-11-16\",\"offset\":1}")]
     [InlineData("{\"resource\":\"exposureWindow\",\"date\":\"2026-11-16\",\"from\":\"2026-11-16T15:00:00Z\",\"to\":\"2026-11-16T17:00:00Z\",\"source\":\"revision\"}")]
+    [InlineData("{\"resource\":\"analysis\",\"analysis\":\"overlays\",\"date\":\"2026-11-16\",\"at\":\"2026-11-16T15:00:00Z\",\"overlays\":[\"bad\"]}")]
+    [InlineData("{\"resource\":\"analysis\",\"analysis\":\"overlays\",\"date\":\"2026-11-16\",\"at\":\"2026-11-16T15:00:00Z\",\"overlays\":[\"iv\",\"iv\"]}")]
+    [InlineData("{\"resource\":\"analysis\",\"analysis\":\"exposure\",\"date\":\"2026-11-16\",\"at\":\"2026-11-16T15:00:00Z\",\"overlays\":[\"iv\"]}")]
+    [InlineData("{\"resource\":\"analysis\",\"analysis\":\"priceReactions\",\"date\":\"2026-11-16\",\"at\":\"2026-11-16T15:00:00Z\",\"reactions\":[\"bad\"]}")]
+    [InlineData("{\"resource\":\"analysis\",\"analysis\":\"exposure\",\"date\":\"2026-11-16\",\"at\":\"2026-11-16T15:00:00Z\",\"reactions\":[\"low\"]}")]
+    [InlineData("{\"resource\":\"analysis\",\"analysis\":\"priceReactions\",\"date\":\"2026-11-16\",\"at\":\"2026-11-16T15:00:00Z\",\"viewportFrom\":\"2026-11-16T14:00:00Z\"}")]
+    [InlineData("{\"resource\":\"analysis\",\"analysis\":\"exposure\",\"date\":\"2026-11-16\",\"at\":\"2026-11-16T15:00:00Z\",\"policy\":\"partial\"}")]
     public async Task Dynamic_reads_reject_wrong_scope_unversioned_continuation_and_oversized_windows(string args)
     {
         var path=Path.Combine(Path.GetTempPath(),"qqq-read-validation-"+Guid.NewGuid().ToString("N"));try{using var service=new AutomationService(new(path,DataDirectorySource.CommandLine));using var input=JsonDocument.Parse(args);await Assert.ThrowsAsync<ArgumentException>(()=>service.ExecuteAsync("get_qqq_gex_view",input.RootElement,false));}finally{if(Directory.Exists(path))Directory.Delete(path,true);}

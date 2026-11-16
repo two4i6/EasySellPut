@@ -38,7 +38,7 @@ public sealed class LiquidityLifecycleTests
         public int Calls;
         public Task<LiquiditySeries> GetSeriesAsync(string id,CancellationToken ct=default)
         {
-            Calls++;
+            Interlocked.Increment(ref Calls);
             if(Fail)throw new IOException("offline");
             return new Meili.Testing.LiquidityFixture().GetSeriesAsync(id,ct);
         }

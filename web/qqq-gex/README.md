@@ -127,3 +127,7 @@ native theme/motion. See the
 newest section of [VALIDATION.md](VALIDATION.md) for results and outstanding scope;
 older phase descriptions above are superseded by that section. Full migration
 acceptance remains pending. Experimental gzip/storage-budget work is separate.
+
+Read-only MCP chart follow-up: `get_qqq_gex_view` resource `analysis` includes `priceReactions`. `reactions` selects `markers`, `low`, `high`; `overlays` selects `vwap`, `delta`, `iv`, `putCall` for `analysis=overlays`. Empty arrays explicitly disable layers. Price-reaction viewport label selection accepts the complete `viewportFrom`, `viewportTo`, `plotWidth` tuple (width1–10000, increasing window≤25h). Results use the same original kernels and the existing bounded SHA-guarded byte-chunk transport. `chart` additionally returns original 2m/5m/1d normalized series. This does not certify all K-line marker/trade-map cohorts or native acceptance; see MIGRATION-MATRIX.md.
+
+Scenario migration note: `analysis=dayScenario` now defaults to `policy=partial`, matching the retained UI, and includes source forecast-band data and coverage. Request `policy=complete` for the former MCP wrapper default. Excluded contracts and missing contributions remain disclosed; no IV is synthesized.
