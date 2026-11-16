@@ -942,4 +942,10 @@
     <sys:String x:Key="Storage_Partial">部分文件无法统计，当前数值不完整。</sys:String>
     <sys:String x:Key="Storage_Help">统计应用数据目录内文件的实际大小，不是整块磁盘容量；不包含进程内存。行情数据库包含 K 线和受保护的 IV/OI 历史，不能按整段清空。网页数据、用户数据和日志仅统计，不由下方缓存清理操作删除。扫描不跟随符号链接；数据可能在统计期间变化。</sys:String>
     <sys:String x:Key="Set_MotionDesc">减少界面动画，立即应用并记住此选择；系统的减少动态设置始终优先。</sys:String>
+    <sys:String x:Key="QP_PreShort">盘前</sys:String>
+    <sys:String x:Key="QP_PostShort">盘后</sys:String>
+    <sys:String x:Key="QP_ExtendedShort">扩展</sys:String>
+    <sys:String x:Key="QP_RegularShort">常规</sys:String>
+    <sys:String x:Key="QP_Extended">扩展时段</sys:String>
+    <sys:String x:Key="QP_CloseReference">收盘参考</sys:String>
 </ResourceDictionary>

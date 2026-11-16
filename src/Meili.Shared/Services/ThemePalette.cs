@@ -131,6 +131,8 @@ public sealed record ThemePalette(
             ("InfoBarInformationalSeverityBackgroundBrush", InfoBar),
             ("SystemFillColorCriticalBackgroundBrush", ErrorBar),
             ("SystemFillColorAttentionBackgroundBrush", InfoBar),
+            ("PreMarketBackgroundBrush", PreMarketTint),
+            ("AfterHoursBackgroundBrush", AfterHoursTint),
             ("StaleBadgeBrush", Badge),
             ("BadgeTextBrush", BadgeText),
         }.Concat(DesignTokens.ComponentBrushes(ReferenceEquals(this, Dark)));

@@ -80,7 +80,7 @@ public partial class App : Application
                 {
                     _quotePanel??=new QuotePanelWindow(AppServices.Get<QuotePanelViewModel>(),symbol=>{window.ShowFromDock();AppServices.Get<NavigationHub>().Go(AppPage.Charts,symbol);},()=>{window.ShowFromDock();AppServices.Get<NavigationHub>().Go(AppPage.Watchlist);},()=>desktop.TryShutdown());
                     if(_quotePanel.IsVisible){_quotePanel.HidePanel();return;}
-                    var anchor=status!.Anchor;await _quotePanel.ShowPanelAsync(anchor.X,anchor.Y);
+                    await _quotePanel.ShowPanelAsync(status!.Anchor);
                 });
                 _quoteStatus=status;
                 _menuQuotes=new MenuBarQuoteController(AppServices.Get<Meili.Core.Quotes.QuoteHub>(),AppServices.Get<SymbolContext>(),

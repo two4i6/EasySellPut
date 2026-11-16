@@ -942,4 +942,10 @@
     <sys:String x:Key="Storage_Partial">Some files could not be measured; totals are incomplete.</sys:String>
     <sys:String x:Key="Storage_Help">File sizes inside the app data directory, not whole-disk capacity or process memory. The market database includes bars and protected IV/OI history; the whole segment is not disposable. Web data, user data and logs are measured but not deleted by cache maintenance. Links are skipped and files can change during measurement.</sys:String>
     <sys:String x:Key="Set_MotionDesc">Reduce interface animation and remember this choice. The system reduced-motion preference always takes priority.</sys:String>
+    <sys:String x:Key="QP_PreShort">PRE</sys:String>
+    <sys:String x:Key="QP_PostShort">POST</sys:String>
+    <sys:String x:Key="QP_ExtendedShort">EXT</sys:String>
+    <sys:String x:Key="QP_RegularShort">REG</sys:String>
+    <sys:String x:Key="QP_Extended">Extended hours</sys:String>
+    <sys:String x:Key="QP_CloseReference">Regular close</sys:String>
 </ResourceDictionary>

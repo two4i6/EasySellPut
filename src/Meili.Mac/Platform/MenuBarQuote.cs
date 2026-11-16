@@ -11,13 +11,16 @@ public sealed record MenuBarQuote(string Title, string Tooltip, int Direction, I
 {
     public static MenuBarQuote Create(string symbol, Quote? quote, bool failed, LocalizationService loc, DateTimeOffset now)
     {
+        var original = quote;
+        var display = quote is null ? null : QuotePriceView.Select(quote, now);
+        quote = display?.Snapshot;
         if (quote is null || !string.Equals(symbol, quote.Symbol, StringComparison.OrdinalIgnoreCase) || !double.IsFinite(quote.Price) || quote.Price <= 0)
             return new(symbol + " —", loc["Mb_Unavailable"], 0, [loc["Mb_Unavailable"]]);
-        // Regular-session price is explicit. Extended-session quotes stay separately labelled in the menu.
+        // Latest timestamped extended quote is primary; regular close remains explicit reference data.
         double? change = quote.ChangePercent is { } p && double.IsFinite(p) ? p
             : quote.PreviousClose is > 0 and var previous && double.IsFinite(previous) ? (quote.Price / previous - 1) * 100 : null;
         if (change is { } value && !double.IsFinite(value)) change = null;
-        var stale = failed || QuoteStaleness.Check(quote, now) != StaleReason.None;
+        var stale = display!.Stale(now, failed);
         var freshness = DataFreshness.Evaluate(quote, now);
         var timing = stale ? loc["Mb_Stale"] : freshness.Kind switch
         {
@@ -27,12 +30,12 @@ public sealed record MenuBarQuote(string Title, string Tooltip, int Direction, I
             _ => ""
         };
         var movement = change is { } c ? $" {(c > 0 ? "↑" : c < 0 ? "↓" : "↔")}{Math.Abs(c).ToString(Math.Abs(c) > 99999 ? "0.##E+0" : "0.00", CultureInfo.InvariantCulture)}%" : "";
-        var title = symbol + " " + (quote.Price >= 1e9 ? quote.Price.ToString("0.##E+0", CultureInfo.InvariantCulture) : NumberDisplay.Price(quote.Price)) + movement + (timing.Length > 0 ? " · " + timing : "");
-        var details = new List<string> { loc["Mb_Regular"] + " · " + quote.Currency, FreshnessText.SourceAndTiming(quote, loc, now), FreshnessText.AsOf(quote.AsOf, loc) };
+        var title = symbol + " " + (quote.Price >= 1e9 ? quote.Price.ToString("0.##E+0", CultureInfo.InvariantCulture) : NumberDisplay.Price(quote.Price)) + movement + (display!.IsExtended ? " · " + loc[display.ShortKey] : "") + (timing.Length > 0 ? " · " + timing : "");
+        var details = new List<string> { loc[display!.SessionKey] + " · " + quote.Currency, FreshnessText.SourceAndTiming(quote, loc, now), FreshnessText.AsOf(quote.AsOf, loc) };
         if (quote.FetchedAt is not null) details.Add(FreshnessText.Fetched(quote.FetchedAt, loc));
         if (stale) details.Add(loc["Mb_Stale"]);
-        if (quote.MarketState is MarketState.PreMarket or MarketState.AfterHours && quote.ExtendedPrice is > 0 and var ep && double.IsFinite(ep))
-            details.Add(loc[quote.MarketState == MarketState.PreMarket ? "Quote_Pre" : "Quote_Post"] + " " + NumberDisplay.Price(ep) + " · " + FreshnessText.AsOf(quote.ExtendedTime, loc));
+        var reference = display!.Reference(original!, loc);
+        if (reference.Length > 0) details.Add(reference);
         return new(title, string.Join("\n", new[] { title }.Concat(details)), stale ? 0 : change > 0 ? 1 : change < 0 ? -1 : 0, details);
     }
 }
