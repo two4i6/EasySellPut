@@ -39,7 +39,7 @@ public partial class MainWindow
     private void RebuildBuiltinRail()
     {
         BuiltinRail.Children.Clear();
-        foreach(var page in BuiltinPages.Where(p => p is not (AppPage.Dashboard or AppPage.Settings)))
+        foreach(var page in BuiltinPages.Where(p => p is not (AppPage.Dashboard or AppPage.Settings or AppPage.DataSources)))
         {
             var tile = new ToggleButton { Tag=page, Style=(Style)FindResource("WorkspaceTile") };
             tile.Content=CreateNavigationIcon(NavigationIcons.For(page),tile);

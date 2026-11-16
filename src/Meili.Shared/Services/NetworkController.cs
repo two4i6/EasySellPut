@@ -13,10 +13,11 @@ public sealed class NetworkController : INetworkController
     private readonly SettingsStore _store;
     private readonly LocalizationService _loc;
     private readonly ShellViewModel _shell;
+    private readonly DataSourceHealthMonitor? _monitor;
 
-    public NetworkController(DataServices data, SettingsStore store, LocalizationService loc, ShellViewModel shell, Meili.Caching.CacheManager caches)
+    public NetworkController(DataServices data, SettingsStore store, LocalizationService loc, ShellViewModel shell, Meili.Caching.CacheManager caches, DataSourceHealthMonitor? monitor = null)
     {
-        _data = data; _store = store; _loc = loc; _shell = shell; _caches = caches;
+        _data = data; _store = store; _loc = loc; _shell = shell; _caches = caches; _monitor = monitor;
         _loc.LanguageChanged += (_, _) => Publish();
     }
 
@@ -31,6 +32,7 @@ public sealed class NetworkController : INetworkController
         _data.Router.ForgetMisses();
         _caches.Clear("responses");
         Publish();
+        _monitor?.Invalidate();
         return EffectiveDescription;
     }
 

@@ -21,8 +21,8 @@ public sealed class WebWorkspaceTests
         try
         {
             Assert.Null(w.FindControl<Control>("Nav"));
-            var rail=w.FindControl<StackPanel>("BuiltinRail")!;Assert.Equal(MainWindow.PageOrder.Count-2,rail.Children.Count);
-            foreach(var page in MainWindow.PageOrder.Where(p=>p!=AppPage.Dashboard))
+            var rail=w.FindControl<StackPanel>("BuiltinRail")!;Assert.Equal(MainWindow.PageOrder.Count-3,rail.Children.Count);
+            foreach(var page in MainWindow.PageOrder.Where(p=>p is not (AppPage.Dashboard or AppPage.DataSources)))
             {
                 var button=page==AppPage.Settings?w.FindControl<ToggleButton>("SettingsButton")!:rail.Children.OfType<ToggleButton>().Single(b=>Equals(b.Tag,page));
                 Assert.Equal(LocalizationService.Current[MainWindow.TitleKey(page)],AutomationProperties.GetName(button));

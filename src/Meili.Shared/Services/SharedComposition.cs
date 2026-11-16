@@ -32,6 +32,7 @@ public static class SharedComposition
             sp.GetRequiredService<DataServices>().Router, sp.GetRequiredService<Meili.Data.Cache.MarketDb>()));
         s.AddSingleton(sp => new Meili.Core.Quotes.QuoteHub(sp.GetRequiredService<IMarketDataService>()));
         s.AddSingleton<DesktopActivity>();
+        s.AddSingleton<DataSourceHealthMonitor>();
         s.AddSingleton<QuotePump>();
         s.AddSingleton<SymbolSearchService>();
         s.AddSingleton(sp => new Meili.Core.Pricing.RiskFreeRateProvider(sp.GetRequiredService<IMarketDataService>(),
@@ -64,11 +65,20 @@ public static class SharedComposition
     /// <summary>After the window is shown: detect the proxy (Clash etc.) in the background without blocking startup.</summary>
     public static void OnStarted(IServiceProvider sp)
     {
-        _ = sp.GetRequiredService<NetworkController>().ReconfigureAsync();
+        _ = StartSourceHealthAsync(sp);
         sp.GetRequiredService<AlertStore>().Load();
         sp.GetRequiredService<AlertMonitor>().Start();
         sp.GetRequiredService<IvAlertSampler>().Start();
         sp.GetRequiredService<QuotePump>().Start();
         sp.GetRequiredService<UpdateViewModel>().StartNotifications();
+    }
+
+    private static async Task StartSourceHealthAsync(IServiceProvider sp)
+    {
+        var monitor = sp.GetRequiredService<DataSourceHealthMonitor>();
+        try { await sp.GetRequiredService<NetworkController>().ReconfigureAsync(); }
+        catch (Exception ex) { Meili.Core.Diagnostics.AppLog.Warn("source-health", "Startup network setup failed", ex); }
+        // Detection failure must not leave all other sources untested forever; use the current gateway configuration.
+        Ui.Platform.Run(monitor.Start);
     }
 }

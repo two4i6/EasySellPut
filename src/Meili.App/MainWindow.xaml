@@ -75,9 +75,6 @@
                 </ui:NavigationViewItem>
             </ui:NavigationView.MenuItems>
             <ui:NavigationView.FooterMenuItems>
-                <ui:NavigationViewItem Content="{DynamicResource Nav_DataSources}" TargetPageType="{x:Type pages:DataSourcesPage}">
-                    <ui:NavigationViewItem.Icon><lucide:LucideIcon Kind="DataSources" /></ui:NavigationViewItem.Icon>
-                </ui:NavigationViewItem>
                 <ui:NavigationViewItem Content="{DynamicResource Nav_Settings}" TargetPageType="{x:Type pages:SettingsPage}">
                     <ui:NavigationViewItem.Icon><lucide:LucideIcon Kind="Settings" /></ui:NavigationViewItem.Icon>
                 </ui:NavigationViewItem>
@@ -115,9 +112,9 @@
                 </StackPanel>
 
                 <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
-                    <controls:AppHelp x:Name="MarketStatusIndicator" Height="{StaticResource StatusItemHeight}" MinHeight="{StaticResource StatusItemHeight}" Style="{StaticResource StatusEntry}" Width="Auto" HelpText="{Binding MarketStatusTip}" MinWidth="0" Padding="4,0" Margin="0,0,12,0" Background="Transparent" BorderThickness="0" AutomationProperties.AutomationId="MarketStatusIndicator" AutomationProperties.Name="{Binding MarketStatusTip}">
+                    <Button x:Name="MarketStatusIndicator" Height="{StaticResource StatusItemHeight}" MinHeight="{StaticResource StatusItemHeight}" Style="{StaticResource StatusEntry}" Width="Auto" Command="{Binding OpenDataSourcesCommand}" ToolTip="{Binding MarketStatusTip}" Cursor="Hand" MinWidth="0" Padding="4,0" Margin="0,0,12,0" Background="Transparent" BorderThickness="0" AutomationProperties.AutomationId="MarketStatusIndicator" AutomationProperties.Name="{Binding MarketStatusTip}">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center"><Ellipse Style="{StaticResource StatusDot}" Margin="0,0,6,0" Fill="{Binding SourcesBrush}"/><TextBlock Style="{StaticResource StatusText}" x:Name="StatusMarketText" Text="{Binding MarketStatusText}" TextWrapping="NoWrap" VerticalAlignment="Center"/></StackPanel>
-                    </controls:AppHelp>
+                    </Button>
                     <TextBlock Style="{StaticResource StatusText}" x:Name="StatusClockText" Text="{Binding ClockText}" />
                 </StackPanel>
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">

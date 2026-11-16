@@ -14,6 +14,8 @@ public partial class ShellViewModel : ObservableObject, IDisposable
     private bool _presentationVisible=true,_disposed;
     private readonly LocalizationService _loc;
     private readonly DataDirectoryInfo _dataDir;
+    private readonly NavigationHub? _navigation;
+    private readonly DataSourceHealthMonitor? _monitor;
 
     [ObservableProperty] public partial string ClockText { get; set; } = "";
     [ObservableProperty, NotifyPropertyChangedFor(nameof(MarketStatusText), nameof(MarketStatusTip))] public partial string SessionText { get; set; } = "";
@@ -26,16 +28,18 @@ public partial class ShellViewModel : ObservableObject, IDisposable
     [ObservableProperty] public partial string McpStatusTip { get; set; } = "";
     [ObservableProperty] public partial object? McpStatusBrush { get; set; }
     [ObservableProperty, NotifyPropertyChangedFor(nameof(MarketStatusText))] public partial string SourceCountText { get; set; } = "";
-    public string MarketStatusText => SessionText + " · " + SourceCountText;
-    public string MarketStatusTip => string.Join("\n", new[] { SessionText, SourcesText, NetworkText }.Where(text => !string.IsNullOrWhiteSpace(text)));
+    public string MarketStatusText => SessionText + " · " + SourceCountText + (_monitor?.IsTesting == true ? " · …" : "");
+    public string MarketStatusTip => string.Join("\n", new[] { SessionText, SourcesText, _monitor?.IsTesting == true ? _loc["Ds_Testing"] : "", NetworkText }.Where(text => !string.IsNullOrWhiteSpace(text)));
     private DateTimeOffset _nextMcpScan;
     private readonly McpConnectionSetup _connection;
     private int _mcpCopyState;
     private DateTimeOffset _mcpCopyUntil;
     private readonly Meili.Data.Routing.HealthTracker _health;
 
-    public ShellViewModel(LocalizationService loc, DataDirectoryInfo dataDir, Meili.Data.DataServices data, McpConnectionSetup? connection = null)
+    public ShellViewModel(LocalizationService loc, DataDirectoryInfo dataDir, Meili.Data.DataServices data, McpConnectionSetup? connection = null, NavigationHub? navigation = null, DataSourceHealthMonitor? monitor = null)
     {
+        _navigation = navigation; _monitor = monitor;
+        if (_monitor is not null) _monitor.Changed += OnHealthSweep;
         _loc = loc; _connection = connection ?? McpConnectionSetup.Bundled(AppContext.BaseDirectory, dataDir.Path);
         _health = data.Health;
         _dataDir = dataDir;
@@ -52,7 +56,10 @@ public partial class ShellViewModel : ObservableObject, IDisposable
     private void ClockTick(object? sender,EventArgs e)=>Tick();
     private void OnLabels(object? sender,EventArgs e){if(_presentationVisible){RefreshMcpStatus();Tick();}}
     public void SetPresentationVisible(bool visible){if(_disposed)return;_presentationVisible=visible;if(visible){_nextMcpScan=default;Tick();if(!_clock.IsEnabled)_clock.Start();}else _clock.Stop();}
-    public void Dispose(){if(_disposed)return;_disposed=true;_clock.Stop();_clock.Tick-=ClockTick;_loc.LanguageChanged-=OnLabels;Ui.Platform.ColorsChanged-=OnLabels;}
+    public void Dispose(){if(_disposed)return;if(_monitor is not null)_monitor.Changed-=OnHealthSweep;_disposed=true;_clock.Stop();_clock.Tick-=ClockTick;_loc.LanguageChanged-=OnLabels;Ui.Platform.ColorsChanged-=OnLabels;}
+
+    private void OnHealthSweep(object? sender, EventArgs e) { Tick(); OnPropertyChanged(nameof(MarketStatusText)); OnPropertyChanged(nameof(MarketStatusTip)); }
+    [RelayCommand] private void OpenDataSources() => _navigation?.Go(AppPage.DataSources);
 
     /// <summary>Set by <see cref="NetworkController"/> to describe the effective proxy.</summary>
     public string NetworkDescription { get => _networkDescription; set { _networkDescription = value; Tick(); } }

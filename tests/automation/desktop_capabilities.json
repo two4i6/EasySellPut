@@ -316,6 +316,9 @@
       "commands": {
         "CopyMcpSetupAsync": {
           "uiOnly": "Copies harness-neutral read-only MCP and skill setup instructions to the clipboard; local diagnostic status is not market health or authorization."
+        },
+        "OpenDataSources": {
+          "uiOnly": "Navigates from the sole footer source-health entry to the desktop status page. Automatic sweep scheduling is desktop lifecycle presentation; existing get_source_health and probe_data_sources remain the shared CLI/MCP operations."
         }
       }
     },

@@ -18,14 +18,16 @@ public sealed class MarketStatusTests
             try
             {
                 w.UseUpdateState(update); w.Show(); await update.CheckUpdatesCommand.ExecuteAsync(null); update.DismissUpdatePromptCommand.Execute(null); await ScreenRenderTests.Settle();
-                var shell = AppServices.Get<ShellViewModel>(); var status = (AppHelp)w.FindName("MarketStatusIndicator");
-                Assert.Equal(shell.MarketStatusTip, status.HelpText);
+                var shell = AppServices.Get<ShellViewModel>(); var status = (Button)w.FindName("MarketStatusIndicator");
+                Assert.Equal(shell.MarketStatusTip, status.ToolTip);
                 Assert.Equal(shell.MarketStatusTip, System.Windows.Automation.AutomationProperties.GetName(status));
                 Assert.InRange(status.ActualWidth, 40, 220);
                 AssertAlignment(w);
-                status.IsExpanded = true; await WpfHost.Settle(); Assert.True(status.IsHelpOpen);
-                status.IsExpanded = false; w.Width = 980; await ScreenRenderTests.Settle();
-                Assert.InRange(status.ActualWidth, 40, 220); Assert.False(status.IsExpanded); AssertAlignment(w);
+                status.Command.Execute(null); await ScreenRenderTests.Settle();
+                Assert.Contains(UiAudit.Descendants<Meili.App.Views.Pages.DataSourcesPage>(w), page => page.IsVisible);
+                Assert.DoesNotContain(((StackPanel)w.FindName("BuiltinRail")).Children.OfType<System.Windows.Controls.Primitives.ToggleButton>(), tile => Equals(tile.Tag, AppPage.DataSources));
+                w.Width = 980; await ScreenRenderTests.Settle();
+                Assert.InRange(status.ActualWidth, 40, 220); AssertAlignment(w);
             }
             finally { w.Close(); }
         });
