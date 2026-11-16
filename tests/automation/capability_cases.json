@@ -2,6 +2,52 @@
   "schemaVersion": 1,
   "cases": [
     {
+      "operation": "get_qqq_gex_archive",
+      "arguments": {
+        "resource": "dates",
+        "pageSize": 1
+      },
+      "expect": {
+        "/data/status": {
+          "equals": "cache_miss"
+        },
+        "/data/available": {
+          "equals": false
+        },
+        "/data/complete": {
+          "equals": false
+        }
+      },
+      "compare": [
+        "/data"
+      ]
+    },
+    {
+      "operation": "get_qqq_gex_view",
+      "arguments": {
+        "resource": "spreadQuote",
+        "date": "2026-01-02",
+        "expiry": "2026-01-02",
+        "at": "2026-01-02T15:00:00Z",
+        "shortStrike": 500,
+        "longStrike": 495
+      },
+      "expect": {
+        "/data/status": {
+          "equals": "cache_miss"
+        },
+        "/data/available": {
+          "equals": false
+        },
+        "/data/complete": {
+          "equals": false
+        }
+      },
+      "compare": [
+        "/data"
+      ]
+    },
+    {
       "operation": "search_symbols",
       "arguments": {
         "query": "apple"

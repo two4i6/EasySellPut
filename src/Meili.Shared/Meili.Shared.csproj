@@ -37,8 +37,15 @@
     <EmbeddedResource Include="..\Meili.App\Resources\Strings\Strings.zh-CN.xaml" LogicalName="Strings.zh-CN.xaml" WithCulture="false" />
     <EmbeddedResource Include="..\Meili.App\Resources\Strings\Strings.en-US.xaml" LogicalName="Strings.en-US.xaml" WithCulture="false" />
   </ItemGroup>
-  <Target Name="BuildQqqGexAssets" BeforeTargets="AssignTargetPaths">
-    <Exec Condition="!Exists('../../web/qqq-gex/dist/index.html')" WorkingDirectory="../../web/qqq-gex" Command="npm ci --no-audit --no-fund &amp;&amp; npm run build" />
+  <ItemGroup>
+    <_QqqGexBuildInput Include="../../web/qqq-gex/**/*"
+      Exclude="../../web/qqq-gex/node_modules/**;../../web/qqq-gex/dist/**;../../web/qqq-gex/runtime-dist/**;../../web/qqq-gex/test-results/**;../../web/qqq-gex/tests/**;../../web/qqq-gex/evidence/**" />
+  </ItemGroup>
+  <Target Name="CompileQqqGexAssets" Inputs="@(_QqqGexBuildInput)" Outputs="../../web/qqq-gex/dist/index.html">
+    <Exec Condition="!Exists('../../web/qqq-gex/node_modules/esbuild/package.json')" WorkingDirectory="../../web/qqq-gex" Command="npm ci --no-audit --no-fund" />
+    <Exec WorkingDirectory="../../web/qqq-gex" Command="npm run build" />
+  </Target>
+  <Target Name="BuildQqqGexAssets" BeforeTargets="AssignTargetPaths" DependsOnTargets="CompileQqqGexAssets">
     <ItemGroup>
       <_QqqGexAsset Include="../../web/qqq-gex/dist/*" />
       <EmbeddedResource Include="@(_QqqGexAsset)" LogicalName="QqqGex/%(_QqqGexAsset.Filename)%(_QqqGexAsset.Extension)" />
