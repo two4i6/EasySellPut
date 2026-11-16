@@ -1000,4 +1000,8 @@
     <sys:String x:Key="Liq_Band_unavailable">数据不足</sys:String>
     <sys:String x:Key="Cache_CompactGex">整理 GEX 存储</sys:String>
     <sys:String x:Key="Cache_Compacted">GEX 存储已整理，历史完整保留</sys:String>
+    <sys:String x:Key="Liq_ConnectionFailed">宏观数据连接失败</sys:String>
+    <sys:String x:Key="Liq_Partial">指数所需数据尚不完整</sys:String>
+    <sys:String x:Key="Liq_Retry">重试</sys:String>
+    <sys:String x:Key="Liq_CheckConnection">检查连接</sys:String>
 </ResourceDictionary>

@@ -56,4 +56,18 @@ public sealed class MarketLiquidityTests
         var future=report.Metrics.Select(m=>m.Id=="sofr_iorb"?m with{Observations=[new(DateOnly.FromDateTime(now.UtcDateTime).AddDays(1),1)]}:m).ToArray();
         Assert.Null(LiquidityProjection.Pressure(future,now).Score);
     }
+    private sealed class SlowMacro : Meili.Core.Abstractions.ILiquiditySeriesSource
+    {
+        public async Task<LiquiditySeries> GetSeriesAsync(string id,CancellationToken ct=default)
+        {
+            if(id=="SOFR")await Task.Delay(TimeSpan.FromSeconds(6.2),ct);
+            return await new LiquidityFixture().GetSeriesAsync(id,ct);
+        }
+    }
+    [Fact]public async Task Slow_valid_macro_request_is_not_cancelled_at_the_old_six_second_deadline()
+    {
+        var report=await new MarketLiquidityService(new SlowMacro(),new FakeMarket(),LiquidityFixture.Clock).LoadAsync();
+        Assert.NotNull(report.Metrics[0].Latest);Assert.Equal(49.8,report.PressureIndex.Score);
+    }
+
 }

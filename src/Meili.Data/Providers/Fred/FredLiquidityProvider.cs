@@ -30,8 +30,10 @@ public sealed class FredLiquidityProvider(HttpGateway http, ResponseCache cache)
         return Cache.GetOrAddAsync("fred:liquidity:" + id, TimeSpan.FromMinutes(30), async token =>
         {
             var from = DateTimeOffset.UtcNow.AddDays(-180).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-            var payload = await Http.GetAsync(Id, $"https://fred.stlouisfed.org/graph/fredgraph.csv?id={id}&cosd={from}", ct: token, timeout: TimeSpan.FromSeconds(12), maxRetries: 1).ConfigureAwait(false);
-            return Parse(id, payload.Text(), DateTimeOffset.UtcNow);
+            var payload = await Http.GetAsync(Id, $"https://fred.stlouisfed.org/graph/fredgraph.csv?id={id}&cosd={from}", ct: token, timeout: TimeSpan.FromSeconds(8), maxRetries: 1).ConfigureAwait(false);
+            var series = Parse(id, payload.Text(), DateTimeOffset.UtcNow);
+            if (series.Observations.Count == 0) throw new DataSourceException(Id, DataErrorKind.NoData, "No published observations in the requested window.");
+            return series;
         }, ct);
     }
     public static LiquiditySeries Parse(string id, string csv, DateTimeOffset fetchedAt)

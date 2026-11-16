@@ -32,4 +32,28 @@ public sealed class LiquidityLifecycleTests
         }
         finally{source.Gate.TrySetResult();model.Deactivate();}
     }
+    private sealed class RecoveringSource : ILiquiditySeriesSource
+    {
+        public bool Fail=true;
+        public int Calls;
+        public Task<LiquiditySeries> GetSeriesAsync(string id,CancellationToken ct=default)
+        {
+            Calls++;
+            if(Fail)throw new IOException("offline");
+            return new Meili.Testing.LiquidityFixture().GetSeriesAsync(id,ct);
+        }
+    }
+    [Fact]public async Task Failed_macro_report_retries_on_reentry_and_recovery_removes_the_problem_state()
+    {
+        Ui.Platform=new FakeUiPlatform();var source=new RecoveringSource();
+        var model=new LiquidityViewModel(new(source,new PricingSnapshotTests.SnapshotData(),Meili.Testing.LiquidityFixture.Clock),new LocalizationService(),new NavigationHub());
+        try
+        {
+            await model.ActivateAsync();Assert.False(model.HasMacro);Assert.False(model.HasPressure);Assert.True(model.ShowMacroProblem);Assert.Contains("IOException",model.MacroDiagnostic);
+            model.Deactivate();source.Fail=false;
+            await model.ActivateAsync();Assert.Equal(14,source.Calls);Assert.True(model.HasMacro);Assert.True(model.HasPressure);Assert.False(model.ShowMacroProblem);
+        }
+        finally{model.Deactivate();}
+    }
+
 }

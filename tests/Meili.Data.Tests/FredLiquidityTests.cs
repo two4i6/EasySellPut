@@ -32,4 +32,30 @@ public sealed class FredLiquidityTests
         await router.ProbeAsync(provider);Assert.Equal(2,handler.Requests.Count);
         Assert.Equal(Meili.Data.Routing.HealthState.Down,health.Get("fred")!.State(health.Now));
     }
+    [Fact]public async Task Transient_failure_retries_but_blocked_response_is_not_cached_or_retried()
+    {
+        var transient=new FakeHandler().Enqueue(HttpStatusCode.ServiceUnavailable,"busy").Enqueue(HttpStatusCode.OK,"observation_date,SOFR\n2026-11-12,4.0\n");
+        using(var http=TestHttp.Gateway(transient))
+        {
+            var provider=new FredLiquidityProvider(http,new ResponseCache());
+            Assert.Single((await provider.GetSeriesAsync("SOFR")).Observations);Assert.Equal(2,transient.Requests.Count);
+        }
+        var blocked=new FakeHandler().Enqueue(HttpStatusCode.Forbidden,"blocked").Enqueue(HttpStatusCode.OK,"observation_date,SOFR\n2026-11-12,4.0\n");
+        using(var http=TestHttp.Gateway(blocked))
+        {
+            var provider=new FredLiquidityProvider(http,new ResponseCache());
+            var error=await Assert.ThrowsAsync<DataSourceException>(()=>provider.GetSeriesAsync("SOFR"));
+            Assert.Equal(403,error.StatusCode);Assert.Single(blocked.Requests);
+            Assert.Single((await provider.GetSeriesAsync("SOFR")).Observations);Assert.Equal(2,blocked.Requests.Count);
+        }
+    }
+
+    [Fact]public async Task Empty_valid_csv_is_not_cached_as_a_successful_series()
+    {
+        var handler=new FakeHandler().Enqueue(HttpStatusCode.OK,"observation_date,SOFR\n2026-11-12,.\n").Enqueue(HttpStatusCode.OK,"observation_date,SOFR\n2026-11-12,4.0\n");
+        using var http=TestHttp.Gateway(handler);var provider=new FredLiquidityProvider(http,new ResponseCache());
+        var error=await Assert.ThrowsAsync<DataSourceException>(()=>provider.GetSeriesAsync("SOFR"));Assert.Equal(DataErrorKind.NoData,error.Kind);
+        Assert.Single((await provider.GetSeriesAsync("SOFR")).Observations);Assert.Equal(2,handler.Requests.Count);
+    }
+
 }

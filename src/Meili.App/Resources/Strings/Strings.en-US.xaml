@@ -1000,4 +1000,8 @@
     <sys:String x:Key="Liq_Band_unavailable">Insufficient data</sys:String>
     <sys:String x:Key="Cache_CompactGex">Compact GEX storage</sys:String>
     <sys:String x:Key="Cache_Compacted">GEX storage compacted; history preserved</sys:String>
+    <sys:String x:Key="Liq_ConnectionFailed">Macro data connection failed</sys:String>
+    <sys:String x:Key="Liq_Partial">Index inputs are incomplete</sys:String>
+    <sys:String x:Key="Liq_Retry">Retry</sys:String>
+    <sys:String x:Key="Liq_CheckConnection">Check connection</sys:String>
 </ResourceDictionary>

@@ -15,6 +15,11 @@ public partial class LiquidityViewModel : ObservableObject
     private long _generation;
     private bool _active;
     private LiquidityReport? _report;
+    public bool HasPressure=>PressureValue is not null;
+    public bool HasMacro=>_report?.Metrics.Any(m=>m.Latest is not null)==true;
+    public bool ShowMacroProblem=>_report is not null&&!HasPressure;
+    public string MacroProblem=>_loc[HasMacro?"Liq_Partial":"Liq_ConnectionFailed"];
+    public string MacroDiagnostic=>string.Join("\n",_report?.Metrics.SelectMany(m=>m.Inputs).Where(s=>s.Error is not null).DistinctBy(s=>s.Id).Select(s=>$"{s.Id}: {s.Error}")??[]);
     public double? PressureValue=>_report?.PressureIndex.Score;
     public string PressureText=>PressureValue?.ToString("0.0",System.Globalization.CultureInfo.InvariantCulture)??"—";
     public string PressureBand=>_loc["Liq_Band_"+(_report?.PressureIndex.Band??"unavailable")];
@@ -31,7 +36,7 @@ public partial class LiquidityViewModel : ObservableObject
         _service=service;_loc=loc;_nav=nav;
         _loc.LanguageChanged+=(_,_)=>Rebuild();Ui.Platform.ColorsChanged+=(_,_)=>Rebuild();
     }
-    public async Task ActivateAsync(){_active=true;if(_report is null||DateTimeOffset.UtcNow-_report.GeneratedAt>TimeSpan.FromMinutes(30))await RefreshAsync();}
+    public async Task ActivateAsync(){_active=true;if(_report is null||_report.Metrics.Any(m=>m.Latest is null)||_report.Sectors.Any(s=>s.RelativeDollarVolume is null)||DateTimeOffset.UtcNow-_report.GeneratedAt>TimeSpan.FromMinutes(30))await RefreshAsync();}
     public void Deactivate(){_active=false;_generation++;_request?.Cancel();IsBusy=false;}
     [RelayCommand]
     private async Task RefreshAsync()
@@ -42,10 +47,11 @@ public partial class LiquidityViewModel : ObservableObject
         catch(Exception ex){Meili.Core.Diagnostics.AppLog.Warn("liquidity","Report refresh failed",ex);if(generation==_generation)Status=_loc["Liq_Unavailable"];}
         finally{if(generation==_generation)IsBusy=false;request.Dispose();if(ReferenceEquals(_request,request))_request=null;}
     }
+    [RelayCommand]private void OpenSources()=>_nav.Go(AppPage.DataSources);
     [RelayCommand]private void OpenSector(string? symbol){if(!string.IsNullOrEmpty(symbol))_nav.Go(AppPage.Charts,symbol);}
     private void Rebuild()
     {
-        foreach(var property in new[]{nameof(PressureValue),nameof(PressureText),nameof(PressureBand),nameof(PressureDates),nameof(PressureHelp)})OnPropertyChanged(property);
+        foreach(var property in new[]{nameof(PressureValue),nameof(PressureText),nameof(PressureBand),nameof(PressureDates),nameof(PressureHelp),nameof(HasPressure),nameof(HasMacro),nameof(ShowMacroProblem),nameof(MacroProblem),nameof(MacroDiagnostic)})OnPropertyChanged(property);
         if(_report is null)return;
         Metrics.Clear();foreach(var metric in _report.Metrics)Metrics.Add(new(metric,_loc));
         Sectors.Clear();foreach(var sector in _report.Sectors)Sectors.Add(new(sector,_loc));

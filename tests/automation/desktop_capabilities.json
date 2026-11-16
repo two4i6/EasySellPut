@@ -656,6 +656,9 @@
         },
         "OpenSector": {
           "uiOnly": "Navigate to the selected sector ETF chart in the desktop; bar/indicator data remain available through get_bars/get_chart_analysis."
+        },
+        "OpenSources": {
+          "uiOnly": "Navigate to existing source health diagnostics; source health data remain available through get_source_health."
         }
       }
     }
