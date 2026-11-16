@@ -25,7 +25,6 @@ export type QqqGexTerminalViewModel = {
   optionActivityExpiry?: PcsGexExpiry | null;
   optionActivityLabel?: string;
   structureScopeLabel?: string;
-  research: { marketBalance: string; contractBalance: string; flipZ: string; putWallZ: string; callWallZ: string; top3Concentration: string; putConfirmation: string; callConfirmation: string; labels: string; limitations: string[] } | null;
 };
 
 const colors: Record<Tone, string> = { neutral: 'var(--text-primary)', positive: 'var(--accent-success)', warning: 'var(--accent-warning)', danger: 'var(--accent-danger)', accent: '#a5b4fc' };
@@ -46,7 +45,7 @@ function Metric({ label: title, value, detail, tone = 'neutral', source }: { lab
 }
 
 /** Read-only decision terminal. It presents a single evidence chain and never opens or selects a trade. */
-export function QqqGexTerminal({ indicatorObservationRef, activityResponseRef, activityHistoryRef, intradayPulseContent, spreadStudyContent, wallStatsContent, maxPainContent, atmIvContent, distributionRef, onDataTabChange,referenceTerminal,referenceLabel,observationLabel,researchContent,terminal, chart, askAi, topContent, topRightContent, chartLegendRef, structureObservationRef, snapshotTableRef, conditionsLoading = false, conditionsError, onConditionsRetry, onConditionsOpen, onConditionsClose, onActiveTabChange, sideContent, leftContent, dateContent, statusContent, requestFeedback, chartLoading = false, chartLoadingLabel = '正在加载图表数据' }: { indicatorObservationRef?:(element:HTMLDivElement|null)=>void; activityResponseRef?:(element:HTMLDivElement|null)=>void; activityHistoryRef?:(element:HTMLDivElement|null)=>void; intradayPulseContent?:ReactNode; spreadStudyContent?:ReactNode; wallStatsContent?:ReactNode; maxPainContent?:ReactNode; atmIvContent?:ReactNode; distributionRef?:(element:HTMLDivElement|null)=>void; onDataTabChange?:(label:string)=>void;referenceTerminal?:QqqGexTerminalViewModel;referenceLabel?:string;observationLabel?:string;researchContent?:ReactNode; conditionsError?: string | null; onConditionsRetry?:()=>void; conditionsLoading?:boolean; onConditionsOpen?:()=>void; onConditionsClose?:()=>void; onActiveTabChange?:(label:string)=>void; terminal: QqqGexTerminalViewModel; chart: ReactNode; askAi?: ReactNode; topContent?: ReactNode; topRightContent?: ReactNode; chartLegendRef?: (node: HTMLDivElement | null) => void; structureObservationRef?: (node: HTMLDivElement | null) => void; snapshotTableRef?: (node: HTMLDivElement | null) => void; sideContent?: ReactNode; leftContent?: ReactNode; dateContent?: ReactNode; statusContent?: ReactNode; requestFeedback?: ReactNode; chartLoading?: boolean; chartLoadingLabel?: string }) {
+export function QqqGexTerminal({ indicatorObservationRef, activityResponseRef, activityHistoryRef, intradayPulseContent, spreadStudyContent, wallStatsContent, maxPainContent, atmIvContent, distributionRef, onDataTabChange,referenceTerminal,referenceLabel,observationLabel,terminal, chart, topContent, topRightContent, chartLegendRef, structureObservationRef, snapshotTableRef, conditionsLoading = false, conditionsError, onConditionsRetry, onConditionsOpen, onConditionsClose, onActiveTabChange, sideContent, leftContent, dateContent, statusContent, requestFeedback, chartLoading = false, chartLoadingLabel = '正在加载图表数据' }: { indicatorObservationRef?:(element:HTMLDivElement|null)=>void; activityResponseRef?:(element:HTMLDivElement|null)=>void; activityHistoryRef?:(element:HTMLDivElement|null)=>void; intradayPulseContent?:ReactNode; spreadStudyContent?:ReactNode; wallStatsContent?:ReactNode; maxPainContent?:ReactNode; atmIvContent?:ReactNode; distributionRef?:(element:HTMLDivElement|null)=>void; onDataTabChange?:(label:string)=>void;referenceTerminal?:QqqGexTerminalViewModel;referenceLabel?:string;observationLabel?:string;conditionsError?: string | null; onConditionsRetry?:()=>void; conditionsLoading?:boolean; onConditionsOpen?:()=>void; onConditionsClose?:()=>void; onActiveTabChange?:(label:string)=>void; terminal: QqqGexTerminalViewModel; chart: ReactNode; topContent?: ReactNode; topRightContent?: ReactNode; chartLegendRef?: (node: HTMLDivElement | null) => void; structureObservationRef?: (node: HTMLDivElement | null) => void; snapshotTableRef?: (node: HTMLDivElement | null) => void; sideContent?: ReactNode; leftContent?: ReactNode; dateContent?: ReactNode; statusContent?: ReactNode; requestFeedback?: ReactNode; chartLoading?: boolean; chartLoadingLabel?: string }) {
   const conditions=referenceTerminal??terminal;
   const volatility=terminal.volatility??(!observationLabel?.startsWith('回放')?conditions.volatility:null);
   const leftTabs = [
@@ -73,21 +72,7 @@ export function QqqGexTerminal({ indicatorObservationRef, activityResponseRef, a
         <p style={{ color: 'var(--text-secondary)', fontSize: '.68rem', margin: '8px 0 0' }}>{volatility.environment}</p>
       </div> : <p role="status" style={{fontSize:'.65rem',color:'var(--text-tertiary)'}}>当前快照未提供完整波动率；可在“条件”页加载。回放不混入最新计算。</p>}
     </div> },
-    { label: '结构研究', content: conditions.research ? <div className="qqq-terminal-evidence">
-      <h3>研究观察 · 历史结构统计</h3>
-      <div className="qqq-terminal-metrics">
-        <Metric label="整体 GEX 平衡" value={conditions.research.marketBalance} />
-        <Metric label="当前到期日平衡" value={conditions.research.contractBalance} />
-        <Metric label="上方墙确认" value={conditions.research.callConfirmation} />
-        <Metric label="下方墙确认" value={conditions.research.putConfirmation} />
-        <Metric label="顶部集中度" value={conditions.research.top3Concentration} />
-        <Metric label="GEX 分布换号价距离" value={conditions.research.flipZ} />
-        <Metric label="看涨墙距离" value={conditions.research.callWallZ} />
-        <Metric label="看跌墙距离" value={conditions.research.putWallZ} />
-        <Metric label="研究标签" value={conditions.research.labels} />
-      </div>
-      {conditions.research.limitations.length > 0 && <ul className="qqq-terminal-reasons">{conditions.research.limitations.map(reason => <li key={reason}>{reason}</li>)}</ul>}
-    </div> : <p role="status" style={{ color: 'var(--text-secondary)', fontSize: '.68rem' }}>当前所选日期没有可用的结构研究数据。</p> },
+
   ];
   return <QqqTerminalWorkspace left={<QqqTerminalTabs onTabChange={onDataTabChange} lazy label="数据观察" storageKey="qqq-gex:left-tab:v1" items={[
     {label:QQQ_GEX_LEFT_TAB_LABELS.gamma,content:<QqqObservationPage description="查看持仓模型与价格附近的关键位置。">{leftTabs[0].content}<details style={{fontSize:'.68rem',borderTop:'1px solid var(--border-subtle)',marginTop:10,paddingTop:8}}><summary>结构与波动率详情</summary>{leftTabs[2].content}</details></QqqObservationPage>},
@@ -115,9 +100,8 @@ export function QqqGexTerminal({ indicatorObservationRef, activityResponseRef, a
       </div>
       {!!conditions.eligibility.blockingReasons.length && <ul className="qqq-terminal-reasons">{[...new Set(conditions.eligibility.blockingReasons.map(reason => reason.startsWith('展示快路径') ? '开仓资格与真实合约，请到开仓检查页复核。' : reason === '盘中时机：INSUFFICIENT_DATA' ? '盘中数据不足，等待更新。' : reason))].map(reason => <li key={reason}>{reason}</li>)}</ul>}
       <QqqTerminalPortalHost onTarget={structureObservationRef} />
-      <a href="/analysis/qqq#entry-check" style={{fontSize:'.7rem'}}>完整开仓检查 →</a>{askAi && <details style={{marginTop:10,fontSize:'.68rem'}}><summary>数据与 AI 解读</summary>{askAi}</details>}
+      <a href="/analysis/qqq#entry-check" style={{fontSize:'.7rem'}}>完整开仓检查 →</a>
     </> },
-    {label:QQQ_GEX_RIGHT_TAB_LABELS.research,content:<><p style={{fontSize:'.65rem',color:'var(--text-tertiary)'}}>研究参考 · {referenceLabel} · 不随盘中游标重算</p><details style={{fontSize:'.68rem'}}><summary>历史结构统计</summary>{leftTabs[3].content}</details>{researchContent}</>},
     ...(chartLegendRef ? [{ label: QQQ_GEX_RIGHT_TAB_LABELS.chartSettings, content: <QqqTerminalPortalHost onTarget={chartLegendRef} /> }] : []),
   ]} />} />;
 }

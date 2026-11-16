@@ -47,7 +47,7 @@
   </Target>
   <Target Name="BuildQqqGexAssets" BeforeTargets="AssignTargetPaths" DependsOnTargets="CompileQqqGexAssets">
     <ItemGroup>
-      <_QqqGexAsset Include="../../web/qqq-gex/dist/*" />
+      <_QqqGexAsset Include="../../web/qqq-gex/dist/*" Exclude="../../web/qqq-gex/dist/build-manifest.json" />
       <EmbeddedResource Include="@(_QqqGexAsset)" LogicalName="QqqGex/%(_QqqGexAsset.Filename)%(_QqqGexAsset.Extension)" />
     </ItemGroup>
   </Target>

@@ -5,7 +5,6 @@ import { Bell, BellOff } from 'lucide-react';
 import { directionalSignalPresentation } from './directionalSignalPresentation';
 import { qqqMarketSession } from '@/lib/qqqMarketSession';
 import styles from './QqqDirectionalSignalConsole.module.css';
-import QqqDirectionalResearchOverview from './QqqDirectionalResearchOverview';
 import type { QqqPcsApiResponse } from '@/types/qqqGex';
 import type { QqqIntradayDirectionalDecision } from '@/lib/engines/analysis/QqqIntradayDirectional';
 import type {
@@ -92,16 +91,16 @@ const signalFilterLabel: Record<SignalLogFilter, string> = {
   ALL: '全部', ENTRY: '机会', RISK_CUE: '风险', CONFIRMED: '已确认',
 };
 
-export function QqqDirectionalSignalConsole({ sectionMode='all', directional, replay, historicalDate, replayLoading = false, researchReplay, researchLoading = false, onResearchOpen, visible = true }: { sectionMode?:'all'|'monitor'|'research'; historicalDate?: string | null; replayLoading?: boolean; visible?: boolean; flat?: boolean; directional?: Directional | null; replay?: QqqDirectionalReplayApiResponse | null; researchReplay?: QqqDirectionalReplayApiResponse | null; researchLoading?: boolean; onResearchOpen?: () => void }) {
+export function QqqDirectionalSignalConsole({ directional, replay, historicalDate, replayLoading = false, visible = true }: { historicalDate?: string | null; replayLoading?: boolean; visible?: boolean; flat?: boolean; directional?: Directional | null; replay?: QqqDirectionalReplayApiResponse | null }) {
   const isHistorical = Boolean(replay || historicalDate);
   const panelId = useId();
   const [focusedAnchor, setFocusedAnchor] = useState<string | null>(null);
   useEffect(() => {
-    const open = (event: Event) => { if(sectionMode==='research')return;setActivePanel('log'); setLogFilter('ALL'); setFocusedAnchor((event as CustomEvent<string>).detail); };
+    const open = (event: Event) => { setActivePanel('log'); setLogFilter('ALL'); setFocusedAnchor((event as CustomEvent<string>).detail); };
     window.addEventListener('qqq-gex:open-reminder', open); return()=>window.removeEventListener('qqq-gex:open-reminder',open);
-  }, [sectionMode]);
+  }, []);
   useEffect(()=>{if(focusedAnchor) document.getElementById(`${panelId}-reminder-${focusedAnchor}`)?.scrollIntoView({block:'nearest'});},[focusedAnchor,panelId]);
-  const [activePanel, setActivePanel] = useState(sectionMode==='research'?'research':'current');
+  const [activePanel, setActivePanel] = useState('current');
   const [, setClock] = useState(0);
   const [alertsEnabled, setAlertsEnabled] = useState(false);
   const [logFilter, setLogFilter] = useState<SignalLogFilter>('ALL');
@@ -111,11 +110,7 @@ export function QqqDirectionalSignalConsole({ sectionMode='all', directional, re
   const displayed: DisplaySignal | null = replayDisplayed ?? current;
   const outcomes = useMemo(() => replay?.items ?? directional?.outcomes ?? [], [directional?.outcomes, replay?.items]);
   const signals = useMemo(() => replay?.items ?? directional?.signals ?? [], [directional?.signals, replay?.items]);
-  const research = researchReplay ?? replay;
 
-  useEffect(() => {
-    if (visible && activePanel === 'research') onResearchOpen?.();
-  }, [activePanel, onResearchOpen,visible]);
 
   useEffect(() => {
     setAlertsEnabled(window.localStorage.getItem(ALERTS_KEY) === '1');
@@ -134,7 +129,7 @@ export function QqqDirectionalSignalConsole({ sectionMode='all', directional, re
     return () => { window.clearInterval(timer); document.removeEventListener('visibilitychange', syncVisibility); };
   }, [visible, activePanel, isHistorical, replay, current?.validUntil,current?.dataQuality.evaluatedAt]);
   useEffect(() => {
-    if (sectionMode==='research' || isHistorical || !qqqMarketSession(new Date()).stocksOpen || directional?.liveStatus?.available === false || !notificationReady.current || !alertsEnabled || !current?.signalId || !current.validUntil || Date.parse(current.validUntil) <= Date.now() || !['ALERT_LONG', 'ALERT_SHORT'].includes(current.status)) return;
+    if (isHistorical || !qqqMarketSession(new Date()).stocksOpen || directional?.liveStatus?.available === false || !notificationReady.current || !alertsEnabled || !current?.signalId || !current.validUntil || Date.parse(current.validUntil) <= Date.now() || !['ALERT_LONG', 'ALERT_SHORT'].includes(current.status)) return;
     if (!directionalSignalPresentation(current,Date.now()).actionable) return;
     if (!directional?.signals.some(signal => signal.signalId === current.signalId)) return;
     if (window.localStorage.getItem(LAST_SIGNAL_KEY) === current.signalId) return;
@@ -144,7 +139,7 @@ export function QqqDirectionalSignalConsole({ sectionMode='all', directional, re
       const zone = current.riskPlan?.triggerZone ?? current.entryZone;
       new Notification(`QQQ · ${actionLabel(current)}`, { body: zone ? `${price(zone.low)}–${price(zone.high)} · ${playbookLabel(current.playbook)}` : playbookLabel(current.playbook) });
     }
-  }, [alertsEnabled, current, directional?.signals, directional?.liveStatus?.available, isHistorical,sectionMode]);
+  }, [alertsEnabled, current, directional?.signals, directional?.liveStatus?.available, isHistorical]);
 
   const toggleAlerts = async () => {
     const enabled = !alertsEnabled;
@@ -181,15 +176,14 @@ export function QqqDirectionalSignalConsole({ sectionMode='all', directional, re
     return true;
   }), [logFilter, signals]);
   const displayStatus = isHistorical && !replay ? replayLoading ? '正在读取历史提醒' : '历史提醒暂不可用' : replay ? `历史回放 · ${view.title}` : view.title;
-  const isResearch = Boolean(research);
 
   return <section aria-label="QQQ 方向信号台" className={`${styles.console} qqq-dir-console`}>
     <div className="qqq-dir-head">
-      <div className="qqq-dir-kicker"><strong>{sectionMode==='research'?'提醒验证':'盘中提示'}</strong><span title="当前信号属于实验研究，尚未完成独立验证。">研究阶段</span></div>
-      {!isHistorical && sectionMode!=='research' && <button type="button" className="qqq-dir-alert" onClick={toggleAlerts} aria-label={alertsEnabled ? '关闭声音提醒' : '开启声音提醒'} aria-pressed={alertsEnabled}>{alertsEnabled ? <Bell size={13} /> : <BellOff size={13} />}声音{alertsEnabled ? '已开' : '已关'}</button>}
+      <div className="qqq-dir-kicker"><strong>盘中提示</strong><span title="当前信号属于实验研究，尚未完成独立验证。">研究阶段</span></div>
+      {!isHistorical && <button type="button" className="qqq-dir-alert" onClick={toggleAlerts} aria-label={alertsEnabled ? '关闭声音提醒' : '开启声音提醒'} aria-pressed={alertsEnabled}>{alertsEnabled ? <Bell size={13} /> : <BellOff size={13} />}声音{alertsEnabled ? '已开' : '已关'}</button>}
     </div>
-    {sectionMode!=='research' && <div role="tablist" aria-label="盘中提示内容" className="qqq-dir-tabs">{(sectionMode==='monitor'?[['current', '当前提示'], ['log', `提醒记录${signals.length ? ` ${signals.length}` : ''}`]]:[['current', '当前提示'], ['log', `提醒记录${signals.length ? ` ${signals.length}` : ''}`], ['research', '研究统计']]).map(([id, label]) => <button key={id} type="button" role="tab" id={`${panelId}-tab-${id}`} aria-controls={`${panelId}-${id}`} aria-selected={activePanel === id} tabIndex={activePanel === id ? 0 : -1} onKeyDown={(event) => {
-        const ids = sectionMode==='monitor'?['current','log']:['current', 'log', 'research'];
+    {<div role="tablist" aria-label="盘中提示内容" className="qqq-dir-tabs">{([['current', '当前提示'], ['log', `提醒记录${signals.length ? ` ${signals.length}` : ''}`]]).map(([id, label]) => <button key={id} type="button" role="tab" id={`${panelId}-tab-${id}`} aria-controls={`${panelId}-${id}`} aria-selected={activePanel === id} tabIndex={activePanel === id ? 0 : -1} onKeyDown={(event) => {
+        const ids = ['current','log'];
         const index = ids.indexOf(id);
         const nextIndex = event.key === 'ArrowRight' ? (index + 1) % ids.length : event.key === 'ArrowLeft' ? (index + ids.length - 1) % ids.length : event.key === 'Home' ? 0 : event.key === 'End' ? ids.length - 1 : null;
         if (nextIndex === null) return;
@@ -235,24 +229,5 @@ export function QqqDirectionalSignalConsole({ sectionMode='all', directional, re
         </div>
       </div>
     </div>
-    {sectionMode!=='monitor' && <div role="tabpanel" id={`${panelId}-research`} aria-label={sectionMode==='research'?'提醒验证':undefined} aria-labelledby={sectionMode==='research'?undefined:`${panelId}-tab-research`} hidden={activePanel !== 'research'} className="qqq-dir-details">
-      {!isResearch && <p className="qqq-dir-empty">{researchLoading ? '正在读取统计…' : '暂无统计，记录提示后会在这里展示结果。'}</p>}
-      {research && <QqqDirectionalResearchOverview research={research} />}
-      {research && <details className="qqq-dir-research-details"><summary>查看详细指标与统计口径</summary>
-      <p className="qqq-dir-explanation">R 表示一次计划的风险距离；MFE 是观察期间最大有利波动，MAE 是最大不利波动。ATR 表示近期价格的正常波动幅度。下列比例都应结合样本数量阅读。</p>
-      <div className="qqq-dir-research-grid">
-        {research?.funnel && <div className="qqq-dir-insight"><h4>提示筛选过程</h4><p>数据可用 <strong>{research.funnel.dataReadyWindowBars}/{research.funnel.alertWindowBars}</strong> 根 · 候选 <strong>{research.funnel.entry.setups}</strong> → 靠近观察区 <strong>{research.funnel.entry.armed}</strong> → 独立机会 <strong>{research.funnel.entry.emitted}</strong> → 确认 <strong>{research.funnel.entry.confirmed}</strong></p><p>下午风险升高 {research.funnel.risk.elevated} → 止损候选 {research.funnel.risk.stopCandidates} → 独立提醒 {research.funnel.risk.emitted}</p></div>}
-        {research?.opportunityStats && <div className="qqq-dir-insight"><h4>进入观察区后的走势</h4><p>先到 +0.5R <strong>{research.opportunityStats.halfRSuccessRate == null ? '—' : `${(research.opportunityStats.halfRSuccessRate * 100).toFixed(0)}%`}</strong> · 先失效 {research.opportunityStats.invalidatedBeforeHalfRRate == null ? '—' : `${(research.opportunityStats.invalidatedBeforeHalfRRate * 100).toFixed(0)}%`}</p><p>MFE {research.opportunityStats.averageMfeR?.toFixed(2) ?? '—'}R · MAE {research.opportunityStats.averageMaeR?.toFixed(2) ?? '—'}R</p></div>}
-        {research?.lifecycleStats && <div className="qqq-dir-insight"><h4>机会确认进展</h4><p>独立机会 <strong>{research.lifecycleStats.opportunityStructures}</strong> · 确认 {research.lifecycleStats.confirmedSignals} · 升级 {research.lifecycleStats.confirmedUpgrades} · 直接确认 {research.lifecycleStats.directConfirmed}</p><p>升级率 <strong>{research.lifecycleStats.confirmedUpgradeRate == null ? '—' : `${(research.lifecycleStats.confirmedUpgradeRate * 100).toFixed(0)}%`}</strong> · 重复提示被拦截 {research.funnel.entry.rearmBlocked + research.funnel.risk.rearmBlocked}</p></div>}
-        {research?.riskStats && <div className="qqq-dir-insight"><h4>下午止损提示</h4><p>升高 {research.riskStats.elevated} · 候选 {research.riskStats.stopCandidates} · 已发 {research.riskStats.emitted}</p><p>后续确认 <strong>{research.riskStats.confirmedRiskRate == null ? '—' : `${(research.riskStats.confirmedRiskRate * 100).toFixed(0)}%`}</strong> · 小幅波动后恢复 {research.riskStats.falseStopRate == null ? '—' : `${(research.riskStats.falseStopRate * 100).toFixed(0)}%`} · 不利 {research.riskStats.averageAdverseMove30mAtr == null ? '—' : `${research.riskStats.averageAdverseMove30mAtr.toFixed(2)} ATR`}</p></div>}
-        {research?.validation.progress && <div className="qqq-dir-insight"><h4>验证所需样本的积累进度</h4><p>完整日 <strong>{research.validation.progress.completeDays}/{research.validation.progress.requiredCompleteDays}</strong> · 确认成交 {research.validation.progress.filledSignals}/{research.validation.progress.requiredFilledSignals}</p><p>LONG {research.validation.progress.longSignals}/{research.validation.progress.requiredLongSignals} · SHORT {research.validation.progress.shortSignals}/{research.validation.progress.requiredShortSignals}</p></div>}
-        {research?.gradeStats && <div className="qqq-dir-insight"><h4>分级胜率</h4>{(['A', 'B', 'C'] as const).map((grade) => { const stat = research.gradeStats[grade]; return <div key={grade} className="qqq-dir-stat-row"><span>{grade}级 · {stat.signalDays}日 / {stat.filled}成交</span><strong>{stat.winRate == null ? '胜率 —' : `${(stat.winRate * 100).toFixed(0)}% · ${stat.averageNetR?.toFixed(2) ?? '—'}R`}</strong></div>; })}</div>}
-        {research?.dailyStats && <div className="qqq-dir-insight qqq-dir-research-wide"><h4>逐日覆盖（只看完整日）</h4><div className="qqq-dir-day-list">{research.dailyStats.filter((day) => day.complete).map((day) => <span key={day.date}>{day.date.slice(5)}：{day.opportunitySignals}机会/{day.confirmedSignals}确认 · {day.alertWindowBars ? Math.round(day.dataReadyWindowBars / day.alertWindowBars * 100) : 0}%</span>)}</div></div>}
-        {research?.groupedStats && <div className="qqq-dir-insight qqq-dir-research-wide"><h4>按方向 / 时段 / 级别统计</h4>{Object.entries(research.groupedStats.confirmed).flatMap(([dimension, groups]) => Object.entries(groups).map(([key, stat]) => <div key={`confirmed-${dimension}-${key}`} className="qqq-dir-stat-row"><span>确认 · {dimension} · {key} · n={stat.evaluated}</span><strong style={{ color: stat.averageNetR != null && stat.averageNetR >= 0 ? 'var(--accent-success)' : 'var(--accent-danger)' }}>{stat.successRate == null ? '胜率 —' : `${(stat.successRate * 100).toFixed(0)}% · ${stat.averageNetR?.toFixed(2) ?? '—'}R`}</strong></div>))}{Object.entries(research.groupedStats.opportunity).flatMap(([dimension, groups]) => Object.entries(groups).map(([key, stat]) => <div key={`opportunity-${dimension}-${key}`} className="qqq-dir-stat-row"><span>机会 · {dimension} · {key} · n={stat.evaluated}</span><strong style={{ color: 'var(--accent-warning)' }}>{stat.successRate == null ? '样本 —' : `先到0.5R ${(stat.successRate * 100).toFixed(0)}%`}</strong></div>))}</div>}
-      </div>
-      <div className="qqq-dir-footnote">统计版本 v5 · 美东 10:00–13:00 最多提醒 3 个独立方向机会；13:00–16:00 只提醒结构风险。模拟成交仅评估 A/B 级已确认提示，每边成本 0.01%，最多观察 30 分钟。历史结果仅作研究。{research?.fingerprint ? ` · 数据标识 ${research.fingerprint.slice(0, 10)}…` : ''}</div>
-      </details>}
-    </div>}
-    {researchLoading && activePanel === 'research' && <div aria-busy="true" aria-label="方向研究摘要加载中" className="qqq-dir-details"><div className="qqq-dir-research" style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-subtle)', borderRadius: 7, padding: 8 }}>研究质量与胜率加载中…</div></div>}
   </section>;
 }

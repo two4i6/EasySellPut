@@ -13,7 +13,7 @@ Latest read-only upstream check found cbd0c4e; it is not part of these results.
 | `node test-results/pcs-contract.mjs` | Source OPEN/NOW/READY, inherited BLOCK, stale/misaligned/unknown underlying trade rejection, no remote fallback; canonical signal/lifecycle readonly persistence and corruption checks passed |
 | `node tests/local-pipeline.mjs` | Full profiles, atomic import/retry/idempotence, partial recovery, regular/extended split, observed gaps, replay/context/spread/windows, >32-day summary, revision regeneration and clear fencing passed |
 | `node tests/import-comparison.mjs <baseline-import> <identical-input>` | Six alternating cold trials; complete row/profile/bar hashes and summary fingerprints identical; sampled source PCS and two manifests equal |
-| Chromium `tests/offline-viewer.mjs` with computed pipeline DB and source PCS fixture | Expiry/revision refresh, original tabs/charts/research/settings, local ASK AI, live decision and presentation persistence passed; no script error/remote traffic |
+| Chromium `tests/offline-viewer.mjs` with computed pipeline DB and source PCS fixture | Expiry/revision refresh, tabs/charts/settings, live decision and presentation persistence passed; no script error/remote traffic |
 | .NET Core full suite | 199 passed |
 | .NET Data full suite | 139 passed / 15 deliberate live-provider skips |
 | .NET Analytics full suite | 206 passed |
@@ -75,12 +75,12 @@ points. No timestamp shift, missing IV recovery or invented candles occurred.
 Real complete historical database/blobs remain unavailable, including the missing
 2026-10-15 snapshot; no claimed validation of that historical discrepancy. Original
 macro/regime orchestration, lifecycle chart binding, exhaustive dynamic queries
-and UI parity, AI inference/desktop theme integration, latest-upstream integration,
+and UI parity, desktop theme integration, latest-upstream integration,
 native acceptance and real-history performance remain unfinished. Full migration
 or excellent performance is not claimed.
 
 Ignored local evidence: `test-results/qqq-computed-fixture.png`,
-`test-results/qqq-ask-ai-local.png`, `test-results/computed-viewer.json`,
+`test-results/computed-viewer.json`,
 `test-results/import-comparison.json`. Test fixtures and synthetic benchmarks
 never stand in for real complete market data.
 
@@ -98,10 +98,7 @@ observation times separately. Causal directional profile reads have complete and
 partial/mixed-version factor-and-decision parity tests. Incremental research and
 summaries match a one-shot source calculation. Cache clears preserve indexed rows.
 
-Native theme/motion changes reach the existing document. ASK AI can explicitly
-include a separate-time local PCS evaluation in the preview; it still copies the
-prompt to the user's client and performs no in-page provider inference or automatic
-transmission. `get_qqq_gex_lifecycle` adds a read-only date-scoped operation. All
+Native theme/motion changes reach the existing document. `get_qqq_gex_lifecycle` adds a read-only date-scoped operation. All
 **54** catalog operations have real CLI/MCP cases; Source lifecycle tests raise the
 original suite to **155 tests / 854 assertions**. Data **144 pass / 15 live skips**,
 Shared **110 pass**, Automation **77 pass**, Core **199 pass**, Analytics **209 pass**,
@@ -141,7 +138,15 @@ native machine connection was found. Source work is unchanged at d60e24b.
 
 Outstanding: original historical DB/blob migration and the 2026-10-15 discrepancy;
 fully exhaustive source UI/query acceptance and out-of-workbench navigation;
-in-page credential-backed inference versus the current private prompt workflow;
 complete locale integration and native/trusted-package acceptance. Cache gzip,
 smaller budgets, disk-full/crash recovery and reclamation are ongoing local work,
 backed up independently and excluded from this checkpoint push until validated.
+
+
+## Cloud cleanup checkpoint, 2026-11-16
+
+Baseline work@5aa6787 retained upstream shared live quote changes and fresh embedded-asset build inputs. Retired local presentation surfaces and their dedicated loaders/resources are excluded from migration scope. The historical PCS desktop strip and viewer route were removed, while its recorded data and MCP reader remain protected. No user cache/history files were removed.
+
+Dependency-root review retains317 imported files (311 original byte hashes plus6 reproducible presentation patches);339 unreferenced source files were pruned individually. The three production algorithm bundles remain byte-identical in clean before/after builds. Original source155 tests/854 assertions, local import/replay pipeline,45 exposure scope/mode/metric combinations and other kernel parity pass. Cloud empty/computed/live-price flows pass; private-route absence and debug-metadata packaging checks are covered. Core201/Data156/Automation95/Shared120 pass. Official SDK CLI/MCP process checks pass. Windows test assembly cross-build passes; native Windows fixes and Mac native acceptance await CI, not claimed passed.
+
+Measured embedded GEX page assets3,396,995 ->1,646,412 bytes, including exclusion of unused debug build metadata; actual renderable assets decrease41,306 bytes. Vendored source decreases5,479,497 bytes. These figures are not full installer or memory reductions. Runtime/storage and missing-history limitations remain described in MIGRATION-MATRIX.md.

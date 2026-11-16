@@ -8,11 +8,8 @@
     "test:pipeline": "node tests/local-pipeline.mjs"
   },
   "dependencies": {
-    "@ai-sdk/openai": "3.0.131",
     "@base-ui/react": "1.9.0",
-    "ai": "6.0.315",
     "clsx": "2.1.1",
-    "framer-motion": "12.43.0",
     "klinecharts": "10.1.0",
     "lightweight-charts": "5.2.1",
     "lucide-react": "1.61.0",

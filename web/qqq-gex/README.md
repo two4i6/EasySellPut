@@ -1,14 +1,16 @@
 # QQQ GEX workbench migration (in progress)
 
 Source: option-seller `work@8abee90a260071cbe9b1519a56548e8bf5a8d18e`.
-654 byte-preserved files are tracked in `source-manifest.json`.
+317 files are tracked in `source-manifest.json`: 311 original byte-preserved
+files and 6 reproducible local presentation patches.
 `python3 tools/qqq-gex/verify-source.py` verifies fidelity. Original calculation,
 research, indicators, replay and archive algorithms remain the single implementation.
 Next component/worker, local transport and storage adapters are maintained here.
 
 EasySellPut upstream `work@627a875` was merged
 locally as `3de30b6`, after preserving prior work in `bbb2f23` and an external
-archive. See [UPSTREAM-STATUS.md](UPSTREAM-STATUS.md). Nothing was pushed/deployed.
+archive. See [UPSTREAM-STATUS.md](UPSTREAM-STATUS.md) for historical integration notes.
+Latest baseline is work@5aa6787; local reductions preserve its shared live quote changes.
 
 ## Run and transport
 
@@ -24,8 +26,7 @@ subscriptions while hidden/disposed and labels source time, declared delay and
 expiration. Quotes and GEX capture times remain separate. This replaces the source
 Yahoo SSE transport; it does not manufacture tick streaming or live eligibility.
 History mode preserves date selection. Revision notifications refresh data without
-reloading the WebView. ASK AI previews/copies the original selected-snapshot context
-and prompt locally, without credential entry, automatic transmission or MCP writes.
+reloading the WebView.
 
 ## Data and cache ownership
 
@@ -108,7 +109,7 @@ Presentation preferences use a token/Origin-protected local endpoint and Snapsho
 
 A newer actual capture at 2026-11-16 12:10 UTC retained all 29 expiries, 2,245 complete observed two-minute buckets (43 same date, all premarket), and 86 positive-OI contracts without IV. Option publication was 11:06:40 UTC; underlying last trade remained Nov 13 15:59:59 ET. It was correctly retained as partial with no complete day. The live source PCS evaluation produced BLOCK using Nov 13 completed daily close, PREMARKET/INSUFFICIENT_DATA and no candidate or saved alert. This is genuine partial-data evidence, not successful full live-to-page acceptance.
 
-Remaining: complete original macro/regime source orchestration and additional route variants, historical lifecycle chart integration and exhaustive source page interactions/golden fixtures; original external historical database/blobs and unresolved 2026-10-15 discrepancy; theme/locale integration; native Windows/macOS execution/trust; representative complete real-history end-to-end performance. ASK AI remains explicit prompt export rather than source credential-backed in-page inference. Full migration is **not yet accepted**.
+Remaining: complete original macro/regime source orchestration and additional route variants, historical lifecycle chart integration and exhaustive source page interactions/golden fixtures; original external historical database/blobs and unresolved 2026-10-15 discrepancy; theme/locale integration; native Windows/macOS execution/trust; representative complete real-history end-to-end performance. Full migration is **not yet accepted**.
 
 Linux full offline run: Core's new logging violations were fixed and 199 tests
 repassed; Data/Analytics/Shared/Automation and Python/process checks are recorded
@@ -122,7 +123,7 @@ for the newest commands/outcomes; no remote CI green status is claimed.
 
 `27fe440` incorporates upstream cbd0c4e and adds indexed lossless v3 profiles,
 source macro/regime orchestration, live detail/evidence, saved lifecycle/history,
-native theme/motion and optional separate-time PCS context in ASK AI. See the
+native theme/motion. See the
 newest section of [VALIDATION.md](VALIDATION.md) for results and outstanding scope;
 older phase descriptions above are superseded by that section. Full migration
 acceptance remains pending. Experimental gzip/storage-budget work is separate.

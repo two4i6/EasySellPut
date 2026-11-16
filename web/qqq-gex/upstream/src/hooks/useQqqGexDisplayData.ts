@@ -59,15 +59,11 @@ export function useQqqGexDisplayData(selectedExpiry: string | null, setSelectedE
   }, [selectedGexDate, setSelectedExpiry, cachedData?.view.date, gexDates, setDateMode, setSelectedGexDate]);
   const [historicalData, setHistoricalData] = useState<QqqPcsApiResponse | null>(null);
   const [historicalReplay, setHistoricalReplay] = useState<QqqDirectionalReplayApiResponse | null>(null);
-  const [discoveryReplay, setDiscoveryReplay] = useState<QqqDirectionalReplayApiResponse | null>(null);
   const [offline, setOffline] = useState(false);
   const [retryAttempt, setRetryAttempt] = useState(0);
   const [latestRefreshing, setLatestRefreshing] = useState(false);
   const [latestLoading, setLatestLoading] = useState(true);
   const [datesLoading, setDatesLoading] = useState(true);
-  const [researchRequested, setResearchRequested] = useState(false);
-  const requestResearch = useCallback(() => setResearchRequested(true), []);
-  const [discoveryReplayLoading, setDiscoveryReplayLoading] = useState(false);
   const [historicalLoading, setHistoricalLoading] = useState(false);
   const [historicalError, setHistoricalError] = useState<string | null>(null);
   const [latestError, setLatestError] = useState<string | null>(null);
@@ -75,7 +71,7 @@ export function useQqqGexDisplayData(selectedExpiry: string | null, setSelectedE
   const loadedWindows = useRef(new Map<string, number>());
   const cachedDataRef = useRef<QqqPcsApiResponse | null>(null);
   useEffect(() => { cachedDataRef.current = cachedData; }, [cachedData]);
-  const discoveryReplayRequestedRef = useRef(false);
+  const initialDateSelectedRef = useRef(false);
   const legacyFallbacks = useRef(new Set<string>());
   const historicalArchiveWarm = useRef<ExposureHistoryDay|null>(null);
   const chartModeRef = useRef(chartMode);
@@ -177,8 +173,8 @@ export function useQqqGexDisplayData(selectedExpiry: string | null, setSelectedE
     setGexDates(current => current.includes(date) ? current : [...current, date].sort());
   }, [cachedData]);
   useEffect(() => {
-    if (!datePreferenceReady || !gexDates.length || !cachedData?.view.date || discoveryReplayRequestedRef.current) return;
-    discoveryReplayRequestedRef.current = true;
+    if (!datePreferenceReady || !gexDates.length || !cachedData?.view.date || initialDateSelectedRef.current) return;
+    initialDateSelectedRef.current = true;
     setSelectedGexDate((current) => current ?? cachedData.view.date);
   }, [datePreferenceReady, gexDates, cachedData?.view.date, setSelectedGexDate]);
   useEffect(() => {
@@ -194,21 +190,6 @@ export function useQqqGexDisplayData(selectedExpiry: string | null, setSelectedE
     if (!datePreferenceReady || !datesLoaded || !selectedGexDate || selectedGexDate === cachedData?.view.date || gexDates.includes(selectedGexDate)) return;
     selectGexDate(cachedData?.view.date ?? gexDates.at(-1) ?? null);
   }, [datePreferenceReady, datesLoaded, selectedGexDate, cachedData?.view.date, gexDates, selectGexDate]);
-  useEffect(() => {
-    if (!researchRequested || !gexDates.length) return;
-    // Research summaries are server-materialized after 32 calendar days. Keep
-    // the live console on a bounded rolling window; the date rail remains full.
-    const researchStartDate = gexDates[Math.max(0, gexDates.length - 32)]!;
-    const first = qqqGexDateBounds(researchStartDate).from;
-    const last = qqqGexDateBounds(gexDates.at(-1)!).to;
-    const controller = new AbortController();
-    setDiscoveryReplayLoading(true);
-    void readQqqHistoryClient<QqqDirectionalReplayApiResponse>(`/api/analysis/qqq/pcs/backtest?stream=signals&from=${encodeURIComponent(first)}&to=${encodeURIComponent(last)}&page=1&pageSize=200`, { ttlMs: 5 * 60_000, signal: controller.signal })
-      .then(value => { if (!controller.signal.aborted) setDiscoveryReplay(value); })
-      .catch(() => { if (!controller.signal.aborted) setDiscoveryReplay(null); })
-      .finally(() => { if (!controller.signal.aborted) setDiscoveryReplayLoading(false); });
-    return () => controller.abort();
-  }, [gexDates, researchRequested]);
   const loadHistoricalDate = useCallback(async (date: string, force = false) => {
     const base = cachedDataRef.current;
     historicalAbort.current?.abort();
@@ -381,5 +362,5 @@ export function useQqqGexDisplayData(selectedExpiry: string | null, setSelectedE
       await loadWindow(from, Math.min(end, from + GEX_LOAD_WINDOW_MS - 1));
     }
   }, [displayData, historicalView, selectedExpiry, loadWindow]);
-  return { conditionsLoading:conditionsLoading||evidenceLoading, conditionsError:conditionsError??evidenceError, setConditionsRetry, requestConditions, closeConditions, conditionsData, windowLoading, windowError, historyStartReached, replayLoading, replayError, setReplayRetry, gexDates, selectedGexDate, setSelectedGexDate: selectGexDate, historicalReplay, discoveryReplay, offline, retryAttempt, setRetryAttempt, latestLoading, datesLoading, requestResearch, discoveryReplayLoading, historicalLoading, latestError, historicalView, displayError, displayData, pendingDisplay, retryDisplay, loadWindow, onVisibleTimeRangeChange, selectExpiry, loadHeatmapHistory };
+  return { conditionsLoading:conditionsLoading||evidenceLoading, conditionsError:conditionsError??evidenceError, setConditionsRetry, requestConditions, closeConditions, conditionsData, windowLoading, windowError, historyStartReached, replayLoading, replayError, setReplayRetry, gexDates, selectedGexDate, setSelectedGexDate: selectGexDate, historicalReplay, offline, retryAttempt, setRetryAttempt, latestLoading, datesLoading, historicalLoading, latestError, historicalView, displayError, displayData, pendingDisplay, retryDisplay, loadWindow, onVisibleTimeRangeChange, selectExpiry, loadHeatmapHistory };
 }

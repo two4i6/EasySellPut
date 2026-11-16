@@ -9,7 +9,6 @@ export const QQQ_GEX_RIGHT_TAB_LABELS = {
   monitor: '监控',
   conditions: '条件',
   chartSettings: '图表设置',
-  research: '研究',
 } as const;
 
 export function resolveQqqTerminalTabIndex(labels: readonly string[], savedLabel: string | null): number {

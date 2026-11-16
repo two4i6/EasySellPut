@@ -2,12 +2,19 @@ using Meili.Data.Cache;
 namespace Meili.Shared.Tests;
 public sealed class QqqGexSessionTests
 {
+    [Fact] public async Task Removed_desktop_only_history_route_is_not_exposed()
+    {
+        var path=Path.Combine(Path.GetTempPath(),Guid.NewGuid()+".db");using var session=new QqqGexSession(path);using var http=new HttpClient();var response=await http.GetAsync(new Uri(session.PageUri,"api/analysis/qqq/pcs/lifecycle?date=2026-01-02"));Assert.Equal(System.Net.HttpStatusCode.NotFound,response.StatusCode);
+        // MCP still uses the retained store directly; an empty result never deletes retained observations.
+        var local=new QqqGexResponseStore(path).ReadLifecycle("/api/analysis/qqq/pcs/lifecycle?date=2026-01-02");Assert.NotNull(local);Assert.Contains("\"recorded\":false",local.Body);
+    }
     [Fact] public async Task Viewer_serves_bundled_page_and_local_data_and_rejects_missing_or_foreign_access()
     {
         var path=Path.Combine(Path.GetTempPath(),Guid.NewGuid()+".db");var now=DateTimeOffset.UtcNow;var store=new QqqGexResponseStore(path);
         store.Save("local","/api/analysis/qqq/gex/day?date=2026-01-02",new("application/json","{\"fixture\":true}","fixture-r1",now,now.AddHours(1)));
         using var session=new QqqGexSession(path);using var http=new HttpClient();
         var state=await http.GetStringAsync(new Uri(session.PageUri,"api/analysis/qqq/local-state"));Assert.Contains("\"localOnly\":true",state);
+        Assert.DoesNotContain("QqqGex/build-manifest.json",typeof(QqqGexSession).Assembly.GetManifestResourceNames());
         var page=await http.GetAsync(session.PageUri);Assert.True(page.IsSuccessStatusCode);Assert.Contains("main.js",await page.Content.ReadAsStringAsync());Assert.Contains("connect-src 'self'",page.Headers.GetValues("Content-Security-Policy").Single());
         var hit=await http.GetAsync(new Uri(session.PageUri,"api/analysis/qqq/gex/day?date=2026-01-02&page=1"));Assert.Equal("{\"fixture\":true}",await hit.Content.ReadAsStringAsync());
         var miss=await http.GetAsync(new Uri(session.PageUri,"api/analysis/qqq/gex/day?date=2026-01-03"));Assert.Equal(System.Net.HttpStatusCode.ServiceUnavailable,miss.StatusCode);Assert.Contains("LOCAL_CACHE_MISS",await miss.Content.ReadAsStringAsync());
