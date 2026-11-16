@@ -22,4 +22,27 @@ public sealed class ThemePerformanceTests
             finally { ThemeService.ColorsChanged -= handler; theme.Apply(AppThemeMode.Dark); }
         });
     }
+    [Fact] public void Explicit_theme_reestablishes_semantics_when_the_framework_theme_already_matches()
+    {
+        WpfHost.Run(()=>
+        {
+            var theme=AppServices.Get<ThemeService>();
+            try{
+                theme.Apply(AppThemeMode.Light);var expected=Application.Current.FindResource("CardBackgroundFillColorDefaultBrush");
+                ThemeService.ApplySemanticColors(true); // Framework remains Light: no Changed event is required.
+                theme.Apply(AppThemeMode.Light);
+                Assert.Same(expected,Application.Current.FindResource("CardBackgroundFillColorDefaultBrush"));
+                var notifications=0;EventHandler handler=(_,_)=>notifications++;ThemeService.ColorsChanged+=handler;
+                var unrelated=new ResourceDictionary{{"ThemeTestMarker",true}};
+                try{
+                    Application.Current.Resources.MergedDictionaries.Add(unrelated);
+                    ThemeService.ApplySemanticColors(false);Assert.Equal(0,notifications);
+                    Assert.Same(expected,Application.Current.FindResource("CardBackgroundFillColorDefaultBrush"));
+                }
+                finally{Application.Current.Resources.MergedDictionaries.Remove(unrelated);ThemeService.ColorsChanged-=handler;}
+            }
+            finally{theme.Apply(AppThemeMode.Dark);}
+        });
+    }
+
 }

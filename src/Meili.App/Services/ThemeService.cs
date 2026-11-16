@@ -41,7 +41,9 @@ public sealed class ThemeService : IThemeController
     public void Apply(AppThemeMode mode, Window? mainWindow = null)
     {
         if (mode is AppThemeMode.Light or AppThemeMode.Dark && Mode == mode
-            && IsDark == (mode == AppThemeMode.Dark) && _installed == (IsDark, _upDown)) return;
+            && IsDark == (mode == AppThemeMode.Dark) && _installed == (IsDark, _upDown)
+            && ReferenceEquals(_resourceOwner,Application.Current.Resources)
+            && Application.Current.Resources.MergedDictionaries.LastOrDefault()==_semanticHost) return;
         Mode = mode;
         mainWindow ??= Application.Current.MainWindow;
         ClearWatch();
@@ -63,6 +65,9 @@ public sealed class ThemeService : IThemeController
                 }
                 break;
         }
+        // WPF-UI need not raise Changed when its theme already matches. Still
+        // establish our semantic palette/precedence before returning to callers.
+        ApplySemanticColors(IsDark);
     }
 
     private void ClearWatch()
@@ -107,6 +112,7 @@ public sealed class ThemeService : IThemeController
             _resourceOwner = resources; _semanticHost = new ResourceDictionary(); _installed = null; _palettes.Clear();
         }
         var key = (dark, _upDown);
+        var changed = _installed != key;
         if (!_palettes.TryGetValue(key, out var palette)) _palettes[key] = palette = CreatePalette(dark, _upDown);
         var hosted = resources.MergedDictionaries.Contains(_semanticHost!);
         var last = resources.MergedDictionaries.Count > 0 && ReferenceEquals(resources.MergedDictionaries[^1], _semanticHost);
@@ -119,7 +125,9 @@ public sealed class ThemeService : IThemeController
             resources.MergedDictionaries.Add(_semanticHost);
         }
         _installed = key;
-        ColorsChanged?.Invoke(null, EventArgs.Empty);
+        // Reordering the same frozen palette repairs resource precedence, but
+        // does not change the colors held by view models.
+        if(changed)ColorsChanged?.Invoke(null, EventArgs.Empty);
     }
 
     private static ResourceDictionary? _resourceOwner, _semanticHost;

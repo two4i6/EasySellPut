@@ -39,6 +39,24 @@ public class CboeTests
     }
 
     [Fact]
+    public void Indexed_chain_preserves_last_property_numeric_wrappers_and_missing_fields()
+    {
+        using var document=System.Text.Json.JsonDocument.Parse("""
+        {"timestamp":"2026-11-12 20:00:00","data":{"current_price":230,"options":[
+          {"option":"AAPL261120C00230000","bid":1,"bid":"$2.50","ask":3,"iv":{"raw":0.25},"delta":"0.4","gamma":0.02,"last_trade_time":"2026-11-12T15:59:58"},
+          {"option":"AAPL261120P00230000","iv":null,"gamma":99},
+          {"option":"AAPL261120C00240000","iv":0.3,"last_trade_time":"2026-11-12T15:59:58"}
+        ]}}
+        """);
+        var chain=CboeProvider.ParseOptions(document.RootElement,"AAPL",new DateOnly(2026,11,12));
+        Assert.Equal(3,chain.Contracts.Count);var first=chain.Contracts[0];var missing=chain.Contracts[1];
+        Assert.Equal(2.5,first.Bid);Assert.Equal(.25,first.ImpliedVolatility);Assert.Equal(.4,first.Delta);Assert.Equal(.02,first.Gamma);
+        Assert.Null(missing.Bid);Assert.Null(missing.Ask);Assert.Null(missing.Gamma);Assert.Null(missing.LastTradeTime);
+        Assert.Equal(DateTimeOffset.Parse("2026-11-12T20:59:58Z"),first.LastTradeTime);Assert.Equal(first.LastTradeTime,chain.Contracts[2].LastTradeTime);
+        Assert.Equal("cboe",chain.Source);Assert.Equal(15,chain.DelayMinutes);
+    }
+
+    [Fact]
     public void Parses_history_and_intraday()
     {
         using var h = Fx.Json("cboe_historical.json");
@@ -185,7 +203,8 @@ public class CboeChainCostTests(Xunit.Abstractions.ITestOutputHelper output)
                 }
         sb.Append("]}}");
         var json = sb.ToString();
-        CboeProvider.ParseOptions(System.Text.Json.JsonDocument.Parse(json).RootElement, "AAPL", new DateOnly(2026, 11, 12)); // warm-up (JIT)
+        using(var warmup=System.Text.Json.JsonDocument.Parse(json))
+            CboeProvider.ParseOptions(warmup.RootElement, "AAPL", new DateOnly(2026, 11, 12)); // warm-up (JIT), release its owned buffers before timing
         var sw = System.Diagnostics.Stopwatch.StartNew();
         using var doc = System.Text.Json.JsonDocument.Parse(json);
         var chain = CboeProvider.ParseOptions(doc.RootElement, "AAPL", new DateOnly(2026, 11, 12));
