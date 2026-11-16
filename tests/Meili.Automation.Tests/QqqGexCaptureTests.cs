@@ -22,7 +22,25 @@ public sealed class QqqGexCaptureTests
         var at=DateTimeOffset.UtcNow;var expiry=new DateOnly(2027,6,18);var dir=Path.Combine(Path.GetTempPath(),Guid.NewGuid().ToString("N"));
         var chain=new OptionChain{Underlying="QQQ",Source="fixture",AsOf=at,FetchedAt=at,UnderlyingPrice=600,Expirations=[expiry],Contracts=[new(){Underlying="QQQ",ContractSymbol="c",Right=OptionRight.Call,Strike=600,Expiration=expiry,OpenInterest=0},new(){Underlying="QQQ",ContractSymbol="p",Right=OptionRight.Put,Strike=600,Expiration=expiry,OpenInterest=0}]};
         var market=new FakeMarket{ChainOverride=chain,BarsOverride=async(request,token)=>{if(request.Interval==BarInterval.Day1)await Task.Delay(Timeout.InfiniteTimeSpan,token);return new BarSeries{Symbol=request.Symbol,Interval=request.Interval,Source="fixture",Bars=[]};}};
-        var result=await new QqqGexCaptureService(market,dir,TimeSpan.FromMilliseconds(250)).CaptureAsync();using var doc=JsonSerializer.SerializeToDocument(result);Assert.Equal(1,doc.RootElement.GetProperty("capturedExpiries").GetInt32());Assert.False(doc.RootElement.GetProperty("complete").GetBoolean());Assert.True(new Meili.Data.Cache.QqqGexResponseStore(Path.Combine(dir,"cache","qqq-gex.db")).HasObservedInput());
+        var result=await new QqqGexCaptureService(market,dir,TimeSpan.FromSeconds(5)).CaptureAsync();using var doc=JsonSerializer.SerializeToDocument(result);Assert.Equal(1,doc.RootElement.GetProperty("capturedExpiries").GetInt32());Assert.False(doc.RootElement.GetProperty("complete").GetBoolean());Assert.True(new Meili.Data.Cache.QqqGexResponseStore(Path.Combine(dir,"cache","qqq-gex.db")).HasObservedInput());
         using var cancelled=new CancellationTokenSource();cancelled.Cancel();await Assert.ThrowsAnyAsync<OperationCanceledException>(()=>new QqqGexCaptureService(market,Path.Combine(dir,"cancelled")).CaptureAsync(cancelled.Token));Assert.False(File.Exists(Path.Combine(dir,"cancelled","cache","qqq-gex-input.json")));
+    }
+    [Theory]
+    [InlineData(15, true)]
+    [InlineData(180, false)]
+    public async Task Cboe_reported_event_bounds_price_buckets_and_preserves_publication(int lagMinutes,bool aligned)
+    {
+        var publication=DateTimeOffset.Parse("2026-11-16T15:17:00Z");var eventAt=publication.AddMinutes(-lagMinutes);var expiry=new DateOnly(2027,6,18);
+        var chain=new OptionChain{Underlying="QQQ",Source="cboe",AsOf=publication,UnderlyingLastTradeAt=eventAt,FetchedAt=publication.AddSeconds(10),DelayMinutes=15,UnderlyingPrice=600,Expirations=[expiry],Contracts=[new(){Underlying="QQQ",ContractSymbol="c",Right=OptionRight.Call,Strike=600,Expiration=expiry,OpenInterest=100,ImpliedVolatility=.2},new(){Underlying="QQQ",ContractSymbol="p",Right=OptionRight.Put,Strike=600,Expiration=expiry,OpenInterest=100}]};
+        BarRequest? intraday=null;
+        var market=new FakeMarket{ChainOverride=chain,BarsOverride=(request,ct)=>{
+            if(request.Interval!=BarInterval.Minute1)return Task.FromResult(new BarSeries{Symbol=request.Symbol,Interval=request.Interval,Source="fixture",Bars=[]});
+            intraday=request;return Task.FromResult(new BarSeries{Symbol="QQQ",Interval=BarInterval.Minute1,Source="fixture",Bars=Enumerable.Range(0,6).Select(i=>new Bar(DateTimeOffset.Parse("2026-11-16T15:00:00Z").AddMinutes(i),600,601,599,600,100)).ToArray()});}};
+        var dir=Path.Combine(Path.GetTempPath(),Guid.NewGuid().ToString("N"));await new QqqGexCaptureService(market,dir).CaptureAsync();
+        using var doc=JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(dir,"cache","qqq-gex-input.json")));var input=doc.RootElement;var capture=input.GetProperty("captures")[0];
+        Assert.Equal(publication,DateTimeOffset.Parse(capture.GetProperty("sourcePublicationAt").GetString()!));Assert.Equal(aligned,input.GetProperty("quality").GetProperty("sourceTimeAligned").GetBoolean());
+        Assert.Equal(aligned?eventAt:publication,DateTimeOffset.Parse(capture.GetProperty("valuationAt").GetString()!));Assert.True(input.GetProperty("marketInputs").GetProperty("delayed").GetBoolean());
+        Assert.Equal(1,input.GetProperty("quality").GetProperty("missingIv").GetInt32());Assert.False(input.GetProperty("providerCoverageComplete").GetBoolean());
+        if(aligned){Assert.Single(input.GetProperty("bars").EnumerateArray());Assert.Equal(eventAt,DateTimeOffset.Parse(input.GetProperty("barMetadata").GetProperty("priceCutoff").GetString()!));}
     }
 }

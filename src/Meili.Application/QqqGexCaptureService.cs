@@ -16,7 +16,7 @@ public sealed class QqqGexCaptureService(IMarketDataService market,string dataDi
         var store=new Meili.Data.Cache.QqqGexResponseStore(Path.Combine(dataDirectory,"cache","qqq-gex.db"));
         var expected=(await market.GetExpirationsAsync("QQQ",ct)).Distinct().Order().ToArray();
         if(expected.Length is 0 or >128)return new {status="source_unavailable",symbol="QQQ",complete=false,reason="Expiry index must contain 1–128 dates"};
-        ReadOnlyMemory<byte> rawAnchor=default;string? rawHash=null;var missingOi=0;var missingIv=0;var allRealtime=true;var delayKnown=true;var maxDelay=0;DateTimeOffset? underlyingLastTradeAt=null;
+        ReadOnlyMemory<byte> rawAnchor=default;string? rawHash=null;var missingOi=0;var missingIv=0;var allRealtime=true;var delayKnown=true;var maxDelay=0;DateTimeOffset? underlyingLastTradeAt=null;DateTimeOffset? marketAt=null;var timingVerified=true;
         var captures=new List<object>();var missing=new List<object>();var provenance=new List<object>();string? source=null;DateTimeOffset? asOf=null;double? spot=null;
         foreach(var expiry in expected)
         {
@@ -28,6 +28,9 @@ public sealed class QqqGexCaptureService(IMarketDataService market,string dataDi
                 allRealtime&=chain.IsRealtime;delayKnown&=chain.DelayMinutes.HasValue;maxDelay=Math.Max(maxDelay,chain.DelayMinutes??0);underlyingLastTradeAt??=chain.UnderlyingLastTradeAt;
                 source??=chain.Source;asOf??=chain.AsOf;spot??=chain.UnderlyingPrice;
                 if(chain.Source!=source||chain.AsOf!=asOf||chain.UnderlyingPrice!=spot)throw new InvalidDataException("Source, snapshot time or underlying spot changed across expiry reads");
+                var sourceMarketAt=QqqGexSourceTiming.MarketAt(chain);
+                timingVerified &= sourceMarketAt.HasValue;marketAt??=sourceMarketAt;
+                if(sourceMarketAt!=marketAt)throw new InvalidDataException("Source market event changed across expiry reads");
                 var received=chain.FetchedAt.Value.ToUniversalTime();
                 if(!chain.RawSourcePayload.IsEmpty&&!chain.RawSourcePayload.Equals(rawAnchor)){
                     var candidateHash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(chain.RawSourcePayload.Span));
@@ -38,23 +41,24 @@ public sealed class QqqGexCaptureService(IMarketDataService market,string dataDi
                 missingOi+=chain.Contracts.Count(c=>c.OpenInterest is null);missingIv+=chain.Contracts.Count(c=>c.OpenInterest is >0&&c.ImpliedVolatility is not >0);
                 var calls=chain.Contracts.Where(c=>c.Right==OptionRight.Call).Select(Map).ToArray();var puts=chain.Contracts.Where(c=>c.Right==OptionRight.Put).Select(Map).ToArray();
                 if(calls.Length==0||puts.Length==0)throw new InvalidDataException("One option side is absent");
-                captures.Add(new {underlyingLastTradeAt=chain.UnderlyingLastTradeAt,valuationAt=chain.AsOf.Value.ToUniversalTime().ToString("O"),expiry=new DateTimeOffset(expiry.ToDateTime(TimeOnly.MinValue),TimeSpan.Zero).ToUnixTimeSeconds(),spot=chain.UnderlyingPrice,result=new {receivedAt=received.ToString("O"),options=new[]{new {calls,puts}}}});
+                captures.Add(new {underlyingLastTradeAt=chain.UnderlyingLastTradeAt,sourcePublicationAt=chain.AsOf.Value,sourceTimeAligned=sourceMarketAt.HasValue,sourceTimeBasis=chain.Source=="cboe"?"reported-underlying-trade; exact option quote event time unavailable":"provider-asof",valuationAt=(sourceMarketAt??chain.AsOf.Value).ToUniversalTime().ToString("O"),expiry=new DateTimeOffset(expiry.ToDateTime(TimeOnly.MinValue),TimeSpan.Zero).ToUnixTimeSeconds(),spot=chain.UnderlyingPrice,result=new {receivedAt=received.ToString("O"),options=new[]{new {calls,puts}}}});
                 provenance.Add(new {expiry,chain.Source,chain.AsOf,chain.UnderlyingLastTradeAt,chain.FetchedAt,chain.DelayMinutes,chain.IsRealtime,contracts=chain.Contracts.Count,rawPayloadSha256=rawHash,missingOi=chain.Contracts.Count(c=>c.OpenInterest is null),missingIv=chain.Contracts.Count(c=>c.OpenInterest is >0&&c.ImpliedVolatility is not >0),greeks="recomputed by original versioned source algorithm; provider Greeks are not substituted for the source model"});
             }
             catch(Exception ex) when(ex is not OperationCanceledException||!callerCt.IsCancellationRequested){AppLog.Warn("qqq-gex","Expiry capture failed: "+ex.GetType().Name);missing.Add(new {expiry,error=ex.GetType().Name});}
         }
         var bars=new List<object>();var matchingBars=0;var matchingRegularBars=0;object? barMetadata=null;
-        if(asOf is not null)
+        var priceCutoff=marketAt??asOf;
+        if(priceCutoff is not null)
         try {
-            var series=await market.GetBarsAsync(new("QQQ",BarInterval.Minute1,asOf.Value.AddDays(-7),asOf),ct);
+            var series=await market.GetBarsAsync(new("QQQ",BarInterval.Minute1,priceCutoff.Value.AddDays(-7),priceCutoff),ct);
             foreach(var group in series.Bars.Where(b=>!b.Incomplete&&b.IsConsistent()&&double.IsFinite(b.Volume)&&b.Volume>=0).GroupBy(b=>b.Time.ToUnixTimeSeconds()/120).OrderBy(g=>g.Key))
             {
                 var rows=group.OrderBy(b=>b.Time).ToArray();var start=DateTimeOffset.FromUnixTimeSeconds(group.Key*120);
-                if(rows.Length!=2||rows[0].Time!=start||rows[1].Time!=start.AddMinutes(1)||start.AddMinutes(2)>asOf)continue;
-                if(Meili.Core.Time.MarketClock.ToEastern(start).Date==Meili.Core.Time.MarketClock.ToEastern(asOf.Value).Date){matchingBars++;if(Meili.Core.Time.MarketClock.GetSession(start)==Meili.Core.Time.MarketSession.Regular)matchingRegularBars++;}
+                if(rows.Length!=2||rows[0].Time!=start||rows[1].Time!=start.AddMinutes(1)||start.AddMinutes(2)>priceCutoff)continue;
+                if(Meili.Core.Time.MarketClock.ToEastern(start).Date==Meili.Core.Time.MarketClock.ToEastern(priceCutoff.Value).Date){matchingBars++;if(Meili.Core.Time.MarketClock.GetSession(start)==Meili.Core.Time.MarketSession.Regular)matchingRegularBars++;}
                 bars.Add(new {timestamp=start.ToString("O"),open=rows[0].Open,high=rows.Max(b=>b.High),low=rows.Min(b=>b.Low),close=rows[1].Close,volume=rows.Sum(b=>b.Volume)});
             }
-            barMetadata=new {series.Source,series.AsOf,series.FetchedAt,series.DelayMinutes,series.IsRealtime,series.OfflineCache,series.Adjustment,availableBarDates=series.Bars.Select(b=>Meili.Core.Time.MarketClock.ToEastern(b.Time).Date.ToString("yyyy-MM-dd")).Distinct().Order().ToArray(),aggregation="complete consecutive 1m pairs only; missing buckets omitted"};
+            barMetadata=new {series.Source,series.AsOf,series.FetchedAt,series.DelayMinutes,series.IsRealtime,series.OfflineCache,series.Adjustment,availableBarDates=series.Bars.Select(b=>Meili.Core.Time.MarketClock.ToEastern(b.Time).Date.ToString("yyyy-MM-dd")).Distinct().Order().ToArray(),priceCutoff,sourceTimeBasis="closed buckets end at or before reported source event; no future price bars",aggregation="complete consecutive 1m pairs only; missing buckets omitted"};
         }catch(Exception ex) when(ex is not OperationCanceledException||!callerCt.IsCancellationRequested){AppLog.Warn("qqq-gex","Price capture failed: "+ex.GetType().Name);barMetadata=new {error=ex.GetType().Name};}
         var daily=new System.Collections.Concurrent.ConcurrentDictionary<string,object>();
         try{if(captures.Count>0)await Parallel.ForEachAsync(new[]{"QQQ","^VIX","^VIX3M","^VXN","^GSPC","^TNX","^IRX","CL=F","GC=F","DX-Y.NYB","SPY"},new ParallelOptions{MaxDegreeOfParallelism=2,CancellationToken=ct},async(symbol,token)=>{
@@ -66,9 +70,9 @@ public sealed class QqqGexCaptureService(IMarketDataService market,string dataDi
         try{if(captures.Count>0)macroQuotes=await market.GetQuotesAsync(["^GSPC","^VIX","^VIX3M","^TNX","^IRX","CL=F","GC=F","DX-Y.NYB","SPY"],ct);}
         catch(Exception ex)when(ex is not OperationCanceledException||!callerCt.IsCancellationRequested){AppLog.Warn("qqq-gex","Macro quote capture unavailable: "+ex.GetType().Name);}
         var evaluationAt=DateTimeOffset.UtcNow.ToString("O");
-        var sourceTimeAligned=asOf is not null&&underlyingLastTradeAt is not null&&Meili.Core.Time.MarketClock.ToEastern(asOf.Value).Date==Meili.Core.Time.MarketClock.ToEastern(underlyingLastTradeAt.Value).Date;
+        var sourceTimeAligned=timingVerified&&marketAt.HasValue;
         var qualityComplete=sourceTimeAligned&&captures.Count==expected.Length&&matchingRegularBars>0&&missingOi==0&&missingIv==0;
-        var document=new {symbol="QQQ",source=source??"unavailable",basis="normalized-provider-input",receivedAt=evaluationAt,evaluationAt,marketInputs=new {daily,macro=new {quotes=macroQuotes,coverage="actual routed quotes; missing/stale inputs reject macro computation"},optionSource=source,optionSnapshotAsOf=asOf,underlyingLastTradeAt,optionDelayMinutes=delayKnown?(int?)maxDelay:null,optionIsRealtime=allRealtime,delayed=!allRealtime||maxDelay>0,coverage="routed provider daily observations; missing or misaligned dates block source PCS evaluation"},expectedExpiries=expected,missingExpiries=missing,captures,bars,provenance,barMetadata,quality=new {missingOi,missingIv,matchingBars,matchingRegularBars,sourceTimeAligned,timing=matchingBars>0?"same-market-date-bars-present":"no-aligned-price-bars",repair="next scheduled capture retries original provider inputs; no IV inversion or timestamp shifting"},complete=false,providerCoverageComplete=qualityComplete,coverage="one observed provider snapshot; not historical completeness"};
+        var document=new {symbol="QQQ",source=source??"unavailable",basis="normalized-provider-input",receivedAt=evaluationAt,evaluationAt,marketInputs=new {daily,macro=new {quotes=macroQuotes,coverage="actual routed quotes; missing/stale inputs reject macro computation"},optionSource=source,optionSnapshotAsOf=marketAt??asOf,optionPublicationAsOf=asOf,sourceMarketAt=marketAt,sourceTimeBasis="CBOE uses reported underlying trade, not inferred option quote event time",underlyingLastTradeAt,optionDelayMinutes=delayKnown?(int?)maxDelay:null,optionIsRealtime=allRealtime,delayed=!allRealtime||maxDelay>0,coverage="routed provider daily observations; missing or misaligned dates block source PCS evaluation"},expectedExpiries=expected,missingExpiries=missing,captures,bars,provenance,barMetadata,quality=new {missingOi,missingIv,matchingBars,matchingRegularBars,sourceTimeAligned,timing=matchingBars>0?"same-market-date-bars-present":"no-aligned-price-bars",repair="next scheduled capture retries original provider inputs; no IV inversion or timestamp shifting"},complete=false,providerCoverageComplete=qualityComplete,coverage="one observed provider snapshot; not historical completeness"};
         var body=JsonSerializer.Serialize(document);
         if(captures.Count>0){var identity=store.RecordObservedInput(body);body=store.ReadObservedInput(identity);}
         var path=Path.Combine(dataDirectory,"cache","qqq-gex-input.json");new SnapshotFile(path).Write(body);
