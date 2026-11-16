@@ -6,6 +6,7 @@ using System.Security.Cryptography;
 namespace Meili.Data.Tests;
 public sealed class QqqGexCompressionTests
 {
+    static byte[] ReadShared(string path){using var file=new FileStream(path,FileMode.Open,FileAccess.Read,FileShare.ReadWrite|FileShare.Delete);using var bytes=new MemoryStream();file.CopyTo(bytes);return bytes.ToArray();}
     static string Hash(string text)=>Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(text)));
     [Fact] public void Binary_provider_and_normalized_inputs_are_lossless_compressed_and_deduplicated()
     {
@@ -25,6 +26,6 @@ public sealed class QqqGexCompressionTests
     [Fact] public void Corrupt_database_health_pauses_writes_without_resetting_original_file()
     {
         var path=Path.Combine(Path.GetTempPath(),Guid.NewGuid()+".db");var store=new QqqGexResponseStore(path);SqliteConnection.ClearAllPools();var bytes=Encoding.UTF8.GetBytes("retained corrupt source fixture");File.WriteAllBytes(path,bytes);
-        using var result=JsonSerializer.SerializeToDocument(store.StorageHealth());Assert.False(result.RootElement.GetProperty("canCapture").GetBoolean());Assert.Equal("storage_unavailable",result.RootElement.GetProperty("error").GetString());Assert.Equal(bytes,File.ReadAllBytes(path));var reopened=new QqqGexResponseStore(path);Assert.True(reopened.IsUnavailable);Assert.False(reopened.Inspect().CanClear);Assert.Equal(bytes,File.ReadAllBytes(path));
+        using var result=JsonSerializer.SerializeToDocument(store.StorageHealth());Assert.False(result.RootElement.GetProperty("canCapture").GetBoolean());Assert.Equal("storage_unavailable",result.RootElement.GetProperty("error").GetString());Assert.Equal(bytes,ReadShared(path));var reopened=new QqqGexResponseStore(path);Assert.True(reopened.IsUnavailable);Assert.False(reopened.Inspect().CanClear);Assert.Equal(bytes,ReadShared(path));
     }
 }

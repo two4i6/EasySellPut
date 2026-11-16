@@ -85,6 +85,6 @@ public sealed class QqqGexSessionTests
         var directory=Path.Combine(Path.GetTempPath(),Guid.NewGuid().ToString("N"),"cache");Directory.CreateDirectory(directory);var path=Path.Combine(directory,"qqq-gex.db");var original=System.Text.Encoding.UTF8.GetBytes("retained corrupt fixture");await File.WriteAllBytesAsync(path,original);
         using var session=new QqqGexSession(path);using var http=new HttpClient();(await http.GetAsync(session.PageUri)).EnsureSuccessStatusCode();
         using var state=System.Text.Json.JsonDocument.Parse(await http.GetStringAsync(new Uri(session.PageUri,"api/analysis/qqq/local-state")));Assert.False(state.RootElement.GetProperty("storage").GetProperty("canCapture").GetBoolean());Assert.Equal("storage_unavailable",state.RootElement.GetProperty("storage").GetProperty("error").GetString());
-        var unavailable=await http.GetAsync(new Uri(session.PageUri,"api/analysis/qqq/pcs?gexWindow=latest"));Assert.Equal(System.Net.HttpStatusCode.ServiceUnavailable,unavailable.StatusCode);Assert.Equal(original,await File.ReadAllBytesAsync(path));
+        var unavailable=await http.GetAsync(new Uri(session.PageUri,"api/analysis/qqq/pcs?gexWindow=latest"));Assert.Equal(System.Net.HttpStatusCode.ServiceUnavailable,unavailable.StatusCode);await using var file=new FileStream(path,FileMode.Open,FileAccess.Read,FileShare.ReadWrite|FileShare.Delete);using var bytes=new MemoryStream();await file.CopyToAsync(bytes);Assert.Equal(original,bytes.ToArray());
     }
 }

@@ -9,7 +9,7 @@ public sealed partial class QqqGexResponseStore
     {
         try { return ReadStorageHealth(); }
         catch(Exception error) when(error is IOException or InvalidDataException or UnauthorizedAccessException or Microsoft.Data.Sqlite.SqliteException)
-        { if(error is Microsoft.Data.Sqlite.SqliteException sqlite && sqlite.SqliteErrorCode is 11 or 26)storageFailure="sqlite_corrupt";return new {canCapture=false,archiveWarning=true,error="storage_unavailable",policy="Storage cannot be inspected safely; writes paused, original files retained; no automatic reset or deletion"}; }
+        { if(!IsUnavailable)Meili.Core.Diagnostics.AppLog.Warn("qqq-gex","Storage health unavailable: "+error.GetType().Name);if(error is Microsoft.Data.Sqlite.SqliteException sqlite && sqlite.SqliteErrorCode is 11 or 26)storageFailure="sqlite_corrupt";return new {canCapture=false,archiveWarning=true,error="storage_unavailable",policy="Storage cannot be inspected safely; writes paused, original files retained; no automatic reset or deletion"}; }
     }
     private object ReadStorageHealth()
     {
