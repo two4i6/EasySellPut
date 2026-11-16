@@ -50,7 +50,7 @@ public sealed class MarketStatusTests
         Assert.InRange(Math.Abs(center - bar.Bounds.Height / 2), 0, 0.75);
         foreach (var icon in bar.GetVisualDescendants().OfType<LucideIcon>()) Assert.InRange(Math.Abs(Center(icon) - center), 0, 0.75);
         foreach (var dot in bar.GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Ellipse>()) Assert.InRange(Math.Abs(Center(dot) - center), 0, 0.75);
-        foreach (var name in new[] { "MarketStatusIndicator", "McpStatusIndicator", "UpdateStatusIndicator", "SettingsButton", "LanguageButton", "ThemeButton", "BackgroundButton", "MotionButton" })
+        foreach (var name in new[] { "MarketStatusIndicator", "McpStatusIndicator", "UpdateStatusIndicator", "SettingsButton", "LanguageButton", "ThemeButton" })
             Assert.InRange(Math.Abs(Center(w.FindControl<Control>(name)!) - center), 0, 0.75);
     }
 }

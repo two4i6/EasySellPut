@@ -28,5 +28,4 @@ public partial class MainWindow
         UpdateBackgroundLifecycle();
     }
     public void RunInBackground(){HideToTray();_notify.ShowHiddenToTray();}
-    private void OnBackground(object sender,RoutedEventArgs e)=>RunInBackground();
 }

@@ -16,11 +16,11 @@ public class CloseDecisionTests
         Assert.Equal(expected, CloseDecision.Decide(setting, exitRequested, exitOnClose));
 
     [Fact]
-    public void Default_is_exit_and_bad_values_are_reset()
+    public void Default_is_background_and_bad_values_are_reset()
     {
-        Assert.Equal(CloseAction.Exit, new AppSettings().CloseAction);
+        Assert.Equal(CloseAction.MinimizeToTray, new AppSettings().CloseAction);
         var s = new AppSettings { CloseAction = (CloseAction)42 }.Normalize();
-        Assert.Equal(CloseAction.Exit, s.CloseAction);
+        Assert.Equal(CloseAction.MinimizeToTray, s.CloseAction);
     }
 
     [Fact]
@@ -35,6 +35,18 @@ public class CloseDecisionTests
             store.Update(x => x.CloseAction = CloseAction.Exit);
             var again = new SettingsStore(dir);
             Assert.Equal(CloseAction.Exit, again.Load().CloseAction);
+        }
+        finally { Directory.Delete(dir, true); }
+    }
+    [Fact] public void Older_settings_without_a_close_choice_use_background_without_overriding_explicit_choices()
+    {
+        var dir = Directory.CreateTempSubdirectory("close-default-").FullName;
+        try
+        {
+            File.WriteAllText(Path.Combine(dir, "settings.json"), "{}");
+            Assert.Equal(CloseAction.MinimizeToTray, new SettingsStore(dir).Load().CloseAction);
+            File.WriteAllText(Path.Combine(dir, "settings.json"), "{\"closeAction\":\"Exit\"}");
+            Assert.Equal(CloseAction.Exit, new SettingsStore(dir).Load().CloseAction);
         }
         finally { Directory.Delete(dir, true); }
     }

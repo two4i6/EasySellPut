@@ -260,7 +260,7 @@
         "get_cache_status",
         "clear_cache"
       ],
-      "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation.",
+      "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation. ReduceMotionEnabled controls desktop/embedded presentation through the existing web-workspace preference; it is not a business operation or a remote browser capability.",
       "commands": {
         "OpenAiHelp": {
           "uiOnly": "Opens the fixed official client installation page with an explicit user action."

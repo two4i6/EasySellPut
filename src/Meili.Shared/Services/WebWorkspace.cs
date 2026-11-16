@@ -14,19 +14,29 @@ public sealed class WebWorkspace
 {
     public const int MaximumTabs = 12;
     private readonly SnapshotFile _file;
-    private State _state;
+    private State _state = new(1, false, []);
+    private bool _valid;
     private sealed record State(int SchemaVersion, bool ReduceMotion, List<WebWorkspaceTab> Tabs);
     public IReadOnlyList<WebWorkspaceTab> Tabs => _state.Tabs.AsReadOnly();
+    public event EventHandler? MotionChanged;
     public bool ReduceMotion => _state.ReduceMotion;
     public WebWorkspace(string dataDirectory)
     {
         _file = new SnapshotFile(Path.Combine(dataDirectory, "web-workspace.json"));
+        Reload();
+    }
+    public void Reload()
+    {
+        _valid = false;
         var json = _file.Read();
-        _state = json is null ? new(1, false, []) : JsonSerializer.Deserialize<State>(json) ?? throw new InvalidDataException("Invalid web workspace.");
-        if (_state.SchemaVersion != 1 || _state.Tabs is null || _state.Tabs.Count > MaximumTabs || _state.Tabs.Select(t => t?.Id).Distinct().Count() != _state.Tabs.Count)
+        var state = json is null ? new State(1, false, []) : JsonSerializer.Deserialize<State>(json) ?? throw new InvalidDataException("Invalid web workspace.");
+        if (state.SchemaVersion != 1 || state.Tabs is null || state.Tabs.Count > MaximumTabs || state.Tabs.Select(t => t?.Id).Distinct().Count() != state.Tabs.Count)
             throw new InvalidDataException("Invalid web workspace.");
-        foreach (var tab in _state.Tabs)
+        foreach (var tab in state.Tabs)
             if (tab is null || !Guid.TryParseExact(tab.Id, "N", out _) || !TryNormalize(tab.Name, tab.Url, out _, out _)) throw new InvalidDataException("Invalid web workspace tab.");
+        var changed = _state.ReduceMotion != state.ReduceMotion;
+        _state = state; _valid = true;
+        if (changed) MotionChanged?.Invoke(this, EventArgs.Empty);
     }
     public static bool TryNormalize(string? name, string? address, out string title, out string url)
     {
@@ -56,10 +66,13 @@ public sealed class WebWorkspace
         if (from < 0 || to < 0 || to >= tabs.Count) return;
         (tabs[from], tabs[to]) = (tabs[to], tabs[from]); Commit(_state with { Tabs = tabs });
     }
-    public void SetReduceMotion(bool enabled) => Commit(_state with { ReduceMotion = enabled });
+    public void SetReduceMotion(bool enabled) { if (_state.ReduceMotion != enabled) Commit(_state with { ReduceMotion = enabled }); }
     private void Commit(State next)
     {
+        if (!_valid) throw new InvalidDataException("Reload a valid web workspace before writing.");
         _file.Write(JsonSerializer.Serialize(next, new JsonSerializerOptions { WriteIndented = true }));
+        var changed = _state.ReduceMotion != next.ReduceMotion;
         _state = next;
+        if (changed) MotionChanged?.Invoke(this, EventArgs.Empty);
     }
 }

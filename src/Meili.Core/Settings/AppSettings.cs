@@ -67,8 +67,8 @@ public sealed class AppSettings
     public PricingSettings Pricing { get; set; } = new();
     public ChartSettings Charts { get; set; } = new();
     public OptionsPageSettings Options { get; set; } = new();
-    /// <summary>D4: what the window's close button does. Default is <see cref="CloseAction.Exit"/> (the close button quits). The user can still choose to hide to the tray, in Settings.</summary>
-    public CloseAction CloseAction { get; set; } = CloseAction.Exit;
+    /// <summary>D4: what the window's close button does. Default is <see cref="CloseAction.MinimizeToTray"/>; explicit quit still exits. Existing saved close choices are preserved.</summary>
+    public CloseAction CloseAction { get; set; } = CloseAction.MinimizeToTray;
 
     public static IReadOnlyList<string> SupportedLanguages { get; } = ["zh-CN", "en-US"];
 
@@ -85,7 +85,7 @@ public sealed class AppSettings
         if (!double.IsFinite(Pricing.FixedRatePercent)) Pricing.FixedRatePercent = 4.0;
         Pricing.FixedRatePercent = Math.Clamp(Pricing.FixedRatePercent, -1, 20);
         if (!Enum.IsDefined(Pricing.RateMode)) Pricing.RateMode = RiskFreeRateMode.Treasury13Week;
-        if (!Enum.IsDefined(CloseAction)) CloseAction = CloseAction.Exit;
+        if (!Enum.IsDefined(CloseAction)) CloseAction = CloseAction.MinimizeToTray;
         if (!Enum.IsDefined(UpDownColors)) UpDownColors = UpDownColorMode.RedUp;
         // Files from before E1: a non-default choice can only have come from the user.
         if (UpDownColors != UpDownColorMode.RedUp) UpDownColorsChosen = true;

@@ -19,6 +19,7 @@ public static class SharedComposition
         s.AddSingleton<PricingAssumptions>();              // H1
         s.AddSingleton(loc);
         s.AddSingleton<WatchlistStore>();
+        s.AddSingleton(sp => new WebWorkspace(dataDir.Path));
         s.AddSingleton<NavigationHub>();
         s.AddSingleton<SymbolContext>();
         s.AddSingleton<AlertMonitor>();

@@ -99,8 +99,6 @@
                     <ToggleButton x:Name="SettingsButton" Classes="StatusAction" Click="OnSettings" ToolTip.Tip="{DynamicResource Nav_Settings}" AutomationProperties.Name="{DynamicResource Nav_Settings}"/>
                     <Button x:Name="LanguageButton" Classes="StatusAction" Click="OnToggleLanguage" ToolTip.Tip="{DynamicResource Title_ToggleLanguage}" AutomationProperties.Name="{DynamicResource Title_ToggleLanguage}"/>
                     <Button x:Name="ThemeButton" Classes="StatusAction" Click="OnToggleTheme" ToolTip.Tip="{DynamicResource Title_ToggleTheme}" AutomationProperties.Name="{DynamicResource Title_ToggleTheme}"/>
-                    <Button x:Name="BackgroundButton" Classes="StatusAction" Click="OnBackground" ToolTip.Tip="{DynamicResource Bg_Run}" AutomationProperties.Name="{DynamicResource Bg_Run}"/>
-                    <ToggleButton x:Name="MotionButton" Classes="StatusAction" Click="OnToggleMotion" ToolTip.Tip="{DynamicResource Web_Motion}" AutomationProperties.Name="{DynamicResource Web_Motion}"/>
                 </StackPanel>
 
                 <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">

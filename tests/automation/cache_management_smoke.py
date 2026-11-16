@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Exercise production cache maintenance and CLI/MCP shared SQLite without network access."""
+from contextlib import closing
 import argparse
 import json
 import pathlib
@@ -17,7 +18,7 @@ def check_cache(command):
         protected = {'settings.json': b'{"language":"en-US"}', 'strategies.json': b'[]', 'drawings.json': b'{"fixture":"unchanged"}'}
         for name, body in protected.items():
             (root / name).write_bytes(body)
-        with sqlite3.connect(root / 'cache/market.db') as db:
+        with closing(sqlite3.connect(root / 'cache/market.db')) as db, db:
             for symbol in ('AAPL', 'MSFT'):
                 db.execute('INSERT INTO bars VALUES (?,?,?,?,?,?,?,?,?,?)', (symbol, 'Day1', '', 1, 1, 2, .5, 1.5, 10, 0))
                 db.execute('INSERT INTO bar_meta (symbol,interval,adjust,source,fetched_at,realtime,basis) VALUES (?,?,?,?,?,?,?)', (symbol, 'Day1', '', 'fixture', 1, 0, 'Split'))
@@ -41,7 +42,7 @@ def check_cache(command):
             assert result['structuredContent']['data'][0]['removed'] == 1, result
         finally:
             writer.close()
-        with sqlite3.connect(root / 'cache/market.db') as db:
+        with closing(sqlite3.connect(root / 'cache/market.db')) as db, db:
             assert db.execute('SELECT COUNT(*) FROM bars').fetchone()[0] == 0
             assert db.execute('SELECT COUNT(*) FROM bar_meta').fetchone()[0] == 0
             assert db.execute('SELECT iv FROM iv_samples').fetchone()[0] == .25

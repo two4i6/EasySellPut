@@ -45,7 +45,7 @@ public sealed class MarketStatusTests
         Assert.InRange(Math.Abs(center - bar.ActualHeight / 2), 0, 0.75);
         foreach (var icon in UiAudit.Descendants<LucideIcon>(bar)) Assert.InRange(Math.Abs(Center(icon) - center), 0, 0.75);
         foreach (var dot in UiAudit.Descendants<System.Windows.Shapes.Ellipse>(bar)) Assert.InRange(Math.Abs(Center(dot) - center), 0, 0.75);
-        foreach (var name in new[] { "MarketStatusIndicator", "McpStatusIndicator", "UpdateStatusIndicator", "SettingsButton", "LanguageButton", "ThemeButton", "BackgroundButton", "MotionButton" })
+        foreach (var name in new[] { "MarketStatusIndicator", "McpStatusIndicator", "UpdateStatusIndicator", "SettingsButton", "LanguageButton", "ThemeButton" })
             Assert.InRange(Math.Abs(Center((FrameworkElement)w.FindName(name)) - center), 0, 0.75);
     }
 }

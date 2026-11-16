@@ -16,6 +16,23 @@ public partial class SettingsViewModel : ObservableObject
     private readonly IThemeController _theme;
     private readonly INetworkController? _network;
     private readonly bool _ready;
+    private readonly WebWorkspace? _workspace;
+    private bool _resettingMotion;
+    [ObservableProperty] public partial bool ReduceMotionEnabled { get; set; }
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(HasMotionStatus))] public partial string MotionStatus { get; set; } = "";
+    public bool HasMotionStatus => !string.IsNullOrEmpty(MotionStatus);
+    public bool CanChangeMotion => _workspace is not null;
+    partial void OnReduceMotionEnabledChanged(bool value)
+    {
+        if (!_ready || _resettingMotion || _workspace is null) return;
+        try { _workspace.SetReduceMotion(value); MotionStatus = ""; }
+        catch (IOException ex)
+        {
+            Meili.Core.Diagnostics.AppLog.Warn("settings", "Motion preference could not be saved", ex);
+            _resettingMotion = true; ReduceMotionEnabled = _workspace.ReduceMotion; _resettingMotion = false;
+            MotionStatus = _loc["Web_Failed"];
+        }
+    }
     private readonly Meili.Caching.CacheManager? _cacheManager;
     private Meili.Caching.CacheReport? _cacheReport;
     [ObservableProperty] public partial IReadOnlyList<StorageSegmentView> StorageSegments { get; set; } = [];
@@ -144,6 +161,13 @@ public partial class SettingsViewModel : ObservableObject
         _cacheManager = sp.GetService(typeof(Meili.Caching.CacheManager)) as Meili.Caching.CacheManager;
         Updates = updater is not null ? new UpdateViewModel(store, loc, dataDir, updater)
             : sp.GetService(typeof(UpdateViewModel)) as UpdateViewModel ?? new UpdateViewModel(store, loc, dataDir);
+        try
+        {
+            _workspace = sp.GetService(typeof(WebWorkspace)) as WebWorkspace ?? new WebWorkspace(dataDir.Path);
+            ReduceMotionEnabled = _workspace.ReduceMotion;
+        }
+        catch (Exception ex) when (ex is IOException or System.Text.Json.JsonException or ArgumentException)
+        { Meili.Core.Diagnostics.AppLog.Warn("settings", "Motion preferences unavailable", ex); MotionStatus = _loc["Web_Failed"]; }
         _connection = connection ?? McpConnectionSetup.Bundled(AppContext.BaseDirectory, dataDir.Path);
         _loc.LanguageChanged += (_, _) => { FormatCacheSummary(); CacheFeedback = ""; OnPropertyChanged(nameof(AiConnectionStatus)); OnPropertyChanged(nameof(CodexAvailability)); OnPropertyChanged(nameof(ClaudeAvailability)); OnPropertyChanged(nameof(AiTerminalLabel)); };
         _network = sp.GetService(typeof(INetworkController)) as INetworkController;

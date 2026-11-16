@@ -68,6 +68,17 @@
                 </ds:AppSelect>
             </ds:AppCard>
 
+            <ds:AppCard  Padding="16,12" Margin="0,0,0,4">
+                <StackPanel>
+                    <DockPanel>
+                        <StackPanel DockPanel.Dock="Right" Width="{StaticResource FormFieldWidth}" Margin="16,0,0,0" VerticalAlignment="Center">
+                            <CheckBox x:Name="ReduceMotionSetting" Width="{StaticResource ControlHeight}" Height="{StaticResource ControlHeight}" HorizontalAlignment="Right" IsChecked="{Binding ReduceMotionEnabled}" IsEnabled="{Binding CanChangeMotion}" AutomationProperties.Name="{DynamicResource Web_Motion}"/>
+                        </StackPanel>
+                        <ux:AppFormHeader Title="{DynamicResource Web_Motion}" HelpText="{DynamicResource Set_MotionDesc}" VerticalAlignment="Center"/>
+                    </DockPanel>
+                    <TextBlock Style="{StaticResource Caption}" Text="{Binding MotionStatus}" TextWrapping="Wrap" Visibility="{Binding HasMotionStatus, Converter={StaticResource BoolToVis}}"/>
+                </StackPanel>
+            </ds:AppCard>
             <!-- Network -->
             <TextBlock Style="{StaticResource SectionTitle}" Text="{DynamicResource Set_Network}" />
             <ds:AppCard Margin="0,0,0,4" Icon="{lucide:Lucide Globe}">

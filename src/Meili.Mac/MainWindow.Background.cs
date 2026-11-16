@@ -26,5 +26,4 @@ public partial class MainWindow
     }
     internal void PrepareBackgroundStartup()=>UpdateBackgroundLifecycle();
     public void RunInBackground()=>HideToDock();
-    private void OnBackground(object? sender,RoutedEventArgs e)=>RunInBackground();
 }
