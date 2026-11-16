@@ -16,15 +16,18 @@ public partial class ShellViewModel : ObservableObject, IDisposable
     private readonly DataDirectoryInfo _dataDir;
 
     [ObservableProperty] public partial string ClockText { get; set; } = "";
-    [ObservableProperty] public partial string SessionText { get; set; } = "";
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(MarketStatusText), nameof(MarketStatusTip))] public partial string SessionText { get; set; } = "";
     [ObservableProperty] public partial object? SessionBrush { get; set; }
-    [ObservableProperty] public partial string NetworkText { get; set; } = "";
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(MarketStatusTip))] public partial string NetworkText { get; set; } = "";
     [ObservableProperty] public partial string DataDirText { get; set; } = "";
-    [ObservableProperty] public partial string SourcesText { get; set; } = "";
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(MarketStatusTip))] public partial string SourcesText { get; set; } = "";
     [ObservableProperty] public partial object? SourcesBrush { get; set; }
     [ObservableProperty] public partial string McpStatusText { get; set; } = "";
     [ObservableProperty] public partial string McpStatusTip { get; set; } = "";
     [ObservableProperty] public partial object? McpStatusBrush { get; set; }
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(MarketStatusText))] public partial string SourceCountText { get; set; } = "";
+    public string MarketStatusText => SessionText + " · " + SourceCountText;
+    public string MarketStatusTip => string.Join("\n", new[] { SessionText, SourcesText, NetworkText }.Where(text => !string.IsNullOrWhiteSpace(text)));
     private DateTimeOffset _nextMcpScan;
     private readonly McpConnectionSetup _connection;
     private int _mcpCopyState;
@@ -77,8 +80,9 @@ public partial class ShellViewModel : ObservableObject, IDisposable
         var states = _health.All.Select(h => h.State(hnow)).ToList();
         var ok = states.Count(s => s == Meili.Data.Routing.HealthState.Healthy);
         var bad = states.Count(s => s == Meili.Data.Routing.HealthState.Down);
+        SourceCountText = $"{ok}/{states.Count}";
         SourcesText = string.Format(_loc["Status_Sources"], ok, states.Count);
-        SourcesBrush = Ui.Platform.Resource(bad > 0 ? "DegradedBrush" : ok > 0 ? "HealthyBrush" : "UnknownBrush");
+        SourcesBrush = Ui.Platform.Resource(bad > 0 || states.Contains(Meili.Data.Routing.HealthState.Degraded) ? "DegradedBrush" : ok > 0 ? "HealthyBrush" : "UnknownBrush");
     }
 
     public void RefreshMcpStatus()
