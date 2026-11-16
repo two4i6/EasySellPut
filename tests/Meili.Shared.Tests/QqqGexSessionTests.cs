@@ -80,4 +80,11 @@ public sealed class QqqGexSessionTests
         session.UpdatePresentation(ChartPalette.Create(true,color,color,color,color,ThemePalette.Dark));Assert.Equal(address,session.PageUri);Assert.Contains("\"dark\":true",await http.GetStringAsync(new Uri(address,"presentation")));
     }
 
+    [Fact] public async Task Corrupt_gex_database_preserves_file_and_keeps_shell_and_diagnostics_available()
+    {
+        var directory=Path.Combine(Path.GetTempPath(),Guid.NewGuid().ToString("N"),"cache");Directory.CreateDirectory(directory);var path=Path.Combine(directory,"qqq-gex.db");var original=System.Text.Encoding.UTF8.GetBytes("retained corrupt fixture");await File.WriteAllBytesAsync(path,original);
+        using var session=new QqqGexSession(path);using var http=new HttpClient();(await http.GetAsync(session.PageUri)).EnsureSuccessStatusCode();
+        using var state=System.Text.Json.JsonDocument.Parse(await http.GetStringAsync(new Uri(session.PageUri,"api/analysis/qqq/local-state")));Assert.False(state.RootElement.GetProperty("storage").GetProperty("canCapture").GetBoolean());Assert.Equal("storage_unavailable",state.RootElement.GetProperty("storage").GetProperty("error").GetString());
+        var unavailable=await http.GetAsync(new Uri(session.PageUri,"api/analysis/qqq/pcs?gexWindow=latest"));Assert.Equal(System.Net.HttpStatusCode.ServiceUnavailable,unavailable.StatusCode);Assert.Equal(original,await File.ReadAllBytesAsync(path));
+    }
 }

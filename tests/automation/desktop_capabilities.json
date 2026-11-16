@@ -303,6 +303,11 @@
           "operations": [
             "clear_cache"
           ]
+        },
+        "CompactGexCacheAsync": {
+          "operations": [
+            "clear_cache"
+          ]
         }
       }
     },

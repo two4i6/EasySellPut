@@ -55,24 +55,24 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] public partial string CacheFeedback { get; set; } = "";
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanManageCache))]
-    [NotifyCanExecuteChangedFor(nameof(RefreshCacheCommand), nameof(ClearCacheCommand), nameof(ClearExpiredCacheCommand))]
+    [NotifyCanExecuteChangedFor(nameof(RefreshCacheCommand), nameof(ClearCacheCommand), nameof(ClearExpiredCacheCommand), nameof(CompactGexCacheCommand))]
     public partial bool IsCacheBusy { get; set; }
     public bool CanManageCache => !IsCacheBusy && _cacheManager is not null;
-    private async Task CacheActionAsync(bool? expiredOnly)
+    private async Task CacheActionAsync(bool? expiredOnly,bool compact=false)
     {
         if (!CanManageCache) return;
         IsCacheBusy = true; CacheFeedback = "";
-        var category = CacheCategories[Math.Clamp(CacheCategoryIndex, 0, CacheCategories.Length - 1)];
+        var category = compact?"qqq_gex_wire":CacheCategories[Math.Clamp(CacheCategoryIndex, 0, CacheCategories.Length - 1)];
         try
         {
             if (expiredOnly == false && !await Ui.Platform.ConfirmAsync(_loc["Cache_Clear"], _loc["Cache_" + category] + "\n\n" + _loc["Cache_Confirm"])) return;
             var result = await Task.Run(() =>
             {
-                if (expiredOnly is { } expired) _cacheManager!.Clear(category, expired);
+                if(compact)_cacheManager!.Compact(category);else if (expiredOnly is { } expired) _cacheManager!.Clear(category, expired);
                 return _cacheManager!.Inspect();
             });
             _cacheReport = result; FormatCacheSummary();
-            if (expiredOnly is not null) CacheFeedback = _loc["Cache_Done"];
+            if (expiredOnly is not null||compact) CacheFeedback = _loc[compact?"Cache_Compacted":"Cache_Done"];
         }
         catch (Exception ex)
         {
@@ -87,6 +87,8 @@ public partial class SettingsViewModel : ObservableObject
     private Task ClearCacheAsync() => CacheActionAsync(false);
     [RelayCommand(CanExecute = nameof(CanManageCache))]
     private Task ClearExpiredCacheAsync() => CacheActionAsync(true);
+    [RelayCommand(CanExecute = nameof(CanManageCache))]
+    private Task CompactGexCacheAsync() => CacheActionAsync(null,true);
 
 
     [ObservableProperty] public partial int LanguageIndex { get; set; }

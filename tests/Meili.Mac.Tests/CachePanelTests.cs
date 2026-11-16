@@ -26,8 +26,9 @@ public sealed class CachePanelTests
         File.WriteAllBytes(Path.Combine(directory, "logs", "fixture.log"), new byte[32 * 1024]);
         File.WriteAllBytes(Path.Combine(directory, "fixture.bin"), new byte[8 * 1024]);
         var store = new Meili.Core.Settings.SettingsStore(directory); store.Save();
+        var gex = new Meili.Data.Cache.QqqGexResponseStore(Path.Combine(directory,"cache","qqq-gex.db"));var retainedBytes=new byte[]{1,2,3,4};var retainedHash=gex.RecordProviderBody("fixture",retainedBytes,DateTimeOffset.UtcNow,DateTimeOffset.UtcNow);
         var manager = new Meili.Caching.CacheManager(directory, new Meili.Data.Http.ResponseCache(),
-            new Meili.Caching.BarCacheResource(new Meili.Data.Cache.MarketDb(Path.Combine(directory, "cache", "market.db"))));
+            new Meili.Caching.BarCacheResource(new Meili.Data.Cache.MarketDb(Path.Combine(directory, "cache", "market.db"))),gex);
         try
         {
             loc.Apply(language); theme.Apply(dark ? AppThemeMode.Dark : AppThemeMode.Light);
@@ -42,6 +43,7 @@ public sealed class CachePanelTests
             var select = panel.GetVisualDescendants().OfType<AppSelect>().Single(); select.SelectedIndex = 2; MacHost.Pump(); Assert.Equal(2, model.CacheCategoryIndex);
             var clear = page.FindControl<Button>("ClearManagedCache")!; Assert.True(clear.IsEffectivelyEnabled);
             await model.ClearExpiredCacheCommand.ExecuteAsync(null); MacHost.Pump(); Assert.False(model.IsCacheBusy); Assert.NotEmpty(model.CacheFeedback);
+            Assert.True(page.FindControl<Button>("CompactGexCache")!.IsEffectivelyEnabled);await model.CompactGexCacheCommand.ExecuteAsync(null);MacHost.Pump();Assert.Equal(loc["Cache_Compacted"],model.CacheFeedback);Assert.Equal(retainedBytes,gex.ReadProviderBody(retainedHash));
             page.GetVisualDescendants().OfType<ScrollViewer>().First().Offset = new Avalonia.Vector(0, double.MaxValue); MacHost.Pump();
             MacHost.Save(window, $"cache-management-1080p-{language}-{dark}");
             window.Width = 980; MacHost.Pump(); panel.BringIntoView(); MacHost.Pump();

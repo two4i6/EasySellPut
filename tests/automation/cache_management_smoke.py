@@ -3,6 +3,8 @@
 from contextlib import closing
 import argparse
 import json
+import gzip
+import hashlib
 import pathlib
 import sqlite3
 import tempfile
@@ -26,11 +28,13 @@ def check_cache(command):
             db.execute('INSERT INTO iv_samples VALUES (?,?,?,?,?)', ('AAPL', 1, 'ATM', .25, 'fixture'))
             db.execute('INSERT INTO oi_daily VALUES (?,?,?,?)', ('AAPL', 20261101, 'contract', 100))
         with closing(sqlite3.connect(root / 'cache/qqq-gex.db')) as db, db:
-            db.execute('CREATE TABLE qqq_gex_observed_inputs(identity TEXT PRIMARY KEY, body TEXT)')
-            db.execute('INSERT INTO qqq_gex_observed_inputs VALUES (?,?)', ('retained', 'original observation'))
-            for table in ('qqq_gex_live_signals','qqq_gex_pcs_lifecycle','qqq_gex_local_rows'):
+            db.execute('CREATE TABLE qqq_gex_observed_inputs(identity TEXT PRIMARY KEY, received_at INTEGER, body_sha256 TEXT, body TEXT)')
+            db.execute('INSERT INTO qqq_gex_observed_inputs VALUES (?,?,?,?)', ('retained', 0, hashlib.sha256(b'original observation').hexdigest().upper(), 'original observation'))
+            for table in ('qqq_gex_live_signals','qqq_gex_pcs_lifecycle'):
                 db.execute(f'CREATE TABLE {table}(body TEXT)')
                 db.execute(f'INSERT INTO {table} VALUES (?)', ('retained source observation',))
+            db.execute('CREATE TABLE qqq_gex_local_rows(row_key TEXT PRIMARY KEY,body TEXT,sha256 TEXT)')
+            db.execute('INSERT INTO qqq_gex_local_rows VALUES (?,?,?)', ('retained', 'retained source observation', hashlib.sha256(b'retained source observation').hexdigest().upper()))
             db.execute('INSERT INTO qqq_gex_wire VALUES (?,?,?,?,?,?,?,?)', ('local','fixture','application/json','{}','r1',1,2,'fixture'))
         run(command, data, 'cache', 'clear', '--category', 'all', '--mode', 'expired')
         with closing(sqlite3.connect(root / 'cache/qqq-gex.db')) as db:
@@ -39,6 +43,12 @@ def check_cache(command):
             for table in ('qqq_gex_live_signals','qqq_gex_pcs_lifecycle','qqq_gex_local_rows'):
                 assert db.execute(f'SELECT body FROM {table}').fetchone()[0] == 'retained source observation'
             assert db.execute('SELECT generation FROM qqq_gex_cache_meta').fetchone()[0] == 1
+        compacted = run(command, data, 'cache', 'clear', '--category', 'qqq_gex_wire', '--mode', 'compact')['data']
+        assert compacted[0]['compacted'] and compacted[0]['removed'] == 0, compacted
+        with closing(sqlite3.connect(root / 'cache/qqq-gex.db')) as db:
+            assert gzip.decompress(db.execute('SELECT body FROM qqq_gex_observed_inputs').fetchone()[0]) == b'original observation'
+            assert gzip.decompress(db.execute('SELECT body FROM qqq_gex_local_rows').fetchone()[0]) == b'retained source observation'
+            assert db.execute('PRAGMA integrity_check').fetchone()[0] == 'ok'
         assert run(command, data, 'cache', 'status')['data']['caches'][1]['entries'] == 2
         reader = Mcp(command, data)
         try:

@@ -82,7 +82,7 @@ public sealed partial class AutomationService(DataDirectoryInfo directory, IMark
                     return await new MarketLiquidityService(source, marketData, liquidityClock).LoadAsync(ct);
                 }
             case "get_cache_status": return await Task.Run(() => Caches().Inspect(ct), ct);
-            case "clear_cache": return await Task.Run(() => Caches().Clear(a.Text("category"), a.Text("mode", "all") == "expired", a.Has("symbol") ? a.Text("symbol") : null), ct);
+            case "clear_cache": if(a.Text("mode","all")=="compact"){if(a.Has("symbol"))throw new ArgumentException("Compaction has no symbol filter");return await Task.Run(()=>Caches().Compact(a.Text("category")),ct);}return await Task.Run(() => Caches().Clear(a.Text("category"), a.Text("mode", "all") == "expired", a.Has("symbol") ? a.Text("symbol") : null), ct);
             case "search_symbols": return await (await Market(ct)).SearchAsync(a.Text("query", max: 100), a.Int("limit", 10, 1, 50), ct);
             case "get_quotes":
                 {

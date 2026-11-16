@@ -23,6 +23,7 @@ public sealed class CachePanelTests
                 Assert.Contains(AppServices.Get<LocalizationService>()["Cache_bars"], vm.CacheSummary);
                 await vm.ClearExpiredCacheCommand.ExecuteAsync(null); Assert.False(vm.IsCacheBusy); Assert.NotEmpty(vm.CacheFeedback);
                 Assert.True(((Button)page.FindName("ClearManagedCache")).IsEnabled);
+                Assert.True(((Button)page.FindName("CompactGexCache")).IsEnabled);Assert.True(vm.CompactGexCacheCommand.CanExecute(null));
             }
         });
     }

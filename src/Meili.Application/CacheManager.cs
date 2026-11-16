@@ -30,4 +30,10 @@ public sealed class CacheManager
         if (selected.Any(s => !s.Inspect().CanClear)) throw new ArgumentException("Cache is read-only.");
         return selected.Select(s => s.Clear(expiredOnly, symbol)).ToArray();
     }
+    public IReadOnlyList<CacheClearResult> Compact(string category)
+    {
+        var store=_stores.SingleOrDefault(s=>s.CacheId==category)??throw new ArgumentException("Select a registered compactable category, not all");
+        if(store is not ICompactableCache compactable)throw new ArgumentException("This cache does not support compaction");return [compactable.Compact()];
+    }
+
 }

@@ -998,4 +998,6 @@
     <sys:String x:Key="Liq_Band_tight">偏紧</sys:String>
     <sys:String x:Key="Liq_Band_high">高压</sys:String>
     <sys:String x:Key="Liq_Band_unavailable">数据不足</sys:String>
+    <sys:String x:Key="Cache_CompactGex">整理 GEX 存储</sys:String>
+    <sys:String x:Key="Cache_Compacted">GEX 存储已整理，历史完整保留</sys:String>
 </ResourceDictionary>

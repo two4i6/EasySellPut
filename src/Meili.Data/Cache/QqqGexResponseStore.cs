@@ -9,19 +9,22 @@ public sealed partial class QqqGexResponseStore
 {
     private readonly string connectionString;
     private readonly long capacityBytes;
+    private volatile string? storageFailure;
+    public bool IsUnavailable => storageFailure is not null;
     public sealed record Response(string ContentType,string Body,string Revision,DateTimeOffset AsOf,DateTimeOffset ExpiresAt);
-    public QqqGexResponseStore(string path,long capacityBytes=256L*1024*1024)
+    public QqqGexResponseStore(string path,long capacityBytes=QqqGexStoragePolicy.WireLimitBytes)
     {
         if(capacityBytes<1||capacityBytes>256L*1024*1024)throw new ArgumentOutOfRangeException(nameof(capacityBytes));this.capacityBytes=capacityBytes;
-        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
+        var freshDatabase=!File.Exists(path);Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
         connectionString=new SqliteConnectionStringBuilder{DataSource=path,Pooling=true}.ToString();
-        using var c=Open();using var cmd=c.CreateCommand();
+        try { using var c=Open();using var cmd=c.CreateCommand();if(freshDatabase){cmd.CommandText="PRAGMA auto_vacuum=INCREMENTAL";cmd.ExecuteNonQuery();}
         cmd.CommandText="CREATE TABLE IF NOT EXISTS qqq_gex_cache_meta(id INTEGER PRIMARY KEY CHECK(id=1),generation INTEGER NOT NULL);INSERT OR IGNORE INTO qqq_gex_cache_meta VALUES(1,0)";cmd.ExecuteNonQuery();
         cmd.CommandText="CREATE TABLE IF NOT EXISTS qqq_gex_wire(snapshot TEXT NOT NULL,request_key TEXT NOT NULL,content_type TEXT NOT NULL,body TEXT NOT NULL,revision TEXT NOT NULL,as_of INTEGER NOT NULL,expires_at INTEGER NOT NULL,sha256 TEXT NOT NULL,PRIMARY KEY(snapshot,request_key))";cmd.ExecuteNonQuery();
         cmd.CommandText="CREATE TABLE IF NOT EXISTS qqq_gex_local_days(day TEXT PRIMARY KEY,revision TEXT NOT NULL,payload TEXT NOT NULL,updated_at INTEGER NOT NULL)";cmd.ExecuteNonQuery();
         cmd.CommandText="CREATE TABLE IF NOT EXISTS qqq_gex_local_day_hashes(day TEXT PRIMARY KEY,sha256 TEXT NOT NULL)";cmd.ExecuteNonQuery();
+        } catch(SqliteException error) when(error.SqliteErrorCode is 11 or 26) { storageFailure="sqlite_corrupt"; }
     }
-    private SqliteConnection Open(){var c=new SqliteConnection(connectionString);c.Open();return c;}
+    private SqliteConnection Open(){if(IsUnavailable)throw new InvalidDataException("GEX storage is unavailable; original file retained");var c=new SqliteConnection(connectionString);c.Open();return c;}
     public object? LatestPartial()
     {
         using var c=Open();using var cmd=c.CreateCommand();cmd.CommandText="CREATE TABLE IF NOT EXISTS qqq_gex_partial_days(day TEXT PRIMARY KEY,revision TEXT NOT NULL,payload TEXT NOT NULL,sha256 TEXT NOT NULL,updated_at INTEGER NOT NULL)";cmd.ExecuteNonQuery();cmd.CommandText="SELECT payload,sha256 FROM qqq_gex_partial_days ORDER BY day DESC LIMIT 1";using var row=cmd.ExecuteReader();if(!row.Read())return null;var body=row.GetString(0);if(!Hash(body).Equals(row.GetString(1),StringComparison.OrdinalIgnoreCase))throw new InvalidDataException("Partial GEX integrity failed");using var doc=JsonDocument.Parse(body);var root=doc.RootElement;return new {date=root.GetProperty("date").GetString(),source=root.GetProperty("source").GetString(),complete=false,extendedHoursBars=root.TryGetProperty("extendedHoursBars",out var extended)?extended.GetArrayLength():0,regularBars=root.GetProperty("bars").GetArrayLength(),underlyingLastTradeAt=root.TryGetProperty("underlyingLastTradeAt",out var trade)?trade.Clone():(System.Text.Json.JsonElement?)null,issues=root.GetProperty("issues").Clone(),expiries=root.GetProperty("rows").EnumerateArray().GroupBy(r=>r.GetProperty("expiryDate").GetString()).Select(g=>g.Last()).Select(r=>new {expiry=r.GetProperty("expiryDate").GetString(),asOf=r.GetProperty("capturedAt").GetString(),calculationVersion=r.GetProperty("calculationVersion").GetString(),inputComplete=r.GetProperty("inputComplete").GetBoolean(),modelInputComplete=r.TryGetProperty("modelInputComplete",out var modelQuality)?modelQuality.GetBoolean():r.GetProperty("inputComplete").GetBoolean(),sourceTimeAligned=r.TryGetProperty("sourceTimeAligned",out var alignment)?(bool?)alignment.GetBoolean():null,netGex=r.GetProperty("netGex").Clone(),strikes=r.TryGetProperty("profileCount",out var profileCount)?profileCount.GetInt32():r.GetProperty("profile").GetArrayLength()}).ToArray()};
@@ -84,7 +87,7 @@ public sealed partial class QqqGexResponseStore
     }
     private static JsonElement HydrateRow(SqliteConnection connection,JsonElement row)
     {
-        if(!row.TryGetProperty("profileRef",out var reference))return row.Clone();using var command=connection.CreateCommand();command.CommandText="SELECT body,sha256 FROM qqq_gex_local_rows WHERE row_key=$key";command.Parameters.AddWithValue("$key",reference.GetString());using var reader=command.ExecuteReader();if(!reader.Read())throw new InvalidDataException("Lossless GEX row missing");var body=reader.GetString(0);if(Encoding.UTF8.GetByteCount(body)>16*1024*1024||(!Hash(body).Equals(reader.GetString(1),StringComparison.OrdinalIgnoreCase)||!row.TryGetProperty("rowSha256",out var expected)||!reader.GetString(1).Equals(expected.GetString(),StringComparison.OrdinalIgnoreCase)))throw new InvalidDataException("Lossless GEX row integrity/bound failed");using var document=JsonDocument.Parse(body);var value=document.RootElement;if(value.GetProperty("capturedAt").GetString()!=row.GetProperty("capturedAt").GetString()||value.GetProperty("expiryDate").GetString()!=row.GetProperty("expiryDate").GetString())throw new InvalidDataException("Lossless GEX row identity mismatch");return value.Clone();
+        if(!row.TryGetProperty("profileRef",out var reference))return row.Clone();using var command=connection.CreateCommand();command.CommandText="SELECT body,sha256 FROM qqq_gex_local_rows WHERE row_key=$key";command.Parameters.AddWithValue("$key",reference.GetString());using var reader=command.ExecuteReader();if(!reader.Read())throw new InvalidDataException("Lossless GEX row missing");var body=QqqGexArchiveBody.Decode(reader.GetValue(0),16*1024*1024);if(Encoding.UTF8.GetByteCount(body)>16*1024*1024||(!Hash(body).Equals(reader.GetString(1),StringComparison.OrdinalIgnoreCase)||!row.TryGetProperty("rowSha256",out var expected)||!reader.GetString(1).Equals(expected.GetString(),StringComparison.OrdinalIgnoreCase)))throw new InvalidDataException("Lossless GEX row integrity/bound failed");using var document=JsonDocument.Parse(body);var value=document.RootElement;if(value.GetProperty("capturedAt").GetString()!=row.GetProperty("capturedAt").GetString()||value.GetProperty("expiryDate").GetString()!=row.GetProperty("expiryDate").GetString())throw new InvalidDataException("Lossless GEX row identity mismatch");return value.Clone();
     }
     private static string Hash(string body)=>Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(body)));
 }
