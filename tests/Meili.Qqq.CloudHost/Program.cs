@@ -2,7 +2,12 @@ using System.Text.Json;
 using Meili.Shared.Services;
 using Meili.Automation;
 // Cloud test harness only; never included in application distributions.
-if(args is ["--serve",var database]){using var session=new QqqGexSession(Path.GetFullPath(database));Console.WriteLine(JsonSerializer.Serialize(new{pageUri=session.PageUri.AbsoluteUri}));await Console.In.ReadLineAsync();return 0;}
+if(args is ["--serve",var database]){using var memorySampler=new System.Threading.Timer(_=>{var info=GC.GetGCMemoryInfo();Console.Error.WriteLine(JsonSerializer.Serialize(new{qqqTestMemory=true,managedBytes=GC.GetTotalMemory(false),heapBytes=info.HeapSizeBytes,committedBytes=info.TotalCommittedBytes,fragmentedBytes=info.FragmentedBytes,allocatedBytes=GC.GetTotalAllocatedBytes(false),gen2Collections=GC.CollectionCount(2)}));},null,250,250);using var session=new QqqGexSession(Path.GetFullPath(database));Console.WriteLine(JsonSerializer.Serialize(new{pageUri=session.PageUri.AbsoluteUri}));await Console.In.ReadLineAsync();return 0;}
+if(args is ["--measure-day",var dayDatabase,var dayPath]){
+    var store=new Meili.Data.Cache.QqqGexResponseStore(dayDatabase);var runs=new List<object>();
+    for(var n=0;n<5;n++){var allocated=GC.GetAllocatedBytesForCurrentThread();var clock=System.Diagnostics.Stopwatch.StartNew();var response=store.ReadLocalDay(dayPath,DateTimeOffset.UtcNow)??throw new InvalidOperationException("Day missing");runs.Add(new{elapsedMs=clock.Elapsed.TotalMilliseconds,allocatedBytes=GC.GetAllocatedBytesForCurrentThread()-allocated,responseBytes=System.Text.Encoding.UTF8.GetByteCount(response.Body),sha256=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(response.Body))),workingSetBytes=System.Diagnostics.Process.GetCurrentProcess().WorkingSet64,managedBytes=GC.GetTotalMemory(false),gcCommittedBytes=GC.GetGCMemoryInfo().TotalCommittedBytes});}
+    Console.WriteLine(JsonSerializer.Serialize(new{runs,peakWorkingSetBytes=System.Diagnostics.Process.GetCurrentProcess().PeakWorkingSet64}));return 0;
+}
 if(args is ["--measure-query-wire",var wireDirectory,var wirePath]){
     var result=(JsonElement)await QqqGexCalculationRunner.QueryAsync(wireDirectory,wirePath);var options=new JsonSerializerOptions{Encoder=System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping};
     byte[] Encode(bool direct)=>direct?JsonSerializer.SerializeToUtf8Bytes(result,options):System.Text.Encoding.UTF8.GetBytes(result.GetRawText());

@@ -58,7 +58,7 @@ public sealed partial class QqqGexResponseStore
     {
         var key=CanonicalKey(pathAndQuery);using var c=Open();using var cmd=c.CreateCommand();cmd.CommandText="SELECT content_type,body,revision,as_of,expires_at,sha256 FROM qqq_gex_wire WHERE snapshot=$snapshot AND request_key=$key";cmd.Parameters.AddWithValue("$snapshot",snapshot);cmd.Parameters.AddWithValue("$key",key);using var r=cmd.ExecuteReader();if(!r.Read()||now.ToUnixTimeMilliseconds()>=r.GetInt64(4))return null;var body=r.GetString(1);if(Hash(body)!=r.GetString(5))throw new InvalidDataException("GEX cached response hash mismatch.");return new(r.GetString(0),body,r.GetString(2),DateTimeOffset.FromUnixTimeMilliseconds(r.GetInt64(3)),DateTimeOffset.FromUnixTimeMilliseconds(r.GetInt64(4)));
     }
-    /// <summary>Project bounded local date/day resources; absent research stays a miss.</summary>
+    /// <summary>Project bounded local date/day resources from protected archives.</summary>
     public Response? ReadLocalDay(string pathAndQuery,DateTimeOffset now)
     {
         var key=CanonicalKey(pathAndQuery);var split=key.IndexOf('|');var route=key[..split];
@@ -70,7 +70,7 @@ public sealed partial class QqqGexResponseStore
         }
         if(end-start>TimeSpan.FromHours(25))return null;
         using var c=Open();using var readTransaction=c.BeginTransaction(deferred:true);using var cmd=c.CreateCommand();cmd.Transaction=readTransaction;cmd.CommandText="SELECT d.day,d.revision,d.payload,d.updated_at,h.sha256 FROM qqq_gex_local_days d JOIN qqq_gex_local_day_hashes h ON d.day=h.day WHERE d.day >= $first AND d.day <= $last ORDER BY d.day";cmd.Parameters.AddWithValue("$first",Meili.Core.Time.MarketClock.ToEastern(start).ToString("yyyy-MM-dd"));cmd.Parameters.AddWithValue("$last",Meili.Core.Time.MarketClock.ToEastern(end.AddTicks(-1)).ToString("yyyy-MM-dd"));
-        using var hydratedDocuments=new HydratedDocuments();using var r=cmd.ExecuteReader();var dates=new List<string>();var items=new List<JsonElement>();var bars=new List<JsonElement>();var expiries=new List<JsonElement>();var coverages=new List<JsonElement>();string? revision=null;var latest=DateTimeOffset.MinValue;
+        using var r=cmd.ExecuteReader();var dates=new List<string>();var items=new List<JsonElement>();var bars=new List<JsonElement>();var expiries=new List<JsonElement>();var coverages=new List<JsonElement>();string? revision=null;var latest=DateTimeOffset.MinValue;
         while(r.Read())
         {
             var updated=DateTimeOffset.FromUnixTimeMilliseconds(r.GetInt64(3));
@@ -78,17 +78,37 @@ public sealed partial class QqqGexResponseStore
             using var doc=JsonDocument.Parse(r.GetString(2));var root=doc.RootElement;var selected=root.GetProperty("rows").EnumerateArray().Where(x=>DateTimeOffset.Parse(x.GetProperty("capturedAt").GetString()!)>=start&&DateTimeOffset.Parse(x.GetProperty("capturedAt").GetString()!)<end).ToArray();
             if(selected.Length==0)continue;if(root.TryGetProperty("coverage",out var observedCoverage))coverages.Add(observedCoverage.Clone());dates.Add(r.GetString(0));revision=r.GetString(1);if(updated>latest)latest=updated;
             var expiry=q.GetValueOrDefault("expiryDate")??root.GetProperty("rows").EnumerateArray().Select(x=>x.GetProperty("expiryDate").GetString()).Order().FirstOrDefault();selected=selected.Where(x=>x.GetProperty("expiryDate").GetString()==expiry).ToArray();
-            items.AddRange(selected.Select(x=>HydrateRow(c,x,hydratedDocuments.Values,readTransaction)));expiries.AddRange(root.GetProperty("rows").EnumerateArray().GroupBy(x=>x.GetProperty("expiryDate").GetString()).Select(g=>HydrateRow(c,g.Last(),hydratedDocuments.Values,readTransaction)));
+            items.AddRange(selected.Select(x=>x.Clone()));expiries.AddRange(root.GetProperty("rows").EnumerateArray().GroupBy(x=>x.GetProperty("expiryDate").GetString()).Select(g=>g.Last().Clone()));
             bars.AddRange(root.GetProperty("bars").EnumerateArray().Where(x=>DateTimeOffset.Parse(x.GetProperty("timestamp").GetString()!)>=start&&DateTimeOffset.Parse(x.GetProperty("timestamp").GetString()!)<end).Select(x=>x.Clone()));
         }
         if(revision is null)return null;
-        object result=route.EndsWith("/backtest",StringComparison.Ordinal)?new {available=true,range=new {from,to,toExclusive=true},dates}:new {items,expiries,bars,coverage=coverages,selectedExpiry=q.GetValueOrDefault("expiryDate")??(items.Count>0?items[0].GetProperty("expiryDate").GetString():null)};
-        return new("application/json",JsonSerializer.Serialize(result),revision,latest,latest.AddDays(30));
+        // Keep only row references until serialization. At most one lossless profile
+        // document is hydrated at a time, within the same SQLite read transaction.
+        using var buffer=new DayWireBuffer();using(var writer=new Utf8JsonWriter(buffer)){
+            writer.WriteStartObject();
+            void WriteRows(string name,IEnumerable<JsonElement> rows){writer.WritePropertyName(name);writer.WriteStartArray();foreach(var row in rows){using var owner=new HydratedDocuments();HydrateRow(c,row,owner.Values,readTransaction).WriteTo(writer);}writer.WriteEndArray();}
+            WriteRows("items",items);WriteRows("expiries",expiries);
+            writer.WritePropertyName("bars");JsonSerializer.Serialize(writer,bars);
+            writer.WritePropertyName("coverage");JsonSerializer.Serialize(writer,coverages);
+            writer.WriteString("selectedExpiry",q.GetValueOrDefault("expiryDate")??(items.Count>0?items[0].GetProperty("expiryDate").GetString():null));writer.WriteEndObject();
+        }
+        return new("application/json",Encoding.UTF8.GetString(buffer.WrittenSpan),revision,latest,latest.AddDays(30));
+    }
+    // Returned buffers are cleared because archive profiles can contain user-retained inputs.
+    private sealed class DayWireBuffer:System.Buffers.IBufferWriter<byte>,IDisposable
+    {
+        private byte[]? bytes=System.Buffers.ArrayPool<byte>.Shared.Rent(16384);private int written;
+        public ReadOnlySpan<byte> WrittenSpan=>bytes.AsSpan(0,written);
+        public void Advance(int count){if(count<0||bytes is null||count>bytes.Length-written)throw new ArgumentOutOfRangeException(nameof(count));written+=count;}
+        public Memory<byte> GetMemory(int sizeHint=0){Ensure(sizeHint);return bytes.AsMemory(written);}
+        public Span<byte> GetSpan(int sizeHint=0){Ensure(sizeHint);return bytes.AsSpan(written);}
+        private void Ensure(int sizeHint){ObjectDisposedException.ThrowIf(bytes is null,this);if(sizeHint<0)throw new ArgumentOutOfRangeException(nameof(sizeHint));sizeHint=Math.Max(1,sizeHint);if(sizeHint<=bytes!.Length-written)return;var next=System.Buffers.ArrayPool<byte>.Shared.Rent(Math.Max(checked(written+sizeHint),checked(bytes.Length*2)));bytes.AsSpan(0,written).CopyTo(next);System.Buffers.ArrayPool<byte>.Shared.Return(bytes,clearArray:true);bytes=next;}
+        public void Dispose(){if(bytes is {} buffer){bytes=null;System.Buffers.ArrayPool<byte>.Shared.Return(buffer,clearArray:true);}}
     }
     private sealed class HydratedDocuments:IDisposable{public List<JsonDocument> Values {get;}=[];public void Dispose(){foreach(var document in Values)document.Dispose();}}
     private static JsonElement HydrateRow(SqliteConnection connection,JsonElement row,ICollection<JsonDocument>? retained=null,SqliteTransaction? transaction=null)
     {
-        if(!row.TryGetProperty("profileRef",out var reference))return row.Clone();using var command=connection.CreateCommand();command.Transaction=transaction;command.CommandText="SELECT body,sha256 FROM qqq_gex_local_rows WHERE row_key=$key";command.Parameters.AddWithValue("$key",reference.GetString());using var reader=command.ExecuteReader();if(!reader.Read())throw new InvalidDataException("Lossless GEX row missing");var body=QqqGexArchiveBody.Decode(reader.GetValue(0),16*1024*1024);if(Encoding.UTF8.GetByteCount(body)>16*1024*1024||(!Hash(body).Equals(reader.GetString(1),StringComparison.OrdinalIgnoreCase)||!row.TryGetProperty("rowSha256",out var expected)||!reader.GetString(1).Equals(expected.GetString(),StringComparison.OrdinalIgnoreCase)))throw new InvalidDataException("Lossless GEX row integrity/bound failed");var document=JsonDocument.Parse(body);try{var value=document.RootElement;if(value.GetProperty("capturedAt").GetString()!=row.GetProperty("capturedAt").GetString()||value.GetProperty("expiryDate").GetString()!=row.GetProperty("expiryDate").GetString())throw new InvalidDataException("Lossless GEX row identity mismatch");if(retained is not null){retained.Add(document);return value;}var result=value.Clone();document.Dispose();return result;}catch{document.Dispose();throw;}
+        if(!row.TryGetProperty("profileRef",out var reference))return row.Clone();using var command=connection.CreateCommand();command.Transaction=transaction;command.CommandText="SELECT body,sha256 FROM qqq_gex_local_rows WHERE row_key=$key";command.Parameters.AddWithValue("$key",reference.GetString());using var reader=command.ExecuteReader();if(!reader.Read())throw new InvalidDataException("Lossless GEX row missing");var body=QqqGexArchiveBody.DecodeBytes(reader.GetValue(0),16*1024*1024);if(body.Length>16*1024*1024||(!Convert.ToHexString(SHA256.HashData(body)).Equals(reader.GetString(1),StringComparison.OrdinalIgnoreCase)||!row.TryGetProperty("rowSha256",out var expected)||!reader.GetString(1).Equals(expected.GetString(),StringComparison.OrdinalIgnoreCase)))throw new InvalidDataException("Lossless GEX row integrity/bound failed");var document=JsonDocument.Parse(body);try{var value=document.RootElement;if(value.GetProperty("capturedAt").GetString()!=row.GetProperty("capturedAt").GetString()||value.GetProperty("expiryDate").GetString()!=row.GetProperty("expiryDate").GetString())throw new InvalidDataException("Lossless GEX row identity mismatch");if(retained is not null){retained.Add(document);return value;}var result=value.Clone();document.Dispose();return result;}catch{document.Dispose();throw;}
     }
     private static string Hash(string body)=>Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(body)));
 }

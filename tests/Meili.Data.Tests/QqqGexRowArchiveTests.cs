@@ -17,7 +17,7 @@ public sealed class QqqGexRowArchiveTests
         const string route="/api/analysis/qqq/gex/day?from=2026-01-02T14:30:00Z&to=2026-01-02T14:35:00Z";
         using(var result=JsonDocument.Parse(store.ReadLocalDay(route,DateTimeOffset.UtcNow)!.Body)){Assert.Single(result.RootElement.GetProperty("items").EnumerateArray());Assert.Equal(2,result.RootElement.GetProperty("expiries").GetArrayLength());Assert.Equal(0,result.RootElement.GetProperty("items")[0].GetProperty("profile")[0].GetProperty("callBid").GetInt32());}
         store.Clear(false);Assert.NotNull(new QqqGexResponseStore(path).ReadLocalDay(route+"&expiryDate=2026-01-05",DateTimeOffset.UtcNow));
-        command.CommandText="UPDATE qqq_gex_local_rows SET body='{}',sha256=$hash";command.Parameters.Clear();command.Parameters.AddWithValue("$hash",Hash("{}"));command.ExecuteNonQuery();Assert.Throws<InvalidDataException>(()=>store.ReadLocalDay(route,DateTimeOffset.UtcNow));
+        command.CommandText="UPDATE qqq_gex_local_rows SET body='{}',sha256=$hash WHERE row_key='fixture|2026-01-05'";command.Parameters.Clear();command.Parameters.AddWithValue("$hash",Hash("{}"));command.ExecuteNonQuery();Assert.Throws<InvalidDataException>(()=>store.ReadLocalDay(route,DateTimeOffset.UtcNow));
     }
     [Fact] public async Task Day_reads_keep_metadata_and_profile_in_one_snapshot_during_atomic_replacements()
     {

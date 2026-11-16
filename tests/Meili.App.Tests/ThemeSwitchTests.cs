@@ -87,10 +87,13 @@ public class ThemeSwitchTests
         {
             var vm=AppServices.Get<OptionsViewModel>();var page=new Views.Pages.OptionsPage();
             using var host=new OffscreenHost(page,1280,800,asMainWindow:true);
+            // A handle-only hidden Window has no realized item containers. Show
+            // the test window at the host's off-screen coordinates before inspecting its template.
+            ((Window)host.Root).Show();host.Layout();
             try
             {
                 vm.SymbolText="SPY";await vm.LoadAsync();await ScreenRenderTests.Settle(2);
-                var list=UiAudit.Descendants<ListView>(page).Single();Assert.NotEmpty(vm.Rows);list.SelectedIndex=0;list.ScrollIntoView(list.SelectedItem);
+                var list=Assert.IsType<Wpf.Ui.Controls.ListView>(page.FindName("ChainList"));Assert.NotEmpty(vm.Rows);host.Layout();list.SelectedIndex=0;list.ScrollIntoView(list.SelectedItem);
                 foreach(var dark in new[]{false,true,false})
                 {
                     Theme(dark);await ScreenRenderTests.Settle();host.Layout();
@@ -103,7 +106,7 @@ public class ThemeSwitchTests
 
                 }
             }
-            finally{Theme(true);}
+            finally{vm.Deactivate();Theme(true);}
         });
     }
 
