@@ -48,6 +48,7 @@ public partial class MainWindow : Window
         SetupWorkspace();
         SetupNewsSplit();
         SetupBackgroundLifecycle();
+        SetupUpdateNotifications();
         RestorePlacement();
         var hub = AppServices.Get<NavigationHub>();
         EventHandler<NavigationRequest> onRequest = (_, e) => Dispatcher.UIThread.Post(() => { if (!_closed) OnNavigateRequested(e); });

@@ -105,6 +105,15 @@ jobs:
         run: |
           dotnet build tests/Meili.Automation.Host/Meili.Automation.Host.csproj -c Release -m:3 -v minimal
           if ($LASTEXITCODE -ne 0) { throw 'CLI / protocol host build failed' }
+      - name: Verify compiled update repository and key
+        run: |
+          python tests/automation/check_update_source.py dotnet src/Meili.Cli/bin/Release/net10.0/easysellput.dll
+          if ($LASTEXITCODE -ne 0) { throw 'Compiled updater trust binding failed' }
+      - name: Test upstream, fork and development update binding
+        if: runner.os == 'Linux'
+        run: |
+          python tests/automation/update_source_build_smoke.py
+          if ($LASTEXITCODE -ne 0) { throw 'Update repository build binding failed' }
       - name: Test shared business logic
         run: |
           $failed = $false
@@ -125,6 +134,10 @@ jobs:
         run: |
           python tests/automation/cli_mcp_smoke.py --dll src/Meili.Cli/bin/Release/net10.0/easysellput.dll
           if ($LASTEXITCODE -ne 0) { throw 'Production CLI / MCP process checks failed' }
+      - name: Test cache maintenance & data preservation
+        run: |
+          python tests/automation/cache_management_smoke.py --dll src/Meili.Cli/bin/Release/net10.0/easysellput.dll
+          if ($LASTEXITCODE -ne 0) { throw 'Cache maintenance or protected data checks failed' }
       - name: Build & test CLI package
         run: |
           $os = if ($IsWindows) { 'win' } elseif ($IsMacOS) { 'osx' } else { 'linux' }
@@ -150,6 +163,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Extracted CLI / MCP process checks failed' }
           python tests/automation/qqq_runtime_smoke.py --executable $executable
           if ($LASTEXITCODE -ne 0) { throw 'Bundled GEX runtime checks failed' }
+          python tests/automation/cache_management_smoke.py --executable $executable
+          if ($LASTEXITCODE -ne 0) { throw 'Extracted cache maintenance checks failed' }
       - name: Upload CLI package
         uses: actions/upload-artifact@v4
         with:
@@ -188,10 +203,11 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y fontconfig fonts-dejavu-core fonts-noto-core fonts-noto-cjk
-      - name: Test layout & themes
+      - name: Test layout, themes & update reminders
         env:
           FONTCONFIG_FILE: ${{ github.workspace }}/build/ci-fonts.conf
           MEILI_RENDER_DIR: ${{ github.workspace }}/build/out/ci/render
+          MEILI_THEME_PROFILE: ${{ github.workspace }}/build/out/ci/render/theme-performance.json
         run: |
           mkdir -p "$MEILI_RENDER_DIR"
           dotnet test tests/Meili.Mac.Tests/Meili.Mac.Tests.csproj -c Release -m:3 --blame-crash --blame-crash-dump-type mini --filter 'Category!=Live' --logger 'trx;LogFileName=Mac.trx' --results-directory build/out/ci/tests -v minimal -- RunConfiguration.TreatNoTestsAsError=true
@@ -257,6 +273,10 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           global-json-file: global.json
+      - name: Set Full HD capture desktop
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./build/ci-display.ps1
       - name: Install WebView2 runtime
         if: runner.os == 'Windows'
         shell: pwsh
@@ -277,7 +297,7 @@ jobs:
           dotnet run --project tests/Meili.NewsBrowser.Smoke/Meili.NewsBrowser.Smoke.csproj -c Release -p:BuildInParallel=false
           if ($LASTEXITCODE -ne 0) { throw 'Native news reader smoke failed' }
 
-      - name: Test Windows desktop
+      - name: Test Windows desktop & update reminders
         if: runner.os == 'Windows'
         env:
           MEILI_RENDER_DIR: ${{ github.workspace }}/build/out/ci/desktop-render

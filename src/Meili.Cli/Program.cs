@@ -23,7 +23,7 @@ public static class Program
         {
             if(args.FirstOrDefault()=="update")
             {
-                if(args.Skip(1).SequenceEqual(new[]{"--help"})){Console.WriteLine("update check|download [--data-dir PATH] [--json]\nReads signed stable GitHub Releases. Download verifies signature/size/SHA-256; installation requires desktop confirmation. update apply --plan PATH is the internal desktop handoff, never an MCP tool.");return 0;}
+                if(args.Skip(1).SequenceEqual(new[]{"--help"})){Console.WriteLine("update source [--json] | update check|download [--data-dir PATH] [--json]\nReads signed stable GitHub Releases. Download verifies signature/size/SHA-256; installation requires desktop confirmation. update apply --plan PATH is the internal desktop handoff, never an MCP tool.");return 0;}
                 var updateResult=await UpdateCommand.RunAsync(args,stop.Token);
                 if(json)Console.WriteLine(WireJson.Element(WireJson.Success(updateResult)).GetRawText());else if(args.ElementAtOrDefault(1)!="apply")PrintHuman(WireJson.Element(updateResult));
                 return 0;
@@ -220,7 +220,7 @@ public static class Program
         }
         var command = words[0];
         var aliases = new Dictionary<string, string> { ["quote"] = "get_quotes", ["bars"] = "get_bars", ["search"] = "search_symbols", ["expirations"] = "get_expirations", ["options"] = "get_option_chain", ["fundamentals"] = "get_fundamentals", ["financials"] = "get_financials", ["news"] = "get_news", ["events"] = "get_market_events", ["chart"] = "get_chart_analysis", ["option-analysis"] = "analyze_option_chain", ["insights"] = "get_volatility_insights", ["presets"] = "list_strategy_presets", ["sources"] = "get_source_health", ["price"] = "calculate_option", ["indicators"] = "calculate_indicators" };
-        if (command is "watchlist" or "strategy" or "alerts" or "settings")
+        if (command is "watchlist" or "strategy" or "alerts" or "settings" or "cache")
         {
             if (words.Count < 2) throw new ArgumentException($"{command} needs a subcommand. See --help.");
             var sub = words[1]; words.RemoveAt(1);
@@ -242,6 +242,8 @@ public static class Program
                 ("alerts", "delete") => "delete_alert",
                 ("alerts", "enable") => "set_alert_enabled",
                 ("settings", "show") => "get_settings",
+                ("cache", "status") => "get_cache_status",
+                ("cache", "clear") => "clear_cache",
                 _ => throw new ArgumentException("Unknown subcommand.")
             };
         }

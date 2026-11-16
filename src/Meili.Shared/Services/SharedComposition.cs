@@ -19,6 +19,7 @@ public static class SharedComposition
         s.AddSingleton<PricingAssumptions>();              // H1
         s.AddSingleton(loc);
         s.AddSingleton<WatchlistStore>();
+        s.AddSingleton(sp => new WebWorkspace(dataDir.Path));
         s.AddSingleton<NavigationHub>();
         s.AddSingleton<SymbolContext>();
         s.AddSingleton<AlertMonitor>();
@@ -35,6 +36,11 @@ public static class SharedComposition
         s.AddSingleton<SymbolSearchService>();
         s.AddSingleton(sp => new Meili.Core.Pricing.RiskFreeRateProvider(sp.GetRequiredService<IMarketDataService>(),
             () => sp.GetRequiredService<SettingsStore>().Current.Pricing));
+        s.AddSingleton(sp => new Meili.Caching.CacheManager(dataDir.Path,
+            sp.GetRequiredService<DataServices>().Cache,
+            new Meili.Caching.BarCacheResource(sp.GetRequiredService<Meili.Data.Cache.MarketDb>()),
+            sp.GetRequiredService<Meili.Core.Quotes.QuoteHub>(), sp.GetRequiredService<SymbolSearchService>(),
+            sp.GetRequiredService<Meili.Core.Pricing.RiskFreeRateProvider>()));
         s.AddSingleton<IIvSource>(sp => new IvSource(
             (symbols, ct) => sp.GetRequiredService<DataServices>().Providers.OfType<Meili.Data.Providers.Cboe.CboeProvider>().First().GetQuotesAsync(symbols, ct),
             sp.GetRequiredService<IMarketDataService>(), sp.GetRequiredService<Meili.Core.Pricing.RiskFreeRateProvider>()));
@@ -42,6 +48,7 @@ public static class SharedComposition
         s.AddSingleton<IvAlertSampler>();
         s.AddSingleton<NetworkController>();
         s.AddSingleton<INetworkController>(sp => sp.GetRequiredService<NetworkController>());
+        s.AddSingleton<UpdateViewModel>();
         s.AddTransient<SettingsViewModel>();
         s.AddTransient<DashboardViewModel>();
         s.AddTransient<QuotePanelViewModel>();
@@ -62,5 +69,6 @@ public static class SharedComposition
         sp.GetRequiredService<AlertMonitor>().Start();
         sp.GetRequiredService<IvAlertSampler>().Start();
         sp.GetRequiredService<QuotePump>().Start();
+        sp.GetRequiredService<UpdateViewModel>().StartNotifications();
     }
 }

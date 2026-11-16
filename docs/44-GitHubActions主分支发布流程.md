@@ -18,7 +18,7 @@ main 若在准备或发布验证期间前进，流程停止，等待新 main 完
 - 独立 CLI/MCP：Linux x64、Windows x64/ARM64、macOS x64/ARM64，共五份 zip/tar.gz。
 - Release 不执行 `dotnet publish`，不重新构建应用；仅对成功 CI 的原生包进行平台签名、公证和重打包。签名会改变包字节，因此重新计算校验和，并对最终包再次执行原生验证。
 - 最终验证包括含空格路径解压、CLI/MCP 真实进程、GUI、内置图表、更新替换/重启及数据保留。macOS 另验证 Developer ID、Apple notarization、stapled ticket 和 Gatekeeper。Linux 包保持原始字节，由签名发行索引验证来源。
-- `EasySellPut-update.json` 仍只包含四份桌面包，保持客户端协议；`EasySellPut-release.json` 包含九份包的大小/哈希、源码提交、CI run 和原始 artifact 身份。两个索引均使用内置公钥对应的 ECDSA P-256 私钥签名。
+- `EasySellPut-update.json` 包含构建仓库 `repository` 和四份桌面包，保持客户端协议；`EasySellPut-release.json` 包含九份包的大小/哈希、源码提交、CI run 和原始 artifact 身份。两个索引均使用内置公钥对应的 ECDSA P-256 私钥签名。
 - 正式发布前下载全部草稿附件，复验两个签名、九个平台目标、哈希、校验文件和附件集合。没有 `--publish` 的验证不会发布；工作流只在显式手动发布时传入它。
 
 ## 首次启用配置
@@ -61,3 +61,11 @@ CI 增加 `Release · main guard` 并接入 required 聚合：检查工作流边
 新增正式平台签名、公证和公开发布必须在凭据配置后，通过 main 的实际发行流程验收；普通 CI 的 ad-hoc macOS 包不能证明 Developer ID 或 Apple 服务已验证。本次仅实现并验证流程，没有运行正式发布或修改用户安装。
 
 这是工程交付变更，不新增桌面业务、CLI 命令或 MCP 工具，原有业务目录/权限和覆盖场景保持不变。
+
+## 构建与发布仓库绑定
+
+CI 通过 GitHub Actions 环境将当前 `github.repository` 编译进每个 GUI/CLI；不需要上游手改 URL。编译检查拒绝与 `GITHUB_REPOSITORY` 冲突的覆盖。Linux CI 额外构建上游、fork、本地三个真实 CLI，验证仓库绑定、开发禁用和运行时环境无法改源。
+
+每个平台对解压后的 CLI 执行离线 `update source --json`，GUI 自检报告同时输出自身内置源；两者的仓库和公钥指纹必须匹配当前发行仓库和源码。签名后的包也复用同样检查，仍不重新编译。签名更新索引必须包含当前仓库，Publish 再次核对；错误绑定会阻止草稿/发布。
+
+这些检查不替代首次签名密钥配置，也不允许 `work`/PR 发布。首次初始化应先提交仓库自己的公钥，再运行 main CI 并配置对应私钥；已有客户端的密钥不得自动轮换。

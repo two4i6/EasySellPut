@@ -55,4 +55,14 @@ public sealed class WebWorkspaceTests : IDisposable
         File.WriteAllText(file, "{\"SchemaVersion\":99,\"Tabs\":[]}"); Assert.Throws<InvalidDataException>(() => new WebWorkspace(_directory));
         File.WriteAllText(file, "{\"SchemaVersion\":1,\"Tabs\":[null]}"); Assert.Throws<InvalidDataException>(() => new WebWorkspace(_directory));
     }
+    [Fact] public void Motion_changes_publish_only_after_successful_commit_and_reload_never_overwrites_corrupt_bookmarks()
+    {
+        var workspace = new WebWorkspace(_directory); var count = 0; workspace.MotionChanged += (_, _) => count++;
+        workspace.SetReduceMotion(true); workspace.SetReduceMotion(true); Assert.Equal(1, count);
+        var external = new WebWorkspace(_directory); external.Save(null, "News", "https://example.com");
+        Assert.Throws<DataConflictException>(() => workspace.SetReduceMotion(false)); Assert.Equal(1, count); Assert.True(workspace.ReduceMotion);
+        workspace.Reload(); workspace.SetReduceMotion(false); Assert.Equal(2, count); Assert.Single(workspace.Tabs);
+        var file = Path.Combine(_directory, "web-workspace.json"); File.WriteAllText(file, "invalid");
+        Assert.Throws<JsonException>(() => workspace.Reload()); Assert.Throws<InvalidDataException>(() => workspace.SetReduceMotion(true)); Assert.Equal("invalid", File.ReadAllText(file));
+    }
 }

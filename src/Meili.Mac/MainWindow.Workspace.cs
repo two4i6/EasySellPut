@@ -18,9 +18,11 @@ public partial class MainWindow
     private readonly Dictionary<string, WebTabPane> _webTabs = [];
     private void SetupWorkspace()
     {
-        try { _workspace = new WebWorkspace(AppServices.DataDirectory.Path); }
+        try { _workspace = AppServices.Get<WebWorkspace>(); _workspace.Reload(); }
         catch (Exception ex) when (ex is System.IO.IOException or System.Text.Json.JsonException or ArgumentException)
-        { Meili.Core.Diagnostics.AppLog.Warn("web-workspace", "Workspace could not be loaded", ex); AddWebsite.IsEnabled = false; ShowBanner(_loc["Web_Edit"], _loc["Web_Failed"]); }
+        { _workspace = null; Meili.Core.Diagnostics.AppLog.Warn("web-workspace", "Workspace could not be loaded", ex); AddWebsite.IsEnabled = false; ShowBanner(_loc["Web_Edit"], _loc["Web_Failed"]); }
+        if (_workspace is not null) _workspace.MotionChanged += WorkspaceMotionChanged;
+        Closed += (_, _) => { if (_workspace is not null) _workspace.MotionChanged -= WorkspaceMotionChanged; };
         SetupStatusIcons(); RebuildBuiltinRail(); RebuildWebsiteRail(); ApplyWorkspaceMotion();
         _loc.LanguageChanged += WorkspaceLanguageChanged; Closed += (_, _) => _loc.LanguageChanged -= WorkspaceLanguageChanged;
         Activated += (_, _) => ApplyWorkspaceMotion();
@@ -58,8 +60,6 @@ public partial class MainWindow
         SettingsButton.Content=CreateNavigationIcon(NavigationIcons.Settings,SettingsButton,18);
         LanguageButton.Content=CreateNavigationIcon(NavigationIcons.Language,LanguageButton,18);
         ThemeButton.Content=CreateNavigationIcon(NavigationIcons.Theme,ThemeButton,18);
-        BackgroundButton.Content=CreateNavigationIcon(NavigationIcons.Minus,BackgroundButton,18);
-        MotionButton.Content=CreateNavigationIcon(NavigationIcons.Motion,MotionButton,18);
     }
     private void OnSettings(object? sender,RoutedEventArgs e) => Navigate(AppPage.Settings);
     private void RebuildWebsiteRail()
@@ -98,16 +98,11 @@ public partial class MainWindow
     }
     private void OnHomeWorkspace(object? sender, RoutedEventArgs e) => Navigate(AppPage.Dashboard);
     private void OnAddWebsite(object? sender, RoutedEventArgs e) { AddWebsite.IsChecked = false; _ = EditWebsite(null); }
-    private void OnToggleMotion(object? sender, RoutedEventArgs e)
-    {
-        try { _workspace?.SetReduceMotion(MotionButton.IsChecked == true); }
-        catch (System.IO.IOException) { ShowBanner(_loc["Web_Edit"], _loc["Web_Failed"]); }
-        ApplyWorkspaceMotion();
-    }
+    private void WorkspaceMotionChanged(object? sender, EventArgs e) => ApplyWorkspaceMotion();
     private void ApplyWorkspaceMotion()
     {
         var reduced = _workspace?.ReduceMotion == true || SystemReduceMotion();
-        DesignMotion.SetReduced(reduced); Classes.Set("ReducedMotion", reduced); MotionButton.IsChecked = _workspace?.ReduceMotion == true;
+        DesignMotion.SetReduced(reduced); Classes.Set("ReducedMotion", reduced);
     }
     private static bool SystemReduceMotion()
     {

@@ -9,6 +9,8 @@ internal static class UpdateCommand
 {
     public static async Task<object?> RunAsync(string[] args, CancellationToken ct)
     {
+        if (args.Length is 2 or 3 && args[1] == "source" && (args.Length == 2 || args[2] == "--json"))
+            return UpdateClient.SourceConfiguration;
         if (args.Length >= 2 && args[1] == "apply")
         {
             if (args.Length != 4 || args[2] != "--plan") throw new ArgumentException("update apply --plan PATH is the desktop installation handoff.");
@@ -18,7 +20,7 @@ internal static class UpdateCommand
             AppLog.Initialize(plan.DataDirectory);
             return await UpdateInstaller.ApplyAsync(plan, ct);
         }
-        if (args.Length < 2 || args[1] is not ("check" or "download")) throw new ArgumentException("update check|download [--data-dir PATH] [--json]");
+        if (args.Length < 2 || args[1] is not ("check" or "download")) throw new ArgumentException("update source [--json] | update check|download [--data-dir PATH] [--json]");
         string? data = null; var seen = new HashSet<string>();
         for (var i = 2; i < args.Length; i++)
         {

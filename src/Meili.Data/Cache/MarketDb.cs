@@ -19,7 +19,7 @@ public sealed record BarCacheMeta(string Source, DateTimeOffset FetchedAt, DateT
 /// </summary>
 public sealed class MarketDb
 {
-    public const int SchemaVersion = 3;
+    public const int SchemaVersion = 4;
     private readonly string _cs;
 
     public MarketDb(string path)
@@ -47,6 +47,8 @@ public sealed class MarketDb
         using var c = Open();
         using var cmd = c.CreateCommand();
         cmd.CommandText = """
+            CREATE TABLE IF NOT EXISTS cache_generation (id INTEGER PRIMARY KEY CHECK (id=1), generation INTEGER NOT NULL);
+            INSERT OR IGNORE INTO cache_generation VALUES (1,0);
             CREATE TABLE IF NOT EXISTS schema_version (v INTEGER NOT NULL);
             CREATE TABLE IF NOT EXISTS bars (
                 symbol TEXT NOT NULL, interval TEXT NOT NULL, adjust TEXT NOT NULL DEFAULT '',
@@ -128,10 +130,11 @@ public sealed class MarketDb
     }
 
     /// <summary>Replaces the whole cached series (and its metadata) in one transaction.</summary>
-    public void SaveBars(string symbol, BarInterval interval, IReadOnlyList<Bar> bars, BarCacheMeta meta, string adjust = "")
+    public void SaveBars(string symbol, BarInterval interval, IReadOnlyList<Bar> bars, BarCacheMeta meta, string adjust = "", long? expectedGeneration = null)
     {
         using var c = Open();
         using var tx = c.BeginTransaction();
+        if (!GenerationMatches(c, tx, expectedGeneration)) return;
         DeleteRange(c, tx, symbol, interval, adjust, "");
         InsertBars(c, tx, symbol, interval, adjust, bars);
         UpsertMeta(c, tx, symbol, interval, adjust, meta);
@@ -144,10 +147,11 @@ public sealed class MarketDb
     /// metadata row. With no bars and no deletes only the metadata is refreshed.
     /// </summary>
     public void ReplaceTail(string symbol, BarInterval interval, string adjust, IReadOnlyList<Bar> bars,
-        DateTimeOffset? deleteFrom, DateTimeOffset? deleteBefore, BarCacheMeta meta)
+        DateTimeOffset? deleteFrom, DateTimeOffset? deleteBefore, BarCacheMeta meta, long? expectedGeneration = null)
     {
         using var c = Open();
         using var tx = c.BeginTransaction();
+        if (!GenerationMatches(c, tx, expectedGeneration)) return;
         if (deleteFrom is { } from) DeleteRange(c, tx, symbol, interval, adjust, " AND t >= $t", from);
         if (deleteBefore is { } before) DeleteRange(c, tx, symbol, interval, adjust, " AND t < $t", before);
         InsertBars(c, tx, symbol, interval, adjust, bars);
@@ -295,5 +299,42 @@ public sealed class MarketDb
         cmd.CommandText = "DELETE FROM oi_daily WHERE d < $d";
         cmd.Parameters.AddWithValue("$d", Day(before));
         return cmd.ExecuteNonQuery();
+    }
+    public long CacheGeneration()
+    {
+        using var c = Open(); using var cmd = c.CreateCommand();
+        cmd.CommandText = "SELECT generation FROM cache_generation WHERE id=1";
+        return (long)cmd.ExecuteScalar()!;
+    }
+    private static bool GenerationMatches(SqliteConnection c, SqliteTransaction tx, long? expected)
+    {
+        if (expected is null) return true;
+        using var cmd = c.CreateCommand(); cmd.Transaction = tx;
+        cmd.CommandText = "SELECT generation FROM cache_generation WHERE id=1";
+        return (long)cmd.ExecuteScalar()! == expected;
+    }
+    public Meili.Core.Abstractions.CacheStatus InspectCache()
+    {
+        using var c = Open(); using var cmd = c.CreateCommand();
+        cmd.CommandText = "SELECT COUNT(*) FROM bars";
+        return new("bars", "sqlite", "data-directory", (long)cmd.ExecuteScalar()!, 0, null, null, null,
+            "No TTL; online tail refresh and explicit offline fallback. IV/OI observations are excluded. SharedFileBytes includes the DB/WAL and protected IV/OI history; it is not reclaimable cache size.",
+            SharedFileBytes: MeasureSharedFiles());
+    }
+    private long? MeasureSharedFiles()
+    {
+        try { return new[] { FilePath, FilePath + "-wal", FilePath + "-shm" }.Sum(p => File.Exists(p) ? new FileInfo(p).Length : 0); }
+        catch (IOException) { return null; } // WAL/SHM can disappear during another process's checkpoint.
+        catch (UnauthorizedAccessException) { return null; }
+    }
+    public Meili.Core.Abstractions.CacheClearResult ClearBars(string? symbol = null)
+    {
+        using var c = Open(); using var tx = c.BeginTransaction(); using var cmd = c.CreateCommand(); cmd.Transaction = tx;
+        cmd.CommandText = "DELETE FROM bars" + (symbol is null ? "" : " WHERE symbol=$s");
+        if (symbol is not null) cmd.Parameters.AddWithValue("$s", symbol);
+        var count = cmd.ExecuteNonQuery();
+        cmd.CommandText = "DELETE FROM bar_meta" + (symbol is null ? "" : " WHERE symbol=$s"); cmd.ExecuteNonQuery();
+        cmd.CommandText = "UPDATE cache_generation SET generation=generation+1 WHERE id=1"; cmd.ExecuteNonQuery();
+        tx.Commit(); return new("bars", count);
     }
 }

@@ -31,4 +31,9 @@
     <Style Selector="Expander.Disclosure /template/ ToggleButton#ExpanderHeader"><Setter Property="HorizontalContentAlignment" Value="Left"/><Setter Property="MinHeight" Value="28"/><Setter Property="Padding" Value="4,2"/><Setter Property="FontSize" Value="{StaticResource CaptionFontSize}"/><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}"/></Style>
     <Style Selector="FlyoutPresenter.AppPopoverPresenter"><Setter Property="MaxWidth" Value="680"/><Setter Property="Padding" Value="12"/><Setter Property="CornerRadius" Value="12"/><Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}"/><Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/><Setter Property="FontFamily" Value="{DynamicResource AppFont}"/></Style>
     <Style Selector="Border.FormRow > DockPanel > StackPanel"><Setter Property="VerticalAlignment" Value="Center"/></Style>
+    <Style Selector="Button.StatusEntry">
+        <Setter Property="Height" Value="{StaticResource StatusItemHeight}"/><Setter Property="MinHeight" Value="{StaticResource StatusItemHeight}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/><Setter Property="VerticalContentAlignment" Value="Center"/><Setter Property="HorizontalContentAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="Ellipse.StatusDot"><Setter Property="Width" Value="{StaticResource StatusDotSize}"/><Setter Property="Height" Value="{StaticResource StatusDotSize}"/><Setter Property="VerticalAlignment" Value="Center"/></Style>
 </Styles>

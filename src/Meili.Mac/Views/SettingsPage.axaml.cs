@@ -9,6 +9,11 @@ public partial class SettingsPage : UserControl
         InitializeComponent();
         var vm = AppServices.Get<SettingsViewModel>();
         DataContext = vm;
+        Loaded += async (_, _) =>
+        {
+            if (DataContext is SettingsViewModel model && model.RefreshCacheCommand.CanExecute(null))
+                await model.RefreshCacheCommand.ExecuteAsync(null);
+        };
 
     }
 }

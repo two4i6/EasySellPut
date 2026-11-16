@@ -57,4 +57,9 @@
     <Style x:Key="GroupChip" TargetType="Button" BasedOn="{StaticResource RangeChip}"/>
     <Style x:Key="IndCheck" TargetType="CheckBox"><Setter Property="FontFamily" Value="{DynamicResource AppFont}"/><Setter Property="FontSize" Value="{StaticResource BodyFontSize}"/><Setter Property="Margin" Value="0,0,16,0"/><Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/><Setter Property="VerticalAlignment" Value="Center"/></Style>
     <Style x:Key="ColCheck" TargetType="CheckBox" BasedOn="{StaticResource IndCheck}"/>
+    <Style x:Key="StatusEntry" TargetType="Button" BasedOn="{StaticResource AppButton}">
+        <Setter Property="Height" Value="{StaticResource StatusItemHeight}"/><Setter Property="MinHeight" Value="{StaticResource StatusItemHeight}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/><Setter Property="VerticalContentAlignment" Value="Center"/><Setter Property="HorizontalContentAlignment" Value="Center"/>
+    </Style>
+    <Style x:Key="StatusDot" TargetType="Ellipse"><Setter Property="Width" Value="{StaticResource StatusDotSize}"/><Setter Property="Height" Value="{StaticResource StatusDotSize}"/><Setter Property="VerticalAlignment" Value="Center"/></Style>
 </ResourceDictionary>

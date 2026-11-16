@@ -123,7 +123,7 @@ class RendererTests(unittest.TestCase):
         self.assertEqual(p.locator('#empty').inner_text(),'No data')
         self.assertFalse(self.errors)
         p.evaluate('(s)=>meiliChart.render(s)',fixture())
-    def test_theme_tokens_keyboard_focus_and_compact_footer(self):
+    def test_theme_tokens_keyboard_focus_and_compact_attribution_icon(self):
         p=self.page
         for dark in [True,False]:
             data=fixture()
@@ -140,13 +140,15 @@ class RendererTests(unittest.TestCase):
             self.assertEqual(p.evaluate('getComputedStyle(document.documentElement).colorScheme'),'dark' if dark else 'light')
             output=os.environ.get('MEILI_RENDER_DIR')
             if output: p.screenshot(path=str(pathlib.Path(output)/('webchart-unified-dark.png' if dark else 'webchart-unified-light.png')))
-        self.assertFalse(p.locator('#hint').is_visible())
-        p.locator('#help-heading').focus();p.keyboard.press('Enter')
-        self.assertTrue(p.locator('#hint').is_visible())
-        p.keyboard.press('Enter');self.assertFalse(p.locator('#hint').is_visible())
+        self.assertEqual(p.locator('footer').count(),0)
+        self.assertEqual(p.locator('#attribution').inner_text(),'')
+        self.assertIn('TradingView',p.locator('#attribution').get_attribute('title'))
+        p.locator('#attribution').focus()
+        self.assertEqual(p.locator('#attribution').evaluate('(e)=>getComputedStyle(e).outlineWidth'),'2px')
         p.set_viewport_size(dict(width=480,height=800))
-        self.assertFalse(p.locator('#hint').is_visible());self.assertTrue(p.locator('#attribution').is_visible())
+        self.assertTrue(p.locator('#attribution').is_visible())
         bounds=p.locator('#attribution').bounding_box();self.assertLessEqual(bounds['x']+bounds['width'],480)
+        self.assertLessEqual(bounds['width'],32)
         self.assertLessEqual(p.locator('#toolbar').evaluate('(e)=>e.scrollWidth'),480)
         p.set_viewport_size(dict(width=1280,height=800));p.evaluate('(s)=>meiliChart.render(s)',fixture())
     def test_vendor_integrity(self):

@@ -10,7 +10,7 @@
         <StackPanel MaxWidth="1000">
             <TextBlock Style="{StaticResource PageTitle}" Text="{DynamicResource Nav_Settings}" />
 
-            <Border x:Name="UpdatePanel" Padding="16" Margin="0,16,0,0" CornerRadius="8" BorderThickness="1" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
+            <Border x:Name="UpdatePanel" DataContext="{Binding Updates}" Padding="16" Margin="0,16,0,0" CornerRadius="8" BorderThickness="1" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
                 <StackPanel>
                     <DockPanel LastChildFill="True">
                         <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center">
@@ -68,6 +68,17 @@
                 </ds:AppSelect>
             </ds:AppCard>
 
+            <ds:AppCard  Padding="16,12" Margin="0,0,0,4">
+                <StackPanel>
+                    <DockPanel>
+                        <StackPanel DockPanel.Dock="Right" Width="{StaticResource FormFieldWidth}" Margin="16,0,0,0" VerticalAlignment="Center">
+                            <CheckBox x:Name="ReduceMotionSetting" Width="{StaticResource ControlHeight}" Height="{StaticResource ControlHeight}" HorizontalAlignment="Right" IsChecked="{Binding ReduceMotionEnabled}" IsEnabled="{Binding CanChangeMotion}" AutomationProperties.Name="{DynamicResource Web_Motion}"/>
+                        </StackPanel>
+                        <ux:AppFormHeader Title="{DynamicResource Web_Motion}" HelpText="{DynamicResource Set_MotionDesc}" VerticalAlignment="Center"/>
+                    </DockPanel>
+                    <TextBlock Style="{StaticResource Caption}" Text="{Binding MotionStatus}" TextWrapping="Wrap" Visibility="{Binding HasMotionStatus, Converter={StaticResource BoolToVis}}"/>
+                </StackPanel>
+            </ds:AppCard>
             <!-- Network -->
             <TextBlock Style="{StaticResource SectionTitle}" Text="{DynamicResource Set_Network}" />
             <ds:AppCard Margin="0,0,0,4" Icon="{lucide:Lucide Globe}">
@@ -196,6 +207,31 @@
                     </Expander>
                 </StackPanel>
             </ds:AppCard.Header></ds:AppCard>
+            <ds:AppCard x:Name="CachePanel" Padding="16" Margin="0,16,0,4">
+                <StackPanel>
+                    <DockPanel Margin="0,0,0,8">
+                        <TextBlock DockPanel.Dock="Right" Text="{Binding StorageTotal}" VerticalAlignment="Center" Margin="12,0,0,0" Style="{StaticResource CardTitle}"/>
+                        <Button DockPanel.Dock="Right" Content="{DynamicResource Cache_Refresh}" Command="{Binding RefreshCacheCommand}" VerticalAlignment="Center"/>
+                        <ux:AppLoading DockPanel.Dock="Right" Margin="0,0,8,0" Visibility="{Binding IsCacheBusy, Converter={StaticResource BoolToVis}}"/>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"><TextBlock Style="{StaticResource CardTitle}" Text="{DynamicResource Storage_Title}" VerticalAlignment="Center"/><ux:AppHelp HelpText="{DynamicResource Storage_Help}" Margin="8,0,0,0" VerticalAlignment="Center"/></StackPanel>
+                    </DockPanel>
+                    <ux:AppStorageBar x:Name="StorageUsageBar" Segments="{Binding StorageSegments}" Margin="0,0,0,8"/>
+                    <TextBlock Style="{StaticResource Caption}" Text="{Binding StorageStatus}" TextWrapping="Wrap" Visibility="{Binding HasStorageStatus, Converter={StaticResource BoolToVis}}"/>
+                    <WrapPanel>
+                        <ds:AppSelect AutomationProperties.Name="{DynamicResource Cache_Title}" Width="{StaticResource FormFieldWidth}" SelectedIndex="{Binding CacheCategoryIndex}" IsEnabled="{Binding CanManageCache}" Margin="0,0,8,8">
+                            <ComboBoxItem Content="{DynamicResource Cache_all}"/>
+<ComboBoxItem Content="{DynamicResource Cache_responses}"/>
+<ComboBoxItem Content="{DynamicResource Cache_bars}"/>
+<ComboBoxItem Content="{DynamicResource Cache_quotes}"/>
+<ComboBoxItem Content="{DynamicResource Cache_search}"/>
+<ComboBoxItem Content="{DynamicResource Cache_rates}"/>
+                        </ds:AppSelect>
+                        <Button Content="{DynamicResource Cache_Expired}" Command="{Binding ClearExpiredCacheCommand}" Margin="0,0,8,8"/>
+                        <Button x:Name="ClearManagedCache" Content="{DynamicResource Cache_Clear}" Command="{Binding ClearCacheCommand}" Margin="0,0,0,8"/>
+                    </WrapPanel>
+                    <TextBlock Style="{StaticResource Caption}" Text="{Binding CacheFeedback}" TextWrapping="Wrap"/>
+                </StackPanel>
+            </ds:AppCard>
             <!-- Storage -->
             <TextBlock Style="{StaticResource SectionTitle}" Text="{DynamicResource Set_Storage}" />
             <ds:AppCard Margin="0,0,0,4" Icon="{lucide:Lucide Folder}">
@@ -226,7 +262,7 @@
                             </TextBlock>
                         </StackPanel>
                     </StackPanel>
-                    <ux:AppHelp HelpText="{DynamicResource Set_AboutDesc}" DockPanel.Dock="Right" Margin="8,0,0,0"/>
+                    <TextBlock x:Name="AboutDescription" Style="{StaticResource Body}" Text="{DynamicResource Set_AboutDesc}" TextWrapping="Wrap" Margin="0,8,0,0"/>
                 </StackPanel>
             </ds:AppCard>
         </StackPanel>

@@ -97,6 +97,13 @@ class ReleasePolicyTests(unittest.TestCase):
             for name in ('EasySellPut-update.json.sig', 'EasySellPut-release.json.sig'):
                 (output / name).write_bytes(b'signature tested separately by openssl')
             publish.verify_assets(output, index)
+            update_file = output / 'EasySellPut-update.json'
+            update_index = json.loads(update_file.read_text())
+            self.assertEqual(update_index['repository'], plan['repository'])
+            for wrong_repository in ('other/repo', None):
+                update_file.write_text(json.dumps(update_index | {'repository': wrong_repository}))
+                with self.assertRaises(ValueError): publish.verify_assets(output, index)
+            update_file.write_text(json.dumps(update_index))
             victim = output / index['assets'][-1]['fileName']
             victim.write_bytes(b'tampered')
             with self.assertRaises(ValueError):

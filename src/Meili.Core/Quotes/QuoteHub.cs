@@ -27,13 +27,33 @@ public sealed record QuoteBatch(
 /// Not thread-affine by itself; continuations resume on the caller's context (no ConfigureAwait(false)), so when the
 /// UI thread drives it, <see cref="Updated"/> is raised on the UI thread.
 /// </remarks>
-public sealed class QuoteHub
+public sealed class QuoteHub : IManagedCache
 {
+    public string CacheId => "quotes";
     private readonly IMarketDataService _data;
     private readonly Dictionary<string, HashSet<string>> _subs = new(StringComparer.Ordinal);
     private readonly Dictionary<string, (Quote Quote, DateTimeOffset At)> _cache = new(StringComparer.OrdinalIgnoreCase);
     private readonly object _gate = new();
     private (HashSet<string> Symbols, Task<QuoteBatch> Task)? _inflight;
+
+    private long _generation;
+    public CacheStatus Inspect()
+    {
+        lock (_gate) return new("quotes", "memory", "process", _cache.Count, _cache.Values.LongCount(e => Now() - e.At >= Ttl), null, null, null,
+            "TTL 2.5 seconds. Clear invalidates reuse while retaining last-known quotes for display and subscribers.");
+    }
+    public CacheClearResult Clear(bool expiredOnly, string? symbol = null)
+    {
+        if (symbol is not null) throw new ArgumentException("Quote invalidation does not support symbol filtering.");
+        lock (_gate)
+        {
+            var keys = _cache.Where(e => !expiredOnly || Now() - e.Value.At >= Ttl).Select(e => e.Key).ToArray();
+            if (expiredOnly && keys.Length == 0) return new("quotes", 0);
+            _generation++; _inflight = null;
+            foreach (var key in keys) _cache[key] = (_cache[key].Quote, DateTimeOffset.MinValue);
+            return new("quotes", 0, keys.Length);
+        }
+    }
 
     public QuoteHub(IMarketDataService data) => _data = data;
 
@@ -128,13 +148,13 @@ public sealed class QuoteHub
         {
             if (_inflight is { } f && !f.Task.IsCompleted && symbols.All(f.Symbols.Contains))
                 return f.Task;
-            var task = RunAsync(symbols);
+            var task = RunAsync(symbols, _generation);
             _inflight = (new HashSet<string>(symbols, StringComparer.OrdinalIgnoreCase), task);
             return task;
         }
     }
 
-    private async Task<QuoteBatch> RunAsync(IReadOnlyList<string> symbols)
+    private async Task<QuoteBatch> RunAsync(IReadOnlyList<string> symbols, long generation)
     {
         RequestCount++;
         QuoteBatch batch;
@@ -145,10 +165,14 @@ public sealed class QuoteHub
             var at = Now();
             lock (_gate)
                 foreach (var q in quotes.Where(q => !string.IsNullOrWhiteSpace(q.Symbol)))
-                    _cache[q.Symbol] = (q, at);
-            ConsecutiveFailures = 0;
-            LastSuccess = at;
-            LastError = null;
+                    if (generation == _generation || !_cache.ContainsKey(q.Symbol))
+                        _cache[q.Symbol] = (q, generation == _generation ? at : DateTimeOffset.MinValue);
+            lock (_gate) if (generation == _generation)
+            {
+                ConsecutiveFailures = 0;
+                LastSuccess = at;
+                LastError = null;
+            }
             batch = new QuoteBatch(symbols, quotes, null, at);
         }
         catch (OperationCanceledException) when (!timeout.IsCancellationRequested)
@@ -157,12 +181,16 @@ public sealed class QuoteHub
         }
         catch (Exception ex)
         {
-            ConsecutiveFailures++;
-            LastError = ex;
+            lock (_gate) if (generation == _generation)
+            {
+                ConsecutiveFailures++;
+                LastError = ex;
+            }
             Diagnostics.AppLog.Warn("quotes", $"batch failed ({ConsecutiveFailures} in a row)", ex);
             batch = new QuoteBatch(symbols, [], ex, Now());
         }
-        Updated?.Invoke(this, batch);
+        bool publish; lock (_gate) publish = generation == _generation;
+        if (publish) Updated?.Invoke(this, batch);
         return batch;
     }
 }

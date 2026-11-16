@@ -28,6 +28,12 @@
 <SolidColorBrush x:Key="PressedBrush" Color="#E8E6DC"/>
 <SolidColorBrush x:Key="DangerBrush" Color="#A53E36"/>
 <SolidColorBrush x:Key="OverlayBrush" Color="#55141413"/>
+<SolidColorBrush x:Key="StorageMarketBrush" Color="#416B95"/>
+<SolidColorBrush x:Key="StorageBrowserBrush" Color="#655DA0"/>
+<SolidColorBrush x:Key="StorageUserdataBrush" Color="#9D4C33"/>
+<SolidColorBrush x:Key="StorageLogsBrush" Color="#3D7263"/>
+<SolidColorBrush x:Key="StorageCacheBrush" Color="#8A5F4C"/>
+<SolidColorBrush x:Key="StorageOtherBrush" Color="#66655E"/>
 </ResourceDictionary>
 <ResourceDictionary x:Key="Dark">
 <SolidColorBrush x:Key="ApplicationBackgroundBrush" Color="#1F1E1D"/>
@@ -58,5 +64,11 @@
 <SolidColorBrush x:Key="PressedBrush" Color="#4D4C48"/>
 <SolidColorBrush x:Key="DangerBrush" Color="#E5A19A"/>
 <SolidColorBrush x:Key="OverlayBrush" Color="#99000000"/>
+<SolidColorBrush x:Key="StorageMarketBrush" Color="#8CB1D6"/>
+<SolidColorBrush x:Key="StorageBrowserBrush" Color="#CBCADB"/>
+<SolidColorBrush x:Key="StorageUserdataBrush" Color="#E4A38A"/>
+<SolidColorBrush x:Key="StorageLogsBrush" Color="#8AB9A7"/>
+<SolidColorBrush x:Key="StorageCacheBrush" Color="#EBC9B7"/>
+<SolidColorBrush x:Key="StorageOtherBrush" Color="#C2C0B6"/>
 </ResourceDictionary>
 </ResourceDictionary.ThemeDictionaries></ResourceDictionary>

@@ -42,7 +42,7 @@ public sealed class WebWorkspaceTests
                 if(owner.Classes.Contains("Workspace"))Assert.InRange(owner.TranslatePoint(new Point(owner.Bounds.Width/2,0),w)!.Value.X,31,33);
             }
             var footer=w.FindControl<Border>("BottomStatusBar")!;
-            foreach(var name in new[]{"SettingsButton","LanguageButton","ThemeButton","MotionButton"})
+            foreach(var name in new[]{"SettingsButton","LanguageButton","ThemeButton"})
             {
                 var control=w.FindControl<Control>(name)!;Assert.Contains(footer,control.GetVisualAncestors());
                 Assert.Equal(28,control.Bounds.Width);Assert.Equal(24,control.Bounds.Height);
@@ -92,7 +92,11 @@ public sealed class WebWorkspaceTests
             theme.Apply(AppThemeMode.Dark); loc.Apply("zh-CN"); w.Navigate(AppPage.Dashboard); MacHost.Pump(); w.FindControl<ScrollViewer>("SidebarScroll")!.Offset=default; MacHost.Pump(); MacHost.Save(w, "single-rail-dark");
             var editing = w.EditWebsite(null); MacHost.Pump(); var editor = w.OwnedWindows.Single(); MacHost.Save(editor, "single-rail-add"); editor.Close(); await editing;
             theme.Apply(AppThemeMode.Light); loc.Apply("en-US"); w.Width = 980; w.FindControl<ScrollViewer>("SidebarScroll")!.Offset=default; MacHost.Pump(); MacHost.Save(w, "single-rail-light-compact");
-            var motion = w.GetVisualDescendants().OfType<ToggleButton>().Single(t => t.Name == "MotionButton"); motion.IsChecked = true; Click(motion); MacHost.Pump(); Assert.Contains("ReducedMotion", w.Classes);
+            w.Navigate(AppPage.Settings); MacHost.Pump();
+            var settings = (SettingsViewModel)w.CurrentView!.DataContext!;
+            settings.ReduceMotionEnabled = true; MacHost.Pump(); Assert.Contains("ReducedMotion", w.Classes);
+            Assert.True(new WebWorkspace(MacHost.DataDir).ReduceMotion);
+            Assert.Null(w.FindControl<Control>("MotionButton")); Assert.Null(w.FindControl<Control>("BackgroundButton"));
         }
         finally { w.Close(); var clean = new WebWorkspace(MacHost.DataDir); foreach (var t in clean.Tabs.ToList()) clean.Remove(t.Id); clean.SetReduceMotion(false); theme.Apply(AppThemeMode.System); loc.Apply("zh-CN"); }
     }

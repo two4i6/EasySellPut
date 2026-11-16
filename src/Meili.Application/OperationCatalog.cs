@@ -99,6 +99,10 @@ public static partial class OperationCatalog
         Op("save_alert", "Create a rule, or update an existing id while retaining monitor bookkeeping. Does not start monitoring.", true, ("symbol!", S()), ("kind!", Field("string", "", "PriceAbove","PriceBelow","PercentUp","PercentDown","VolumeAbove","IvAbove","IvBelow")), ("threshold!", N()), ("id", S()), ("enabled", B()), ("repeat", Field("string", "", "Once","Repeat")), ("cooldownMinutes", I("1..1440")), ("includeExtendedHours", B()), ("note", S())),
         Op("delete_alert", "Delete an alert rule; history is retained.", true, ("id!", S())),
         Op("set_alert_enabled", "Enable/disable and re-arm a local alert rule.", true, ("id!", S()), ("enabled!", B())),
+        Op("get_cache_status", "Inspect registered caches, process/data-directory scope, TTL/capacity policy, protected data and bounded local-storage byte categories. Storage excludes links and marks incomplete scans; file sizes are not whole-disk capacity. Memory counts describe this process, not another desktop/MCP process. Browser profiles and historical IV/OI are excluded."),
+        Op("clear_cache", "Explicitly clear or invalidate allowlisted caches. Preserves IV/OI history and all user data. Memory affects this process only; bars affect the shared data directory. Expired mode leaves TTL-free bars intact; quotes retain last-known display values. Symbol filter only for bars. No arbitrary filesystem deletion.", true,
+            ("category!", Field("string", "Cache category registered in this process; inspect get_cache_status first.", "all", "responses", "bars", "quotes", "search", "rates")),
+            ("mode", Field("string", "Default all; expired only evicts expired entries.", "all", "expired")), ("symbol", S("Optional ticker; category must be bars."))),
         ..CoverageOperations(),
         Op("get_settings", "Read non-secret preferences and resolved data directory; proxy credentials/URLs are omitted.")
     ];

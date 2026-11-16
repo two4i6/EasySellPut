@@ -186,4 +186,20 @@ public class QuoteHubTests
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => t);
         Assert.Equal(0, hub.ConsecutiveFailures);
     }
+    [Fact] public async Task Cache_invalidation_retains_subscriptions_and_last_display_but_refetches()
+    {
+        var (hub, data, _, _) = Make(); hub.Subscribe("alerts", ["AAPL"]);
+        await hub.GetQuotesAsync(["AAPL"]);
+        Assert.Equal(1, hub.Clear(false).Invalidated);
+        Assert.True(hub.TryGetCached("AAPL", out _)); Assert.Single(hub.SubscribedSymbols);
+        await hub.GetQuotesAsync(["AAPL"]); Assert.Equal(2, data.Calls.Count);
+    }
+    [Fact] public async Task Clear_during_request_does_not_cancel_waiters_or_make_old_response_fresh()
+    {
+        var (hub, data, _, _) = Make(); var gate = new TaskCompletionSource(); data.Gate = gate;
+        var updates = 0; hub.Updated += (_, _) => updates++;
+        var pending = hub.GetQuotesAsync(["AAPL"]); hub.Clear(false); gate.SetResult();
+        Assert.Single(await pending); Assert.Equal(1, hub.Inspect().Expired); Assert.Equal(0, updates);
+        data.Gate = null; await hub.GetQuotesAsync(["AAPL"]); Assert.Equal(2, data.Calls.Count);
+    }
 }

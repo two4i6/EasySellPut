@@ -9,7 +9,7 @@ public sealed class SettingsUpdateTests : IDisposable
     private readonly string _directory = Path.Combine(Path.GetTempPath(), "update-vm-" + Guid.NewGuid().ToString("N"));
     private sealed class Theme : IThemeController { public void Apply(AppThemeMode mode) { } public void ApplyUpDownColors(UpDownColorMode mode) { } }
     private sealed class Services : IServiceProvider { public object? GetService(Type type) => null; }
-    private SettingsViewModel Create(FakeUpdates updates) => new(new(_directory), new LocalizationService(), new Theme(), new(_directory, DataDirectorySource.CommandLine), new Services(), updater: updates);
+    private UpdateViewModel Create(FakeUpdates updates) => new(new(_directory), new LocalizationService(), new(_directory, DataDirectorySource.CommandLine), updates);
     [Fact]
     public async Task Check_download_and_confirm_are_separate_and_only_successful_preflight_requests_exit()
     {
@@ -46,7 +46,7 @@ public sealed class SettingsUpdateTests : IDisposable
     {
         var ui = new FakeUiPlatform(); Ui.Platform = ui; var vm = Create(new() { Status = "no_release" });
         await vm.CheckUpdatesCommand.ExecuteAsync(null); Assert.Equal(LocalizationService.Current["Upd_NoRelease"], vm.UpdateStatusText);
-        Assert.False(vm.HasUpdateNotes); Assert.False(vm.ShowDownloadUpdate); vm.OpenUpdateHistoryCommand.Execute(null); Assert.Equal("https://github.com/two4i6/EasySellPut/releases", Assert.Single(ui.Opened));
+        Assert.False(vm.HasUpdateNotes); Assert.False(vm.ShowDownloadUpdate); vm.OpenUpdateHistoryCommand.Execute(null); if (Meili.Automation.UpdateClient.ReleaseHistoryUrl is { } history) Assert.Equal(history, Assert.Single(ui.Opened)); else Assert.Empty(ui.Opened);
     }
     [Fact]
     public async Task Development_or_manual_installations_offer_the_verified_download_folder_without_exit()

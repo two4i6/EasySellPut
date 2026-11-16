@@ -31,13 +31,15 @@ internal sealed class NewsReaderFixture:IDisposable
     }
     public void Dispose(){_stop.Cancel();_server.Stop();_stop.Dispose();}
     // Actual desktop pixels, including child HWND WebView2 surfaces (RenderTargetBitmap cannot capture them).
-    public static bool Capture(Window window,string path)
+    public static bool Capture(Window window,string path,bool entireDesktop=false)
     {
         var hwnd=new WindowInteropHelper(window).Handle;
         // Hosted Windows ARM images can still have the OOBE privacy screen above the app.
         // Never label an obscuring system desktop as an application screenshot.
         if(GetForegroundWindow()!=hwnd)return false;
-        GetWindowRect(hwnd,out var rect);var width=rect.Right-rect.Left;var height=rect.Bottom-rect.Top;
+        GetWindowRect(hwnd,out var rect);
+        if(entireDesktop)rect=new Rect{Left=0,Top=0,Right=GetSystemMetrics(0),Bottom=GetSystemMetrics(1)};
+        var width=rect.Right-rect.Left;var height=rect.Bottom-rect.Top;
         var screen=GetDC(IntPtr.Zero);var memory=CreateCompatibleDC(screen);var bitmap=CreateCompatibleBitmap(screen,width,height);var old=SelectObject(memory,bitmap);
         try
         {
@@ -46,6 +48,7 @@ internal sealed class NewsReaderFixture:IDisposable
         }
         finally{SelectObject(memory,old);DeleteObject(bitmap);DeleteDC(memory);ReleaseDC(IntPtr.Zero,screen);}
     }
+    [DllImport("user32.dll")] private static extern int GetSystemMetrics(int index);
     [DllImport("user32.dll")] private static extern IntPtr GetForegroundWindow();
     [StructLayout(LayoutKind.Sequential)] private struct Rect{public int Left,Top,Right,Bottom;}
     [DllImport("user32.dll")] private static extern bool GetWindowRect(IntPtr hwnd,out Rect rect);

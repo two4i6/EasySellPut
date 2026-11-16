@@ -24,6 +24,8 @@ if dotnet build tests/Meili.Automation.Host/Meili.Automation.Host.csproj -c Rele
   cat "$results/capability-coverage.log"
   if ! python3 tests/automation/cli_mcp_smoke.py --dll src/Meili.Cli/bin/Release/net10.0/easysellput.dll > "$results/cli-mcp.log" 2>&1; then failed=1; fi
   cat "$results/cli-mcp.log"
+  if ! python3 tests/automation/cache_management_smoke.py > "$results/cache-management.log" 2>&1; then failed=1; fi
+  cat "$results/cache-management.log"
 else
   cat "$results/cli-build.log"
   failed=1

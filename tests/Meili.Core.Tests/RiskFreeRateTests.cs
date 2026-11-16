@@ -81,4 +81,28 @@ public class RiskFreeRateTests
         a.Normalize();
         Assert.Equal(20, a.Pricing.FixedRatePercent);
     }
+    [Fact] public async Task Rate_clear_respects_live_TTL_and_preserves_fixed_setting()
+    {
+        var data = new Data(); var settings = new PricingSettings { FixedRatePercent = 3.5 };
+        var provider = new RiskFreeRateProvider(data, () => settings);
+        await provider.GetAsync(); Assert.Equal(0, provider.Clear(true).Removed);
+        await provider.GetAsync(); Assert.Equal(1, data.Calls);
+        Assert.Equal(1, provider.Clear(false).Removed); await provider.GetAsync(); Assert.Equal(2, data.Calls);
+        settings.RateMode = RiskFreeRateMode.Fixed; provider.Clear(false);
+        Assert.Equal(.035, (await provider.GetAsync()).Rate); Assert.Equal(2, data.Calls);
+    }
+    [Fact] public async Task Expired_maintenance_does_not_reset_failure_backoff()
+    {
+        var data = new Data { Make = () => throw new HttpRequestException("offline") };
+        var provider = new RiskFreeRateProvider(data, () => new PricingSettings());
+        await provider.GetAsync(); provider.Clear(true); await provider.GetAsync(); Assert.Equal(1, data.Calls);
+    }
+    [Fact] public async Task Expired_rate_eviction_preserves_recent_failure_cooldown()
+    {
+        var data = new Data(); var now = DateTimeOffset.UtcNow;
+        var provider = new RiskFreeRateProvider(data, () => new PricingSettings()) { Now = () => now };
+        await provider.GetAsync(); now = now.AddHours(7); data.Make = () => throw new HttpRequestException("offline");
+        await provider.GetAsync(); Assert.Equal(1, provider.Clear(true).Removed);
+        await provider.GetAsync(); Assert.Equal(2, data.Calls);
+    }
 }

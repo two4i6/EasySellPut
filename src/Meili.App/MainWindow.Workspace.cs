@@ -19,11 +19,13 @@ public partial class MainWindow
     private void SetupWorkspace()
     {
         SetupStatusIcons(); RebuildBuiltinRail();
-        try { _workspace = new WebWorkspace(AppServices.DataDirectory.Path); }
+        try { _workspace = AppServices.Get<WebWorkspace>(); _workspace.Reload(); }
         catch (Exception ex) when (ex is IOException or System.Text.Json.JsonException or ArgumentException)
-        { Meili.Core.Diagnostics.AppLog.Warn("web-workspace", "Workspace could not be loaded", ex); AddWebsite.IsEnabled = false; AddWebsite.ToolTip = _loc["Web_Failed"]; }
+        { _workspace = null; Meili.Core.Diagnostics.AppLog.Warn("web-workspace", "Workspace could not be loaded", ex); AddWebsite.IsEnabled = false; AddWebsite.ToolTip = _loc["Web_Failed"]; }
         _loc.LanguageChanged += WorkspaceLanguageChanged;
-        RebuildWebsiteRail(); MotionButton.IsChecked = _workspace?.ReduceMotion == true; DesignMotion.SetReduced(ReducedMotion);
+        RebuildWebsiteRail(); DesignMotion.SetReduced(ReducedMotion);
+        if (_workspace is not null) _workspace.MotionChanged += WorkspaceMotionChanged;
+        Closed += (_, _) => { if (_workspace is not null) _workspace.MotionChanged -= WorkspaceMotionChanged; };
         AnimateTile(HomeWorkspace); AnimateTile(AddWebsite);
         PreviewKeyDown += (_, e) =>
         {
@@ -62,8 +64,6 @@ public partial class MainWindow
         SettingsButton.Content=CreateNavigationIcon(NavigationIcons.Settings,SettingsButton,18);
         LanguageButton.Content=CreateNavigationIcon(NavigationIcons.Language,LanguageButton,18);
         ThemeButton.Content=CreateNavigationIcon(NavigationIcons.Theme,ThemeButton,18);
-        BackgroundButton.Content=CreateNavigationIcon(NavigationIcons.Minus,BackgroundButton,18);
-        MotionButton.Content=CreateNavigationIcon(NavigationIcons.Motion,MotionButton,18);
     }
     private void OnSettings(object sender,RoutedEventArgs e) { ShowMarketWorkspace();RootNavigation.Navigate(PageType(AppPage.Settings));SyncMarketNavigation(); }
     private void RebuildWebsiteRail()
@@ -80,6 +80,7 @@ public partial class MainWindow
         AddWebsite.IsEnabled = _workspace is not null && _workspace.Tabs.Count < WebWorkspace.MaximumTabs;
         AddWebsite.ToolTip = _loc[_workspace is null ? "Web_Failed" : AddWebsite.IsEnabled ? "Web_Add" : "Web_Limit"];
     }
+    private void WorkspaceMotionChanged(object? sender, EventArgs e) => DesignMotion.SetReduced(ReducedMotion);
     private bool ReducedMotion => _workspace?.ReduceMotion == true || !SystemParameters.ClientAreaAnimation;
     private void AnimateTile(ToggleButton tile)
     {
@@ -129,12 +130,6 @@ public partial class MainWindow
     private void SyncMarketNavigation() { ShowMarketWorkspace(); SelectBuiltinPage(); }
     private void OnHomeWorkspace(object sender, RoutedEventArgs e) { ShowMarketWorkspace(); RootNavigation.Navigate(PageType(AppPage.Dashboard)); SyncMarketNavigation(); }
     private void OnAddWebsite(object sender, RoutedEventArgs e) { AddWebsite.IsChecked = false; EditWebsite(null); }
-    private void OnToggleMotion(object sender, RoutedEventArgs e)
-    {
-        try { _workspace?.SetReduceMotion(MotionButton.IsChecked == true); }
-        catch (IOException) { MotionButton.IsChecked = _workspace?.ReduceMotion == true; MotionButton.ToolTip = _loc["Web_Failed"]; }
-        DesignMotion.SetReduced(ReducedMotion);
-    }
     internal void EditWebsite(WebWorkspaceTab? tab)
     {
         if (_workspace is null) return;

@@ -72,6 +72,8 @@ def check(archive, rid, destination):
             assert config['command'].startswith('/Users/'), 'Expected a macOS-specific MCP example'
     assert (root / 'LICENSE').is_file() and (root / 'CLI-MCP.md').is_file()
     assert (root / '12-Windows与macOS的CLI和MCP.md').is_file(), 'Platform quick start is missing'
+    from check_update_source import check as check_update_source
+    check_update_source(executable)
     print(f'PASS: {rid} checksum, native binary, bundled runtime, MCP configuration and archive layout: {root}')
     return root
 

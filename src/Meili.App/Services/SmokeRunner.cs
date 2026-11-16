@@ -104,7 +104,8 @@ public sealed class SmokeRunner
                 var workspace=(System.Windows.Controls.Grid)window.FindName("WorkspaceGrid");
                 if(workspace.ColumnDefinitions.Count!=2 || workspace.ColumnDefinitions[0].ActualWidth!=64 || window.FindName("ChannelNav") is not null)throw new InvalidOperationException("The wide navigation column returned");
                 if(rail.Children.OfType<System.Windows.Controls.Primitives.ToggleButton>().Append(home).Append(settingsButton).Count(b=>b.IsChecked==true)!=1 || button.IsChecked!=true)throw new InvalidOperationException("Navigation rail selection is inconsistent");
-                foreach(var name in new[]{"SettingsButton","LanguageButton","ThemeButton","MotionButton"})
+                if(window.FindName("BackgroundButton") is not null || window.FindName("MotionButton") is not null)throw new InvalidOperationException("Removed footer controls returned");
+                foreach(var name in new[]{"SettingsButton","LanguageButton","ThemeButton"})
                 {
                     var action=(System.Windows.Controls.Primitives.ButtonBase)window.FindName(name);
                     if(action.ActualWidth!=28 || action.ActualHeight!=24)throw new InvalidOperationException("Status action bounds: "+name);
@@ -299,6 +300,7 @@ public sealed class SmokeRunner
         lock (Errors) errors = [.. Errors];
         var report = new
         {
+            UpdateSource = Meili.Automation.UpdateClient.SourceConfiguration,
             Version = typeof(SmokeRunner).Assembly.GetName().Version?.ToString(),
             Process = Environment.ProcessPath,
             StartedAt = DateTimeOffset.Now - elapsed,

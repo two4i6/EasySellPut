@@ -75,7 +75,7 @@
     <sys:String x:Key="Set_DataDirDesc">设置、自选和缓存都保存在这里。可用 --data-dir 参数指定，或在程序旁放 portable.flag 进入便携模式</sys:String>
     <sys:String x:Key="Set_OpenFolder">打开文件夹</sys:String>
     <sys:String x:Key="Set_About">关于</sys:String>
-    <sys:String x:Key="Set_AboutDesc">数据来自 Yahoo Finance、CBOE、Nasdaq、CNBC、SEC、新浪、腾讯、东方财富等公开接口，可能延迟、中断或有误，仅作参考，不构成投资建议。免费公开源不提供 Level 2 盘口（买卖五档/十档）和逐笔成交，本软件只显示最新价、成交量和 K 线。请遵守各数据源使用条款，勿将数据用于商业再分发。关闭主窗口会退出程序。若希望点关闭时最小化到托盘，可在设置中更改。</sys:String>
+    <sys:String x:Key="Set_AboutDesc">数据来自 Yahoo Finance、CBOE、Nasdaq、CNBC、SEC、新浪、腾讯、东方财富等公开接口，可能延迟、中断或有误，仅作参考，不构成投资建议。免费公开源不提供 Level 2 盘口（买卖五档/十档）和逐笔成交，本软件只显示最新价、成交量和 K 线。请遵守各数据源使用条款，勿将数据用于商业再分发。默认关闭主窗口后继续在后台运行，可从菜单栏/托盘退出；关闭行为可在设置中调整。</sys:String>
     <sys:String x:Key="Set_Company">美丽稻谷</sys:String>
     <sys:String x:Key="Set_Version">版本</sys:String>
 
@@ -716,8 +716,8 @@
     <sys:String x:Key="Mac_AboutBody">版本 {0} · macOS 便携版</sys:String>
     <sys:String x:Key="Ex_XlsxType">Excel 工作簿</sys:String>
     <sys:String x:Key="Ex_CsvType">CSV 文件</sys:String>
-    <sys:String x:Key="Mac_AlDesc">价格上穿或下穿、涨跌幅、成交量或 IV 达到设定值时，会在窗口右上角显示提醒、弹出 macOS 通知并跳动程序坞图标。关闭窗口默认会退出程序；若在设置中改为隐藏窗口，提醒会继续在后台检查，⌘Q 也可退出。</sys:String>
-    <sys:String x:Key="Mac_ShortcutsDesc">⌘1…⌘9 依次切换概览、自选、K 线、期权、策略、新闻、提醒、数据源、设置；⌘R 刷新当前页；⌘F 或在非输入框处直接打字弹出键盘精灵；⌘E 导出当前表格；⌘, 设置；⌘W 或红色关闭按钮默认退出（可在设置中改为仅隐藏窗口）；⌘Q 退出。</sys:String>
+    <sys:String x:Key="Mac_AlDesc">价格上穿或下穿、涨跌幅、成交量或 IV 达到设定值时，会在窗口右上角显示提醒、弹出 macOS 通知并跳动程序坞图标。关闭窗口默认继续在后台检查提醒；可在设置中调整关闭行为，⌘Q 退出。</sys:String>
+    <sys:String x:Key="Mac_ShortcutsDesc">⌘1…⌘9 依次切换概览、自选、K 线、期权、策略、新闻、提醒、数据源、设置；⌘R 刷新当前页；⌘F 或在非输入框处直接打字弹出键盘精灵；⌘E 导出当前表格；⌘, 设置；⌘W 或红色关闭按钮默认转入后台（可在设置中调整）；⌘Q 退出。</sys:String>
     <sys:String x:Key="Menu_Close">关闭窗口</sys:String>
     <sys:String x:Key="Reader_Title">新闻阅读</sys:String>
     <sys:String x:Key="Reader_Back">后退</sys:String>
@@ -912,4 +912,35 @@
     <sys:String x:Key="QP_More">更多</sys:String>
     <sys:String x:Key="Bg_Run">后台运行</sys:String>
     <sys:String x:Key="Reader_Close">关闭阅读分屏</sys:String>
+    <sys:String x:Key="Upd_BadgeAvailable">v{0} 可更新</sys:String>
+    <sys:String x:Key="Upd_BadgeReady">v{0} 待安装</sys:String>
+    <sys:String x:Key="Upd_PromptTitle">新版本 v{0}</sys:String>
+    <sys:String x:Key="Upd_Later">稍后</sys:String>
+    <sys:String x:Key="Upd_ViewUpdate">查看更新</sys:String>
+    <sys:String x:Key="Ch_ControlHelp">滚轮缩放 · 拖动平移 · 点击画线编辑；方向键选择画线，Enter 编辑，Delete 删除，Esc 取消。</sys:String>
+    <sys:String x:Key="Upd_Disabled">开发构建未配置更新源</sys:String>
+    <sys:String x:Key="Cache_Title">缓存</sys:String>
+    <sys:String x:Key="Cache_Refresh">刷新统计</sys:String>
+    <sys:String x:Key="Cache_all">全部缓存</sys:String>
+    <sys:String x:Key="Cache_responses">数据响应</sys:String>
+    <sys:String x:Key="Cache_bars">K 线</sys:String>
+    <sys:String x:Key="Cache_quotes">报价</sys:String>
+    <sys:String x:Key="Cache_search">代码搜索</sys:String>
+    <sys:String x:Key="Cache_rates">利率</sys:String>
+    <sys:String x:Key="Cache_Expired">清理过期</sys:String>
+    <sys:String x:Key="Cache_Clear">清理所选</sys:String>
+    <sys:String x:Key="Cache_Help">内存统计和清理仅针对当前进程；K 线缓存由桌面、CLI 和 MCP 共享。清理保留 IV/OI 历史、自选及所有用户数据，不清理网页 Cookie。K 线没有固定过期时间；报价清理会使复用失效并保留最后显示值。</sys:String>
+    <sys:String x:Key="Cache_Confirm">清理后可能需要重新下载数据，离线时所选 K 线将不可用。IV/OI 历史和用户数据不受影响。继续？</sys:String>
+    <sys:String x:Key="Cache_Done">已处理，后续请求会按需重新获取数据。</sys:String>
+    <sys:String x:Key="Cache_Error">缓存操作失败，请重试；详情见日志。</sys:String>
+    <sys:String x:Key="Storage_Title">本地存储</sys:String>
+    <sys:String x:Key="Storage_market">行情数据库</sys:String>
+    <sys:String x:Key="Storage_browser">网页数据</sys:String>
+    <sys:String x:Key="Storage_userdata">用户数据</sys:String>
+    <sys:String x:Key="Storage_logs">日志</sys:String>
+    <sys:String x:Key="Storage_cache">其他缓存</sys:String>
+    <sys:String x:Key="Storage_other">其他</sys:String>
+    <sys:String x:Key="Storage_Partial">部分文件无法统计，当前数值不完整。</sys:String>
+    <sys:String x:Key="Storage_Help">统计应用数据目录内文件的实际大小，不是整块磁盘容量；不包含进程内存。行情数据库包含 K 线和受保护的 IV/OI 历史，不能按整段清空。网页数据、用户数据和日志仅统计，不由下方缓存清理操作删除。扫描不跟随符号链接；数据可能在统计期间变化。</sys:String>
+    <sys:String x:Key="Set_MotionDesc">减少界面动画，立即应用并记住此选择；系统的减少动态设置始终优先。</sys:String>
 </ResourceDictionary>

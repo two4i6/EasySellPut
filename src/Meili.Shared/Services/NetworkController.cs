@@ -9,13 +9,14 @@ namespace Meili.Shared.Services;
 public sealed class NetworkController : INetworkController
 {
     private readonly DataServices _data;
+    private readonly Meili.Caching.CacheManager _caches;
     private readonly SettingsStore _store;
     private readonly LocalizationService _loc;
     private readonly ShellViewModel _shell;
 
-    public NetworkController(DataServices data, SettingsStore store, LocalizationService loc, ShellViewModel shell)
+    public NetworkController(DataServices data, SettingsStore store, LocalizationService loc, ShellViewModel shell, Meili.Caching.CacheManager caches)
     {
-        _data = data; _store = store; _loc = loc; _shell = shell;
+        _data = data; _store = store; _loc = loc; _shell = shell; _caches = caches;
         _loc.LanguageChanged += (_, _) => Publish();
     }
 
@@ -28,7 +29,7 @@ public sealed class NetworkController : INetworkController
         await _data.Gateway.ReconfigureAsync(_store.Current.Network).ConfigureAwait(true);
         _data.Health.Reset();
         _data.Router.ForgetMisses();
-        _data.Cache.Clear();
+        _caches.Clear("responses");
         Publish();
         return EffectiveDescription;
     }

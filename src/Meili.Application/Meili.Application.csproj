@@ -14,4 +14,13 @@
     <Exec WorkingDirectory="../../web/qqq-gex" Command="npm run build:runtime" />
     <ItemGroup><EmbeddedResource Include="../../web/qqq-gex/runtime-dist/import.mjs" LogicalName="QqqGexRuntime/import.mjs" /><EmbeddedResource Include="../../web/qqq-gex/runtime-dist/query.mjs" LogicalName="QqqGexRuntime/query.mjs" /><EmbeddedResource Include="../../web/qqq-gex/runtime-dist/history.mjs" LogicalName="QqqGexRuntime/history.mjs" /></ItemGroup>
   </Target>
+  <!-- Build-time only. Never read repository or trust overrides from the installed process environment. -->
+  <PropertyGroup>
+    <UpdateRepository Condition="'$(UpdateRepository)' == '' and '$(GITHUB_ACTIONS)' == 'true'">$(GITHUB_REPOSITORY)</UpdateRepository>
+  </PropertyGroup>
+  <ItemGroup><AssemblyMetadata Include="EasySellPut.UpdateRepository" Value="$(UpdateRepository)" /></ItemGroup>
+  <Target Name="ValidateUpdateRepository" BeforeTargets="GenerateAssemblyInfo">
+    <Error Condition="'$(UpdateRepository)' != '' and !$([System.Text.RegularExpressions.Regex]::IsMatch('$(UpdateRepository)', '^[A-Za-z0-9][A-Za-z0-9-]{0,38}/[A-Za-z0-9_.-]{1,100}$'))" Text="UpdateRepository must be a GitHub owner/repository." />
+    <Error Condition="'$(GITHUB_ACTIONS)' == 'true' and ('$(UpdateRepository)' == '' or '$(UpdateRepository)' != '$(GITHUB_REPOSITORY)')" Text="CI update source must match GITHUB_REPOSITORY." />
+  </Target>
 </Project>
