@@ -12,7 +12,7 @@ public sealed class MarketStatusTests
     [AvaloniaTheory]
     [InlineData("zh-CN", false)]
     [InlineData("en-US", true)]
-    public async Task Market_and_source_health_use_one_compact_help_entry(string language, bool dark)
+    public async Task Market_and_source_health_use_one_compact_navigation_entry(string language, bool dark)
     {
         MacHost.EnsureComposed(); var loc = AppServices.Get<LocalizationService>(); var original = loc.Language;
         var theme = AppServices.Get<MacTheme>(); loc.Apply(language); theme.Apply(dark ? AppThemeMode.Dark : AppThemeMode.Light);
@@ -21,17 +21,15 @@ public sealed class MarketStatusTests
         try
         {
             w.UseUpdateState(update); w.Show(); await update.CheckUpdatesCommand.ExecuteAsync(null); update.DismissUpdatePromptCommand.Execute(null); w.Width = 1920; w.Height = 1080; MacHost.Pump();
-            var shell = AppServices.Get<ShellViewModel>(); var status = w.FindControl<AppHelp>("MarketStatusIndicator")!;
-            Assert.Equal(shell.MarketStatusTip, status.HelpText);
+            var shell = AppServices.Get<ShellViewModel>(); var status = w.FindControl<Button>("MarketStatusIndicator")!;
+            Assert.Equal(shell.MarketStatusTip, ToolTip.GetTip(status));
             Assert.Equal(shell.MarketStatusTip, Avalonia.Automation.AutomationProperties.GetName(status));
             Assert.NotEmpty(shell.SourceCountText); Assert.InRange(status.Bounds.Width, 40, 220);
             AssertAlignment(w);
-            status.IsExpanded = true; MacHost.Pump(); Assert.True(status.IsHelpOpen);
-            MacHost.Save(w, $"market-status-details-{language}-{dark}");
-            status.IsExpanded = false; MacHost.Pump();
-            MacHost.Save(w, $"market-status-1080p-{language}-{dark}");
-            w.Width = 980; MacHost.Pump(); Assert.InRange(status.Bounds.Width, 40, 220);
-            Assert.False(status.IsExpanded); AssertAlignment(w);
+            Assert.DoesNotContain(w.FindControl<StackPanel>("BuiltinRail")!.Children.OfType<Avalonia.Controls.Primitives.ToggleButton>(), tile => Equals(tile.Tag, AppPage.DataSources));
+            status.Command!.Execute(null); MacHost.Pump(); Assert.Equal(AppPage.DataSources, w.CurrentPage);
+            MacHost.Save(w, $"source-status-1080p-{language}-{dark}");
+            w.Width = 980; MacHost.Pump(); Assert.InRange(status.Bounds.Width, 40, 220); AssertAlignment(w);
         }
         finally { w.AllowClose(); w.Close(); loc.Apply(original); theme.Apply(AppThemeMode.System); }
     }

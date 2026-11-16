@@ -945,4 +945,10 @@
     <sys:String x:Key="Set_MotionDesc">减少界面动画，立即应用并记住此选择；系统的减少动态设置始终优先。</sys:String>
     <sys:String x:Key="Cache_qqq_gex_wire">QQQ GEX 可重建响应</sys:String>
     <sys:String x:Key="Storage_gex">GEX 历史归档与派生数据</sys:String>
+    <sys:String x:Key="QP_PreShort">盘前</sys:String>
+    <sys:String x:Key="QP_PostShort">盘后</sys:String>
+    <sys:String x:Key="QP_ExtendedShort">扩展</sys:String>
+    <sys:String x:Key="QP_RegularShort">常规</sys:String>
+    <sys:String x:Key="QP_Extended">扩展时段</sys:String>
+    <sys:String x:Key="QP_CloseReference">收盘参考</sys:String>
 </ResourceDictionary>

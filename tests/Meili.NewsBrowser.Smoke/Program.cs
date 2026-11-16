@@ -157,6 +157,21 @@ internal static class Program
             Console.WriteLine("PASS: native NSStatusItem title, AppKit menu actions, both color conventions, stale/missing quotes, PNG capture and disposal.");
         }
         finally{loc.Apply(original);}
+        var clicks = 0;
+        using (var anchored = new MacQuoteStatusItem(() => clicks++))
+        {
+            anchored.Update(MenuBarQuote.Create("QQQ", null, false, loc, DateTimeOffset.UtcNow), [], UpDownColorMode.RedUp);
+            await Task.Delay(150);
+            var probe = new Window();
+            var anchor = anchored.Anchor;
+            var screen = probe.Screens.All.Single(s => s.TryGetPlatformHandle() is { HandleDescriptor: "CGDirectDisplayID" } h && h.Handle.ToInt64() == anchor.DisplayId);
+            if (!double.IsFinite(anchor.X) || !double.IsFinite(anchor.Y) || anchor.X < 0 || anchor.X > screen.Bounds.Width / screen.Scaling || anchor.Y < 0 || anchor.Y > screen.Bounds.Height / screen.Scaling)
+                throw new Exception("Status item anchor is outside its actual display");
+            probe.Close();
+            anchored.InvokePanel();
+            if (clicks != 1) throw new Exception("Status item panel target/action failed");
+            Console.WriteLine($"PASS: native status item anchor on display {anchor.DisplayId}, local points {anchor.X:0.##},{anchor.Y:0.##} and panel click.");
+        }
         using var recreated=new MacQuoteStatusItem();
         recreated.Update(MenuBarQuote.Create("AAPL",null,false,loc,DateTimeOffset.UtcNow),[],UpDownColorMode.RedUp);
         if(recreated.Title!="AAPL —")throw new Exception("Menu bar recreation failed");

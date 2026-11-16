@@ -16,7 +16,7 @@ public partial class DataSourcesViewModel : ObservableObject
     private readonly LocalizationService _loc;
     private readonly INetworkController _network;
     private readonly IUiTimer _timer = Ui.Timer(TimeSpan.FromSeconds(1));
-    private bool _autoTested;
+    private readonly DataSourceHealthMonitor _monitor;
 
     public ObservableCollection<SourceRowViewModel> Sources { get; } = [];
     public ObservableCollection<FailoverRowViewModel> Failover { get; } = [];
@@ -25,9 +25,10 @@ public partial class DataSourcesViewModel : ObservableObject
     [ObservableProperty] public partial string SummaryText { get; set; } = "";
     public string TestButtonText => _loc[IsTesting ? "Ds_Testing" : "Ds_TestAll"];
 
-    public DataSourcesViewModel(DataServices data, LocalizationService loc, INetworkController network)
+    public DataSourcesViewModel(DataServices data, LocalizationService loc, INetworkController network, DataSourceHealthMonitor monitor)
     {
-        _data = data; _loc = loc; _network = network;
+        _data = data; _loc = loc; _network = network; _monitor = monitor;
+        _monitor.Changed += (_, _) => { IsTesting = _monitor.IsTesting; Refresh(); };
         foreach (var h in data.Health.All) Sources.Add(new SourceRowViewModel(h, Domestic.Contains(h.Id)));
         _timer.Tick += (_, _) => Refresh();
         _loc.LanguageChanged += (_, _) => { BuildFailover(); OnPropertyChanged(nameof(TestButtonText)); Refresh(); };
@@ -40,11 +41,8 @@ public partial class DataSourcesViewModel : ObservableObject
     {
         _timer.Start();
         Refresh();
-        if (!_autoTested && _data.Health.All.All(h => h.State(_data.Health.Now) == HealthState.Unknown))
-        {
-            _autoTested = true;
-            await TestAllAsync();
-        }
+        // The desktop-wide monitor owns automatic sweeps; opening the page joins an active sweep.
+        if (_monitor.IsTesting) await _monitor.RefreshAsync();
     }
 
     public void Deactivate() => _timer.Stop();
@@ -52,15 +50,7 @@ public partial class DataSourcesViewModel : ObservableObject
     [RelayCommand]
     private async Task TestAllAsync()
     {
-        if (IsTesting) return;
-        IsTesting = true;
-        try
-        {
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
-            await Task.WhenAll(_data.Providers.Select(p => Task.Run(() => _data.Router.ProbeAsync(p, cts.Token))));
-        }
-        catch (OperationCanceledException) { }
-        finally { IsTesting = false; Refresh(); }
+        await _monitor.RefreshAsync();
     }
 
     private void BuildFailover()
@@ -76,6 +66,7 @@ public partial class DataSourcesViewModel : ObservableObject
 
     private void Refresh()
     {
+        IsTesting = _monitor.IsTesting;
         var now = _data.Health.Now;
         foreach (var s in Sources) s.Refresh(now, _loc);
         NetworkText = $"{_loc["Status_Proxy"]}: {_network.EffectiveDescription}";

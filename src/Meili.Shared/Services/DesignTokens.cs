@@ -96,6 +96,12 @@ public static class DesignTokens
     public const double FormFieldWidth = 260;
     public const double WindowHeaderHeight = 36;
     public const double StorageBarHeight = 24;
+    public const double QuotePanelWidth = 420;
+    public const double MacQuotePanelWidth = 360;
+    public const double MacQuotePanelHeight = 640;
+    public const double QuotePanelHeight = 680;
+    public const double QuotePanelSparkWidth = 64;
+    public const double QuotePanelHeroSparkHeight = 80;
     public static IEnumerable<(string Key,uint Argb)> ComponentBrushes(bool dark) => dark ? DarkBrushes : LightBrushes;
     private static readonly (string Key,uint Argb)[] LightBrushes =
     [

@@ -85,7 +85,12 @@ public sealed class NotificationService : IAlertNotifier, IDisposable
         try
         {
             var symbol=_symbols.Current??"SPY";
-            _tray.ToolTipText=_quotes.TryGetCached(symbol,out var q)?symbol+" "+(double.IsFinite(q.Price)?Meili.Core.Models.NumberDisplay.Price(q.Price):"—")+" "+QuoteMovement.Percent(QuoteMovement.Values(q).Percent)+"\n"+FreshnessText.SourceAndTiming(q,_loc,DateTimeOffset.UtcNow)+"\n"+FreshnessText.AsOf(q.AsOf,_loc):_loc["App_Title"];
+            if (_quotes.TryGetCached(symbol,out var quote))
+            {
+                var view=QuotePriceView.Select(quote,DateTimeOffset.UtcNow);var q=view.Snapshot;
+                _tray.ToolTipText=symbol+" "+(double.IsFinite(q.Price)?Meili.Core.Models.NumberDisplay.Price(q.Price):"—")+" "+QuoteMovement.Percent(QuoteMovement.Values(q).Percent)+" · "+_loc[view.SessionKey]+"\n"+FreshnessText.SourceAndTiming(q,_loc,DateTimeOffset.UtcNow)+"\n"+FreshnessText.AsOf(q.AsOf,_loc);
+            }
+            else _tray.ToolTipText=_loc["App_Title"];
             if (_tray.ContextMenu is not null)
                 _tray.ContextMenu = BuildMenu();
         }

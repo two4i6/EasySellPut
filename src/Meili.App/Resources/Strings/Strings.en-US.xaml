@@ -945,4 +945,10 @@
     <sys:String x:Key="Set_MotionDesc">Reduce interface animation and remember this choice. The system reduced-motion preference always takes priority.</sys:String>
     <sys:String x:Key="Cache_qqq_gex_wire">QQQ GEX derived responses</sys:String>
     <sys:String x:Key="Storage_gex">GEX archive and derived data</sys:String>
+    <sys:String x:Key="QP_PreShort">PRE</sys:String>
+    <sys:String x:Key="QP_PostShort">POST</sys:String>
+    <sys:String x:Key="QP_ExtendedShort">EXT</sys:String>
+    <sys:String x:Key="QP_RegularShort">REG</sys:String>
+    <sys:String x:Key="QP_Extended">Extended hours</sys:String>
+    <sys:String x:Key="QP_CloseReference">Regular close</sys:String>
 </ResourceDictionary>

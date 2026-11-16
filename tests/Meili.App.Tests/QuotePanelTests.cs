@@ -20,4 +20,23 @@ public sealed class QuotePanelTests
             finally{panel.Close();}
         });
     }
+    [Fact] public void Extended_session_uses_new_price_and_matching_axis_in_compact_native_panel()
+    {
+        WpfHost.Run(async()=>
+        {
+            var now=Meili.Core.Time.MarketClock.FromEastern(new DateTime(2026,11,16,8,0,0));
+            var data=new QuotePanelMarketData{Phase=Meili.Core.Models.MarketState.PreMarket,Clock=now};var hub=new QuoteHub(data);var context=new SymbolContext();context.Set("QQQ");
+            var settings=new SettingsStore(Path.Combine(Path.GetTempPath(),"quote-panel-extended-"+Guid.NewGuid()));
+            using var model=new QuotePanelViewModel(hub,data,new WatchlistStore(settings),context,LocalizationService.Current){Now=()=>now};var panel=new QuotePanelWindow(model,_=>{},()=>{},()=>{});
+            try
+            {
+                await panel.ShowPanelAsync();await WpfHost.Settle();Assert.Equal(420,panel.Width);
+                Assert.True(model.Selected!.Display!.IsExtended);Assert.Equal("-1.00%",model.Selected.Change);Assert.Equal(Meili.Core.Time.MarketSession.PreMarket,model.Selected.Graph.Session);
+                Assert.Contains(UiAudit.Descendants<System.Windows.Controls.TextBlock>(panel),t=>t.Text=="04:00");
+                Assert.Contains(UiAudit.Descendants<System.Windows.Controls.TextBlock>(panel),t=>t.Text=="09:30");
+                panel.HidePanel();Assert.Empty(hub.SubscribedSymbols);
+            }
+            finally{panel.Close();}
+        });
+    }
 }

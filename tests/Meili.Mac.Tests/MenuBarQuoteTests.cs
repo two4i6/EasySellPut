@@ -27,6 +27,16 @@ public sealed class MenuBarQuoteTests
         Assert.Contains(extended.Details,line=>line.Contains("170")&&line.Contains(loc["Quote_AsOfUnknown"]));
         Assert.DoesNotContain("Infinity",MenuBarQuote.Create("NVDA",quote with{Price=1e308,ChangePercent=null,PreviousClose=1e-300},false,loc,now).Title);
     }
+    [AvaloniaFact] public void Menu_bar_uses_newer_timestamped_extended_price_and_preserves_regular_close_in_details()
+    {
+        MacHost.EnsureComposed();var loc=LocalizationService.Current;
+        var now=Meili.Core.Time.MarketClock.FromEastern(new DateTime(2026,11,16,8,0,0));
+        var quote=FakeMarketDataService.MakeQuote("QQQ",100) with{PreviousClose=95,ChangePercent=5.26,MarketState=MarketState.PreMarket,AsOf=now.AddDays(-3).AddHours(8),ExtendedPrice=98,ExtendedTime=now.AddMinutes(-1),FetchedAt=now};
+        var view=MenuBarQuote.Create("QQQ",quote,false,loc,now);
+        Assert.Contains("QQQ 98.00 ↓2.00%",view.Title);Assert.Contains(loc["QP_PreShort"],view.Title);Assert.Equal(-1,view.Direction);
+        Assert.Contains(view.Details,d=>d.Contains("100.00")&&d.Contains(loc["QP_CloseReference"]));
+    }
+
     [AvaloniaFact]
     public async Task Subscriber_follows_symbol_uses_shared_pump_and_disposes_without_writing_preferences()
     {

@@ -4,6 +4,7 @@ using Meili.Core.Models;
 using Meili.Core.Quotes;
 using Meili.Core.Settings;
 using Meili.Core.Diagnostics;
+using Meili.Core.Time;
 namespace Meili.Shared.ViewModels;
 
 public sealed class PanelQuoteRow(string symbol)
@@ -11,20 +12,41 @@ public sealed class PanelQuoteRow(string symbol)
     public string Symbol{get;}=symbol;
     public Quote? Quote{get;internal set;}
     public bool Failed{get;internal set;}
-    public IntradaySparkline Graph{get;internal set;}=IntradaySparkline.Empty;
+    internal Func<DateTimeOffset> Now = () => DateTimeOffset.UtcNow;
+    public QuotePriceView? Display => Quote is { } q ? QuotePriceView.Select(q, Now()) : null;
+    private readonly Dictionary<MarketSession, IntradaySparkline> _graphs = new();
+    public IntradaySparkline Graph
+    {
+        get
+        {
+            var view = Display; var session = view?.Session ?? MarketSession.Regular;
+            if (view?.IsExtended == true && session == MarketSession.Closed) return IntradaySparkline.Empty with { Session = session };
+            var graph = _graphs.GetValueOrDefault(session, IntradaySparkline.Empty with { Session = session });
+            if (view?.Snapshot.AsOf is { } at && graph.Day != DateOnly.FromDateTime(MarketClock.ToEastern(at)))
+                return IntradaySparkline.Empty with { Session = session };
+            return graph;
+        }
+    }
+    internal void SetGraphs(BarSeries series, DateTimeOffset now)
+    {
+        _graphs[MarketSession.Regular] = IntradaySparkline.Create(series, Quote?.PreviousClose, now);
+        _graphs[MarketSession.PreMarket] = IntradaySparkline.Create(series, Quote?.Price, now, MarketSession.PreMarket);
+        _graphs[MarketSession.AfterHours] = IntradaySparkline.Create(series, Quote?.Price, now, MarketSession.AfterHours);
+    }
     public BarSeries? ChartMeta{get;internal set;}
     public bool GraphFailed{get;internal set;}
     internal DateTimeOffset GraphRequested;
     public string Name=>Quote?.Name??Symbol;
-    public string Price=>Quote is {Price:>0} q && double.IsFinite(q.Price)?NumberDisplay.Price(q.Price):"—";
-    public string Change=>Quote is { } q?QuoteMovement.Percent(QuoteMovement.Values(q).Percent):"—";
-    public string BrushKey=>Failed||Quote is null||QuoteStaleness.Check(Quote,DateTimeOffset.UtcNow)!=StaleReason.None?"UnknownBrush":QuoteMovement.Values(Quote).Percent is { } p?p>=0?"UpBrush":"DownBrush":"UnknownBrush";
+    public string Price=>Display?.Snapshot is {Price:>0} q && double.IsFinite(q.Price)?(q.Price>=1e9?q.Price.ToString("0.##E+0",System.Globalization.CultureInfo.InvariantCulture):NumberDisplay.Price(q.Price)):"—";
+    public string Change=>Display?.Snapshot is { } q?QuoteMovement.Percent(QuoteMovement.Values(q).Percent):"—";
+    public string BrushKey=>Display is not { } view || view.Stale(Now(), Failed)?"UnknownBrush":QuoteMovement.Values(view.Snapshot).Percent is { } p?p>=0?"UpBrush":"DownBrush":"UnknownBrush";
 }
 
 /// <summary>Visible-only quote subscriber; the existing QuotePump drives updates. No new market timer.</summary>
 public sealed class QuotePanelViewModel : IDisposable
 {
     public const int PageSize=8;
+    public Func<DateTimeOffset> Now { get; set; } = () => DateTimeOffset.UtcNow;
     private readonly QuoteHub _hub;private readonly IMarketDataService _data;private readonly WatchlistStore _watch;private readonly SymbolContext _context;
     private readonly LocalizationService _loc;private readonly string _owner="quote-panel-"+Guid.NewGuid();
     private readonly Dictionary<string,PanelQuoteRow> _cache=new(StringComparer.OrdinalIgnoreCase);
@@ -42,7 +64,7 @@ public sealed class QuotePanelViewModel : IDisposable
     private void Build()
     {
         var watch=_watch.AllSymbols.ToList();if(!watch.Contains(_context.Current??"SPY",StringComparer.OrdinalIgnoreCase))watch.Insert(0,_context.Current??"SPY");var symbols=watch.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();Pages=Math.Max(1,(symbols.Length+PageSize-1)/PageSize);Page=Math.Clamp(Page,0,Pages-1);
-        Rows=symbols.Skip(Page*PageSize).Take(PageSize).Select(s=>{if(!_cache.TryGetValue(s,out var row))_cache[s]=row=new(s);if(_hub.TryGetCached(s,out var q))row.Quote=q;return row;}).ToArray();
+        Rows=symbols.Skip(Page*PageSize).Take(PageSize).Select(s=>{if(!_cache.TryGetValue(s,out var row))_cache[s]=row=new(s) { Now = () => Now() };if(_hub.TryGetCached(s,out var q))row.Quote=q;return row;}).ToArray();
         foreach(var s in _cache.Keys.Where(s=>!symbols.Contains(s,StringComparer.OrdinalIgnoreCase)).ToArray())_cache.Remove(s);
         if(_visible)_hub.Subscribe(_owner,Rows.Select(r=>r.Symbol));Notify();
     }
@@ -70,10 +92,10 @@ public sealed class QuotePanelViewModel : IDisposable
                 if(!force && DateTimeOffset.UtcNow-row.GraphRequested<TimeSpan.FromMinutes(1))return;
                 await gate.WaitAsync(ct);try
                 {
-                    var now=DateTimeOffset.UtcNow;var series=await _data.GetBarsAsync(new(row.Symbol,BarInterval.Minute5,now.AddDays(-10),now),ct);
+                    var now=Now();var series=await _data.GetBarsAsync(new(row.Symbol,BarInterval.Minute5,now.AddDays(-10),now),ct);
                     if(ct.IsCancellationRequested||generation!=_generation||!_visible)return;
                     if(series.Interval!=BarInterval.Minute5 || !string.Equals(series.Symbol,row.Symbol,StringComparison.OrdinalIgnoreCase))throw new InvalidDataException("Mismatched chart symbol");
-                    row.GraphRequested=DateTimeOffset.UtcNow;row.Graph=IntradaySparkline.Create(series,row.Quote?.PreviousClose,now);row.ChartMeta=series with{Bars=[]};row.GraphFailed=false;Notify();
+                    row.GraphRequested=DateTimeOffset.UtcNow;row.SetGraphs(series,now);row.ChartMeta=series with{Bars=[]};row.GraphFailed=false;Notify();
                 }
                 catch(OperationCanceledException)when(ct.IsCancellationRequested){throw;}
                 catch(Exception ex){AppLog.Warn("quote-panel","Intraday unavailable for "+row.Symbol,ex);if(generation!=_generation||!_visible)return;row.GraphFailed=true;Status=_loc["QP_Retry"];}
