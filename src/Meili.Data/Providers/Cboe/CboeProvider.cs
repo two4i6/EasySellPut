@@ -133,7 +133,7 @@ public sealed class CboeProvider(HttpGateway http, ResponseCache cache) : Provid
             // Large (AAPL ~1.5 MB, SPX ~14 MB): parse off the UI thread.
             var chain = await Task.Run(() => { using var doc = ParseJson(payload.Body); return ParseOptions(doc.RootElement, Norm(symbol), Eastern.Today); }, c).ConfigureAwait(false);
             if (chain.Contracts.Count == 0) throw NoData($"no options for {symbol}");
-            return chain;
+            return chain with { RawSourcePayload = payload.Body };
         }, ct);
     }
 

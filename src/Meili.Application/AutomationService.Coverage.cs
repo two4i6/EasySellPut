@@ -24,6 +24,19 @@ public sealed partial class AutomationService
     {
         switch (operation)
         {
+            case "rebuild_qqq_gex_history":
+                if(!File.Exists(Path.Combine(DirectoryInfo.Path,"cache","qqq-gex.db")))return new {status="no_observed_inputs",complete=false,processed=0};
+                return await QqqGexCalculationRunner.RebuildHistoryAsync(DirectoryInfo.Path,a.Int("limit",100,1,400),a.Bool("retryFailed"),ct);
+            case "get_qqq_gex_replay":
+                {
+                    var from=a.Instant("from")!.Value.ToUniversalTime();var to=a.Instant("to")!.Value.ToUniversalTime();
+                    if(to<=from||to-from>TimeSpan.FromDays(32))throw new ArgumentException("Replay range must increase and be at most 32 days");
+                    if(!File.Exists(Path.Combine(DirectoryInfo.Path,"cache","qqq-gex.db")))return new {status="cache_miss",available=false,complete=false};
+                    var query="/api/analysis/qqq/pcs/backtest?stream=signals&from="+Uri.EscapeDataString(from.ToString("O"))+"&to="+Uri.EscapeDataString(to.ToString("O"))+"&page="+a.Int("page",1,1,100000)+"&pageSize="+a.Int("pageSize",200,1,200);
+                    return await QqqGexCalculationRunner.QueryAsync(DirectoryInfo.Path,query,ct);
+                }
+            case "calculate_qqq_gex_local": return await QqqGexCalculationRunner.RunAsync(DirectoryInfo.Path,ct);
+            case "capture_qqq_gex_input": return await new QqqGexCaptureService(await Market(ct),DirectoryInfo.Path).CaptureAsync(ct);
             case "clear_alert_history":
                 { var store = Alerts(); store.ClearHistory(); return new { cleared = true, remaining = store.History.Count }; }
             case "move_watchlist_symbol":

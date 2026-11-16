@@ -121,4 +121,8 @@ Discover the live schema before calling any tool; this guide does not replace ar
 | `delete_chart_drawing` | write | Read get_chart_drawings first; use its revision and zero-based index to remove only the intended line. Other lines remain; stale revisions fail. |
 | `clear_chart_drawings` | write | Clear persisted drawings for one symbol with conflict protection. |
 | `update_preferences` | write | Patch allowlisted local preferences; omitted fields remain unchanged. No proxy URL/credentials, arbitrary paths or window control. Desktop reload/restart required after external changes. |
+| `capture_qqq_gex_input` | write | Capture coherent QQQ provider inputs locally, preserving source delay and gaps; this does not publish calculated history. |
+| `calculate_qqq_gex_local` | write | Run the bundled original calculation on captured local inputs; requires existing Node 24 and reports missing runtime or rejected data explicitly. |
+| `get_qqq_gex_replay` | read | Replay imported local history through the original causal engine; maximum 32 days, no remote fallback, incomplete coverage stays explicit. |
+| `rebuild_qqq_gex_history` | write | Resume imports of retained normalized observations; bounded batches, independent commits and explicit retry of failed inputs; never fills missing history. |
 <!-- mcp-tool-guide:end -->

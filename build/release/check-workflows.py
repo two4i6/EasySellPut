@@ -37,7 +37,7 @@ def check(workflows):
     commands = '\n'.join(step.get('run', '') for step in prepare['jobs']['packages']['steps'])
     require('dotnet publish' not in commands and 'pack-desktop.py' not in commands and 'pack-cli.' not in commands, 'Release cannot rebuild application packages')
     require('check_desktop_package.py' in commands and 'cli_mcp_smoke.py' in commands and 'stapler validate' in commands, 'Final signed packages need native execution and notarization checks')
-    require(set(ci['jobs']['required']['needs']) == {'cli', 'ui', 'desktop', 'release-policy'}, 'All job families must remain required')
+    require(set(ci['jobs']['required']['needs']) == {'cli', 'ui', 'desktop', 'release-policy', 'qqq-gex'}, 'All job families must remain required')
     require(ci['jobs']['required']['name'] == GATE_NAME, 'Aggregate check name differs from release policy')
     require(ci['jobs']['ui']['name'] == 'UI · Layout & Charts' and ci['jobs']['release-policy']['name'] == 'Release · main guard', 'Required job labels differ')
     require(ci['jobs']['cli']['name'] == '${{ matrix.label }} · CLI/MCP' and ci['jobs']['desktop']['name'] == '${{ matrix.label }} · Desktop', 'Use short platform-first job labels')

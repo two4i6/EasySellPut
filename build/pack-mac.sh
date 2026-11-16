@@ -25,6 +25,7 @@ for arch in arm64 x64; do
   dotnet publish "$root/src/Meili.Mac" -c Release -r "osx-$arch" --self-contained true \
     -p:PublishTrimmed=false -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=false \
     -p:DebugType=none -p:GenerateDocumentationFile=false -o "$pub" -v q -nologo
+  python3 "$root/build/bundle-qqq-runtime.py" "osx-$arch" "$pub"
   app="$work/$arch/$name.app"
   mkdir -p "$work/$arch"
   python3 "$root/build/mac/bundle.py" app "$pub" "$app" "$version" "$work/AppIcon.icns"

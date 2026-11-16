@@ -1,0 +1,10 @@
+.wrapper { position: relative; flex: 1 1 auto; min-width: 0; }
+.rail { overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+.rail::-webkit-scrollbar { display: none; }
+.content { display: flex; align-items: center; gap: 5px; width: max-content; min-width: 100%; white-space: nowrap; }
+.edge { position: absolute; top: 0; bottom: 0; width: 36px; display: flex; align-items: center; pointer-events: none; }
+.left { left: 0; justify-content: flex-start; background: linear-gradient(to right, var(--bg-secondary, #242424) 35%, transparent); }
+.right { right: 0; justify-content: flex-end; background: linear-gradient(to left, var(--bg-secondary, #242424) 35%, transparent); }
+.edge button { display: flex; align-items: center; justify-content: center; width: 23px; height: 25px; padding: 0; border: 1px solid var(--border-subtle); border-radius: 4px; background: var(--bg-secondary); color: var(--text-secondary); cursor: pointer; pointer-events: auto; }
+.edge button:hover { color: var(--accent-primary); }
+.edge button:focus-visible, .rail:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: -2px; }

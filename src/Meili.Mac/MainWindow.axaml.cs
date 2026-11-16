@@ -18,7 +18,7 @@ public partial class MainWindow : Window
     public static readonly IReadOnlyList<AppPage> PageOrder =
     [
         AppPage.Dashboard, AppPage.Watchlist, AppPage.Charts, AppPage.Options, AppPage.Strategy,
-        AppPage.News, AppPage.Alerts, AppPage.DataSources, AppPage.Settings,
+        AppPage.News, AppPage.Alerts, AppPage.DataSources, AppPage.Settings, AppPage.QqqGex,
     ];
 
 
@@ -90,6 +90,7 @@ public partial class MainWindow : Window
         AppPage.Dashboard => new DashboardPage(),
         AppPage.Watchlist => new WatchlistPage(),
         AppPage.Charts => new ChartsPage(),
+        AppPage.QqqGex => new QqqGexPage(),
         AppPage.Options => new OptionsPage(),
         AppPage.Strategy => new StrategyPage(),
         AppPage.News => new NewsPage(),

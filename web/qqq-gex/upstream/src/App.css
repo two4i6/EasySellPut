@@ -1,0 +1,782 @@
+/* App.css - 精确对齐参考图的工业级深灰/消光黄视觉系统 */
+:root[data-theme='dark'] {
+  /* 深灰色背景 - 调整为更中性，去除发红倾向 */
+  --bg-primary: #252525;
+  --bg-secondary: #2c2c2c; 
+  --bg-tertiary: #333333;
+  --bg-card: rgba(45, 45, 45, 0.6); /* 深灰半透明 */
+  --bg-subtle: rgba(255, 255, 255, 0.02);
+  --bg-hover: rgba(255, 255, 255, 0.05);
+  --bg-overlay: rgba(18, 18, 18, 0.8);
+  
+  /* 文本颜色 - 柔和白与灰 */
+  --text-primary: #e4e4e7;
+  --text-secondary: #a1a1aa;
+  --text-tertiary: #71717a;
+  --text-muted: #52525b;
+  --text-inverse: #18181b; /* 用于黄色按钮上的深色文字 */
+  
+  /* 边框 - 浅灰色 */
+  --border-color: #2d2d2d;
+  --border-light: #3f3f3f;
+  --border-subtle: #242424;
+  --border-focus: #52525b;
+  
+  /* 强调色 - 低饱和度黄色/琥珀金 */
+  --accent-primary: #d4b16a; 
+  --accent-primary-hover: #e5c580;
+  --accent-primary-alpha: rgba(212, 177, 106, 0.2);
+  --accent-secondary: #a855f7;
+  --accent-success: #82a67d; /* 低饱和绿 */
+  --accent-success-alpha: rgba(130, 166, 125, 0.1);
+  --accent-info: #7da2a6;    /* 低饱和蓝 */
+  --accent-warning: #c5a059;
+  --accent-danger: #a67d7d;  /* 低饱和红 */
+  --accent-danger-alpha: rgba(166, 125, 125, 0.1);
+
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.5);
+  --shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.6);
+
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  /* 浅色背景 */
+  --bg-primary: #f8f9fa;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f1f3f5;
+  --bg-card: rgba(255, 255, 255, 0.8);
+  --bg-subtle: rgba(0, 0, 0, 0.03);
+  --bg-hover: rgba(0, 0, 0, 0.05);
+  --bg-overlay: rgba(255, 255, 255, 0.8);
+  
+  /* 文本颜色 */
+  --text-primary: #1a1a1a;
+  --text-secondary: #4a4a4a;
+  --text-tertiary: #71717a;
+  --text-muted: #a1a1aa;
+  --text-inverse: #ffffff;
+  
+  /* 边框 */
+  --border-color: #e5e7eb;
+  --border-light: #d1d5db;
+  --border-subtle: #f3f4f6;
+  --border-focus: #9ca3af;
+  
+  /* 强调色 (稍微调整以在浅色背景上更清晰) */
+  --accent-primary: #c49a4a; 
+  --accent-primary-hover: #b3893d;
+  --accent-primary-alpha: rgba(196, 154, 74, 0.2);
+  --accent-secondary: #9333ea;
+  --accent-success: #15803d;
+  --accent-success-alpha: rgba(21, 128, 61, 0.1);
+  --accent-info: #0369a1;
+  --accent-warning: #b45309;
+  --accent-danger: #be123c;
+  --accent-danger-alpha: rgba(190, 18, 60, 0.1);
+
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.1);
+  --shadow-hover: 0 12px 32px rgba(0, 0, 0, 0.12);
+
+  color-scheme: light;
+}
+
+/* 默认使用暗黑模式，直到设置了 data-theme */
+:root {
+  /* 深灰色背景 - 调整为更中性，去除发红倾向 */
+  --bg-primary: #252525;
+  --bg-secondary: #2c2c2c; 
+  --bg-tertiary: #333333;
+  --bg-card: rgba(45, 45, 45, 0.6); /* 深灰半透明 */
+  --bg-subtle: rgba(255, 255, 255, 0.02);
+  --bg-hover: rgba(255, 255, 255, 0.05);
+  --bg-overlay: rgba(18, 18, 18, 0.8);
+  
+  /* 文本颜色 - 柔和白与灰 */
+  --text-primary: #e4e4e7;
+  --text-secondary: #a1a1aa;
+  --text-tertiary: #71717a;
+  --text-muted: #52525b;
+  --text-inverse: #18181b; /* 用于黄色按钮上的深色文字 */
+  
+  /* 边框 - 浅灰色 */
+  --border-color: #2d2d2d;
+  --border-light: #3f3f3f;
+  --border-subtle: #242424;
+  --border-focus: #52525b;
+  
+  /* 强调色 - 低饱和度黄色/琥珀金 */
+  --accent-primary: #d4b16a; 
+  --accent-primary-hover: #e5c580;
+  --accent-primary-alpha: rgba(212, 177, 106, 0.2);
+  --accent-secondary: #a855f7;
+  --accent-success: #82a67d; /* 低饱和绿 */
+  --accent-success-alpha: rgba(130, 166, 125, 0.1);
+  --accent-info: #7da2a6;    /* 低饱和蓝 */
+  --accent-warning: #c5a059;
+  --accent-danger: #a67d7d;  /* 低饱和红 */
+  --accent-danger-alpha: rgba(166, 125, 125, 0.1);
+  
+  /* 视觉效果 */
+  --border-radius: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-xl: 16px;
+  --transition: all 0.2s ease-in-out;
+  
+  /* 字体系统 */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.5);
+  --shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.6);
+
+  /* Breakpoints */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+}
+
+/* 基础样式 */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+@media (max-width: 768px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-sans);
+  background-color: var(--bg-primary);
+  /* 极简深灰阴影 - 修正红色倾向 */
+  background-image: radial-gradient(circle at 50% -20%, var(--bg-tertiary) 0%, transparent 70%);
+  background-attachment: fixed;
+  color: var(--text-primary);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* 应用容器 */
+.app-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  min-height: 100vh;
+}
+
+@media (max-width: 768px) {
+  .app-container {
+    padding: 0.75rem;
+    padding-bottom: 80px; /* Space for mobile navigation if needed */
+  }
+}
+
+/* 头部样式 */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2.5rem;
+  padding: 1.5rem 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+@media (max-width: 768px) {
+  header {
+    margin-bottom: 1.5rem;
+    padding: 1rem 0;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+}
+
+h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+  h1 {
+    font-size: 1.25rem;
+  }
+}
+
+/* 按钮系统 - 精确对齐黄色低饱和风格 */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.25rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: var(--transition);
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  position: relative;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.7rem;
+  }
+}
+
+.btn-primary {
+  background: var(--accent-primary);
+  color: var(--text-inverse);
+  border: none;
+}
+
+.btn-primary:hover {
+  background: var(--accent-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(212, 177, 106, 0.2);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: var(--border-light);
+}
+
+.btn-outline {
+  background-color: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.btn-outline:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: var(--border-light);
+}
+
+.btn-ghost {
+  background-color: transparent;
+  color: var(--text-secondary);
+  border: 1px solid transparent;
+}
+
+.btn-ghost:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.btn-danger {
+  background-color: var(--bg-subtle);
+  color: var(--accent-danger);
+  border: 1px solid var(--border-color);
+}
+
+.btn-danger:hover {
+  background-color: var(--accent-danger);
+  color: white;
+}
+
+.btn-success {
+  background-color: var(--bg-subtle);
+  color: var(--accent-success);
+  border: 1px solid var(--border-color);
+}
+
+.btn-success:hover {
+  background-color: var(--accent-success);
+  color: white;
+}
+
+.btn-magi {
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.btn-magi.active {
+  background: var(--accent-primary);
+  color: var(--text-inverse);
+  border-color: var(--accent-primary);
+}
+
+/* 卡片系统 - 强化浅灰色边框与毛玻璃 */
+.card {
+  background: var(--bg-card);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: var(--border-radius-lg);
+  padding: 1.5rem;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .card {
+    padding: 1rem;
+  }
+}
+
+.card-hoverable:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-light);
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-4px);
+}
+
+/* 指标显示 */
+.metric {
+  display: flex;
+  flex-direction: column;
+}
+
+.metric-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+}
+
+.metric-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+  .metric-value {
+    font-size: 1rem;
+  }
+}
+
+/* 盈亏颜色 - 低饱和度 */
+.pnl-positive { 
+  color: var(--accent-success);
+}
+
+.pnl-negative { 
+  color: var(--accent-danger);
+}
+
+/* 徽章系统 */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background-color: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+}
+
+.badge-call {
+  color: var(--accent-info);
+}
+
+.badge-put {
+  color: var(--accent-primary);
+}
+
+/* 模态框 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg-overlay);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease;
+}
+
+.modal-content {
+  background: var(--bg-secondary);
+  width: 100%;
+  max-width: 42rem;
+  padding: 2rem;
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-light);
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+@media (max-width: 768px) {
+  .modal-content {
+    padding: 1.5rem;
+    max-height: 95vh;
+  }
+}
+
+/* 表单元素 */
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  background-color: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  transition: var(--transition);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  background-color: var(--bg-hover);
+}
+
+/* 期权腿编辑器 */
+.leg-editor {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+  .leg-editor {
+    padding: 0.75rem;
+  }
+}
+
+/* 网格布局 */
+.strategy-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .strategy-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-light);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* 动画 */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.page-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.page-container.qqq-analysis-page {
+  max-width: none;
+  margin: 0;
+}
+
+/* The global layout supplies the status-bar height; keep only this page's viewport sizing here. */
+.china-refined-oil-page {
+  --china-refined-oil-font-large: 1.55rem;
+  --china-refined-oil-font-medium: 0.8rem;
+  --china-refined-oil-font-small: 0.68rem;
+  width: 100vw;
+  max-width: none;
+  margin: 0;
+  height: calc(100dvh - var(--system-status-bar-height, 32px) - 32px);
+  padding: 0.75rem;
+}
+
+.china-refined-oil-workbench {
+  display: grid;
+  grid-template-columns: minmax(360px, 2fr) minmax(540px, 3fr);
+  gap: 0.85rem;
+  height: 100%;
+  min-height: 0;
+}
+
+.china-refined-oil-workbench__left,
+.china-refined-oil-workbench__right {
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
+.china-refined-oil-workbench__left {
+  display: flex;
+  flex-direction: column;
+  padding: 0.25rem 0.35rem 0.75rem 0.15rem;
+}
+
+.china-refined-oil-workbench__right {
+  display: flex;
+  padding: 0.15rem 0.15rem 0.75rem 0.85rem;
+  border-left: 1px solid var(--border-subtle);
+}
+
+.china-refined-oil-backtest-panel,
+.china-refined-oil-backtest-chart {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.china-refined-oil-backtest-chart__plot {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 280px;
+}
+
+.china-refined-oil-backtest-chart__plot svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.china-refined-oil-market-chart {
+  margin-top: 0.75rem;
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.china-refined-oil-market-chart__canvas,
+.china-refined-oil-market-chart__host {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.china-refined-oil-market-chart__canvas {
+  display: flex;
+  overflow: hidden;
+  flex-direction: column;
+}
+
+.china-refined-oil-market-chart__host {
+  width: 100%;
+}
+
+.china-refined-oil-market-chart__state {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: var(--bg-primary);
+  color: var(--text-muted);
+  font-size: var(--china-refined-oil-font-medium);
+}
+
+.china-refined-oil-market-chart__state--error {
+  color: var(--accent-danger);
+}
+
+@media (max-width: 1023px) {
+  .china-refined-oil-page {
+    height: auto;
+    padding: 0.75rem 0.75rem 80px;
+  }
+
+  .china-refined-oil-workbench {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .china-refined-oil-workbench__left,
+  .china-refined-oil-workbench__right {
+    overflow: visible;
+    padding: 0;
+  }
+
+  .china-refined-oil-workbench__right {
+    display: block;
+    border-left: 0;
+  }
+
+  .china-refined-oil-backtest-panel,
+  .china-refined-oil-backtest-chart {
+    display: block;
+    height: auto;
+  }
+
+  .china-refined-oil-backtest-chart__plot svg {
+    height: auto;
+  }
+
+  .china-refined-oil-market-chart {
+    display: block;
+    min-height: 280px;
+  }
+
+  .china-refined-oil-market-chart__canvas,
+  .china-refined-oil-market-chart__host {
+    height: 280px;
+  }
+}
+
+/* 策略详情表格 */
+.strategy-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.strategy-table th {
+  padding: 12px 8px;
+  text-align: left;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-tertiary);
+}
+
+.strategy-table td {
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--border-subtle);
+  vertical-align: middle;
+}
+
+.strategy-table tr:hover {
+  background: var(--bg-hover);
+}
+
+/* Responsive Utilities */
+.hide-mobile {
+  display: block;
+}
+
+.show-mobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .hide-mobile {
+    display: none !important;
+  }
+  
+  .show-mobile {
+    display: block !important;
+  }
+  
+  .mobile-stack {
+    flex-direction: column !important;
+  }
+  
+  .mobile-grid-1 {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .mobile-w-full {
+    width: 100% !important;
+  }
+
+  .mobile-p-0 {
+    padding: 0 !important;
+  }
+
+  .mobile-m-0 {
+    margin: 0 !important;
+  }
+
+  .mobile-text-sm {
+    font-size: 0.8rem !important;
+  }
+
+  .mobile-text-xs {
+    font-size: 0.7rem !important;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}

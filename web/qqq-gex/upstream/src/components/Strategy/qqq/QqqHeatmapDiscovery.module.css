@@ -1,0 +1,20 @@
+.panels{display:grid;grid-template-columns:minmax(0,1fr);gap:0;padding:0;background:transparent;align-items:start}
+.card{border:0;border-radius:0;padding:8px 0;min-width:0;color:var(--text-secondary);background:transparent}
+.card+.card{border-top:1px solid var(--border-subtle)}
+.card svg{display:block;width:100%;height:110px}
+.changes{min-height:0}
+.changes button,.events button{display:grid;align-items:center;gap:5px;width:100%;box-sizing:border-box;border:0!important;background:transparent!important;color:inherit;border-radius:3px;padding:3px 0;font-size:.65rem;text-align:left;min-height:24px}
+.changes button{grid-template-columns:54px minmax(30px,1fr) 82px}
+.events button{grid-template-columns:40px 10px minmax(0,1fr) max-content 12px}
+.changes button:hover,.events button:hover{background:#222a37!important}
+.changes b,.changes output{font-variant-numeric:tabular-nums;white-space:nowrap}
+.changes output{text-align:right}
+.track{position:relative;min-width:0;height:6px;background:#080b10;border-radius:2px}
+.track i{position:absolute;top:0;height:6px;border-radius:2px}
+.track .zero{left:50%;width:1px;background:#6b7280}
+.card footer{font-size:.6rem;color:#9ca3af;padding:0;margin:4px 0 0;border:0}
+.events{max-height:none;overflow:visible}
+.events time{color:#9ca3af;font-variant-numeric:tabular-nums;white-space:nowrap}
+.events b{margin:0;white-space:nowrap}
+.events i{font-style:normal}
+.card button:focus-visible{outline:2px solid #d4b16a!important;outline-offset:1px}

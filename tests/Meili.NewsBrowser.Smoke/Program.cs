@@ -110,6 +110,7 @@ internal static class Program
             await ProbeWebTabs(server);
             await ProbeChart(directory);
             await ProbeWorkbench(directory);
+            await ProbeQqqLocal(directory);
 #if !WINDOWS_READER
             await ProbeMenuBar();
 #endif
@@ -231,6 +232,33 @@ internal static class Program
         }
     }
 
+    private static async Task ProbeQqqLocal(string directory)
+    {
+        using var session=new QqqGexSession();
+#if WINDOWS_READER
+        var browser=new WebView2();
+#else
+        var browser=new NewsWebView();
+#endif
+        var window=new Window{Width=1200,Height=800,Content=browser};
+        try{
+            window.Show();
+#if WINDOWS_READER
+            var environment=await Microsoft.Web.WebView2.Core.CoreWebView2Environment.CreateAsync(null,Path.Combine(directory,"qqq-native-browser"));
+            await browser.EnsureCoreWebView2Async(environment);browser.CoreWebView2.Settings.AreHostObjectsAllowed=false;browser.CoreWebView2.Settings.IsWebMessageEnabled=false;
+            browser.CoreWebView2.Navigate(session.PageUri.AbsoluteUri);
+            await Until(()=>browser.CoreWebView2.DocumentTitle=="QQQ GEX · 缓存缺失","native GEX client local cache miss");
+#else
+            browser.Navigate(session.PageUri.AbsoluteUri);
+            await Until(()=>browser.DocumentTitle=="QQQ GEX · 缓存缺失","native GEX client local cache miss");
+#endif
+            Console.WriteLine("PASS: QQQ GEX original client loads in the native engine and reports local cache miss; no native calculation/data acceptance implied.");
+        }finally{window.Content=null;window.Close();
+#if WINDOWS_READER
+            browser.Dispose();
+#endif
+        }
+    }
     private static async Task ProbeChart(string directory)
     {
 #if WINDOWS_READER

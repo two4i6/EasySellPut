@@ -37,6 +37,13 @@
     <EmbeddedResource Include="..\Meili.App\Resources\Strings\Strings.zh-CN.xaml" LogicalName="Strings.zh-CN.xaml" WithCulture="false" />
     <EmbeddedResource Include="..\Meili.App\Resources\Strings\Strings.en-US.xaml" LogicalName="Strings.en-US.xaml" WithCulture="false" />
   </ItemGroup>
+  <Target Name="BuildQqqGexAssets" BeforeTargets="AssignTargetPaths">
+    <Exec Condition="!Exists('../../web/qqq-gex/dist/index.html')" WorkingDirectory="../../web/qqq-gex" Command="npm ci --no-audit --no-fund &amp;&amp; npm run build" />
+    <ItemGroup>
+      <_QqqGexAsset Include="../../web/qqq-gex/dist/*" />
+      <EmbeddedResource Include="@(_QqqGexAsset)" LogicalName="QqqGex/%(_QqqGexAsset.Filename)%(_QqqGexAsset.Extension)" />
+    </ItemGroup>
+  </Target>
   <ItemGroup>
     <InternalsVisibleTo Include="MeiliTerminal" />
     <InternalsVisibleTo Include="Meili.App.Tests" />

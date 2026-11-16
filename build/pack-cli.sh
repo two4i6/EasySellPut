@@ -29,6 +29,7 @@ trap 'rm -rf "$work"' EXIT
 payload="$work/$name"
 dotnet publish src/Meili.Cli/Meili.Cli.csproj -c Release -r "$rid" --self-contained true -m:3 \
   -p:PublishTrimmed=false -p:PublishSingleFile=false -p:PackAsTool=false -o "$payload" -v minimal
+python3 build/bundle-qqq-runtime.py "$rid" "$payload"
 mkdir -p "$payload/skills/easysellput-local"
 cp skills/easysellput-local/SKILL.md "$payload/skills/easysellput-local/SKILL.md"
 cp LICENSE "$payload/LICENSE"

@@ -28,6 +28,40 @@ env:
   NUGET_PACKAGES: ${{ github.workspace }}/tools/nuget-packages
 
 jobs:
+  qqq-gex:
+    name: QQQ GEX · Web
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.4'
+      - run: python3 tools/qqq-gex/verify-source.py
+      - run: npm ci --no-audit --no-fund
+        working-directory: web/qqq-gex
+      - run: npm run build
+        working-directory: web/qqq-gex
+      - run: bun test upstream/src/lib/qqqGexInputQuality.test.ts upstream/src/lib/qqqExposureWire.test.ts upstream/src/lib/qqqGammaModel.test.ts upstream/src/lib/engines/analysis/QqqGexResearch.test.ts upstream/src/lib/engines/analysis/QqqIntradayDirectional.test.ts upstream/src/lib/qqqIntradayDirectionalSignals.test.ts upstream/src/lib/qqqGexCalculation.test.ts
+        working-directory: web/qqq-gex
+      - run: bun test upstream/src/lib/qqqHeatmapPresentation.test.ts upstream/src/lib/qqqOptionActivityScope.test.ts upstream/src/lib/qqqIntradayIndicators.test.ts upstream/src/lib/qqqExposureSides.test.ts upstream/src/lib/qqqExposureReplay.test.ts upstream/src/lib/qqqMaxPain.test.ts upstream/src/lib/qqqIndicatorConsistency.test.ts upstream/src/lib/qqqExposureArchive.test.ts
+        working-directory: web/qqq-gex
+      - run: npx playwright install --with-deps chromium
+        working-directory: web/qqq-gex
+      - run: node tests/offline-viewer.mjs
+        working-directory: web/qqq-gex
+      - run: npm run build:runtime && npm run test:pipeline
+        working-directory: web/qqq-gex
+      - run: bun tests/wire-benchmark.ts
+        working-directory: web/qqq-gex
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qqq-gex-web-evidence
+          path: web/qqq-gex/test-results
   cli:
     name: ${{ matrix.label }} · CLI/MCP
     runs-on: ${{ matrix.os }}
@@ -114,6 +148,8 @@ jobs:
           $executable = Join-Path (Join-Path $extract $name) $binary
           python tests/automation/cli_mcp_smoke.py --executable $executable
           if ($LASTEXITCODE -ne 0) { throw 'Extracted CLI / MCP process checks failed' }
+          python tests/automation/qqq_runtime_smoke.py --executable $executable
+          if ($LASTEXITCODE -ne 0) { throw 'Bundled GEX runtime checks failed' }
       - name: Upload CLI package
         uses: actions/upload-artifact@v4
         with:
@@ -316,7 +352,7 @@ jobs:
   required:
     name: CI · Required checks
     if: always()
-    needs: [cli, ui, desktop, release-policy]
+    needs: [cli, ui, desktop, release-policy, qqq-gex]
     runs-on: ubuntu-24.04
     steps:
       - name: Require every CI job to pass
@@ -325,8 +361,10 @@ jobs:
           UI_RESULT: ${{ needs.ui.result }}
           DESKTOP_RESULT: ${{ needs.desktop.result }}
           RELEASE_POLICY_RESULT: ${{ needs.release-policy.result }}
+          QQQ_GEX_RESULT: ${{ needs.qqq-gex.result }}
         run: |
           test "$CLI_RESULT" = success
           test "$UI_RESULT" = success
           test "$DESKTOP_RESULT" = success
           test "$RELEASE_POLICY_RESULT" = success
+          test "$QQQ_GEX_RESULT" = success

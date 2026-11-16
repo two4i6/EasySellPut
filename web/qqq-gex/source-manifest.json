@@ -1,0 +1,3310 @@
+{
+  "repository": "https://github.com/two4i6/option",
+  "commit": "d60e24b56e308a81723f6c206fb52d22ddc0e9f8",
+  "status": "source-import-only",
+  "seeds": [
+    "src/app/analysis/qqq/gex/page.tsx",
+    "src/app/analysis/qqq/gex/page.component.tsx",
+    "src/app/api/analysis/qqq/pcs/route.ts",
+    "src/app/api/analysis/qqq/pcs/backtest/route.ts",
+    "src/app/api/analysis/qqq/gex/day/route.ts",
+    "src/app/api/analysis/qqq/gex/exposure/route.ts",
+    "src/app/api/analysis/qqq/gex/intraday-context/route.ts",
+    "src/app/api/analysis/qqq/gex/spread-quote/route.ts",
+    "src/app/api/proxy/yahoo/quote-stream/route.ts",
+    "src/app/api/proxy/yahoo/history/route.ts"
+  ],
+  "files": [
+    {
+      "path": "scripts/research/p4-e370-research-common.ts",
+      "sha256": "635b4fda4f071c236299718bde96f4238abf100489b572b5ec395372ad55621b",
+      "bytes": 5025
+    },
+    {
+      "path": "scripts/research/p5-e123-parent-common.ts",
+      "sha256": "b5e56558c562ba1707ca71728394c0621a52faeb432f9bc81a1df541f37533fc",
+      "bytes": 627
+    },
+    {
+      "path": "scripts/research/p5-e173-parent-common.ts",
+      "sha256": "6549a9a16c529c3855517619ea772965c002ad33406bbafd312a2b316113e955",
+      "bytes": 395
+    },
+    {
+      "path": "scripts/research/p5-e181-parent-common.ts",
+      "sha256": "9d9b450b0112d4c6864aabae09c1041273986253a10e01b99b7a824d718fd442",
+      "bytes": 466
+    },
+    {
+      "path": "scripts/research/p5-e213-semantic-compact-parent-common.ts",
+      "sha256": "441123e435b8d9922d01d541bef4a3d8574acf35a539462a232b91700b41e83b",
+      "bytes": 6504
+    },
+    {
+      "path": "scripts/research/p5-e65-parent-common.ts",
+      "sha256": "a495812983802be97752fe77837a47b00772b2f946b543aadacc885cc57a3c63",
+      "bytes": 4166
+    },
+    {
+      "path": "scripts/research/p5-e68-parent-common.ts",
+      "sha256": "19f18a336623e06ca01b12213dba6b155ba0c7ae9fbd1e70ebfa7b329dd61aa2",
+      "bytes": 1219
+    },
+    {
+      "path": "scripts/research/p5-e71-parent-common.ts",
+      "sha256": "b76d2a1f67c01c0c543b3a413675e5a13373f041e66723f4f0f88c6f45c7bc55",
+      "bytes": 876
+    },
+    {
+      "path": "scripts/research/p5-e74-parent-common.ts",
+      "sha256": "16717d5279d2b76c16a3408249347f9f36e418583de457c0717e72ceb49043e8",
+      "bytes": 1716
+    },
+    {
+      "path": "scripts/research/p5-e77-parent-common.ts",
+      "sha256": "dd99afc93367048774be48be2f826345fbadb14fbb0175498641f5b792e3fe27",
+      "bytes": 869
+    },
+    {
+      "path": "scripts/research/p5-e82-parent-common.ts",
+      "sha256": "5c85d1cc48c0628b9e82a8881e5ee619a2ceac4b528c7b4d7a24b1857785a0be",
+      "bytes": 513
+    },
+    {
+      "path": "scripts/research/p5-e86-parent-common.ts",
+      "sha256": "f349f3e2fb3448ce60c644bfe8703e13b43b8323cdc5bfe4d0fc4bc4d9d752e8",
+      "bytes": 976
+    },
+    {
+      "path": "scripts/research/p5-e87-parent-common.ts",
+      "sha256": "450d6fd0163081ee1bd237c5bba14068c3b1328c35383825964f386e709709f6",
+      "bytes": 1273
+    },
+    {
+      "path": "scripts/research/p5-e94-parent-common.ts",
+      "sha256": "1a60c24eb21c024d2c26aee60dd2cfcb156acdededd275049da8cd4a99b45535",
+      "bytes": 1306
+    },
+    {
+      "path": "scripts/research/p6-e0-parent-common.ts",
+      "sha256": "bcd95d5d98d80c59ba3d0b758b4f896007800c2dee20faac40dab4890bb83d36",
+      "bytes": 360
+    },
+    {
+      "path": "scripts/research/p6-e106-parent-common.ts",
+      "sha256": "741a0fc367ed6de755538ccd52b54b5b6dc1704165c3cfd605c380a70a14c8a0",
+      "bytes": 891
+    },
+    {
+      "path": "scripts/research/p6-e11-parent-common.ts",
+      "sha256": "54f3ae04217a4f09e870adf0280ada7f7d20fdc766aae338e34e1f5787d37799",
+      "bytes": 717
+    },
+    {
+      "path": "scripts/research/p6-e132-parent-common.ts",
+      "sha256": "c441184ff0d078b3db1c1684897efd6ccf69323a2a2bad7fb2c6c02df7234e4c",
+      "bytes": 824
+    },
+    {
+      "path": "scripts/research/p6-e15-parent-common.ts",
+      "sha256": "6f4915e0b8b359524a9a1590119c94b8b9e1569792328a558f337a8f13a6099f",
+      "bytes": 708
+    },
+    {
+      "path": "scripts/research/p6-e17-parent-common.ts",
+      "sha256": "ce8a40594c80ae71d1628da373952fe1801e01fc6f43173e07e0f01781ee64c6",
+      "bytes": 714
+    },
+    {
+      "path": "scripts/research/p6-e218-parent-common.ts",
+      "sha256": "15c3fa4f92a46b89f58d5565beecfd49b89ee7a804cc9a6a1cf00ddceed9435e",
+      "bytes": 1555
+    },
+    {
+      "path": "scripts/research/p6-e22-parent-common.ts",
+      "sha256": "60fea7634e113a36dec95dcceec249be1707f350217ea2b67dc1d10d85adf3ad",
+      "bytes": 547
+    },
+    {
+      "path": "scripts/research/p6-e220-parent-common.ts",
+      "sha256": "272d41311b4298317ba6da6ebe3b2512ccbf0496aaf64536e7cb299c6dab2b7a",
+      "bytes": 1322
+    },
+    {
+      "path": "scripts/research/p6-e222-parent-common.ts",
+      "sha256": "3f44124ac89ef2cd8edb18b687a9e97343aab06ce31507644fbe87528031a709",
+      "bytes": 1031
+    },
+    {
+      "path": "scripts/research/p6-e24-parent-common.ts",
+      "sha256": "f1aaf983af2efa68d9d167ec9081a71344752145b4be6a9720a387f7569bd6ab",
+      "bytes": 304
+    },
+    {
+      "path": "scripts/research/p6-e246-parent-common.ts",
+      "sha256": "bc1aa466a51a8df86cea5f9414b97f76a33f1699f2ca459253b5f51a0cdff1c5",
+      "bytes": 927
+    },
+    {
+      "path": "scripts/research/p6-e252-parent-common.ts",
+      "sha256": "9381f4efbf2d4af8ac211a0efbd2ef188483634e5bb9f47f27da2f72896b217f",
+      "bytes": 316
+    },
+    {
+      "path": "scripts/research/p6-e284-parent-common.ts",
+      "sha256": "4ac5e01433fe22d21a1d1d22b738362347d38d6a774e718932a87f74fd789695",
+      "bytes": 301
+    },
+    {
+      "path": "scripts/research/p6-e369-parent-common.ts",
+      "sha256": "fedefd99a182488c8b37fb1001158470bd3d7c4e870745f6d4816ae0e273159d",
+      "bytes": 2017
+    },
+    {
+      "path": "scripts/research/p6-e6-parent-common.ts",
+      "sha256": "5bfe3dc69659095a5a416ac20df159898669908828ef6de9e6cf09dec92fefef",
+      "bytes": 1009
+    },
+    {
+      "path": "scripts/research/p6-e61-parent-common.ts",
+      "sha256": "3d1896fc904d9c577e9a226620fbc48e3dd338cbe770f39d3fa8246c2baf8408",
+      "bytes": 1079
+    },
+    {
+      "path": "scripts/research/p6-e73-parent-common.ts",
+      "sha256": "7559bae21e50a07312e813107324b5a4eec31e5dae046c8e7267fcbeacdbc26b",
+      "bytes": 307
+    },
+    {
+      "path": "scripts/research/p6-e83-parent-common.ts",
+      "sha256": "a647bcd46dfb794e89276477beff9a2a35396939e1e226c2f526ec12d1036c3f",
+      "bytes": 787
+    },
+    {
+      "path": "scripts/research/p6-e84-parent-common.ts",
+      "sha256": "afd6d0e9bcaeca7cb6c079c39398b520ad56e22c6b061829384f44523d63f638",
+      "bytes": 840
+    },
+    {
+      "path": "scripts/research/p6-e9-parent-common.ts",
+      "sha256": "4826e85c3b05bd4366701483a7697788254739ed93c05a2293ddb9041170a0cc",
+      "bytes": 325
+    },
+    {
+      "path": "scripts/research/pcs-rescue-r5-e56-bull-atr-frontier-20260912.ts",
+      "sha256": "73b59d859401ebf7e4152761793ba00541d37f0ac685c3a2d5f8bd0d4666ae43",
+      "bytes": 22668
+    },
+    {
+      "path": "scripts/research/pcs-rescue-r6-e14-sr01-vix20-frontier-20260914.ts",
+      "sha256": "5cbe6fa6a4d75f98789170398c6b63cb775f55aac74372000c1dc9a0ff3638f4",
+      "bytes": 8113
+    },
+    {
+      "path": "scripts/research/pcs-rescue-r6-e15-sr02-vixlt19-frontier-20260914.ts",
+      "sha256": "fb89c2e10208451473882be6cfefeae17c58beabb22b0c57285db24829a0f6d8",
+      "bytes": 8074
+    },
+    {
+      "path": "scripts/research/pcs-rescue-r6-e16-residual-frontier-20260914.ts",
+      "sha256": "222cb03be1ffd661330de7e6a1905068bda7667227e00be35f5a2831899d2050",
+      "bytes": 8562
+    },
+    {
+      "path": "scripts/research/pcs-rescue-r6-e17-sr02-adx15-frontier-20260914.ts",
+      "sha256": "daa417c4c9aad7828acee47c6cdba80a217d22bdf94643d833cd709127aa7f3c",
+      "bytes": 8142
+    },
+    {
+      "path": "scripts/research/pcs-rescue-r6-e18-fill-fallback-frontier-20260914.ts",
+      "sha256": "5a4acf987873e747c80fcb57ac60c6915681c77a4a22568dcd45d84c769627bb",
+      "bytes": 8376
+    },
+    {
+      "path": "scripts/research/pcs-rescue-r6-e187-e167-range-p3-contract-20260915.ts",
+      "sha256": "704c7b6a4ed9d0c1523133b5a18593051f3db6d31a38bd29a77d18624076dad7",
+      "bytes": 7369
+    },
+    {
+      "path": "scripts/research/pcs-rescue-r6-e19-core-bull-vix16-frontier-20260914.ts",
+      "sha256": "8b92084981f829a323c224eae0a1cd42195339a9af1686e3d31ea2143fb7984c",
+      "bytes": 8241
+    },
+    {
+      "path": "scripts/research/pcs-rescue-r6-e20-lowvix-bull-adx15-frontier-20260914.ts",
+      "sha256": "b8b3ccd8991c46a9a2e1c139e617addf551cbc8b0ce85acc4ec9e50b431a918a",
+      "bytes": 8200
+    },
+    {
+      "path": "scripts/research/pcs-rescue-r6-e21-lowvix-bull-sr01-vixfall-frontier-20260914.ts",
+      "sha256": "46bd1a7da4d0d04172e4e0a49cfec1670d54af4fe829d0432b43cafd183b5faf",
+      "bytes": 8304
+    },
+    {
+      "path": "scripts/research/pcs-rescue-r6-e22-lowvix-bull-sr02-vixfall-frontier-20260914.ts",
+      "sha256": "b196824d72c9de69001f486209f6a86479ef8c3ece78b3d144a52ba148a59893",
+      "bytes": 8643
+    },
+    {
+      "path": "scripts/research/pcs-rescue-r6-e23-residual-frontier-20260914.ts",
+      "sha256": "2dd543f26f97e21fb127ce9bf97929fd3bda7aad6c09c8d9e8f2f5eabaff7b92",
+      "bytes": 8432
+    },
+    {
+      "path": "scripts/research/pcs-rescue-r6-e24-residual-frontier-20260914.ts",
+      "sha256": "b76303e8f6d9f64ce8548b6bf8fd70f2b17c4c5372551588a56f32c4b833466c",
+      "bytes": 8340
+    },
+    {
+      "path": "scripts/research/pcs-rescue-r6-e6-vix24-frontier-20260914.ts",
+      "sha256": "42055b2818f7f3b9e6b5e6aa08aab3fd20871cf501034a792769666422d24511",
+      "bytes": 8550
+    },
+    {
+      "path": "scripts/research/pcs-rescue-r6-e8-contract-fallback-frontier-20260914.ts",
+      "sha256": "f4c99a7499f883daaf55a7926933d5081d83f47bd1d2ff4a6a517cc29e0ed499",
+      "bytes": 8622
+    },
+    {
+      "path": "src/app/analysis/qqq/gex/page.component.tsx",
+      "sha256": "88c1c767bfb848c44fecc30ee973821bc9fc755ab1961c58092406392b7bcbf1",
+      "bytes": 24366
+    },
+    {
+      "path": "src/app/analysis/qqq/gex/page.tsx",
+      "sha256": "e4c045f21a3ef2e179236c8fec61d64116fc162bbfaf55cf292ae3d81ea8d43f",
+      "bytes": 453
+    },
+    {
+      "path": "src/app/api/analysis/qqq/backtest/route.ts",
+      "sha256": "ded6a76ec234333572eff21a613cbc1c1328f3354598acf97d16bac75602d12c",
+      "bytes": 994
+    },
+    {
+      "path": "src/app/api/analysis/qqq/gex/day/route.ts",
+      "sha256": "098c34388f0068681edf1c7386db8f1aacf8aed6559b4047fca7245bd11e4860",
+      "bytes": 2107
+    },
+    {
+      "path": "src/app/api/analysis/qqq/gex/exposure/route.ts",
+      "sha256": "e48a624fcdc5311e9f47018c7040d47f6613dc4760d02f43a7c9ae0816f15565",
+      "bytes": 5593
+    },
+    {
+      "path": "src/app/api/analysis/qqq/gex/intraday-context/route.ts",
+      "sha256": "5fd106c59f1782622f152c5019ea5416b28ed6f9ce7119c7feb8234663127160",
+      "bytes": 1328
+    },
+    {
+      "path": "src/app/api/analysis/qqq/gex/spread-quote/route.ts",
+      "sha256": "82626c4fc22fe205461501e70611bfd885a932bbbc6a263d09537172ff68a9d0",
+      "bytes": 2474
+    },
+    {
+      "path": "src/app/api/analysis/qqq/pcs/backtest/route.ts",
+      "sha256": "fee752ea4b41288523f999bb9ce1cf559199e02841b1dcfd3d0b5eeaf506e025",
+      "bytes": 7909
+    },
+    {
+      "path": "src/app/api/analysis/qqq/pcs/route.ts",
+      "sha256": "663522f55cdde8616bbc0830fec3614db6c2b49cbc749757a11c618aefa6c8a3",
+      "bytes": 148471
+    },
+    {
+      "path": "src/app/api/proxy/yahoo/history/route.ts",
+      "sha256": "39fc32a0b6963b267a3895db14189821a24b2f34847dcdab2346f35b7d8b167f",
+      "bytes": 1088
+    },
+    {
+      "path": "src/app/api/proxy/yahoo/quote-stream/route.ts",
+      "sha256": "eab833448816f623f4bf90d80c42ffb444891c4a2174d54fd7734b51a090feb7",
+      "bytes": 1766
+    },
+    {
+      "path": "src/components/Button.tsx",
+      "sha256": "f5c26f60f3b312ccc49d60137677ec59750d570d2366778d071b703d7ed99eb6",
+      "bytes": 2342
+    },
+    {
+      "path": "src/components/DataViewButton.tsx",
+      "sha256": "ffdb66ade809b2a4d5a131c051f285e546a8a3e05c435440c53b3e067b67ccf1",
+      "bytes": 1880
+    },
+    {
+      "path": "src/components/JSONDataModal.tsx",
+      "sha256": "49f57c594db0042b5c86a8d431c4cf8a30277ec2ba0392d3a0750cb9a1a10af7",
+      "bytes": 44550
+    },
+    {
+      "path": "src/components/LoadingScreens.tsx",
+      "sha256": "8d3a65f75bdc10191449be310713f93d5da7751d5eed30cd11da322443ca4a56",
+      "bytes": 5396
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqCacheHealth.module.css",
+      "sha256": "4a7ff7b99906780548bfcd9e8063e32df63264e267226bdbe838f78d12afeec7",
+      "bytes": 1253
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqCacheHealth.tsx",
+      "sha256": "dd83a09b2672d086c818360d864f331c0063eb198ccd50d7b597a05ac5114233",
+      "bytes": 3624
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqChartSettings.module.css",
+      "sha256": "d013d3f72b8f98c16458e014063648b920eaaa1b903ec0fccb4f5288749a1f87",
+      "bytes": 3997
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqExposureCanvas.tsx",
+      "sha256": "456a1638929ea95e6f85ead82cda55a2084d7594d8a22472fb4535ae2f20af49",
+      "bytes": 6638
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqExposureSnapshotTable.tsx",
+      "sha256": "a5ea82bbbbc2d71d7ac1a8a5a4166c42bb7b943478fc1da5d22aa992f7969318",
+      "bytes": 4362
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqExposureWorkbench.module.css",
+      "sha256": "a7a16dbb797449ddcd0f76f24d08d59ee74df5a60522373cee6fd9f266db2893",
+      "bytes": 14642
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqExposureWorkbench.tsx",
+      "sha256": "bdc89f032878a07d114a9873dcec19365e0433bf8e4a77d8aacf736536e6eed5",
+      "bytes": 66895
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqGexDateRail.module.css",
+      "sha256": "b7c7d42803af6d34404ed57ec7551294943607afa3d63680955794c0077f0c05",
+      "bytes": 989
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqGexDateRail.tsx",
+      "sha256": "e4547d215193040a1c4fe0fcb6da079cb316d290a76ac56966fff9710ab54169",
+      "bytes": 1453
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqGexLoadingSkeleton.tsx",
+      "sha256": "79e9b4985b960bd239bbf157a5d5a6d39b72f44882b0cfd7be4755963b270331",
+      "bytes": 414
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqGexMatrix.module.css",
+      "sha256": "adc9fae045ef7d1e5119281e8ed810536f22c18e37b537bbdf01ead99ec1014d",
+      "bytes": 6784
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqGexMatrix.tsx",
+      "sha256": "29f429260a4a85154dcde27eaf16017bad03cf8105c9304362f25c2e32e82a49",
+      "bytes": 13891
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqGexRequestFeedback.module.css",
+      "sha256": "28b5feab792b7cd1184e591dcb31cc15700943d88b1c849de4a95506531c239e",
+      "bytes": 1429
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqGexRequestFeedback.tsx",
+      "sha256": "3f971850352b64e00c53eecbb6281e2464382a5abc38fddebc8ba467fc5395fd",
+      "bytes": 2764
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqHeatmapDataStatus.tsx",
+      "sha256": "e1ad30fce9d51b753f10c94e165737302de7c4765a94675850f6dd7ed1aaa517",
+      "bytes": 2343
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqHeatmapDiscovery.module.css",
+      "sha256": "dbe22ecee3e6b48442e8ec063e0e2f4038e6d8d4db5412e4b64d872d6018fd0e",
+      "bytes": 1489
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqHeatmapDiscovery.tsx",
+      "sha256": "90d525abf62f20232a1a214b9e169a1f8975e702e989d6150e380ab6ffda72bd",
+      "bytes": 13167
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqHeatmapInspector.tsx",
+      "sha256": "c27e9f20c7cfa7ccd91508261b1b73585a03dc21ae51462bca6b7f51a11a97f6",
+      "bytes": 5659
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqHeatmapOverlayLines.tsx",
+      "sha256": "3a38e03f073a049735d06a089789134d6c81c8b891087a53564b2c0f7fd6d77e",
+      "bytes": 4270
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqHeatmapPriceReactions.tsx",
+      "sha256": "dc44b044d0e6ca9e792de468825f683eee520422db9216cdf94c9bc75537f60b",
+      "bytes": 6569
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqHedgeObservationPanels.tsx",
+      "sha256": "72fda7acfa897669e4b7096baad342ab34017875da472d9f6d42fe790f80a5b3",
+      "bytes": 12963
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqInfoTooltip.module.css",
+      "sha256": "acb3a8351b4a11e8166b47b32073cdf2fb770fe1fbed04a54b30c3029984b4fa",
+      "bytes": 674
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqInfoTooltip.tsx",
+      "sha256": "06cd389e33acf18fe7919665da1e09dd94dd1d0340b180f18d2a85e10eb6c6d5",
+      "bytes": 855
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqNextActionCard.module.css",
+      "sha256": "7a306931432d0ff2c034bd88dc80b8ec7c1800c76a2658ca3180f7c61f8d04b2",
+      "bytes": 3784
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqNextActionCard.tsx",
+      "sha256": "094ab7b29e6699a6c0a2482e27ff55073266338d2b6fe7db6d97b3bf1e671b0f",
+      "bytes": 6334
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqPcsGexChart.tsx",
+      "sha256": "648e69918b941dfddba0cd71b7670d88ba8db07a101dbe943fb22d75edc84dc1",
+      "bytes": 16332
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqPcsGexIntradayChart.tsx",
+      "sha256": "4ffa6349343718ac015adf04c23ec172bac1d43ea6568ccf41bf609dcb39dcef",
+      "bytes": 214898
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqPcsIntradayChart.shared.ts",
+      "sha256": "8eeff46acc1b28a81b3e7721eb0649381bb73be2bd21274c146e59fb12cdbb14",
+      "bytes": 11243
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqPcsIntradayChart.tsx",
+      "sha256": "5bd0a98585b20705d0692fde7b263da9fbc20b8d81d30da0375facdefb6e2221",
+      "bytes": 1584
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqPcsKlineChartsPoc.tsx",
+      "sha256": "77350f185a871fc9e714d6cbce156392e7b4ef6ae33c92cdcd3b7449d7a35cb8",
+      "bytes": 60247
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqReplaySlider.tsx",
+      "sha256": "3a0b6a02396f5a0c036ed196135839e24a701f253f3d774da24b7a788e44f8bf",
+      "bytes": 1639
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqScrollRail.module.css",
+      "sha256": "fd49acc18357d1f5455237314574cff1ba7a6717dd4d2b143372f384177ed99a",
+      "bytes": 1130
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqScrollRail.tsx",
+      "sha256": "3717131d778551f8c0d4589a436e4512a33a5046078f24d82247eb75d80f7223",
+      "bytes": 2055
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqTerminalWorkspace.module.css",
+      "sha256": "ab47f0997d048a54735a024a04a4df4a1b70165253abbdde68aee6d844bcd235",
+      "bytes": 12601
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqTerminalWorkspace.tsx",
+      "sha256": "742580d9ff8a53d23f29308d948404c2817c3ca916749754fae011d120537d94",
+      "bytes": 19936
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqVirtualTableBody.tsx",
+      "sha256": "89027969a5ecf0cd6314c6ac7b16036088117bc7bd243feceab0f9ada75c0687",
+      "bytes": 893
+    },
+    {
+      "path": "src/components/Strategy/qqq/qqqChartDisplayPreferences.ts",
+      "sha256": "5756fe85c2ac50609eaaaafd81fc27bc77ea5051d5bf47da38d057e554b20286",
+      "bytes": 4842
+    },
+    {
+      "path": "src/components/Strategy/qqq/qqqDayScenarioRenderModel.ts",
+      "sha256": "4279046cb4c370e17bf885bf8fe6c200d78edf51a59cb263c6b83195e938441c",
+      "bytes": 3276
+    },
+    {
+      "path": "src/components/Strategy/qqq/qqqDirectionalChartMarkers.ts",
+      "sha256": "948304f316efb75473b4be5ae1cfb569e55367abfb0fd42288c2624aaf7200ef",
+      "bytes": 2627
+    },
+    {
+      "path": "src/components/Strategy/qqq/qqqExposureRenderModel.ts",
+      "sha256": "fff63af14162670250420ea37195d04306317156ac8bb70606c0e5ab76592169",
+      "bytes": 7165
+    },
+    {
+      "path": "src/components/Strategy/qqq/qqqGexMatrixModel.ts",
+      "sha256": "2ce1ab173918a1437761248d25c43a9e669eed0006111d5236467e64333a19da",
+      "bytes": 3039
+    },
+    {
+      "path": "src/components/Strategy/qqq/qqqHeatmapInteraction.ts",
+      "sha256": "e6a16ab4009cf3205173f4ba5ed6a2e418dd935b973ba9dc004fc33a6132fc53",
+      "bytes": 1588
+    },
+    {
+      "path": "src/components/Strategy/qqq/qqqLiveCandle.ts",
+      "sha256": "0d32f9e73251c11cf5eeff80d211883bb75d5ecdfd76f911c27523f4579b2fdd",
+      "bytes": 1443
+    },
+    {
+      "path": "src/components/Strategy/qqq/terminal/QqqAtmIvCard.tsx",
+      "sha256": "50d082af899b513a87adb992886189eee9f07dda9dce4ac866d8690a363a41ee",
+      "bytes": 8503
+    },
+    {
+      "path": "src/components/Strategy/qqq/terminal/QqqDirectionalResearchOverview.tsx",
+      "sha256": "38a0989475494b31e9d51b7ae3ce2fd64cfb8ab49b539429c51455501509ea45",
+      "bytes": 3117
+    },
+    {
+      "path": "src/components/Strategy/qqq/terminal/QqqDirectionalSignalConsole.module.css",
+      "sha256": "30128d955c4b7de5d204e234a1ab8c8e6dc6468cd6c84f6466be8d9d5bff7fca",
+      "bytes": 6212
+    },
+    {
+      "path": "src/components/Strategy/qqq/terminal/QqqDirectionalSignalConsole.tsx",
+      "sha256": "36518ade44a891f6a34e916a52abf2410bf87a1f36aa95d52cb2de82ce461f78",
+      "bytes": 28660
+    },
+    {
+      "path": "src/components/Strategy/qqq/terminal/QqqExposureSummary.tsx",
+      "sha256": "6574dd8b4d3fc7b8267997c1cacce90c56253243afc92d356bfd256deff124cb",
+      "bytes": 3456
+    },
+    {
+      "path": "src/components/Strategy/qqq/terminal/QqqGammaModelPanel.module.css",
+      "sha256": "2dca4c7cd501e8af34c0e4064d7d1f6598be331758d3eb0746f1940e7d79148c",
+      "bytes": 7651
+    },
+    {
+      "path": "src/components/Strategy/qqq/terminal/QqqGammaModelPanel.tsx",
+      "sha256": "12a01582f93c319edcaa17d7aa64977032bebdfcbd0804534e7bec6ae416ea7b",
+      "bytes": 15088
+    },
+    {
+      "path": "src/components/Strategy/qqq/terminal/QqqGammaObservation.tsx",
+      "sha256": "32b50abddc077287ab9c71050e81719c986211d81fca5c386eec939bd906375c",
+      "bytes": 2383
+    },
+    {
+      "path": "src/components/Strategy/qqq/terminal/QqqGexTerminal.tsx",
+      "sha256": "c9d3b8d59b5894d3a85534568b58bbbc768b378839db0ac622c77c494b726cc9",
+      "bytes": 17343
+    },
+    {
+      "path": "src/components/Strategy/qqq/terminal/QqqIntradayPulseCard.tsx",
+      "sha256": "26b37bd01f4c05601488084beb5fe782080cd2887c1614389b2819abb5da42a4",
+      "bytes": 10943
+    },
+    {
+      "path": "src/components/Strategy/qqq/terminal/QqqMaxPainCard.tsx",
+      "sha256": "aabffe069b23657c748dad4b8639e45adc2bf68a7ecb6fe2ae82487cc1df0906",
+      "bytes": 7870
+    },
+    {
+      "path": "src/components/Strategy/qqq/terminal/QqqObservationCards.module.css",
+      "sha256": "86987429ff58ff961c8762a7caa6d7898f6ceef5065de350733019b77d9302c1",
+      "bytes": 3389
+    },
+    {
+      "path": "src/components/Strategy/qqq/terminal/QqqObservationUi.module.css",
+      "sha256": "281d4fd5068a0be9d809c04a6d0bd44516139f63f832e76687128c7bf2da4c89",
+      "bytes": 1887
+    },
+    {
+      "path": "src/components/Strategy/qqq/terminal/QqqObservationUi.tsx",
+      "sha256": "f06352020a45bcc23bf9294064bce587aa6e6093c792e05a73e223cf62c4ff0a",
+      "bytes": 1623
+    },
+    {
+      "path": "src/components/Strategy/qqq/terminal/QqqOptionActivityObservation.tsx",
+      "sha256": "e14d362779cd39b43ed67b7540d5edbdec987c69889cc1868ae7631c3de87b6c",
+      "bytes": 6409
+    },
+    {
+      "path": "src/components/Strategy/qqq/terminal/QqqSpreadStudyCard.tsx",
+      "sha256": "38a465d1657a2b314ce056accc717ec14319f69ca43afc273eaa06b2eecc0c3b",
+      "bytes": 10852
+    },
+    {
+      "path": "src/components/Strategy/qqq/terminal/QqqWallTouchStatsCard.tsx",
+      "sha256": "efbb5ed4d57357df6a56934983bc4c242d872dde4887fc812b74ca795e3feebc",
+      "bytes": 9007
+    },
+    {
+      "path": "src/components/Strategy/qqq/terminal/directionalSignalPresentation.ts",
+      "sha256": "4f4ac11161aa59bedb185d4c3819e6a79f2c55797da0a468eac4fc386b55b3c8",
+      "bytes": 3467
+    },
+    {
+      "path": "src/components/Strategy/qqq/terminal/qqqLayoutFrame.ts",
+      "sha256": "6ab8ea21a742fe3c393ac7a1a8d1cde71f10d1c6dd2a77a8be85209f0cb8781a",
+      "bytes": 789
+    },
+    {
+      "path": "src/components/Strategy/qqq/terminal/qqqTerminalTabsModel.ts",
+      "sha256": "42789114661e79826664ee9c8568446c07dc2be84d0a19e51226f1ed21c0536b",
+      "bytes": 893
+    },
+    {
+      "path": "src/components/Tooltip.tsx",
+      "sha256": "fa99343e7dbdc51b53a0be340daad85bcee779d2f97d9251669e86c87bb6e36a",
+      "bytes": 1048
+    },
+    {
+      "path": "src/components/ui/accordion.tsx",
+      "sha256": "c9413da479473fe9e6d1705aa36fa6be63b215d6665a59136964a92a937ba265",
+      "bytes": 797
+    },
+    {
+      "path": "src/components/ui/button.tsx",
+      "sha256": "4f9f4daac2aa4edbd617218431554e8f0dc6ab88aaa56da5e74d23c6ae550ad4",
+      "bytes": 930
+    },
+    {
+      "path": "src/components/ui/dialog.tsx",
+      "sha256": "033e8c901706201238b2b0dfc0e6ddbd002c2b1e8d15c18debb119c915bd67a2",
+      "bytes": 2814
+    },
+    {
+      "path": "src/components/ui/popover.tsx",
+      "sha256": "0e0faf24cba3c202b113510d35885930b734f754e48c4d63617fd99ebb6d2eb5",
+      "bytes": 1098
+    },
+    {
+      "path": "src/components/ui/scroll-area.tsx",
+      "sha256": "668e4594ccf2436fb8bc0f2b1ed900e36bd04748ea8ba926c60c7a95a5680b11",
+      "bytes": 349
+    },
+    {
+      "path": "src/components/ui/select.tsx",
+      "sha256": "62b999f9391f5359c2db928e6f9eb840a0ad50ae915b9ad5ea625fcec3da98a9",
+      "bytes": 646
+    },
+    {
+      "path": "src/components/ui/skeleton.tsx",
+      "sha256": "4e20d21611cb0b8f3a48dea3cf181f1c6a19deeea82067b01b1fae8af6bb4788",
+      "bytes": 231
+    },
+    {
+      "path": "src/components/ui/tabs.tsx",
+      "sha256": "796f6c20020b645289f1d8911e22e102def80a1de1f6d8a4737262d2824204f1",
+      "bytes": 1094
+    },
+    {
+      "path": "src/hooks/qqqDayScenarioDisplay.ts",
+      "sha256": "4fc06a2f5bd894c93ebd415971a59fc8ff7b0a68588e6b6e8bfc14cc9665e923",
+      "bytes": 1136
+    },
+    {
+      "path": "src/hooks/qqqDayScenarioWorker.ts",
+      "sha256": "b7e383aba9b35426aeec29b611eace26512055db18f72e5ad303476a2d63c482",
+      "bytes": 1970
+    },
+    {
+      "path": "src/hooks/useAppSWR.ts",
+      "sha256": "2b13944185139bacdda7505e1aa0dfabb05e2cf1a463bfd8a8f422f322a19705",
+      "bytes": 1464
+    },
+    {
+      "path": "src/hooks/useQqqAggregateExposureFrames.ts",
+      "sha256": "f88f2230a056b5956f065afe9d7031644ed4fa4fe2a8ad589fbfd7e04d2102a9",
+      "bytes": 1161
+    },
+    {
+      "path": "src/hooks/useQqqDayScenario.ts",
+      "sha256": "914f69c56bcc12b7fe6aad841a0dd53166ab135d7dca1e4949dd949a5c086e32",
+      "bytes": 2270
+    },
+    {
+      "path": "src/hooks/useQqqExposureChartProjection.ts",
+      "sha256": "7e5562e01579e7e475d7b5347e33797026f4bd0fabc67809e8209b1365a1dd56",
+      "bytes": 1761
+    },
+    {
+      "path": "src/hooks/useQqqExposureField.ts",
+      "sha256": "6636715512ce5ea880bba631087fa70bb9420cb8256467b50695773907b6ed6c",
+      "bytes": 1327
+    },
+    {
+      "path": "src/hooks/useQqqExposureFrames.ts",
+      "sha256": "8de11851de146dcc4300cd36484ee52c13027d27d53166c9d6316983013facfb",
+      "bytes": 1733
+    },
+    {
+      "path": "src/hooks/useQqqExposureHistory.ts",
+      "sha256": "e8b97a439444ebe15a51996aa4ddcd9a8f0c27f21090407b20cc1a68545fd85b",
+      "bytes": 3296
+    },
+    {
+      "path": "src/hooks/useQqqGammaModels.ts",
+      "sha256": "6ad5b967dc65c145d2f5a408557696887c38e3e57b67c6c1ef77297dc63a20e1",
+      "bytes": 4915
+    },
+    {
+      "path": "src/hooks/useQqqGexDisplayData.ts",
+      "sha256": "b187a39e154ba7ac0398712edddcbf44a39a5cc2e2a32647e1a9635481189541",
+      "bytes": 28755
+    },
+    {
+      "path": "src/hooks/useQqqHeatmapDiscovery.ts",
+      "sha256": "3bc90509fca60825209e5918cc48b78c307023b252d386891a01a1a91d1c6940",
+      "bytes": 925
+    },
+    {
+      "path": "src/hooks/useQqqHeatmapOverlays.ts",
+      "sha256": "60a064cec223de100be514aba6de6a1efd8acd917cd139c111b9b56bbf7e57f9",
+      "bytes": 977
+    },
+    {
+      "path": "src/hooks/useQqqHedgeObservations.ts",
+      "sha256": "650a177ac4e397cc15f5ee711e97b86ad9f2c73a2f450feeefe0a31b0a79b3f5",
+      "bytes": 1383
+    },
+    {
+      "path": "src/hooks/useQqqIntradayContext.ts",
+      "sha256": "51507778f5c684bdbd73f6f93a8536c9d5f67bf7270a6282b064e48ba9c38f8d",
+      "bytes": 2253
+    },
+    {
+      "path": "src/hooks/useQqqIntradayStudy.ts",
+      "sha256": "31debe924b8fb5408d22766f2365c68ee86d504d94acbbeb95a10439e1ab184f",
+      "bytes": 3824
+    },
+    {
+      "path": "src/hooks/useQqqLiveTick.ts",
+      "sha256": "6764fe161311d9459fda7470b18585e2afd3e7b2b4f9c6e11557d05752ce7f80",
+      "bytes": 5866
+    },
+    {
+      "path": "src/hooks/useQqqSessionQuote.ts",
+      "sha256": "6332d23988046fffd3483db810ccb01e72306ab8cffde92b67712ecec9fb87df",
+      "bytes": 922
+    },
+    {
+      "path": "src/hooks/useQqqSpreadQuote.ts",
+      "sha256": "831dd45741c8e6b2aa0ae3c69b62f010e1113775a4c96b0ac5ce8c0c30a97818",
+      "bytes": 1919
+    },
+    {
+      "path": "src/hooks/useStoredPreference.ts",
+      "sha256": "3a0c41aaeb9d6b606bf845375679477434d7fcf4a649f28a9d3162e347666965",
+      "bytes": 824
+    },
+    {
+      "path": "src/hooks/useVirtualTableViewport.ts",
+      "sha256": "9ec8c212f1ecac1727072e8040157276056aaea04df39a5a7cfe325afc22ac19",
+      "bytes": 1717
+    },
+    {
+      "path": "src/lib/FactorEngine.ts",
+      "sha256": "9cb8cd3901d3a9181184ffc1af7df544f4f34a54c569ebc0be713ee8e6b87504",
+      "bytes": 1858
+    },
+    {
+      "path": "src/lib/apr.ts",
+      "sha256": "78e4fc9b0fd3415818bb1ed0bd2db445e6184ba6d51587ad64bb452b68d63418",
+      "bytes": 2746
+    },
+    {
+      "path": "src/lib/backtest-scripts/asymmetric-put-spread-selection-v1.ts",
+      "sha256": "520471b43f77d31d5f1d44049467cddf2365ce08de8dcc4f4b3cff129d1a3605",
+      "bytes": 2440
+    },
+    {
+      "path": "src/lib/backtest-scripts/bounded-put-spread-selection-v1.ts",
+      "sha256": "f6bc6779a6d7a0fc717526e5103a839b7723420eb3895f29a0b913566e852a2c",
+      "bytes": 3295
+    },
+    {
+      "path": "src/lib/backtest-scripts/call-spread-kernel-v1.ts",
+      "sha256": "00dcb81cf775e639f940ee5746032130653131cf311e9aef67d5d30183cf19ad",
+      "bytes": 5702
+    },
+    {
+      "path": "src/lib/backtest-scripts/call-spread-mark-v1.ts",
+      "sha256": "231205a7557f8ef2e150fbee6533932e8727add3f7cfb9dd3c78ba6601238a59",
+      "bytes": 2982
+    },
+    {
+      "path": "src/lib/backtest-scripts/current-bar-facts-v4.ts",
+      "sha256": "fce510a32ffa35a86d96c1e4595f028109751d591328f7556b2a8522f6eb3edd",
+      "bytes": 1067
+    },
+    {
+      "path": "src/lib/backtest-scripts/e209-execution-contract-v1.ts",
+      "sha256": "414b80138eece7c0a206880efce89df4b4d62ab621aecaef893342618d53096d",
+      "bytes": 365
+    },
+    {
+      "path": "src/lib/backtest-scripts/e209-process-v2.ts",
+      "sha256": "bc77f7151ded9ee286ec90c7a7a512658aeb704723a43150d6b4ddd2f3ee83e9",
+      "bytes": 11516
+    },
+    {
+      "path": "src/lib/backtest-scripts/e209-research-run-v2.ts",
+      "sha256": "84a545216cf5d63c99dda06bf19ab923c8c4fe882fe7971ce39cb6e220b61520",
+      "bytes": 1604
+    },
+    {
+      "path": "src/lib/backtest-scripts/e209-source-initialization-v2.ts",
+      "sha256": "7245bcc1352b565259725b85ce3a586d00010a48103a77e1a6e2b91c60272153",
+      "bytes": 1358
+    },
+    {
+      "path": "src/lib/backtest-scripts/e209-worker-protocol-v2.ts",
+      "sha256": "516ebacd972594a02a4265d83c87edbc9ee87977e705351ca47b6b12cd405d6c",
+      "bytes": 889
+    },
+    {
+      "path": "src/lib/backtest-scripts/e9230-market-contract-v1.ts",
+      "sha256": "f2e7bb0bd4c3104dd66622916d40377fd90bf308dd9a1a20a7266d3e1ca2ad00",
+      "bytes": 2462
+    },
+    {
+      "path": "src/lib/backtest-scripts/execution-availability-v1.ts",
+      "sha256": "2b6e3371dcb116a50d64229ab89943adb1ff006f5a8d1217d9c3d6ae765adf05",
+      "bytes": 561
+    },
+    {
+      "path": "src/lib/backtest-scripts/execution-book-records-v1.ts",
+      "sha256": "0ed4fd3a81c4588963c427eac9fb8ea2515e23a4517784a191556df8076ba215",
+      "bytes": 1890
+    },
+    {
+      "path": "src/lib/backtest-scripts/market-coordinates-v3.ts",
+      "sha256": "519286bf3c390a4e591e83924a13d24a2fe456657c4354c7a10a4febfa5ddf17",
+      "bytes": 1913
+    },
+    {
+      "path": "src/lib/backtest-scripts/market-data-v7.ts",
+      "sha256": "d29c82c2e805548eab08be570259771aee1fac553dfc4bfa7711fca79200d46f",
+      "bytes": 4472
+    },
+    {
+      "path": "src/lib/backtest-scripts/native-market-facts-v7.ts",
+      "sha256": "f857f0c9483878658f3525029c5971d3361fa16a5a64a399a6454eee1045fd14",
+      "bytes": 1702
+    },
+    {
+      "path": "src/lib/backtest-scripts/native-source-initialization-v2.ts",
+      "sha256": "f0de90d49f59430d60fe62a915bae8a8b66800d8460a3327fea79ed9c78ee1b0",
+      "bytes": 9523
+    },
+    {
+      "path": "src/lib/backtest-scripts/p-research-identifiers.ts",
+      "sha256": "62049bc28301ae4c351bfabc8a0cd48b90523a16e52cd2667cb2474223763869",
+      "bytes": 34893
+    },
+    {
+      "path": "src/lib/backtest-scripts/p6-source-initialization-v2.ts",
+      "sha256": "6f0c6efc9dd2fbf52f03af354b8384d9c4714eefbc2104c02b6c3d5c1c548e49",
+      "bytes": 983
+    },
+    {
+      "path": "src/lib/backtest-scripts/pcs-observation-planner-v3.ts",
+      "sha256": "796ab966521ea2ec2bd0b213c0d062813ad4d023a335ae39d9beb37cb33c9169",
+      "bytes": 2099
+    },
+    {
+      "path": "src/lib/backtest-scripts/pcs-selection-v5.ts",
+      "sha256": "38e5e9270b45f0d1e22e410b280c2ac968b5cd432e61cc2c84bb88eea7fa3c7b",
+      "bytes": 818
+    },
+    {
+      "path": "src/lib/backtest-scripts/pcs-selection-v6.ts",
+      "sha256": "12b6e99e90d4386f181f7359956f63cc4df483b6f8530bc4933e1a9495fcf13e",
+      "bytes": 1292
+    },
+    {
+      "path": "src/lib/backtest-scripts/put-spread-kernel-v6.ts",
+      "sha256": "7aa4c7e0caa6d2e5dde7b47f8d8afdc43832f910ecdff5f5f28c901b2c1b648e",
+      "bytes": 63252
+    },
+    {
+      "path": "src/lib/backtest-scripts/qqq-ccs-analytics-v1.ts",
+      "sha256": "158aae85c0b8c84acdd317dbdf6b48e4ff06a0717f95c205ba6984e271ca7e09",
+      "bytes": 7555
+    },
+    {
+      "path": "src/lib/backtest-scripts/qqq-execution-quotes-v7.ts",
+      "sha256": "c8f0f8053468da9131030c5d9ac9b2bffad4725bf7cf45d3333b630404eee831",
+      "bytes": 4438
+    },
+    {
+      "path": "src/lib/backtest-scripts/qqq-market-context-v5.ts",
+      "sha256": "9c1da31a2c625e143590fa1ece15eabbf9316f282a8142a1175ec2ec9bb91d31",
+      "bytes": 6589
+    },
+    {
+      "path": "src/lib/backtest-scripts/qqq-native-observation-v2.ts",
+      "sha256": "1467ea2b70720d9d7b75e88f11c3f5dce77a4fcb86038e5b36f61f0716fdce79",
+      "bytes": 4626
+    },
+    {
+      "path": "src/lib/backtest-scripts/qqq-observation-session-v1.ts",
+      "sha256": "4b41acaedb9177c396378b1beee100348339ec5c5b0e385178b2997d05bfcb91",
+      "bytes": 3418
+    },
+    {
+      "path": "src/lib/backtest-scripts/qqq-observed-spread-adapter-v2.ts",
+      "sha256": "35c897f067435a9d1a9f2d7c1e2d7f3690f7481ad353eafd8a5b4ee60ad3c530",
+      "bytes": 2401
+    },
+    {
+      "path": "src/lib/backtest-scripts/qqq-pcs-analytics-v2.ts",
+      "sha256": "fd1c480efb22f4caf123cd7c9333cd952ec08ee7e8b74675f95eee8d145dce71",
+      "bytes": 4384
+    },
+    {
+      "path": "src/lib/backtest-scripts/qqq-source-adapter-v2.ts",
+      "sha256": "6d344d10b3f90759eda7c5419b264420f03833781bae613948a4c70a178fcd5a",
+      "bytes": 10775
+    },
+    {
+      "path": "src/lib/backtest-scripts/qqq-spread-adapter-v2.ts",
+      "sha256": "0c3590b90b9efeb6c5e6d8fd01848334e6a532d50a5cce14ee2b591343cca914",
+      "bytes": 43454
+    },
+    {
+      "path": "src/lib/backtest-scripts/qqq-terminal-contract-v1.ts",
+      "sha256": "bac555a4c742be4b2951ba0f10d533c97030e2359e8e0a966cd2f010c135e967",
+      "bytes": 6041
+    },
+    {
+      "path": "src/lib/backtest-scripts/r-core-entry-signal-filter-v1.ts",
+      "sha256": "e23cf350a7a9aebc7e2e259e8e1b21b305a6d633d3c950fc2bc4a834902dbe58",
+      "bytes": 3944
+    },
+    {
+      "path": "src/lib/backtest-scripts/r-quote-only-rescue-v1.ts",
+      "sha256": "a556ebe6489693b484b1b205b2be3c21847e9598b87311f3a5fba2a0f8831423",
+      "bytes": 2789
+    },
+    {
+      "path": "src/lib/backtest-scripts/research-request-v3.ts",
+      "sha256": "2b211b1bc7909a1e3af55b8fdffa632b3989232796b19f8f00e9ff7d03433e92",
+      "bytes": 2077
+    },
+    {
+      "path": "src/lib/backtest-scripts/research-result-v2.ts",
+      "sha256": "e6b7896223051a718ebf82b049786372b981fe0a7cd1a517a34be8af40ddb0e3",
+      "bytes": 7750
+    },
+    {
+      "path": "src/lib/backtest-scripts/settlement-observations-v3.ts",
+      "sha256": "6103a692372d9d7cacd26cea0a56d664db7acd948fb90d6b859713f48cc553c5",
+      "bytes": 1654
+    },
+    {
+      "path": "src/lib/backtest-scripts/source-book-feedback-v1.ts",
+      "sha256": "3b728321e2d08bdb68f194a781a936d678f8301e0b2dc1e8ed6b31743c505389",
+      "bytes": 1420
+    },
+    {
+      "path": "src/lib/backtest-scripts/spread-account-audit-v3.ts",
+      "sha256": "8efa9d987b6127ef5d2bd167ea018fa592f7448d08f32da59d6e108b0d44d4d2",
+      "bytes": 6939
+    },
+    {
+      "path": "src/lib/backtest-scripts/spread-account-audit-v4.ts",
+      "sha256": "d8d644a50c5e5da297026701ed581580b403d180aebc8da16bfb29e18d5c70d6",
+      "bytes": 17456
+    },
+    {
+      "path": "src/lib/backtest-scripts/spread-execution-config-v3.ts",
+      "sha256": "be8a8a61146b1e984e338d3eb4e3d430e36b085d30474a5f2e4a9b6d0f37d0dd",
+      "bytes": 2115
+    },
+    {
+      "path": "src/lib/backtest-scripts/spread-execution-profile-names-v4.ts",
+      "sha256": "2ce024459e859c457854393c69110e2ef8b7d5f728c6779c8545589080e48c3a",
+      "bytes": 272
+    },
+    {
+      "path": "src/lib/backtest-scripts/spread-execution-profiles-v3.ts",
+      "sha256": "3c18e26c324825845c0437358dd211150a749eaf941fdcdb8d60b0cf97837128",
+      "bytes": 1288
+    },
+    {
+      "path": "src/lib/backtest-scripts/spread-fill-retry-v2.ts",
+      "sha256": "b9a6d43d02f01a7c72619fc10fc7870e3be9dae50e3c805622a0332668f82ffd",
+      "bytes": 3375
+    },
+    {
+      "path": "src/lib/backtest-scripts/spread-fill-retry-v3.ts",
+      "sha256": "114097e876c4edbb76e612eade0c837bace0c52e3ad293a0fb28d967bc412c64",
+      "bytes": 3649
+    },
+    {
+      "path": "src/lib/backtest-scripts/spread-research-metrics-v2.ts",
+      "sha256": "8f984a13d3a13999d09bca02844df88fc2c68919891364e9e518172c12b33a4a",
+      "bytes": 1797
+    },
+    {
+      "path": "src/lib/backtest-scripts/standalone-acceptance-envelope-v1.ts",
+      "sha256": "a9e79106327b658f69d892047e481f424018db2cfdfebe0f44e3b02648217ac2",
+      "bytes": 1218
+    },
+    {
+      "path": "src/lib/backtest-scripts/standalone-acceptance-v2.ts",
+      "sha256": "b47dfbff992043cfafed3cd3fd1fcf80c0a383cc8ffbc28aab7201e2e244af1e",
+      "bytes": 3637
+    },
+    {
+      "path": "src/lib/backtest-scripts/standalone-auth-v1.ts",
+      "sha256": "58f0d671c754f85170925af4d6885b85e75671a96475dcc93083f4488573900a",
+      "bytes": 2512
+    },
+    {
+      "path": "src/lib/backtest-scripts/standalone-http-v1.ts",
+      "sha256": "86b2748f7a617b02447b2d86fc0559dbfbe22749d9cce7c9d7801ccca34358c6",
+      "bytes": 7746
+    },
+    {
+      "path": "src/lib/backtest-scripts/standalone-identity-v4.ts",
+      "sha256": "1a56d748b2485503e685c5dc8c4cedda9d4327a725eafe68d2113b616f8b92c0",
+      "bytes": 1041
+    },
+    {
+      "path": "src/lib/backtest-scripts/standalone-jobs-v3.ts",
+      "sha256": "56354b388f0fc80fb1df0b07151b0daae6452284a422ed9e5ae4de5f8edba60a",
+      "bytes": 5634
+    },
+    {
+      "path": "src/lib/backtest-scripts/standalone-protocol-v2.ts",
+      "sha256": "c2f210403e44c7911acdd4412ad91a1cc38c4546bebf01bb445349aad4059fbd",
+      "bytes": 2979
+    },
+    {
+      "path": "src/lib/backtest-scripts/standalone-registry-v2.ts",
+      "sha256": "53ec15f06f474cb7f35f5a91464e0290ecf40223d86e8e62d1eb82bfbf31f006",
+      "bytes": 2409
+    },
+    {
+      "path": "src/lib/backtest-scripts/standalone-request-v4.ts",
+      "sha256": "97a9b5b2a09f664057a7fe8a450ca3bc15bf8579a884e19b4a0eec9423332578",
+      "bytes": 1232
+    },
+    {
+      "path": "src/lib/backtest-scripts/standalone-research-v3.ts",
+      "sha256": "b3c55e42e55e2e8ec010dc8d36a15adf19fa3f2f117b83ab5f2e121396406ecb",
+      "bytes": 21322
+    },
+    {
+      "path": "src/lib/backtest-scripts/standalone-risk-v1.ts",
+      "sha256": "56e5907d9d7b65e4ec047c280469550d71b8b8a016e5781ed9952af6643aefb8",
+      "bytes": 2976
+    },
+    {
+      "path": "src/lib/backtest-scripts/standalone-strategy-catalog-v4.ts",
+      "sha256": "ec7fff383f6d4db42fe23905d431f99499d1a2655c71bdd2f68c7882d5059562",
+      "bytes": 4041
+    },
+    {
+      "path": "src/lib/backtest-scripts/standalone-strategy-loader-v4.ts",
+      "sha256": "2b54c4832a633f381b47ad3900d01a12785df1ba20b651b12c8bf537f340eeed",
+      "bytes": 1862
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/ccs-c3-e856-contract-v1.ts",
+      "sha256": "b16072f4ac85c654ab8be8eb2407655f46de2832ead3aaa9fdcbf9ee6c1c5fca",
+      "bytes": 6238
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/ccs-c3-e856-standalone-v1.ts",
+      "sha256": "d18fd6b8b5590d8b7b0fbc91dd38aa29a301995958f95bbd466869a03ef478da",
+      "bytes": 27063
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e209-policy-v7.ts",
+      "sha256": "67cad4af233ad0ade0782a6aac371842467a0044dc7945512e2277b8e5fccc42",
+      "bytes": 3805
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e209-pruned-rules-v1.ts",
+      "sha256": "7eaaef63667a55f832be031cece56da075b92d88c5020ce16ec86cc8d7cb1623",
+      "bytes": 8531
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e209-rounded-policy-v1.ts",
+      "sha256": "163294ef9dd482b8b839d70ce6eff4bc9f1648f51435438ac77bdc881b5cb55e",
+      "bytes": 1268
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e209-source-contract-v1.ts",
+      "sha256": "2a17bf6edd09c042a90f5adadad571880732def66a17ebf5b9fa14be83a0259d",
+      "bytes": 854
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e9332/admission-core-v19.ts",
+      "sha256": "5ef19c4c364923341ececde72bb0f58e779b750ef3be842a1cfdc312f6c17703",
+      "bytes": 1926
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e9332/admission-graph-v19.ts",
+      "sha256": "3c1f39add6d8c534bbca373a4db0f19e7fb333605a51a836eed825fcfeb9a93d",
+      "bytes": 4512
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e9332/admission-merge-v19.ts",
+      "sha256": "0e4f1f0471fb11c9f7936a5bfbc013aa47b6a691d9736d326c4c01f5ebf75bf8",
+      "bytes": 4897
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e9332/admission-policy-v19.ts",
+      "sha256": "693164156fc4148f05cac0dcdccaa18b41091752a6c80750509aac02f5b84af8",
+      "bytes": 4891
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e9332/admission-residual-v19.ts",
+      "sha256": "fc79ce36c830d9439c33ee9bbac41e6115fccea293261bb3467e087e9dd587bb",
+      "bytes": 645
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e9332/admission-upstream-v19.ts",
+      "sha256": "95b38c3a1eb9cc89c1d51f7dc724051e7fffc6b3fb896ef3151e1262da4da354",
+      "bytes": 2961
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e9332/boolean-runtime-v14.ts",
+      "sha256": "b197d582ee63f5027d23c805fd7bc9536aeb1f1c6ae29ce84eeae5a69cadee59",
+      "bytes": 2973
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e9332/program-v1.ts",
+      "sha256": "02d41f9771ed2edccad2d73ed0fc8988a6929fe53c3e278367a2997f1df79c8d",
+      "bytes": 54744
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e9332/strategy.ts",
+      "sha256": "f08fbb80682341126f5935985288c01128e83a7a447d6364b93285a63885bd5e",
+      "bytes": 7420
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e9332/unit-kernel.ts",
+      "sha256": "395d550f0f501a6830d192425ab328a10b802e3e7105062cd141c8939cc1ef42",
+      "bytes": 3428
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb-simple-contract-v1.ts",
+      "sha256": "9b16f4af58ef840ed34ecdc8072ddbd61aa974fecf2bd110dbd10e560cb0f556",
+      "bytes": 445
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb-simple-standalone-v1.ts",
+      "sha256": "288abdeae995a66097aee92f5a24fe31f98e104e1f8f569fc4f1674ba6dad094",
+      "bytes": 5533
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb7-e209-bar-runtime-v3.ts",
+      "sha256": "23544121e5fd88e05a31f4a5eac15d530ff75071a2240f791ac6da0314915f49",
+      "bytes": 10244
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb7-e209-causal-v6.ts",
+      "sha256": "96abf416d07c2e76765b753cbc8b50b4f40c7a87da9ad210d742c18c6d8e79bc",
+      "bytes": 1384
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb7-e209-e0-merge-v2.ts",
+      "sha256": "3cafebcb52b769fad3278eac2e25027fe932305a23488ef7d732cc599172cf28",
+      "bytes": 8455
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb7-e209-e0-upstream-v2.ts",
+      "sha256": "02069073973bf8aa295e94aff445764502451837f1820bdc6f0010c6799af8de",
+      "bytes": 2711
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb7-e209-pruned-graph-v1.ts",
+      "sha256": "1d80dfd6040790c37d7271ea48a04fa60e5050a4bff5f0078e55c3bc9fafa2c3",
+      "bytes": 4048
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb7-e209-pruned-merge-v1.ts",
+      "sha256": "adf6ad4c370ebba9e173db5d9469b62402ff9a855b8c3ead8bcb0b84247b9fef",
+      "bytes": 6083
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb7-e209-pruned-residual-v1.ts",
+      "sha256": "e3653855d0e2c8a35921034577271ba6f964a3c8476a419fd895f288b9d03fa4",
+      "bytes": 1863
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb7-e209-pruned-upstream-v1.ts",
+      "sha256": "6e355597a5023ba4e1ce6c2f02eabcbe39f76285e859739b8d7f3a820e93f858",
+      "bytes": 2721
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb7-e209-pruned-v1.ts",
+      "sha256": "2652878868737c8ecb66470e9ac4474e7e3d2237e28c399e9e1b8924aef2c0e3",
+      "bytes": 1720
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb7-e209-residual-v2.ts",
+      "sha256": "8e552fd43e88d9ea7a0529d2f73d6fe97a0192f882cc2c760de683e1129a3c94",
+      "bytes": 4358
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb7-e209-rolling-rules-v2.ts",
+      "sha256": "e4723c7a575dc485fde94143b2be64bc28cc2fba3e301ebc0cd67a2e9a47f481",
+      "bytes": 9412
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb7-e209-source-graph-v2.ts",
+      "sha256": "4ff0d20b458ccc59bada017c8984dc36d4e9fb73d19f16ebe4f94769d6c4ac16",
+      "bytes": 4026
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb7-e209-source-proposal-v2.ts",
+      "sha256": "b8b39d05c177d2a0d90b1397655a71d2239232d79ae641a696fcedc3d065fb2d",
+      "bytes": 6755
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb7-e209-sources-v2.ts",
+      "sha256": "0ddf259ca87a9ac64bee853431851e5b73be322fc466cf76a443daeaf680a157",
+      "bytes": 6385
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb8-1-standalone-v1.ts",
+      "sha256": "67531beba522ac229aede25f2a70c00a09205dbbbea430aa7ebae313401fbec3",
+      "bytes": 2499
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb8-1298-standalone-v1.ts",
+      "sha256": "f2ccab57783dc6a0aa7ef8ed3f656f76739a569abaa9d1267000fe9fc004de42",
+      "bytes": 4037
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb8-3896-standalone-v1.ts",
+      "sha256": "54c4416982fa65ac944070a12307eb9bb21a2a15603f27a0e3fcd6403c90d942",
+      "bytes": 9083
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb8-411-standalone-v1.ts",
+      "sha256": "0b656456c8f937a2f878aee1037ddaa7bb37bca27631f5d8b56a6acaf121cab1",
+      "bytes": 4202
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb8-412-standalone-v1.ts",
+      "sha256": "c66808493ac45f29bb1590cb53163ab88144d530e55eb7e5db5cb08efc43e39c",
+      "bytes": 2404
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb8-9332-standalone-v1.ts",
+      "sha256": "824cec5ecaf01f309103818f72af197922d2e242995926c417129569f176f6e3",
+      "bytes": 355
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb8-940-standalone-v1.ts",
+      "sha256": "00046815417601292c09ebf8b554b2bfe450ff57d62e518f52cbb2b057d85671",
+      "bytes": 4502
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb8-standalone-v1.ts",
+      "sha256": "4c4d19158519c376d6fd2d7fa1be8b6eb5b5d9ea5ea828283498ed506a12c4e9",
+      "bytes": 988
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/p11262-standalone-v1.ts",
+      "sha256": "e8c9f89057069c0d3cbb2b290fb860762f7971026a28aeeb2c6f78cdca373388",
+      "bytes": 296
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/p6-3922-admission-leaves-v1.ts",
+      "sha256": "44a461e61e7655f1e301add4a11ae190d918798f263e5be704302ac5e54ea38a",
+      "bytes": 111758
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/p6-3922-admission-v1.ts",
+      "sha256": "dad34ccc9beed18136524e393a195d97b35fc53eabf3eeb8b3ca5ad63b2e8dd7",
+      "bytes": 3745
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/p6-3922-execution-contract-v1.ts",
+      "sha256": "fafbdee2d06a0cbe114ab3c5daccfc1b536bf5ada80e634d13ffd2f3a0fa052f",
+      "bytes": 1051
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/p6-3922-grants-v1.ts",
+      "sha256": "72125d5b2f98c51ea1340d4e77b79451ce0981f7190626e53600c9747003e73d",
+      "bytes": 111305
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/p6-3922-release-rules-v1.ts",
+      "sha256": "192e3b53e1bbe561c461f1ef446be157777526bfe186bd57894aa50362dab6e7",
+      "bytes": 23272
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/p6-3922-standalone-v1.ts",
+      "sha256": "deca947d5f1c53e31368ab6413db0b80d59b9f7f435a0986c8d37d3f031f3ca5",
+      "bytes": 7081
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/p6-9496-opening-facts-v1.ts",
+      "sha256": "9bc76d83c39eee8210a696bff4c9ba4e5eafa6871fb2a394e47a581d2e41ff2c",
+      "bytes": 66186
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/p6-e385-admission-v1.ts",
+      "sha256": "76c5dc0858bf8271dab7d3e07a54e8c4ffa28ddf07ebc98793ca274d7a832318",
+      "bytes": 122292
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/p6-e385-compact-rules-v1.ts",
+      "sha256": "2d349d1e9d07d36cb5fb3a66ef496e6312bf44561c17e9a4c7e5bf6053c4decc",
+      "bytes": 397
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/p6-e385-decision-v2.ts",
+      "sha256": "d50095ea94fb4549aca027b7f14c3853fd1c7bdd440c82a94a0f81642adf9b55",
+      "bytes": 848
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/p6-e385-effective-admission-v2.ts",
+      "sha256": "5cc8bf52cf50bfcd5eec6389b94033d7c9749e2496eae1db4e47f9c8d7929e07",
+      "bytes": 2746
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/p6-e385-parameters-v2.ts",
+      "sha256": "f51dfa09bc7963c6c75c059b8e92e6cc2d750da2daa0d57a157ab70d92514786",
+      "bytes": 3194
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/p6-e385-selection-v1.ts",
+      "sha256": "f0fad134199edc37e4ec0778e2b6101093e456df9ba13b199cf6fd27008b624b",
+      "bytes": 3241
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/p6-e385-standalone-v2.ts",
+      "sha256": "fe8bf4b68ddf18cef1fee0536446f0fdd033fecfab43deab003e71e54d36dfc2",
+      "bytes": 9555
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/p6-e385-standalone-v3-m-95.ts",
+      "sha256": "e8455adc0bf9ef354b610738b8cc41fc6819cc039f980c168e7d54df78e4ac7b",
+      "bytes": 4161
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/p6-e385-standalone-v3.ts",
+      "sha256": "233274396fbf1a246459d1d5fa427ee357e317c0a2e751e74fa4093380226a39",
+      "bytes": 675
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/p9938-multi-axis-research.ts",
+      "sha256": "bfdc84a1cd34ae7382786504938b1d44473f6eeedd5a3df7d1f14405c640ff95",
+      "bytes": 77740
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/pcs-epr-pruned-v1.ts",
+      "sha256": "44a06a5a2a3fcc172038ca2cdbdc5cfc977df138b5054dea90c10ef41670c882",
+      "bytes": 6762
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/pcs-epr-standalone-v20.ts",
+      "sha256": "575ee99f5173f5b1114aabf5de411527a51541a9a94e9f8176425ff2bad1a0bf",
+      "bytes": 7313
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/r10-2333-execution-contract-v1.ts",
+      "sha256": "b53b578f3b213568ae2b7912841cf3ea07684101a58664481e82761480030f2d",
+      "bytes": 1457
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/r10-2333-standalone-v1.ts",
+      "sha256": "56b79322c90d669c8cfae5bd71d3dc6aab8d0db250c4101452d3b3794bb977d9",
+      "bytes": 61281
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/r9-e226-main-pcs-v3.ts",
+      "sha256": "b2357bcf7dba07e7244e8248421db1a463673fa8d4eb70371859839e4471ada9",
+      "bytes": 3385
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/r9-e226-policy-v5.ts",
+      "sha256": "fe6fb6bd898fcf5875825a69b702c13abcb5b8f46da0118d1707d1742dfbd119",
+      "bytes": 18790
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/r9-e226-source-contract-v1.ts",
+      "sha256": "62c8bb55a641fb0bac1ef2a74af88b0c9b20b4a6f401574e5d1e8a356ab5559b",
+      "bytes": 464
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/r9-e226-standalone-v4.ts",
+      "sha256": "45a3380c789e6b13be81cbcc4a61b7d6383f9c2ac7e20b75990f887dbc65e6cc",
+      "bytes": 10172
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategy-admission-v1.ts",
+      "sha256": "5a2da50c795d7061e39964e6ce51804d2b3d242ff9575c56ad8755afeb17bdf7",
+      "bytes": 1060
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategy-host-v2.ts",
+      "sha256": "a8bcb3951809cc58117a3ffaacbd83a488215c97b8c9820c4add555980b4ffe4",
+      "bytes": 8919
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategy-identity-v3.ts",
+      "sha256": "462e26d3aa7de940368d3adbf6c187cfa89ef7dd16ea4bdc5ccbbc9ab8c88ca1",
+      "bytes": 7258
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategy-module-v2.ts",
+      "sha256": "85b58081c934b69d86bdac5ab31ad81c2428527b08bd62d8d8255e3d21d12bf7",
+      "bytes": 14710
+    },
+    {
+      "path": "src/lib/cache.ts",
+      "sha256": "4862131a25dc31fffe783baed4d24ebf7a25038ae9fa6144ece76fa35567dbd1",
+      "bytes": 7932
+    },
+    {
+      "path": "src/lib/cacheGeneration.ts",
+      "sha256": "81f0d0af9c8bea058c43cd1aec5c4619a878b9da012101b4e19e22c4fec54883",
+      "bytes": 1824
+    },
+    {
+      "path": "src/lib/cspResearch.ts",
+      "sha256": "fb55ff489e601522b59af646bc3b07f17f6b4c977f02cd01ba4e3660cf1cf1f9",
+      "bytes": 2906
+    },
+    {
+      "path": "src/lib/embeddedRedisCache.ts",
+      "sha256": "cb6f352f0f2b0a92901e4647d90b521f9a8a280df30bc53ae5a2c9983da88d53",
+      "bytes": 8882
+    },
+    {
+      "path": "src/lib/engineTimeline.ts",
+      "sha256": "4167cb124231f8fd4104e5be238c45a04c7e9ca37e07607824ccb090b30dee66",
+      "bytes": 20832
+    },
+    {
+      "path": "src/lib/engines/analysis/ExpectedMoveEngine.ts",
+      "sha256": "2fb0f9d8b837ff5acd5c3a1cf083246302142aaafb6036d4a7493a10fa1f8f84",
+      "bytes": 289
+    },
+    {
+      "path": "src/lib/engines/analysis/IVSuitabilityEngine.ts",
+      "sha256": "0cc46a7c325f97dba28a4e9486b741900f0f3b4bd0cb4a9a4fc890606cb14065",
+      "bytes": 2671
+    },
+    {
+      "path": "src/lib/engines/analysis/IntradayBonusEngine.ts",
+      "sha256": "fcce7983f402624179a014636425bc35f7e3b8bb2a9d42834d48c0ad42833095",
+      "bytes": 13898
+    },
+    {
+      "path": "src/lib/engines/analysis/MonkeyMarketEngine.ts",
+      "sha256": "aba757f167f0624c2bda8464d291aa3f3294f636f4910a2cf2c5529c4ed1f55a",
+      "bytes": 15261
+    },
+    {
+      "path": "src/lib/engines/analysis/PanicTriggerEngine.ts",
+      "sha256": "8c49604e64c28f8ec22991c783905300198daacaa3e350639ee7dbd366eaff68",
+      "bytes": 6187
+    },
+    {
+      "path": "src/lib/engines/analysis/PcsReactiveRule.ts",
+      "sha256": "1e4168cc02e0f408cfe38b1af3b0b83b8e6336cb550dd185bd49ac6ee0f7e0f2",
+      "bytes": 2520
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqC4CurrentBarRules.ts",
+      "sha256": "97e39177b40015e2be2e69b5174339b6938008e7ab840e3d3bdd8756cfc4ab0f",
+      "bytes": 4261
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqCompositeCoordinator.ts",
+      "sha256": "144f5178c1eb6966d95366c8591a6681148aef5af015f2ae5565b8629606b989",
+      "bytes": 2266
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqCompositeReplaySession.ts",
+      "sha256": "62a78891314ffb7e0da8e4cd6f3a6e27dd551bedcffc6b1becae1a2816903bdd",
+      "bytes": 2794
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqDailyMarketBase.ts",
+      "sha256": "37907df66bea46bd381f2dbd079853ad36fea39f61a94fa94f4615376e170616",
+      "bytes": 3603
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqE1DynamicAdmission.ts",
+      "sha256": "57ff6b65158907509bc4f6d536be653a59289b4ae9c0400681105a63e70f6bbb",
+      "bytes": 134504
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqE1P0R2Replay.ts",
+      "sha256": "b3a7452bef9ca9644a130d77dbd12458e750b0b850d06a54f652f4089060f19d",
+      "bytes": 24336
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqE1SettlementCooldownReference.ts",
+      "sha256": "8476ff3a5d2d83911e1514b83794be72ca9a3fdd2ee306c9120e8551cfcae277",
+      "bytes": 1991
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb2CandidateRegistry.ts",
+      "sha256": "4ff981435ccc3a9f9c2f0b434941e51eeee994c033991aeac7f15142f95fc9b5",
+      "bytes": 45987
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb2E44Fused.ts",
+      "sha256": "6f85248fefd842eee4be891e8daf675d07a55837b80fb9bd5f5bcaf5476966ec",
+      "bytes": 10870
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb2P2R5Replay.ts",
+      "sha256": "67a191b5bb5711bcde691d90ea6e5d104678beff2654eac241a5ad4dfa6ca09a",
+      "bytes": 41185
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb3E12.ts",
+      "sha256": "34d08f718199377149be48cf222012a7ea5b5d56ee954db98758b6d1baddee61",
+      "bytes": 11417
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb6DynamicReplay.ts",
+      "sha256": "daacbbea5c84229d3c775060ea27d8a8183d3dfa5e413cf07689d467e102ce5e",
+      "bytes": 16577
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb6E209P6E385R9E226Replay.ts",
+      "sha256": "fde3d249214e7caa825ce1730bf48f9c89972a7d98984a13c4841498eae7d0d6",
+      "bytes": 4003
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb6P4E0R7Replay.ts",
+      "sha256": "b972d50214d42f9ea30c0af87d1990e793aa47cc1234e36c6a98e7b35100b2d6",
+      "bytes": 21085
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb6P4R7CandidateRegistry.ts",
+      "sha256": "dba4f3c7b94a8dfc5d1af1aef858ad6c13dde872bced9ad0019babf0b46319f4",
+      "bytes": 3047
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7DynamicReplay.ts",
+      "sha256": "10303575c7f7d55faeeb88e5745a9b56f06ec61d60eb42673e95e15b4032c55f",
+      "bytes": 38880
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E10DynamicReplay.ts",
+      "sha256": "09b5b6ebd99de401fd62f45e7f8d3546a1a23b0d1d9191ce864fff2dec186e6b",
+      "bytes": 3025
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E11DynamicReplay.ts",
+      "sha256": "ca7e66e655e6272a4bcb304b25ed010a1b2c4b96504d1f8ff49d8c5df2e09b64",
+      "bytes": 3143
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E12DynamicReplay.ts",
+      "sha256": "1b588b5f6a7ed5f1231031c736d5f1a28bae09fe8041601aa28666b53d8e6934",
+      "bytes": 2928
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E13DynamicReplay.ts",
+      "sha256": "de686810b612983e6fea9f64faf28541922f422042d1e86bc5b06252d98be7c5",
+      "bytes": 2895
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E148DynamicReplay.ts",
+      "sha256": "d729d03336503123498d137cc49bc9d183e68e1ed9fda83d50402e3676d1cdee",
+      "bytes": 3775
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E14DynamicReplay.ts",
+      "sha256": "5e90c588655913cc3b0674b52c059a8fdd6bb73cca09e32406c839f5953bdef8",
+      "bytes": 2909
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E156DynamicReplay.ts",
+      "sha256": "aa34e6023895ba228d28e93a8e279708624e2e9b79a6a12ad247f14488783ebc",
+      "bytes": 2884
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E15DynamicReplay.ts",
+      "sha256": "4ba6d59e860491c1cb66ff2e2d968d8388c2f77e2577b9fbd5039c9fc36247c0",
+      "bytes": 2914
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E16DynamicReplay.ts",
+      "sha256": "324995dea0cf0eecaa7d0f2b8efe0d7c0fb8db23fba33506f0df7e3f23a4caeb",
+      "bytes": 3677
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E172DynamicReplay.ts",
+      "sha256": "7ae7b746ecc19c13a8e2af8c003aff3ef65dfda12c141b395eb3a9324cf7342a",
+      "bytes": 2452
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E175DynamicReplay.ts",
+      "sha256": "6f5379c3fd16bc0b93b64393b2dd6067afbd66cdf041a5224afbac7bb2273d7a",
+      "bytes": 2500
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E175P6E218R9E221Contract.ts",
+      "sha256": "ff99f0dd9bdece16c74e8989942a55ce1ab14883c2247ae0b4d8421ae9bae9a9",
+      "bytes": 2288
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E175P6E385R9E226Contract.ts",
+      "sha256": "72d03b06008ce0eb51acc8c3e9360ca14faba7d02c1a02b524b1954e3c4162ec",
+      "bytes": 2523
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E209DynamicReplay.ts",
+      "sha256": "7766b9e7905c9ccd92253d44bef102dde7e53d29974bde3e4d28d982ec2a7dd6",
+      "bytes": 3930
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E209P6E385R9E226Replay.ts",
+      "sha256": "c6aaa99bf557d0f3a4e78fc395f9413225e5fc67d67834e8fb0b97b9c9826365",
+      "bytes": 2440
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E235Rules.ts",
+      "sha256": "6527a19b2303fee1957106a171312c64946d0c49f5435d1144d1741339ea6dcd",
+      "bytes": 12275
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E2DynamicReplay.ts",
+      "sha256": "90e908714fbd427ecdabe422a0475b3b552afcd2e41565d9d05c0c45a9eb1279",
+      "bytes": 5085
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E2Rules.ts",
+      "sha256": "f50665675977251231ec5fd8c7a863f98e236ed44f13ecacfc16a65292fa1bc5",
+      "bytes": 1592
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E3DynamicReplay.ts",
+      "sha256": "191648f63a16118d4ca4a2540e92d26cdd577fee369559a9752fc6f384927ad9",
+      "bytes": 3776
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E3Rules.ts",
+      "sha256": "bbb16ef069de8fd1d63e777ccaf9c37d637769704026372db1bd1d12a1ec1d7a",
+      "bytes": 687
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E4DynamicReplay.ts",
+      "sha256": "aa208cd459d56cb405be302ab362dc5c1d72c1d898620bd9927667d018a6be1c",
+      "bytes": 3668
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E4Rules.ts",
+      "sha256": "f03be24b8b2287d0133596f1748c5e1caa9dea984e3ce558ebcc945edff60669",
+      "bytes": 724
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E5DynamicReplay.ts",
+      "sha256": "db488885bbb478f4b92451d14acdb0f1a3850bccf7db16dd3683aa3d40851438",
+      "bytes": 3668
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E5Rules.ts",
+      "sha256": "babe1224d764dd747f517ef28e363ffbeb3b7538463db08e2d0d4956c46ce985",
+      "bytes": 898
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E6DynamicReplay.ts",
+      "sha256": "e186f03ea00902c37f2c93b41e70f3189e1ff4e6cdc9ed398c5f5c5fc6dadcbf",
+      "bytes": 3668
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E6Rules.ts",
+      "sha256": "1b37221b5a72ce8f3629eb0ce4bfd4d736e122381236bb885cc53c096ee7c518",
+      "bytes": 748
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E7DynamicReplay.ts",
+      "sha256": "abfb8f0b60d6b75cdc5bb90b21fb4f6a969af383609e3f3dbad440c2f0424dce",
+      "bytes": 3668
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E7Rules.ts",
+      "sha256": "aead902e8e4b2c59708114ddc4216c528b6fe81364ffc6127f58b41bfe133aa8",
+      "bytes": 710
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E8DynamicReplay.ts",
+      "sha256": "365fad0de3c39187c3795c3fa67681be26e77b76817dddb2a5a9839b1a14c1e1",
+      "bytes": 3733
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E8Rules.ts",
+      "sha256": "eda416626aff27355f60ef8e7b9b11bc4169bdd03c632d88e6dc2188e944c9c0",
+      "bytes": 668
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7P5R8Replay.ts",
+      "sha256": "65a41cea74e0f4ea11fb75c4960ace9202dcaba750bd0e999637a5019dde2f12",
+      "bytes": 25734
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7P6R9Parallel.ts",
+      "sha256": "dc4e1e3a7efc368900d750c869fce90fc2972b72632a26e3728676f5ef46aa16",
+      "bytes": 2089
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7P6R9Replay.ts",
+      "sha256": "519e7b5e0432fc3b44248f279f79a0d6173a4d1827eeca98e3975450b2a87687",
+      "bytes": 22769
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7P6R9Worker.ts",
+      "sha256": "e62187268ffd71c672d982e821ad5803e6cc7596b003adc48f11e072019fbb95",
+      "bytes": 3114
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqGexResearch.ts",
+      "sha256": "018c95c18e3a0d85ebf72076e277b5f84c8ed23533913f1f01d11ab12689d564",
+      "bytes": 27739
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqGexTerminalEngine.ts",
+      "sha256": "c577dc60a66e904a91547a824289e131502191de61445fc52c97398350f17b64",
+      "bytes": 29718
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqIntradayDirectional.ts",
+      "sha256": "041b4a32fec4c6e6c5d5ed7a19aeecf966dfa16e883436232a4aad6fd3356af9",
+      "bytes": 47406
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqIntradayDirectionalReplay.ts",
+      "sha256": "c3013ffe7e0f328ccbe30d99a315642830d25b994247686b729c8d04592d387b",
+      "bytes": 39399
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqP4DynamicReplay.ts",
+      "sha256": "a28627e65c94cce96999e29300c950205640329b357221e817032e688ec90dc0",
+      "bytes": 195208
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqPcsBacktestSpec.ts",
+      "sha256": "079045fc70b85a3bb1a26f6588db73cd15f551e3117c4d909633b24533efb1d9",
+      "bytes": 17382
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqPcsEntrySnapshot.ts",
+      "sha256": "fe1a6460f42f60e2c36a9859b2fbf3c083dd7216b4b542935297d0758ca2eed4",
+      "bytes": 5197
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqPcsHistoricalBacktest.ts",
+      "sha256": "3e2e9c3c80733093eb666bf7385a45a716612968bfc64e0fe702f2fa7c9a74cc",
+      "bytes": 13300
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqR7DynamicReplay.ts",
+      "sha256": "4a74070f29c924244d5d4f30043b8fc0c2e68ddfb1e1c66c0eda401b8af8261c",
+      "bytes": 4606
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqReplaySnapshot.ts",
+      "sha256": "0487b458e05e4a37ecc6b392e03f9bbf260245008ea2a1666cd83ba499f56aba",
+      "bytes": 13016
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqStrategyAnalysis.ts",
+      "sha256": "abbf8cdd627788165451f28ba048cc0f00397d07fe57a5db437fdeff42e0b6b7",
+      "bytes": 4039
+    },
+    {
+      "path": "src/lib/engines/analysis/SellerEdgeScoreEngine.ts",
+      "sha256": "21ec6ba5a1c2dea5b9e2141c3ba3e8217a5ceb11672b1bcf5d850cba37cc4ad5",
+      "bytes": 10352
+    },
+    {
+      "path": "src/lib/engines/analysis/SellerOpportunityBacktest.ts",
+      "sha256": "e32abae2b4afef3a989af5603723314d632ecf11c04b530dd136e3c8b3dfaa13",
+      "bytes": 23446
+    },
+    {
+      "path": "src/lib/engines/analysis/SellerOpportunityFactors.ts",
+      "sha256": "3601d5b49a48f673644f681bf2b08c54fc046a9f3ec13d884fa92965a1b504cf",
+      "bytes": 44224
+    },
+    {
+      "path": "src/lib/engines/analysis/SellerOpportunityPolicy.ts",
+      "sha256": "9bc25953d2d1a00758d67911e38c075734144be8d59874f19e002cea084dc346",
+      "bytes": 2582
+    },
+    {
+      "path": "src/lib/engines/analysis/SellerStatsEngine.ts",
+      "sha256": "746cc5cea627c44ab48974d3d98631deefb221eb9ab4e578976416f662ab7868",
+      "bytes": 97739
+    },
+    {
+      "path": "src/lib/engines/analysis/SentimentEngine.ts",
+      "sha256": "3313cb282d5dde3f4b869787c3d7ebcb0369de34eacdc17bade4d58863657fb1",
+      "bytes": 23777
+    },
+    {
+      "path": "src/lib/engines/analysis/StockEngine.ts",
+      "sha256": "48c34e19a8af8e04a5a5d46f0447f8c815341051a9851900f3c52f0288d5900e",
+      "bytes": 26824
+    },
+    {
+      "path": "src/lib/engines/analysis/TechnicalAnalysisEngine.ts",
+      "sha256": "ea7e1158406414426b435eb89bc1d38b612e2739a7f0f96535bf89892a95fd61",
+      "bytes": 5267
+    },
+    {
+      "path": "src/lib/engines/analysis/VolatilityEngine.ts",
+      "sha256": "3b7a55299208d285c80c749c6a53a9500fa5cf6966d46b549f38346f8cc4a126",
+      "bytes": 15068
+    },
+    {
+      "path": "src/lib/engines/analysis/entryMetricsEngine.ts",
+      "sha256": "7fdff817eced10233195c4defcf1bfd8af33e90856c041e12af7fdb9eef49191",
+      "bytes": 5183
+    },
+    {
+      "path": "src/lib/engines/analysis/qqqEbDailyAdmission.ts",
+      "sha256": "75cb4c3d5374a6839607ba016fd3546cc4d3d72cf00447d4b5f94a630495860e",
+      "bytes": 1944
+    },
+    {
+      "path": "src/lib/engines/analysis/qqqWorkerReply.ts",
+      "sha256": "138d2a3fb77188aa26819a8690e5dc4da500e98506e9f2e739c03a983b83d10b",
+      "bytes": 1149
+    },
+    {
+      "path": "src/lib/engines/core/DecisionEngine.ts",
+      "sha256": "d0e0f258bd51fdfc35e8849ca601ed1e2bc30ef036f8add1553fcc41dab0609d",
+      "bytes": 48832
+    },
+    {
+      "path": "src/lib/engines/core/VerdictEngine.ts",
+      "sha256": "155dcd544ee488b3c4659ce25c29a209c59611087d09b4f4ce1fa911e26260b2",
+      "bytes": 44200
+    },
+    {
+      "path": "src/lib/engines/discovery/AnomalyDetectionEngine.ts",
+      "sha256": "63c31a0fc43d67fca789e514f56ac7755594796b963f0ebb9bf318c7da202c55",
+      "bytes": 2363
+    },
+    {
+      "path": "src/lib/engines/discovery/SigmaEventEngine.ts",
+      "sha256": "dee80993cb2c7689d43c7fdfd2c2e8ea5f84057c9a0019c17c67a67f35291168",
+      "bytes": 6362
+    },
+    {
+      "path": "src/lib/engines/gates/PreTradeGate.ts",
+      "sha256": "96a9d04deb917895e7b88606ed730b679c985e71371b418c8b5ac4e92999904f",
+      "bytes": 2870
+    },
+    {
+      "path": "src/lib/engines/index.ts",
+      "sha256": "fdbeb691fa43b332955f70c4f45c083bf68b409c4ec2a9f6e2dc17673e5a2960",
+      "bytes": 1720
+    },
+    {
+      "path": "src/lib/engines/indicators/IndicatorEngine.ts",
+      "sha256": "4897a5b6297b95d3cdd3ac0b3c0c76402bd7e9f94ab81ff1723033ba9c62ea36",
+      "bytes": 25308
+    },
+    {
+      "path": "src/lib/engines/intraday-ladder/types.ts",
+      "sha256": "8795188876eaf89fc43defe04a64545abdc44fbba167700e1c6b844a0f17fe0e",
+      "bytes": 1523
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/artifacts/slow-subregime-sr-v1.json",
+      "sha256": "03ad1ca4e040091082c5cad66f08519c1ebd09e4a15229e43b5b774ce9efb0c6",
+      "bytes": 1126680
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/backtest/attribution.ts",
+      "sha256": "e56f91422bfea2597934a60e6878bba43482ca915704e99da554239c4f5281ad",
+      "bytes": 18032
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/backtest/generalized-hsmm.ts",
+      "sha256": "449f29aae70ef52800c09e27daa7f5005d389edd6ee83615aa291b4ad0020790",
+      "bytes": 10814
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/backtest/helpers.ts",
+      "sha256": "d5198c2aff9dba6727416449e12fe9d52f797e0086c818462cfed9c6cbf79b94",
+      "bytes": 6557
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/backtest/metrics.ts",
+      "sha256": "3ebcad59c55241bf3d492c77024e781177adf9662e6986e37a4efcc667fd0ace",
+      "bytes": 5222
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/backtest/mockOptionCalibration.ts",
+      "sha256": "bd8413daa29b36a63655b89e60c9d584b85b78985298fbee764586d27be044a0",
+      "bytes": 488
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/backtest/mockOptions.ts",
+      "sha256": "140367f621c8f63d2f47a28634663d3d00fe10686867d07e04eb28d3182ce20e",
+      "bytes": 20870
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/backtest/resampled-regime-classifier.ts",
+      "sha256": "e037093b6014985630019a0f95e13f56b54eaa133f3f25dd613699ea53628353",
+      "bytes": 3388
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/backtest/slow-subregime-model.ts",
+      "sha256": "48d9ef080b855960e5ef9aec03cda362a7cc0121b94063410d80854b7f492367",
+      "bytes": 34490
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/backtest/state-grid-audit.ts",
+      "sha256": "8eaeceeff320f4d00c969eaaf0a34f00c64c0b7e91a398223c3b720486c2bfa2",
+      "bytes": 5159
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/backtest/types.ts",
+      "sha256": "7d14b0e4a341a7d745ae74eb347c2c66c54fbd61d3d733360e688e7e8035eb8b",
+      "bytes": 22866
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/constants.ts",
+      "sha256": "6439d9e0016e77884164c91127c95b7e5b3d50b466a742ea32691800b37437ab",
+      "bytes": 16826
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/engines/01-data-quality-gate.ts",
+      "sha256": "3972a4a2dde10b00605a4704ded67c1605f58f84b081330df33943595506a647",
+      "bytes": 2788
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/engines/02-hard-risk-rules.ts",
+      "sha256": "3354666aa11962115f59f42f87f0bf1506776cad92c053b4cfc157669a7831fa",
+      "bytes": 8733
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/engines/03-market-regime.ts",
+      "sha256": "0d7133501cc645a1fdca57ab2f0f594b17a7495ebd29c28e6386b47f888e2124",
+      "bytes": 12143
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/engines/04-trend-following.ts",
+      "sha256": "6ae5109b421528ece7340f1fc40ac7de780c59e8fcfd0a23114d1159279257e3",
+      "bytes": 3164
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/engines/05-volatility-target.ts",
+      "sha256": "8e263e08d51e832a8a01a8185991e61cddf5be1d5f004eceebe1d8c99a767820",
+      "bytes": 32801
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/engines/06-risk-budget.ts",
+      "sha256": "30dc8a8930d7a5ddab9d04d06d7d29b79f451559e45394c656d0ae4cfde27df5",
+      "bytes": 55397
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/engines/06a-drawdown-governor.ts",
+      "sha256": "82b799c0d8947da96208980a674477acc3bcc77a874a6c8b11be0f1140ada66a",
+      "bytes": 6725
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/engines/06b-intraday-risk-gate.ts",
+      "sha256": "dce5c957a025510539ea9c006f2311a7ff288b465ca2482ba8ee7988135e23d0",
+      "bytes": 5241
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/engines/06c-tail-risk-governor.ts",
+      "sha256": "58b57756fc44e100cfe4e7959f268356b4c791f56c2ea62ae44a15301e7789cd",
+      "bytes": 2556
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/engines/08-conflict-resolver.ts",
+      "sha256": "06191503c6aba1603c32b6aa6b4c1defbdda97015e03acd65e13d3c2fc981cc5",
+      "bytes": 2370
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/engines/09-execution-guard.ts",
+      "sha256": "293e61dde6104b58ad509b8c537a70dcaa3a5f59a9acffe3f10172a57a6c7abd",
+      "bytes": 7225
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/engines/10-order-proposal.ts",
+      "sha256": "4481d9ff410b3cbd370d9cbb906884286d65f8906d7fccc00cd0301985f25675",
+      "bytes": 31306
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/engines/crisis-state-machine.ts",
+      "sha256": "862ce2a245ad66d1d2711cacedbaf8359596c99b86307a373e80e053c09040f3",
+      "bytes": 6954
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/engines/macro-regime-state.ts",
+      "sha256": "7cfcdd6c64561ef7cbba5e7a7daa95ddb65089f313554d905124d18122453f0e",
+      "bytes": 24162
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/exitConditions.ts",
+      "sha256": "4b2c3938c63ac63f3bbaa601eee9405a14fe3753528aae7a4fbba8d1d6611b9d",
+      "bytes": 15767
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/overlayValidation.ts",
+      "sha256": "7cc1da57fcc296d4c9b31b060bdc4f1450805df11b70c15d851968a2ccaff681",
+      "bytes": 4109
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/pipeline-core-v3.ts",
+      "sha256": "ade654f9547a4d94bf2ed6064e8138a5bf0c94a44f8aea87e15676990a27fcbd",
+      "bytes": 16507
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/pipeline.ts",
+      "sha256": "8c4a848eb3632669671fe4b3929200fc3f278b4387b2bc17f031cb82f9be9387",
+      "bytes": 768
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/reasonLabels.ts",
+      "sha256": "9d934d4ad22768e4a58e7f68863a9e4602c6ad1d5a40b97bfb9b9a5ecdcc9bca",
+      "bytes": 1417
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/slow-subregime-live.server.ts",
+      "sha256": "46f82963bc1f2563c318b083eab6e33e4de7287343ded169819a6d3727016ed6",
+      "bytes": 7217
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/slow-subregime-runtime.ts",
+      "sha256": "b3b1328202e06b5b998cd948f29e0da1c908dfcfd8f8cb6516f9186b2ab53ef0",
+      "bytes": 3383
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/stock-policy.ts",
+      "sha256": "c5c0d4f399a8ddabe1a811da435e3524727c59dfc3a42e3496b8428b4dba14d3",
+      "bytes": 20237
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/types/input.ts",
+      "sha256": "326b2c9ec21ef2f20fc0f30852c8232ff0ee874daba3036b13ecc9511797a01f",
+      "bytes": 13981
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/types/output.ts",
+      "sha256": "df4946087bd49cfbba1f1315208a67fd683aef1142359d13e9115e61b7a2f8d1",
+      "bytes": 6855
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/types/params.ts",
+      "sha256": "52f12c1a92c88f0a539cfebc9cf5fa778063c202b85fe3803b13c33973de1096",
+      "bytes": 218794
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/types/pipeline.ts",
+      "sha256": "a4b76eec8a99ab4d11f33c04929ddffcd8f0b03957e2f349e20875366015bad2",
+      "bytes": 19837
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/universe.ts",
+      "sha256": "690f31e4b4b610c046edc3fcb6f400dca6d8a72c69abb85631ef09ef7d10fe91",
+      "bytes": 2820
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/utils.ts",
+      "sha256": "c11cf450aaa39365fdc614d21b4336b00d13cf7e61390cfaf21edf52b2f0e125",
+      "bytes": 16410
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/boxx-price.ts",
+      "sha256": "88bd6d2878a3e73e4cca4997106e7967905e232005ed198c512f50b66089b896",
+      "bytes": 1917
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/build-history.ts",
+      "sha256": "434ccb084cdba2430811e3fdf14d1171bc8df7f1ca332bc1e3aca9c9116c7de8",
+      "bytes": 12404
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/canonical-option-signal-tape.ts",
+      "sha256": "5a1cb773df28f48f8044f128f1f32bcadad374201df2f23e8d828e3ff4e5243c",
+      "bytes": 2169
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/day-loop.ts",
+      "sha256": "f5a5b85fde3bb5dbe5e9924b1056e18e9107a99dd4d988de81d06df4cdee4a3a",
+      "bytes": 355454
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/decision-memory.ts",
+      "sha256": "20c55b3d93ee74ce9006847920aef7d2dd44407039917de9d8262fef72a8cbd2",
+      "bytes": 3189
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/decision-view.ts",
+      "sha256": "c8ffd938fd92206c55981954ea02c9d695980c0263adbb3bde7f994145937d22",
+      "bytes": 5995
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/equity-execution.ts",
+      "sha256": "28d45211a997ffc16293f26e84d9ab1d2e2b599810b73f516ed8ef29fbade2dd",
+      "bytes": 4744
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/execution-adapter.ts",
+      "sha256": "770ff01d21f63c0ce0c31d8bc034a7e4f45df2dc8af5dd08d04f43c4344bc382",
+      "bytes": 4960
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/execution-state.ts",
+      "sha256": "456ecfadf1bb55d36dc10d736e78eda2cf6af974fc4c436368205ef307ebc0a9",
+      "bytes": 468
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/experiments/d1-recovery-binding-aware.ts",
+      "sha256": "c15bd3f5bfbd0633afe46bbc6a8e6d86eba082096e31a4014cde62795d441e17",
+      "bytes": 3217
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/fixtures.ts",
+      "sha256": "dc19c1ac737671e132f5f979bdaea483b642aaf059786ae28b853851f385278c",
+      "bytes": 5020
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/history-range.ts",
+      "sha256": "cf9c1d714b2b8594f4e73fbcbcf4983455e1ef957f6ce5888c15349ddc7b6155",
+      "bytes": 1098
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/load-run-data.ts",
+      "sha256": "25ae72497cd84ecda844526d565c6acce478abd9601c30692ce97c5b11271565",
+      "bytes": 3238
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/native-decision-observation-v1.ts",
+      "sha256": "d60e51c411a13eba51b0a9b2ac6e3f271b82338f4e7bd6985f924b93a8400afa",
+      "bytes": 2877
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/native-market-coordinates-v2.ts",
+      "sha256": "013cbee354f5c2f0c060400dc2a6eb97fa10b7a2908a32f28c1b066d6ddb3bdc",
+      "bytes": 3533
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/native-observation-contract-v2.ts",
+      "sha256": "22b2fb7aff9fc79060d3252ca958447b84cca5820252e6a87a739212370f6b16",
+      "bytes": 3444
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/native-stock-loop-v2.ts",
+      "sha256": "ea9c540664d585723c6d2debe7516758656f7886119ccfbc9c9a270db558d37e",
+      "bytes": 168983
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/native-stock-pipeline-v3.ts",
+      "sha256": "22de0693a999bbd2b73e3ed5a0d1803b5c30242d37772a0b2de242570fd3bebf",
+      "bytes": 720
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/pcs-fill-fallback-admission.ts",
+      "sha256": "f6b4703cc02db143174e942452ab7149715c3cba82921aa3caf1b5e41208636f",
+      "bytes": 1075
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/pcs-fill-fallback-pair-search.ts",
+      "sha256": "91e4f107935c0030697ba49b980334980306eaee5c97fbe92eeba2a52b0fdff5",
+      "bytes": 1142
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/pcs-survival-exit.ts",
+      "sha256": "27e00ce8f1eb0e85f1a390681c0e5aa9976c4747df4a69913a728c62ecbb0f80",
+      "bytes": 2078
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/pipeline-input-v3.ts",
+      "sha256": "f0a68d85be4316d423cdab7e4feadc3969aa3dec9740fd32d9cba5d135658b6c",
+      "bytes": 633
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/pipeline.ts",
+      "sha256": "ee98421329d7ab3bb43bcc7ba75fee476802193f4829f1b26e68c8680413a143",
+      "bytes": 587
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/production-defaults.ts",
+      "sha256": "bf1878f102988214c69c91303791ab0def486b04af899db72bb07fe9ff02c961",
+      "bytes": 2666
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/run-spec.ts",
+      "sha256": "20a55c04dd1341364cf37ce9b574f00b6fbd646ef57b92105b4992aa12be888e",
+      "bytes": 5830
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/runner.ts",
+      "sha256": "88f3ddf361de65ddd420cba23c35c793f73ba17f76bbdb2ded99b1ff5a1614d8",
+      "bytes": 23128
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/sample-window.ts",
+      "sha256": "4a7c32396992db983092bcaae1174ff846d84867875de9a7fc4056a59318a718",
+      "bytes": 4194
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/snapshot.ts",
+      "sha256": "4380f5f8fcbd798a153691f8be5d70d09adc04d365998eb1230e134e02f6b822",
+      "bytes": 5769
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/base.ts",
+      "sha256": "ab88c159657c3f0bafbf31d8afaaa1f86042bc41f7297fda7b94fd917aafc1b7",
+      "bytes": 704
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/book.ts",
+      "sha256": "dc5e428db1b82f36fbf5af640355b7d08651513811c849dd4c490d5d64309179",
+      "bytes": 423
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/bridge.ts",
+      "sha256": "3b61454a1de0898e2940e584a0f2ed69baf16d49425ddc44880772f6df65b7ef",
+      "bytes": 4158
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/coordinator.ts",
+      "sha256": "0c397c4c5c1f5c1c8e88206204a62d09f5e4574de223de169f3300e3fcabd904",
+      "bytes": 8086
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/defaults.ts",
+      "sha256": "a6927830f9a5a28d20ac2b7eb1b7f1d9e2574b83c298a89ffc9adf7172b77b7a",
+      "bytes": 8538
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/indicators.ts",
+      "sha256": "34d7481ecfeaa83c55fc6a2fa4c70000c6c79e388dfe94f5560cc1b62869e8ef",
+      "bytes": 7183
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/native-overlay-diagnostics-v3.ts",
+      "sha256": "f4f1b8e791facf95721fd43df9b6ccf8babcf475c190c3830f1e45e3e8cfd185",
+      "bytes": 40674
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/options.ts",
+      "sha256": "ac3d7efd43d73b7a76445194d82705a83c99d963a61896568e59965df2a61745",
+      "bytes": 10506
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/overlay-runner.ts",
+      "sha256": "ca1e022f8bddd6b71caac782197b9ef4c22d9c720c28485d5f12b38c64922f35",
+      "bytes": 670560
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/strategies/bear-call-spread.ts",
+      "sha256": "4e151f35be67d2c9c6b5a73fac8e3c5942c69540da8e329e9afa6a2b222fba5f",
+      "bytes": 18004
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/strategies/call-credit-spread.ts",
+      "sha256": "2ecc1782bdefa6483dabcb08574c500546932049fab7b0f86db03b67a8d9d44c",
+      "bytes": 64911
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/strategies/collar.ts",
+      "sha256": "8b554c859f1079dfcf9d34a5bd71e731cd0309175912d77bf5d17ffa07ba0ea9",
+      "bytes": 33048
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/strategies/cs-survival-selector.ts",
+      "sha256": "b2650a4e76b050e333cf5c9b3173b6117d43b45e0242b717411ef4fc6b67975f",
+      "bytes": 16221
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/strategies/cs-wr89-controller.ts",
+      "sha256": "ce3989d61855e3cb5a11514714a612ee6f7c7f8d31c85899a5496172cc6c44b0",
+      "bytes": 7339
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/strategies/equity-boost-put-spread.ts",
+      "sha256": "676ef2d175bc89db9f441d44878df6754e040f54882391a6b627de8812f97d8b",
+      "bytes": 17513
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/strategies/iron-condor.ts",
+      "sha256": "b08c6ea881bb36b34f43adbfef120944a28ff232ed20b461e87e61f2707560ca",
+      "bytes": 14079
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/strategies/pcs-contract-profile.ts",
+      "sha256": "98080393058c288eaffcbb5c432e97ca492d55e41b8d3f176d76c2a8741901f2",
+      "bytes": 2689
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/strategies/pcs-research-width.ts",
+      "sha256": "5b27b4f52ac468e947794b9637882933b7961ba40bf42d2e8ecdca0291820629",
+      "bytes": 1032
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/strategies/pcs-risk-envelope.ts",
+      "sha256": "11eee5187d0170b32c9ba34a05bcd807cdf4e35e7df19250d9f597cea590d6fa",
+      "bytes": 8703
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/strategies/pcs-stock-decision-filter.ts",
+      "sha256": "3db32b54383594597a6aa67b769e2b07c1ddd440a874be7877a60e004ef9fd4c",
+      "bytes": 11899
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/strategies/pcs-survival-selector.ts",
+      "sha256": "f757f0a764cfc9ca0d1538ca621f29707bf45e6406985ea53e57315bf31d67bb",
+      "bytes": 9892
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/strategies/put-credit-spread.ts",
+      "sha256": "ee46dd20c697f0456a351b65d9105417fb506bd1724469ab4ebb2a4f12298be0",
+      "bytes": 66689
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/strategies/standalone-policy-gates-v1.ts",
+      "sha256": "b9c1a9f867c2f8f7df4265ed1e2132d7755d6099ff92e4dfb2549de30fd7458c",
+      "bytes": 70086
+    },
+    {
+      "path": "src/lib/engines/position/RollEngine.ts",
+      "sha256": "b7755a4cce56db2ad3f045f8d103ba4fb80e991319fbfd77fcfec47b4399726f",
+      "bytes": 5921
+    },
+    {
+      "path": "src/lib/engines/position/cspExecutionEngine.ts",
+      "sha256": "03169e073d49e8ef70f153beeb1b503a35d7b4203245fe8ea5cd2477dd49e823",
+      "bytes": 4187
+    },
+    {
+      "path": "src/lib/engines/position/cspWarningEngine.ts",
+      "sha256": "4723dfe57aa7df5cc64bfd63e23f6ddbbc069176bfd6ec31797a8f2076d960e6",
+      "bytes": 6523
+    },
+    {
+      "path": "src/lib/engines/pricing/BlackScholesEngine.ts",
+      "sha256": "e1cf1bf17bbe58d3cf70bbe65df5dd66d2330ae58221bc26ad115ec700a3b673",
+      "bytes": 14733
+    },
+    {
+      "path": "src/lib/engines/pricing/OptionChainEngine.ts",
+      "sha256": "b0b3bb4c926192fde47169588456f1e2bf0a3cc789b03b624ff0d34256cd4418",
+      "bytes": 4960
+    },
+    {
+      "path": "src/lib/engines/recommendation/RecommendationEngine.ts",
+      "sha256": "f496f81415d349491dc10f0b9d841ba5bd9bceea329afc03f54af64ed609bcee",
+      "bytes": 22180
+    },
+    {
+      "path": "src/lib/engines/regime/HMMRegimeEngine.ts",
+      "sha256": "78ef42a369617331c89a832c3e3c73e216a13d5b68a172a08875c1ac8dc528fa",
+      "bytes": 3668
+    },
+    {
+      "path": "src/lib/engines/regime/UnifiedRegimeEngine.ts",
+      "sha256": "049598ec7c58e346b76a8b01f7edea081ff738698b9ad7dee85fec080af4b6db",
+      "bytes": 7707
+    },
+    {
+      "path": "src/lib/engines/screening/OptionChainScoringEngine.ts",
+      "sha256": "ca7a401822f174c84294ef2db33d70e44868129f3d7282c72f1b40d16f7c5f28",
+      "bytes": 1767
+    },
+    {
+      "path": "src/lib/engines/shared/constants.ts",
+      "sha256": "0728d2ae2349e834b879021f7964eda79b18ce35f95e0c54bf479c2aa88c9760",
+      "bytes": 951
+    },
+    {
+      "path": "src/lib/engines/shared/tradeUtils.ts",
+      "sha256": "7bd6a005f117c488840ce7a2b29f9e095a309d6eaa93c80a1a2bd804c3531578",
+      "bytes": 1305
+    },
+    {
+      "path": "src/lib/engines/structure/GEXEngine.ts",
+      "sha256": "f9699b3ac5a8e219eff7359fca77793b527ee3498ea9f48c68f4cae4855260d0",
+      "bytes": 11747
+    },
+    {
+      "path": "src/lib/engines/structure/GEXStructureEngine.ts",
+      "sha256": "f310c6130a363b745365e603cc413fbcaec8821f3543bf2ef7a0c24735ae2a0a",
+      "bytes": 6659
+    },
+    {
+      "path": "src/lib/factor.ts",
+      "sha256": "b9c307b7a503181705a5e5b2d4dcb614ad1996b3a2cad6e9a5051e63ced50a5f",
+      "bytes": 10001
+    },
+    {
+      "path": "src/lib/findBestCSPStrike.ts",
+      "sha256": "c8f1e7325e34efd9903b012aa9640489e5edc6a7e2687d2983eda803d68b82e0",
+      "bytes": 26062
+    },
+    {
+      "path": "src/lib/indicators/compat.ts",
+      "sha256": "2c6ea1ad9c438107acc287b44548f38b1f608264aed740c01877f34c44e44615",
+      "bytes": 772
+    },
+    {
+      "path": "src/lib/indicators/config.ts",
+      "sha256": "00b4186f316a80cdb22af3ff67c9e35d88427d515978f70fb30ef6468dc1bc7e",
+      "bytes": 2099
+    },
+    {
+      "path": "src/lib/indicators/index.ts",
+      "sha256": "80cb1a480ac709729b1624b0af05713f2a7a1e0f3e971711583f933b95454f00",
+      "bytes": 160
+    },
+    {
+      "path": "src/lib/indicators/indicators/composite.ts",
+      "sha256": "005a56c4a2ccf147cc95ae7d23239866827c0f15b5b60d0ed24d56b3025eb9f4",
+      "bytes": 1842
+    },
+    {
+      "path": "src/lib/indicators/indicators/momentum.ts",
+      "sha256": "bf4a98b4a1200a3f6f95d78d93d28746ff75c6d77548a4477cadcb687f406183",
+      "bytes": 4114
+    },
+    {
+      "path": "src/lib/indicators/indicators/pattern.ts",
+      "sha256": "5070720d83efbd604406cedef2d87d16de7408b0bf13e2c34e9d24479c7705a4",
+      "bytes": 3026
+    },
+    {
+      "path": "src/lib/indicators/indicators/trend.ts",
+      "sha256": "fe450d7bd7f0e7b04b5cffb1acb1a8df7aa9505a3f77c9f890db475f073be2c5",
+      "bytes": 8111
+    },
+    {
+      "path": "src/lib/indicators/indicators/volatility.ts",
+      "sha256": "250e1e2435bc4aad3168efd5a383a0760afaf2771a9f10cea2949f869d9f308a",
+      "bytes": 12439
+    },
+    {
+      "path": "src/lib/indicators/indicators/volume.ts",
+      "sha256": "a5be830ee0b9aaab0303a8d82ae9214b750e22cbd6199bec552a9504e67b011b",
+      "bytes": 2378
+    },
+    {
+      "path": "src/lib/indicators/pipeline.ts",
+      "sha256": "5c0e83fb8ff005768801d45b8493a6b42e2bc0d5e0763ab092422af5c17ffde1",
+      "bytes": 7163
+    },
+    {
+      "path": "src/lib/indicators/types.ts",
+      "sha256": "77b89a8505d97f42fdcd519a1cd4f247585f4cc04e9b2a784b2bae202500cebc",
+      "bytes": 3079
+    },
+    {
+      "path": "src/lib/jsonResponseDelta.ts",
+      "sha256": "af82085a7443662bbf32cb2d93a91a8e2f07da16ad847956d49775a1de9e7772",
+      "bytes": 2544
+    },
+    {
+      "path": "src/lib/optionQuote.ts",
+      "sha256": "e064c2338ce478f3e1836eb16f15e61d8436347699d80b1c3398b515d2adabd8",
+      "bytes": 1534
+    },
+    {
+      "path": "src/lib/presenters/marketTechnicalLens.ts",
+      "sha256": "bff977b9e5e7a94f7370cb50a58abe4caf1878742b528fab04ecd8c4ddcb104b",
+      "bytes": 10346
+    },
+    {
+      "path": "src/lib/qqqAtmIv.ts",
+      "sha256": "7189807a8001bb83ad268d3e064b0941a134c7f3a57f4d34c5515386e10151a6",
+      "bytes": 1539
+    },
+    {
+      "path": "src/lib/qqqAtmIvObservation.ts",
+      "sha256": "33efba2e8298f09bde4b474a148ae06ab67dc1413cfd98f2147e7690136d5119",
+      "bytes": 3693
+    },
+    {
+      "path": "src/lib/qqqChartArchive.ts",
+      "sha256": "7aa398daff5a73772ac58d8e97a86ab3b83344974b9682fa94b8bea7920d824f",
+      "bytes": 4801
+    },
+    {
+      "path": "src/lib/qqqChartArchiveCodec.ts",
+      "sha256": "4e751add01f48291b204d2577611d6085526915ecf0dc430e6fbcc7ac7227e2e",
+      "bytes": 2272
+    },
+    {
+      "path": "src/lib/qqqChartCloseIndex.ts",
+      "sha256": "90d09718795259b22e2612a17c0e6061e7fab07c3dad31f3fc05aa88c8d64776",
+      "bytes": 902
+    },
+    {
+      "path": "src/lib/qqqChartCombinedTransport.ts",
+      "sha256": "858931e6234d9a78090470953a0a997084036459b672ea7b1a97e1645625055e",
+      "bytes": 980
+    },
+    {
+      "path": "src/lib/qqqChartDataIndex.ts",
+      "sha256": "33e6398d14eb833f3676bacfea8f6ca85d5c44168d161373548158fe641452ee",
+      "bytes": 1707
+    },
+    {
+      "path": "src/lib/qqqChartObservationBands.ts",
+      "sha256": "f1198c6b12eab08e60766ea69bb0b23a14638638882833765fe08cc8d0d80386",
+      "bytes": 9701
+    },
+    {
+      "path": "src/lib/qqqChartProfile.ts",
+      "sha256": "70fdf60471e6434e596b5470202c6deb086a7f184476e63d4370d0eaf8498774",
+      "bytes": 761
+    },
+    {
+      "path": "src/lib/qqqChartProfileTransport.ts",
+      "sha256": "14c04174add9079481851589f99b5269436e696187036bb7e4068b2dac962b9c",
+      "bytes": 1320
+    },
+    {
+      "path": "src/lib/qqqChartReadability.ts",
+      "sha256": "f89fc698de4d19b43308c0c183cfcd7abcf540c2262d615653a66f31356b55d0",
+      "bytes": 2286
+    },
+    {
+      "path": "src/lib/qqqChartRpc.ts",
+      "sha256": "f8d37d855e76bfd00c004bc6813f2b7cf85405ddf021a311e436261b83960c54",
+      "bytes": 4106
+    },
+    {
+      "path": "src/lib/qqqChartSeriesUpdate.ts",
+      "sha256": "1c18b142bc58046b1de22e962df67454414586661db15d789b82cffe867428ab",
+      "bytes": 993
+    },
+    {
+      "path": "src/lib/qqqChartSource.ts",
+      "sha256": "65ded797481937cc3f4c785556994b9c0b680521396b862f22c19ff5ac49f278",
+      "bytes": 6584
+    },
+    {
+      "path": "src/lib/qqqChartTimeGrid.ts",
+      "sha256": "31dd26ec717309dc8448fe08130e4f57447511ffebc535e75345d13cf8177cc9",
+      "bytes": 2449
+    },
+    {
+      "path": "src/lib/qqqDayScenario.ts",
+      "sha256": "5cca46b724d76f2c7da6ca78805820aa40addcf7d46e9b0833b86dabb051dc35",
+      "bytes": 11415
+    },
+    {
+      "path": "src/lib/qqqDirectionalGexTime.ts",
+      "sha256": "20652211cb3712c08929b080428e0bcef98339ac082be0130f604446fa1792b2",
+      "bytes": 4526
+    },
+    {
+      "path": "src/lib/qqqDirectionalGexTransport.ts",
+      "sha256": "c89bd89dbe1b8af465ff11f1143c0986cb9e2751b9935e83704a1d2311bcc430",
+      "bytes": 3007
+    },
+    {
+      "path": "src/lib/qqqDirectionalPersistence.ts",
+      "sha256": "dcd1338038c6c09a9d51ab6d51b795b1040a34c924938b3dd497a8d3243d5615",
+      "bytes": 449
+    },
+    {
+      "path": "src/lib/qqqDirectionalReplayPages.ts",
+      "sha256": "e97f08c15850c4ad342dcc86db3aeb36f88292f0f85a3800f2835c37cdb3128b",
+      "bytes": 1583
+    },
+    {
+      "path": "src/lib/qqqDisplayDecision.ts",
+      "sha256": "60b5839faddd4011efe3ab4003d435a4001bba3920a770823f5c579de5fdfa51",
+      "bytes": 2662
+    },
+    {
+      "path": "src/lib/qqqDisplayEvidence.ts",
+      "sha256": "879a155423a4cb84dcc2e0a57ac2bda8642d727df25576ad7172359eae1aa1d2",
+      "bytes": 2051
+    },
+    {
+      "path": "src/lib/qqqDisplayGammaModels.ts",
+      "sha256": "7104eebb1c7f183e2419d3db68c41e5c231a490f6d46d24c98a9686799f426c7",
+      "bytes": 2622
+    },
+    {
+      "path": "src/lib/qqqExposureArchive.ts",
+      "sha256": "eab9abcf69ff890517fa91746b8e12c8a7ddb43a4aad878d7c44451c4c99abb1",
+      "bytes": 3531
+    },
+    {
+      "path": "src/lib/qqqExposureArchiveClient.ts",
+      "sha256": "217f151387c11947b67cd946104116ad08055dc409d9ab94633962a2a6e56d26",
+      "bytes": 8135
+    },
+    {
+      "path": "src/lib/qqqExposureBars.ts",
+      "sha256": "56854060633265c842aa2b6e258ad43cc9c3140e58cef6219e16c840dd676311",
+      "bytes": 1469
+    },
+    {
+      "path": "src/lib/qqqExposureChartReplay.ts",
+      "sha256": "6bb3d1cc610f6ceae1a5ca898e498b4705956f78a0baf1d9631a7afc2a7d2261",
+      "bytes": 10348
+    },
+    {
+      "path": "src/lib/qqqExposureHistory.ts",
+      "sha256": "dc26a27731e7a017c388bbea2e104ec0f0dcbcd98d2a55ded35b6af0d675d5f0",
+      "bytes": 7664
+    },
+    {
+      "path": "src/lib/qqqExposureHistoryModel.ts",
+      "sha256": "738f389a8ce4a01e61c4ac86fcbd74a8a832036820842de66ff1caa4452272ac",
+      "bytes": 5472
+    },
+    {
+      "path": "src/lib/qqqExposureReplay.ts",
+      "sha256": "6337286dd26fb0230e5a005d3592f1d8241263a764292c7bf6a499be58aa612e",
+      "bytes": 12693
+    },
+    {
+      "path": "src/lib/qqqExposureValidator.ts",
+      "sha256": "3ca4c0904566df4205b2df4efda11160222f094d5db995d64de6c729bd9e0eaf",
+      "bytes": 1374
+    },
+    {
+      "path": "src/lib/qqqExposureWire.ts",
+      "sha256": "b79412c78dffb35bf00ab974ecdd9655cb1563b54d6002a5380313134900e22c",
+      "bytes": 7624
+    },
+    {
+      "path": "src/lib/qqqExposureWireClient.ts",
+      "sha256": "940a631fd60346674de5d0a1c9ca3523676b6861894f70af726352d9a2944aea",
+      "bytes": 1777
+    },
+    {
+      "path": "src/lib/qqqExposureWorkbench.ts",
+      "sha256": "ad459b10b619e476f2992141720f199159349910b21f2586949bb9f69f9d07a3",
+      "bytes": 27989
+    },
+    {
+      "path": "src/lib/qqqFramePublisher.ts",
+      "sha256": "c2c5092f741710f41041ff8ad2d9092ad1b223ebb36e12e5b6693a879b308548",
+      "bytes": 744
+    },
+    {
+      "path": "src/lib/qqqGammaModel.ts",
+      "sha256": "4bf4fc502ffd058ccc525c7302ea2501146a14ddfd34d2d74ee5cad5ffcf3aae",
+      "bytes": 16835
+    },
+    {
+      "path": "src/lib/qqqGammaModelJob.ts",
+      "sha256": "5071c471c122e06769b4a6d9056b2a998b4c5122845fd79b4d46d39f0db0ab11",
+      "bytes": 1026
+    },
+    {
+      "path": "src/lib/qqqGammaModelPresentation.ts",
+      "sha256": "dc29e35911e645f0016f8bd87c5245b0163cfa2757a97f6a39db90df43e40dfd",
+      "bytes": 4562
+    },
+    {
+      "path": "src/lib/qqqGammaObservationInput.ts",
+      "sha256": "71302c9b15379f47adcab254aed4857fa3d24387aabd456838ef3f157270c945",
+      "bytes": 2580
+    },
+    {
+      "path": "src/lib/qqqGammaPosition.ts",
+      "sha256": "ebd4319aa407789eb89f0379778e5518d91b70cc53d679cc96a39e1089377211",
+      "bytes": 6809
+    },
+    {
+      "path": "src/lib/qqqGammaPositionHistory.ts",
+      "sha256": "f79122cb80af7ae9080453abd67540d03b0a748680ae5d26cb6606942b283d98",
+      "bytes": 3952
+    },
+    {
+      "path": "src/lib/qqqGexBacktestHistory.ts",
+      "sha256": "8c9d5b6763496a3abf9c0bc6694fb91a2b69186356677c49bc971c785ec83a1b",
+      "bytes": 12839
+    },
+    {
+      "path": "src/lib/qqqGexCalculation.ts",
+      "sha256": "26a5b2531c38ba3a961da0f0813a732ef2f5faf8f6358f05a1fb0168a3272562",
+      "bytes": 4704
+    },
+    {
+      "path": "src/lib/qqqGexDateSelection.ts",
+      "sha256": "3096e36915e588497d01a9cdd5e7d2c9a26b1e5adf02379719e3954e4ef90d9c",
+      "bytes": 667
+    },
+    {
+      "path": "src/lib/qqqGexDisplayDay.ts",
+      "sha256": "cb31db1f23bbafdbeb290c0efd533f99613c3795079a127e25538c8131eff6ef",
+      "bytes": 7236
+    },
+    {
+      "path": "src/lib/qqqGexDisplayState.ts",
+      "sha256": "d57f16d0007692607ddc482aea0f22179bb45bc37aa3d27e29d7a26c835de032",
+      "bytes": 13724
+    },
+    {
+      "path": "src/lib/qqqGexHistoricalIsolation.ts",
+      "sha256": "6a94f8b9e7dbf75768bd0f02e3906d6c15962593d5fc42eaec91cedfcebf2b0d",
+      "bytes": 849
+    },
+    {
+      "path": "src/lib/qqqGexHistory.ts",
+      "sha256": "4d0c286d6682bf24e1b512c4b97ace990a690bc811356ef6cfe2528af7b89c0f",
+      "bytes": 38670
+    },
+    {
+      "path": "src/lib/qqqGexInputQuality.ts",
+      "sha256": "6e79ecea5aa9448a932ddfc0eb40f6f5b1334bdd386ee601b9ad9323acba148d",
+      "bytes": 4349
+    },
+    {
+      "path": "src/lib/qqqGexLabels.ts",
+      "sha256": "97436c55de65676401a216b9c5e6aae238b3444962e0d404626e6cd7b89214bf",
+      "bytes": 336
+    },
+    {
+      "path": "src/lib/qqqGexObservationComparison.ts",
+      "sha256": "9983d4d80469b12ca6da9962c6fd43cf8b7af2ec8470b6b62207334a463d6f17",
+      "bytes": 5750
+    },
+    {
+      "path": "src/lib/qqqGexProfile.ts",
+      "sha256": "3248055594592b93791903f19da8f0447e761953a5543712353c2ebff18c7e79",
+      "bytes": 3286
+    },
+    {
+      "path": "src/lib/qqqGexReadConsistency.ts",
+      "sha256": "84fb63bf3863f51eb014fbc0ec3c41ab7da1382d551d0cf1910fee49c32156dc",
+      "bytes": 1130
+    },
+    {
+      "path": "src/lib/qqqGexSelection.ts",
+      "sha256": "b997ebc2a8e9c197e8e093e8f3f8e9a89bebc8bc1c88fcc619a3b206a3492d66",
+      "bytes": 1508
+    },
+    {
+      "path": "src/lib/qqqGexSummary.ts",
+      "sha256": "068b0f269f3bbfe4f2026f404f45af98c2cc02458271bc1b93c1cb2bf882e51c",
+      "bytes": 1880
+    },
+    {
+      "path": "src/lib/qqqHeatmapDiscovery.ts",
+      "sha256": "7490278370a027e246fabc9d919f83df3e2324d19e0789ff295f49b30aeacc1d",
+      "bytes": 16018
+    },
+    {
+      "path": "src/lib/qqqHeatmapOverlays.ts",
+      "sha256": "7db9ec163cf97550ab748636c6396f7db227e6ee0c12118dfd1460ba896b3607",
+      "bytes": 13136
+    },
+    {
+      "path": "src/lib/qqqHeatmapPresentation.ts",
+      "sha256": "104527ecaece2ef7c6dbcb63b7bd4f7b3e38736d09f7fda0836116f3df3c74dc",
+      "bytes": 5340
+    },
+    {
+      "path": "src/lib/qqqHedgeObservations.ts",
+      "sha256": "52ecf1cabf70d2009b8019cdce54a27ae403aec4bcc82a88cd9ebab0f678ea14",
+      "bytes": 15120
+    },
+    {
+      "path": "src/lib/qqqHistoryClient.ts",
+      "sha256": "22afdeb29fa1ce1770a456722b8ab36a70d93e9f30f1d461d07d34c5d6375049",
+      "bytes": 12208
+    },
+    {
+      "path": "src/lib/qqqHoverStore.ts",
+      "sha256": "daab40e09ae9611e7029fcac6e91856c7efcce06faf8a2328eab682e3984f8d1",
+      "bytes": 566
+    },
+    {
+      "path": "src/lib/qqqIntradayBacktestHistory.ts",
+      "sha256": "d39745bfa374694b912d2b28fd72f16f1e7007efbdb93769149b8037be05f995",
+      "bytes": 4323
+    },
+    {
+      "path": "src/lib/qqqIntradayCandles.ts",
+      "sha256": "9be99d482a2fa5e5b2b2b1cf558c38fec9531c7fceb910f8d11f89a9906b63d1",
+      "bytes": 5665
+    },
+    {
+      "path": "src/lib/qqqIntradayContext.ts",
+      "sha256": "7d0f2d6999800e1e2caf4238ca53cf40a3f0148c615a157db51d0c1389e335e9",
+      "bytes": 8205
+    },
+    {
+      "path": "src/lib/qqqIntradayDirectionalReplayHistory.ts",
+      "sha256": "2ccb350fc72e897a38af1027d4efab4016bddeee6c65565ca2235874751f9024",
+      "bytes": 11773
+    },
+    {
+      "path": "src/lib/qqqIntradayDirectionalSignals.ts",
+      "sha256": "341858964dbd34d62d21124119ee4b957d18f49881b23d6f9912ac488cae450d",
+      "bytes": 3433
+    },
+    {
+      "path": "src/lib/qqqIntradayDirectionalSummary.ts",
+      "sha256": "ff032bea0b0e296dba9431e094295f99303296d7c6783ce3d456e699a4f04226",
+      "bytes": 18167
+    },
+    {
+      "path": "src/lib/qqqIntradayIndicators.ts",
+      "sha256": "48e0d86d7c4e2f32dc4188dddc3a8ef1a92bcb7d11666fef92c30069d4f23058",
+      "bytes": 8955
+    },
+    {
+      "path": "src/lib/qqqIntradaySetup.ts",
+      "sha256": "8fbcce831d334fe6b8c8c323393e6b6f2cb1dacedf95a707f99f0ce44b9b70b4",
+      "bytes": 33331
+    },
+    {
+      "path": "src/lib/qqqIvQuality.ts",
+      "sha256": "dc4c24f87c20ee43c138421b35893c7356a2a9c7d7f9d85447a70b675b85fb36",
+      "bytes": 911
+    },
+    {
+      "path": "src/lib/qqqLatestSnapshotTransport.ts",
+      "sha256": "68e075a7bbb257c1973a936e0adfd9c49ac6c12b3753f860faab160ca2c54510",
+      "bytes": 1141
+    },
+    {
+      "path": "src/lib/qqqLifecycleFactors.ts",
+      "sha256": "f11ff3f10a72af87f5405707ec1056aada0e1a383ba35792e21fbfa15a825060",
+      "bytes": 1933
+    },
+    {
+      "path": "src/lib/qqqLiveDirectional.ts",
+      "sha256": "46d97bd34a09580516751e1c4a3ed25e61cb2d06979ff7a7bab615644d8f2559",
+      "bytes": 3624
+    },
+    {
+      "path": "src/lib/qqqMarketDate.ts",
+      "sha256": "7c8b7f7af0be80caf06340145efe6128c9166375a346cc35ba2e6d21e861e34c",
+      "bytes": 1444
+    },
+    {
+      "path": "src/lib/qqqMarketSession.ts",
+      "sha256": "e24ad2ed66a5ae1dae03fae6ae4178b6551ced39460672d54133b4d9e4335537",
+      "bytes": 7533
+    },
+    {
+      "path": "src/lib/qqqMaxPain.ts",
+      "sha256": "25ca783c2a034bc413ab4ce64cd784b5436cba460900565077808f143c599c53",
+      "bytes": 3403
+    },
+    {
+      "path": "src/lib/qqqNextAction.ts",
+      "sha256": "51a00a1f2dd2c51dc8bc12b8fb03da03b19a3f9ad581557bb79b2019e2ad61b7",
+      "bytes": 6208
+    },
+    {
+      "path": "src/lib/qqqOptionActivityScope.ts",
+      "sha256": "d7303ed79bf8f9eb5bf58460b608f50be407b6e4c6e5aa5bde24e1456902285d",
+      "bytes": 876
+    },
+    {
+      "path": "src/lib/qqqOptionChainHistory.ts",
+      "sha256": "2a8f981031d0ec2aa2acbec6eb49d3bfd229b61f39e29fef0a76871dcf30ffd1",
+      "bytes": 9248
+    },
+    {
+      "path": "src/lib/qqqOptionObservation.ts",
+      "sha256": "2ac3204c498eb16ee7710b80290feec245fa1dcea918c6b512411daed3e09021",
+      "bytes": 2538
+    },
+    {
+      "path": "src/lib/qqqOptionObservationHistory.ts",
+      "sha256": "c10a9750d4da00454d7e2197ee787ce17792306000e437c1c02d35adcd1d1965",
+      "bytes": 6626
+    },
+    {
+      "path": "src/lib/qqqQuoteEnvelope.ts",
+      "sha256": "620acf227d815df1f85fb4f4243517c83da87a07d9a65757d32972bd7e9073e9",
+      "bytes": 733
+    },
+    {
+      "path": "src/lib/qqqQuoteTiming.ts",
+      "sha256": "bb9c54cf932ea88cb392a54b1c2371c14624a0aad225abac6f2fcf755aceb8c3",
+      "bytes": 1156
+    },
+    {
+      "path": "src/lib/qqqRefreshLoop.ts",
+      "sha256": "e0e797189b4f258158a8532132ee395a8f7f4f0a6055efee0d6787f0884db27b",
+      "bytes": 2157
+    },
+    {
+      "path": "src/lib/qqqReplayFileCache.ts",
+      "sha256": "b0dd74c1ae47f030ccb7adae3e2056307f161d8f8eb5bcc5cabeaf853c64a4bd",
+      "bytes": 3281
+    },
+    {
+      "path": "src/lib/qqqSessionQuote.ts",
+      "sha256": "960d9a4d92f47a5fd7f0158d7758650e875a107a5ceed994fde2e7e4f3e10ada",
+      "bytes": 1879
+    },
+    {
+      "path": "src/lib/qqqSessionVwap.ts",
+      "sha256": "8fdcd4a7085501e18bd23b3e611c3393d0a851e5b6d42d64bbea59d68823f001",
+      "bytes": 1702
+    },
+    {
+      "path": "src/lib/qqqSharedOptionChain.ts",
+      "sha256": "3c35a08bbebf1b1ecd7a1d4aa4cb683dcd15304afb0fe734027b1854831551e6",
+      "bytes": 3260
+    },
+    {
+      "path": "src/lib/qqqSharedPreparation.ts",
+      "sha256": "e459c5556a38469ea3d99dce7855fd880b8a61cece8209e82294a76f2219d348",
+      "bytes": 3158
+    },
+    {
+      "path": "src/lib/qqqSourceMetadataCache.ts",
+      "sha256": "e3a77c553cb27b923da6f5fc169804eea7b6db6ab900195893849c3e4e900487",
+      "bytes": 4018
+    },
+    {
+      "path": "src/lib/qqqSpreadStudy.ts",
+      "sha256": "3d3054a8b52726ddaf7b2f56b4d697e7b7938d498f34fc462f6e3fc5ee263ace",
+      "bytes": 6879
+    },
+    {
+      "path": "src/lib/qqqTimelineMerge.ts",
+      "sha256": "381e2383f299b39d27ebef59836ca8c5f72c997311ac79a2e3197f43a994d7c0",
+      "bytes": 2168
+    },
+    {
+      "path": "src/lib/qqqVersionedHistoryStore.ts",
+      "sha256": "6628263f941c491df425943aea10999fd378da96bf8cff45ac69cd3df4b23842",
+      "bytes": 15097
+    },
+    {
+      "path": "src/lib/qqqVersionedSource.ts",
+      "sha256": "68cda11c5c09f09200f84839c74a58594b5c2726d21beb3c409da508020b140b",
+      "bytes": 992
+    },
+    {
+      "path": "src/lib/qqqWallTouchStats.ts",
+      "sha256": "59d95e43da7cf11c33831040858547cbeabad8841ccd9fdb047bfb1a9d23dd8a",
+      "bytes": 4882
+    },
+    {
+      "path": "src/lib/responseCache.ts",
+      "sha256": "96770c0150b3e89a643791709b2fda039cfe4c5c261730d06b9f93dd5261bd8d",
+      "bytes": 9093
+    },
+    {
+      "path": "src/lib/revisionedJsonCache.ts",
+      "sha256": "d98ae139778bab88a337674469065e8ce177f5b546f634d26e1d66a5d615efaa",
+      "bytes": 1456
+    },
+    {
+      "path": "src/lib/successfulWriteCache.ts",
+      "sha256": "a1c56c4112da2fc5ab5e771afce1ef95381976401b99f761f65f33298a9c1c65",
+      "bytes": 1740
+    },
+    {
+      "path": "src/lib/supabase.ts",
+      "sha256": "3fbe2e45e2dbc735b1f91254bf755714fca8faaf476535627bb7c357d5eb600a",
+      "bytes": 1139
+    },
+    {
+      "path": "src/lib/supabaseCachedFetch.ts",
+      "sha256": "ca35657c0b08ce057ff8b8e4b2c2fe2838aad35eb064ac4df6f8d9d88ee3dd66",
+      "bytes": 9714
+    },
+    {
+      "path": "src/lib/utils.ts",
+      "sha256": "9304a861c8673bee09e0f12de31773abbde503b02e59dfd74763ddec2e37cf05",
+      "bytes": 169
+    },
+    {
+      "path": "src/services/adapters/apiManager.ts",
+      "sha256": "445f746c771f8eaa9cf68505a9b599d8808b400ff5374776321425fe6088ba20",
+      "bytes": 11012
+    },
+    {
+      "path": "src/services/adapters/cboeVix3mServer.ts",
+      "sha256": "bd741c14b15a01b56d861ab878d6f9114e6b0cb12376861da59352cf19349116",
+      "bytes": 2013
+    },
+    {
+      "path": "src/services/adapters/fredVix3mServer.ts",
+      "sha256": "ca195b3adda6c0f997f69d0e2b25cc21a238d15a2fa56476496ff6bb2abc58e1",
+      "bytes": 1713
+    },
+    {
+      "path": "src/services/adapters/marketDataService.ts",
+      "sha256": "10d529ef7c127c737efd087114224979c44562dbf068ca0d2e786800aafecb1d",
+      "bytes": 7447
+    },
+    {
+      "path": "src/services/adapters/vix3mHistoryServer.ts",
+      "sha256": "5b747ad9872b8abd69bc3d554bea3d84ae9dc2b3f16f3d803aecd7ef718dea9a",
+      "bytes": 3259
+    },
+    {
+      "path": "src/services/adapters/yahooFinance.ts",
+      "sha256": "b301954c8214f5d888d3753f67018bfd8ca089166f18e649a997a3bf844e3a67",
+      "bytes": 29082
+    },
+    {
+      "path": "src/services/adapters/yahooFinanceServer.ts",
+      "sha256": "f2c991b70880801ae931d52c4c6b67a9896947b236b682cbbdbef58f99ef4e4d",
+      "bytes": 26541
+    },
+    {
+      "path": "src/services/adapters/yahooLiveStreamer.ts",
+      "sha256": "412b2a65ca7d82c5fb2eba30191d7b6bb4cb4f0cf2c1398f572b6461596ca095",
+      "bytes": 6053
+    },
+    {
+      "path": "src/services/adapters/yahooProxyFetch.ts",
+      "sha256": "376eedb2704badffd044a463519a403404a1c0ed60ac71167a9854902edb5166",
+      "bytes": 2931
+    },
+    {
+      "path": "src/services/orchestrators/macroDataService.ts",
+      "sha256": "74cf63a5c0c29e13e6016ef142c65a3c5be6f17e95a3180e1ad685104a8d736f",
+      "bytes": 31013
+    },
+    {
+      "path": "src/store/useAISettingsStore.ts",
+      "sha256": "8be60dd0b16c4e9c22208085498cab0f47ed55dc2d5921bad88f906d535717e8",
+      "bytes": 2519
+    },
+    {
+      "path": "src/store/useCSPStore.ts",
+      "sha256": "87c45c3c170a59a727efe8fb0f4206e917a3c135f05824dffd8fbc44923c786f",
+      "bytes": 4047
+    },
+    {
+      "path": "src/store/useToastStore.ts",
+      "sha256": "d0b8118ffc6657d4729c3ad604956459af79e603390ec2d94e534c4ef16a0a4c",
+      "bytes": 869
+    },
+    {
+      "path": "src/types/csp.ts",
+      "sha256": "0e78aebd0f8063d011783546648cdb3487a5eb9d2c029fe34a1cd813a957982f",
+      "bytes": 1905
+    },
+    {
+      "path": "src/types/discovery.ts",
+      "sha256": "bd00b081bb5729f942d2ec3bb550bd9c0e8f61c313b7589808b03c8f5705974c",
+      "bytes": 1836
+    },
+    {
+      "path": "src/types/factor.ts",
+      "sha256": "9175863344c79394dbae347adc2cc118a2c7b17dc20ea0f645956ff3bf9d4bb2",
+      "bytes": 3964
+    },
+    {
+      "path": "src/types/ivCurve.ts",
+      "sha256": "ae9ddb92791cc4803d788b7a34c6bfba203089d2d15d78cbf8a9aae954301e2f",
+      "bytes": 1749
+    },
+    {
+      "path": "src/types/macro.ts",
+      "sha256": "ac8092a59d50d6adf4ffc24c0c1098dea0010fc8514db00768b1e6e7668501c4",
+      "bytes": 8706
+    },
+    {
+      "path": "src/types/portfolio.ts",
+      "sha256": "cc51e9919b072cd50eb07f4fedc51efb31a4c7ff598e1aec94f6c0298424788a",
+      "bytes": 1744
+    },
+    {
+      "path": "src/types/qqqGex.ts",
+      "sha256": "22a5470c117358c8c731a4a40c338728709775c52e6b97f5fc236d1d900e55e2",
+      "bytes": 7763
+    },
+    {
+      "path": "src/types/score.ts",
+      "sha256": "465aca2335f7a0b463767f756403e3554ce2bf6201810245edd5a53742a9e230",
+      "bytes": 210
+    },
+    {
+      "path": "src/types/sellerOpportunity.ts",
+      "sha256": "773603f9bfdb8dddeaa87a7e4cc0e7ba86d4fc3650d75dab2fff2605308d938d",
+      "bytes": 12063
+    },
+    {
+      "path": "src/types/strategy.ts",
+      "sha256": "152e39f0f588f824aacca31d232e4a5bfc7f53ace2e36e3f6adbd0532f246bd4",
+      "bytes": 7244
+    },
+    {
+      "path": "src/utils/calculations.ts",
+      "sha256": "ac8b22180e93d5b47d3e2b5a597a1a4e1ecc731ce651b77e9644d31028eda4c1",
+      "bytes": 46331
+    },
+    {
+      "path": "src/App.css",
+      "sha256": "f46b064dfe80d41556c813f6f7faf7a181f550925ce9a34059423e1d86d7a42f",
+      "bytes": 16217
+    },
+    {
+      "path": "src/app/globals.css",
+      "sha256": "0e270ab66cc99ac05b5c119b836b255cb2d8dc599e16f09f4db314e6b85bf0c0",
+      "bytes": 14756
+    },
+    {
+      "path": "src/lib/qqqExposureWire.test.ts",
+      "sha256": "a1277013e5869537833c3aeb57313ae62e6dc3903a3ef5052a1fc933a0abceae",
+      "bytes": 3768
+    },
+    {
+      "path": "src/lib/qqqGexInputQuality.test.ts",
+      "sha256": "a358298d41591e8615aebbb573a380c348aaa8b72e547f6549ac50052052d9f7",
+      "bytes": 1377
+    },
+    {
+      "path": "src/lib/qqqDayScenario.worker.ts",
+      "sha256": "e90c34de34c27ac490aa0f831b4ea8999fdcf4b2ba0d0e8ccfe327226ef97969",
+      "bytes": 689
+    },
+    {
+      "path": "src/lib/qqqExposureWire.worker.ts",
+      "sha256": "4d2d6c73caa18ca83c395305346ac37626bbc46d085d52a8ef77fb5ba4acebdb",
+      "bytes": 369
+    },
+    {
+      "path": "src/lib/qqqGammaModel.test.ts",
+      "sha256": "8446b3ef313af8654d155f4fe4f5b636644b7104b9e339f2ae3ad24121306c75",
+      "bytes": 8780
+    },
+    {
+      "path": "src/lib/qqqGammaModel.worker.ts",
+      "sha256": "baf31b558617135b1826076257fe0152e010652ae9b0ceb4f19333e485b8de4d",
+      "bytes": 721
+    },
+    {
+      "path": "src/lib/qqqGexCalculation.test.ts",
+      "sha256": "05ac1d64f9feccbade08753b726e39652c5b3a1a6ca26c0e62932ffd7e03b3fe",
+      "bytes": 4481
+    },
+    {
+      "path": "src/lib/qqqGexCaptureBuilder.ts",
+      "sha256": "869be1159b962b7679e75960b5aa04bf09a087892782f50558f0076d1164e293",
+      "bytes": 5233
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqGexResearch.test.ts",
+      "sha256": "1a7a45bdd8a2376e0dae288238b5ae3c8f23e6f4add82c0545b4881df46dcf6a",
+      "bytes": 6338
+    },
+    {
+      "path": "src/lib/qqqIntradayDirectionalSignals.test.ts",
+      "sha256": "00f162025932c818f5e00d38254732c71b9ce591fe45597a06af92ce7115b4ff",
+      "bytes": 1403
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqIntradayDirectional.test.ts",
+      "sha256": "999d33a171c31e6f070a4f1b841347a39c85665aabd72654e77a9358fee3618c",
+      "bytes": 21786
+    },
+    {
+      "path": "src/lib/qqqHeatmapPresentation.test.ts",
+      "sha256": "286b0dd5941fa85ccacb9fec485b2bb2603f34cf811dc5aa7a033b4ea71017cf",
+      "bytes": 4200
+    },
+    {
+      "path": "src/lib/qqqOptionActivityScope.test.ts",
+      "sha256": "908d1852e9110bc8dccad2dc95525edba6e6d9689bc3e21fe55bcd274da0496b",
+      "bytes": 2311
+    },
+    {
+      "path": "src/lib/qqqIntradayIndicators.test.ts",
+      "sha256": "0b41bb87da6621b3d0312f45fd2cc84b164845add35e5ae5a48a9f031e8d7ffb",
+      "bytes": 6157
+    },
+    {
+      "path": "src/lib/qqqExposureSides.test.ts",
+      "sha256": "0884015d11c15b212b86d4b3a1770ad12b4a4f225cd5ef87944e366996fbda7b",
+      "bytes": 2516
+    },
+    {
+      "path": "src/lib/qqqExposureReplay.test.ts",
+      "sha256": "2c90aff8f1ea14e67850077dfc8aa8e0961dac5dd8b61b929c0cb0c1c4185f2d",
+      "bytes": 10827
+    },
+    {
+      "path": "src/lib/qqqMaxPain.test.ts",
+      "sha256": "278baed408a64ec3cf46767f49fd057629a420662b19bb6922b2c3241105984a",
+      "bytes": 5325
+    },
+    {
+      "path": "src/lib/qqqIndicatorConsistency.test.ts",
+      "sha256": "630954bc21d263a241268cef9da2be8f3a206682bac10723639f2979566c385f",
+      "bytes": 13145
+    },
+    {
+      "path": "src/lib/qqqExposureArchive.test.ts",
+      "sha256": "331dfd56036cd8f3d05cd11ea8096a847a16ffc4db3c242ee7166d6e720ba4a3",
+      "bytes": 2292
+    }
+  ],
+  "externalPackages": [
+    "),params.get(",
+    ");\n  const rawTo = params.get(",
+    ");\n  const to = params.get(",
+    ")??",
+    ",",
+    ":35,",
+    "?imports:requires).has(name))continue;\n          const entry=mode===",
+    "@ai-sdk/openai",
+    "@base-ui/react",
+    "@supabase/supabase-js",
+    "ai",
+    "clsx",
+    "crypto",
+    "framer-motion",
+    "ioredis",
+    "klinecharts",
+    "lightweight-charts",
+    "lucide-react",
+    "next",
+    "node:assert",
+    "node:child_process",
+    "node:crypto",
+    "node:fs",
+    "node:module",
+    "node:os",
+    "node:path",
+    "node:perf_hooks",
+    "node:stream",
+    "node:url",
+    "node:util",
+    "node:worker_threads",
+    "node:zlib",
+    "protobufjs",
+    "react",
+    "react-dom",
+    "swr",
+    "tailwind-merge",
+    "typescript",
+    "ws",
+    "yahoo-finance2",
+    "zustand"
+  ],
+  "unresolvedImports": [],
+  "sourceBranch": "work",
+  "additionalSeeds": [
+    "src/App.css",
+    "src/app/globals.css",
+    "src/lib/qqqExposureWire.test.ts",
+    "src/lib/qqqGexInputQuality.test.ts"
+  ]
+}

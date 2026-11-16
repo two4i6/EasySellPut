@@ -24,6 +24,10 @@ public static partial class OperationCatalog
         return new() { ["type"] = "array", ["items"] = item, ["maxItems"] = 1000 };
     }
     private static Operation[] CoverageOperations() => [
+        Op("rebuild_qqq_gex_history","Resume bounded imports of locally retained normalized observations through the original algorithm. Each input commits independently; failures persist and are retried only when requested. Never fills unavailable history.",true,("limit",Range(true,1,400)),("retryFailed",B())),
+        Op("get_qqq_gex_replay","Compute original causal directional replay from local imported history only. Range is bounded to 32 days; missing data/runtime is explicit and no remote source is consulted.",false,("from!",S("ISO-8601 range start")),("to!",S("ISO-8601 exclusive range end")),("page",Range(true,1,100000)),("pageSize",Range(true,1,200))),
+        Op("calculate_qqq_gex_local","Run the bundled original GEX algorithm on the previously captured local normalized input and atomically publish its local display resources. Requires existing Node 24+; reports unavailable or invalid input rather than installing a runtime or inventing data.",true),
+        Op("capture_qqq_gex_input","Capture one coherent QQQ option snapshot from existing routed providers and complete 2-minute price buckets to local normalized input. Explicit network/write; preserves delay, gaps and provider snapshot times. Does not calculate or claim historical completeness.",true),
         Op("probe_data_sources","Actively probe configured provider identities using the desktop router. Results apply to this process and the probed endpoint only; not a test of every capability. No arbitrary URLs.",false,("sourceId",S("Optional registered provider id; omitted probes all"))),
         Op("clear_alert_history","Clear local alert history, retaining alert rules and monitor state. Explicit write.",true),
         Op("move_watchlist_symbol","Reorder one symbol within a watchlist group; target index is zero-based. Conflict-safe local write.",true,("groupId!",S()),("symbol!",S()),("toIndex!",Range(true,0,10000))),

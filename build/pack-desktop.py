@@ -47,6 +47,8 @@ def pack(rid,output):
         run('dotnet','publish',project,'-c','Release','-r',rid,'--self-contained','true','-m:3','-p:PublishTrimmed=false',f'-p:PublishSingleFile={str(host=="osx").lower()}','-p:IncludeNativeLibrariesForSelfExtract=false','-p:DebugType=None','-o',publish)
         automation=work/'automation'
         run('dotnet','publish',ROOT/'src/Meili.Cli/Meili.Cli.csproj','-c','Release','-r',rid,'--self-contained','true','-m:3','-p:PublishTrimmed=false',f'-p:PublishSingleFile={str(host=="osx").lower()}','-p:IncludeNativeLibrariesForSelfExtract=false','-p:PackAsTool=false','-p:DebugType=None','-p:GenerateDocumentationFile=false','-p:PublishReferencesDocumentationFiles=false','-o',automation)
+        run(sys.executable,ROOT/'build/bundle-qqq-runtime.py',rid,publish)
+        run(sys.executable,ROOT/'build/bundle-qqq-runtime.py',rid,automation)
         if host=='osx':
             icon=work/'AppIcon.icns';run(sys.executable,ROOT/'build/mac/make_icon.py',icon)
             app=payload/'EasySellPut.app';bundle.make_app(publish,app,version,icon)

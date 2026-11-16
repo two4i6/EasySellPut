@@ -6,6 +6,7 @@
 
     <sys:String x:Key="Nav_Dashboard">概览</sys:String>
     <sys:String x:Key="Nav_Watchlist">自选</sys:String>
+    <sys:String x:Key="Nav_QqqGex">QQQ GEX</sys:String>
     <sys:String x:Key="Nav_Charts">K 线图表</sys:String>
     <sys:String x:Key="Nav_Options">期权</sys:String>
     <sys:String x:Key="Nav_Strategy">策略盈亏</sys:String>

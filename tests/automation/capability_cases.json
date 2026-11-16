@@ -916,6 +916,75 @@
       "compare": [
         "/data"
       ]
+    },
+    {
+      "operation": "capture_qqq_gex_input",
+      "arguments": {},
+      "expect": {
+        "/data/symbol": {
+          "equals": "QQQ"
+        },
+        "/data/basis": {
+          "equals": "normalized-provider-input"
+        },
+        "/data/calculated": {
+          "equals": false
+        }
+      },
+      "compare": [
+        "/data/symbol",
+        "/data/basis",
+        "/data/calculated"
+      ]
+    },
+    {
+      "operation": "calculate_qqq_gex_local",
+      "arguments": {},
+      "expect": {
+        "/data/complete": {
+          "equals": false
+        }
+      },
+      "compare": [
+        "/data/complete"
+      ]
+    },
+    {
+      "operation": "get_qqq_gex_replay",
+      "arguments": {
+        "from": "2026-01-02T05:00:00Z",
+        "to": "2026-01-03T05:00:00Z"
+      },
+      "expect": {
+        "/data/status": {
+          "equals": "cache_miss"
+        },
+        "/data/available": {
+          "equals": false
+        }
+      },
+      "compare": [
+        "/data/status",
+        "/data/available"
+      ]
+    },
+    {
+      "operation": "rebuild_qqq_gex_history",
+      "arguments": {
+        "limit": 2
+      },
+      "expect": {
+        "/data/status": {
+          "equals": "no_observed_inputs"
+        },
+        "/data/processed": {
+          "equals": 0
+        }
+      },
+      "compare": [
+        "/data/status",
+        "/data/processed"
+      ]
     }
   ]
 }

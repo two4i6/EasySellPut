@@ -1,0 +1,113 @@
+import { CS_EARLY_EXIT_DELTA, CS_MAX_TOTAL_RISK_NAV, CS_SPREAD_WIDTH_PCT, CS_SP_LIKE_EXTENSION_GATE, CS_SP_LIKE_VIX_HIGH_DEFAULT, EQUITY_BOOST_DEFAULT_MAX_RISK_NAV, EQUITY_BOOST_DEFAULT_TARGET_DTE, SPREAD_TARGET_DTE, TQQQ_LARGE_POSITION_PCT, TQQQ_OVERBOUGHT_ROC, VIX_FALLBACK } from '../constants';
+import { normalizePcsStockDecisionFilterMode, type StrategyParams } from '../types/params';
+
+/** v2 Overlay 的局部默认值唯一解析点；未配置的可选 gate 必须仍为 undefined。 */
+export function resolveOverlayDefaults(params: StrategyParams | undefined) {
+  const pcsEnabled = params?.enablePCS === true;
+  return {
+    ...params,
+    collarMode: params?.collarMode ?? 'reactive',
+    enableCollar: params?.enableCollar !== false,
+    enableCS: params?.enableCS !== false,
+    enableIC: params?.enableIC !== false,
+    csMode: params?.csMode ?? 'reactive',
+    csSpLikeVixHigh: params?.csSpLikeVixHigh ?? CS_SP_LIKE_VIX_HIGH_DEFAULT,
+    csSpLikeExtensionGate: params?.csSpLikeExtensionGate ?? CS_SP_LIKE_EXTENSION_GATE,
+    csShortDelta: params?.csShortDelta ?? .20,
+    csSpLikeShortDelta: params?.csSpLikeShortDelta ?? .15,
+    csSpLikeDynamicCalmVix: params?.csSpLikeDynamicCalmVix ?? 16,
+    csSpLikeDynamicCalmRoc20: params?.csSpLikeDynamicCalmRoc20 ?? TQQQ_OVERBOUGHT_ROC,
+    csSpLikeDynamicCalmDelta: params?.csSpLikeDynamicCalmDelta ?? .20,
+    csSpLikeDynamicWeakDelta: params?.csSpLikeDynamicWeakDelta ?? .15,
+    csSpLikeDynamicRequireTermStructure: params?.csSpLikeDynamicRequireTermStructure ?? true,
+    csSpLikeDynamicCalmExtensionGate: params?.csSpLikeDynamicCalmExtensionGate ?? 3,
+    csTargetDte: params?.csTargetDte ?? SPREAD_TARGET_DTE,
+    csSpreadWidthPct: params?.csSpreadWidthPct ?? CS_SPREAD_WIDTH_PCT,
+    csProfitTakeMode: params?.csProfitTakeMode ?? 'fixed',
+    csConditionalProfitTakeMaxDte: params?.csConditionalProfitTakeMaxDte ?? 14,
+    csDeltaStopThreshold: params?.csDeltaStopThreshold ?? CS_EARLY_EXIT_DELTA,
+    csDeltaStopMode: params?.csDeltaStopMode ?? 'fixed',
+    csDeltaStopCalmVix: params?.csDeltaStopCalmVix ?? 18,
+    csDeltaStopRiskVix: params?.csDeltaStopRiskVix ?? 20,
+    csDeltaStopCalmRoc20: params?.csDeltaStopCalmRoc20 ?? .20,
+    csDeltaStopCalmThreshold: params?.csDeltaStopCalmThreshold ?? .40,
+    csDeltaStopRiskThreshold: params?.csDeltaStopRiskThreshold ?? .30,
+    csSurvivalPriceSelectionMode: params?.csSurvivalPriceSelectionMode ?? 'off',
+    csSurvivalSelectionFloor: params?.csSurvivalSelectionFloor ?? .30,
+    csSurvivalSelectionObjective: params?.csSurvivalSelectionObjective ?? 'survival_adjusted_expected_pnl',
+    csSurvivalSelectionSurvivalWeight: params?.csSurvivalSelectionSurvivalWeight ?? .75,
+    csSurvivalSelectionWilsonWeight: params?.csSurvivalSelectionWilsonWeight ?? .50,
+    csSurvivalSelectionWidthMode: params?.csSurvivalSelectionWidthMode ?? 'full',
+    csSurvivalSelectionCreditRetentionFloor: params?.csSurvivalSelectionCreditRetentionFloor,
+    csSurvivalSelectionStateMode: params?.csSurvivalSelectionStateMode ?? 'all',
+    csSurvivalSelectionDistanceMode: params?.csSurvivalSelectionDistanceMode ?? 'base',
+    csSurvivalSelectionDteMode: params?.csSurvivalSelectionDteMode ?? 'fixed',
+    csSurvivalSelectionStressTailVetoRatio: params?.csSurvivalSelectionStressTailVetoRatio,
+    csSurvivalSelectionSwitchMargin: params?.csSurvivalSelectionSwitchMargin,
+    csSurvivalSelectionMinSurvivalLift: params?.csSurvivalSelectionMinSurvivalLift,
+    csPreCrisisVixMax: params?.csPreCrisisVixMax ?? 20,
+    csPreCrisisTqqqRv20Min: params?.csPreCrisisTqqqRv20Min ?? .42,
+    csPreCrisisTqqqRoc20Max: params?.csPreCrisisTqqqRoc20Max ?? .08,
+    csPreCrisisEventScope: params?.csPreCrisisEventScope ?? 'all',
+    csPreCrisisRiskMultiplier: params?.csPreCrisisRiskMultiplier === undefined
+      ? 1
+      : Math.min(1, Math.max(0, params.csPreCrisisRiskMultiplier)),
+    csPreCrisisMaxEntriesInWindow: params?.csPreCrisisMaxEntriesInWindow === undefined
+      ? undefined
+      : Math.max(1, Math.floor(params.csPreCrisisMaxEntriesInWindow)),
+    csPreCrisisWindowTradingDays: params?.csPreCrisisWindowTradingDays === undefined
+      ? 5
+      : Math.max(1, Math.floor(params.csPreCrisisWindowTradingDays)),
+    maxTqqqWarnPct: params?.maxTqqqWarnPct ?? TQQQ_LARGE_POSITION_PCT,
+    csBreachGate: params?.csBreachGate ?? 'off',
+    collarInteractionMode: params?.collarInteractionMode ?? 'blocking',
+    enablePCS: params?.enablePCS === true,
+    pcsMode: params?.pcsMode ?? 'reactive',
+    pcsTargetDte: pcsEnabled ? params?.pcsTargetDte ?? SPREAD_TARGET_DTE : SPREAD_TARGET_DTE,
+    pcsShortDelta: params?.pcsShortDelta ?? .20,
+    pcsShortStrikeSigma: params?.pcsShortStrikeSigma,
+    pcsSpreadWidthPct: pcsEnabled ? params?.pcsSpreadWidthPct ?? CS_SPREAD_WIDTH_PCT : CS_SPREAD_WIDTH_PCT,
+    pcsSurvivalPriceSelectionMode: pcsEnabled ? params?.pcsSurvivalPriceSelectionMode : undefined,
+    pcsSurvivalSelectionFloor: pcsEnabled ? params?.pcsSurvivalSelectionFloor : undefined,
+    pcsSurvivalSelectionStressFloor: pcsEnabled ? params?.pcsSurvivalSelectionStressFloor : undefined,
+    pcsSurvivalSelectionObjective: pcsEnabled ? params?.pcsSurvivalSelectionObjective : undefined,
+    pcsSurvivalSelectionObjectiveRegime: pcsEnabled ? params?.pcsSurvivalSelectionObjectiveRegime : undefined,
+    pcsSurvivalSelectionObjectiveSlowSubregime: pcsEnabled ? params?.pcsSurvivalSelectionObjectiveSlowSubregime : undefined,
+    pcsSurvivalSelectionObjectiveAdxMin: pcsEnabled ? params?.pcsSurvivalSelectionObjectiveAdxMin : undefined,
+    pcsSurvivalSelectionObjectiveRv20Min: pcsEnabled ? params?.pcsSurvivalSelectionObjectiveRv20Min : undefined,
+    pcsSurvivalSelectionSurvivalWeight: pcsEnabled ? params?.pcsSurvivalSelectionSurvivalWeight : undefined,
+    pcsSurvivalSelectionWilsonWeight: pcsEnabled ? params?.pcsSurvivalSelectionWilsonWeight : undefined,
+    pcsSurvivalSelectionMaxConditionalLossRatio: pcsEnabled ? params?.pcsSurvivalSelectionMaxConditionalLossRatio : undefined,
+    pcsSurvivalSelectionStressTailVetoRatio: pcsEnabled ? params?.pcsSurvivalSelectionStressTailVetoRatio : undefined,
+    pcsSurvivalSelectionStressTailVetoRegime: pcsEnabled ? params?.pcsSurvivalSelectionStressTailVetoRegime : undefined,
+    pcsSurvivalSelectionStressTailVetoSlowSubregime: pcsEnabled ? params?.pcsSurvivalSelectionStressTailVetoSlowSubregime : undefined,
+    pcsSurvivalSelectionStressTailVetoRv20Max: pcsEnabled ? params?.pcsSurvivalSelectionStressTailVetoRv20Max : undefined,
+    pcsSurvivalSelectionTailWidthTriggerRatio: pcsEnabled ? params?.pcsSurvivalSelectionTailWidthTriggerRatio : undefined,
+    pcsSurvivalSelectionStressWeight: pcsEnabled ? params?.pcsSurvivalSelectionStressWeight : undefined,
+    pcsSurvivalSelectionDteMode: pcsEnabled ? params?.pcsSurvivalSelectionDteMode : undefined,
+    pcsSurvivalSelectionWidthMode: pcsEnabled ? params?.pcsSurvivalSelectionWidthMode : undefined,
+    pcsSurvivalSelectionSigmaMode: pcsEnabled ? params?.pcsSurvivalSelectionSigmaMode : undefined,
+    pcsMaxRiskNav: params?.pcsMaxRiskNav ?? params?.csMaxTotalRiskNav ?? CS_MAX_TOTAL_RISK_NAV,
+    pcsStockDecisionFilterMode: normalizePcsStockDecisionFilterMode(params?.pcsStockDecisionFilterMode),
+    pcsStockDecisionBearVeto: params?.pcsStockDecisionBearVeto ?? 'off',
+    pcsStockDecisionVolConfirmDays: params?.pcsStockDecisionVolConfirmDays ?? 0,
+    pcsStockDecisionPersistDays: params?.pcsStockDecisionPersistDays ?? 0,
+    enableEquityBoostPCS: params?.enableEquityBoostPCS === true,
+    equityBoostEntryMode: params?.equityBoostEntryMode ?? 'continuous',
+    equityBoostTargetDte: params?.equityBoostTargetDte ?? EQUITY_BOOST_DEFAULT_TARGET_DTE,
+    equityBoostMaxRiskNav: params?.equityBoostMaxRiskNav ?? EQUITY_BOOST_DEFAULT_MAX_RISK_NAV,
+    equityBoostBass221SeverityMultiplier: params?.equityBoostBass221SeverityMultiplier === undefined
+      ? undefined
+      : Math.min(1, Math.max(0, params.equityBoostBass221SeverityMultiplier)),
+    icMode: params?.icMode ?? 'standard',
+    icMaxConcurrent: Math.max(1, Math.floor(params?.icMaxConcurrent ?? 1)),
+    collarPutUnderlying: params?.collarPutUnderlying ?? 'leveraged',
+    collarStrikeAnchor: params?.collarStrikeAnchor ?? 'spot',
+    collarFloorPct: params?.collarFloorPct ?? .10,
+    collarExitProfile: params?.collarExitProfile ?? 'legacy',
+  };
+}
+
+export function resolveOverlayMarketDefaults(input: { vix?: number; vix3m?: number; regime?: string }) {
+  return { vix: input.vix ?? VIX_FALLBACK, vix3m: input.vix3m, regime: input.regime ?? 'SIDEWAYS' };
+}

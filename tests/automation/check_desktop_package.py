@@ -63,6 +63,7 @@ def check(archive,rid,destination):
         assert result.returncode==0,updated_report.read_text(encoding='utf-8') if updated_report.exists() else 'Updated GUI exited without report'
         assert (data/'updater-user-data.marker').read_text()=='retain exact user data'
         if rid.startswith('osx-'):subprocess.run(['codesign','--verify','--deep','--strict',str(target)],check=True)
+    subprocess.run([sys.executable,str(pathlib.Path(__file__).with_name('qqq_runtime_smoke.py')),'--executable',str(cli)],check=True)
     print('PASS: desktop checksum, resources, architecture, real GUI startup/clipboard and bundled CLI/MCP')
 
 if __name__=='__main__':

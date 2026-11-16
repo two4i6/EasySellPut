@@ -73,6 +73,7 @@
                 <ui:NavigationViewItem Content="{DynamicResource Nav_Alerts}" TargetPageType="{x:Type pages:AlertsPage}">
                     <ui:NavigationViewItem.Icon><lucide:LucideIcon Kind="Alerts" /></ui:NavigationViewItem.Icon>
                 </ui:NavigationViewItem>
+                <ui:NavigationViewItem Content="{DynamicResource Nav_QqqGex}" TargetPageType="{x:Type pages:QqqGexPage}"><ui:NavigationViewItem.Icon><lucide:LucideIcon Kind="Charts" /></ui:NavigationViewItem.Icon></ui:NavigationViewItem>
             </ui:NavigationView.MenuItems>
             <ui:NavigationView.FooterMenuItems>
                 <ui:NavigationViewItem Content="{DynamicResource Nav_DataSources}" TargetPageType="{x:Type pages:DataSourcesPage}">

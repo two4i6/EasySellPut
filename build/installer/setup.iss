@@ -54,6 +54,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"; LicenseFile: "license-en.
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
+Source: "..\out\payload\runtime\*"; DestDir: "{app}\runtime"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\out\payload\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]

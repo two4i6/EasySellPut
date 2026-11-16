@@ -55,6 +55,7 @@ public static class NavigationIcons
     {
         AppPage.Watchlist => Watchlist,
         AppPage.Charts => Charts,
+        AppPage.QqqGex => Charts,
         AppPage.Options => Options,
         AppPage.Strategy => Strategy,
         AppPage.News => News,

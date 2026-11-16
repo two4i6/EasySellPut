@@ -188,6 +188,7 @@ public partial class MainWindow : FluentWindow
         AppPage.Dashboard => typeof(DashboardPage),
         AppPage.Watchlist => typeof(WatchlistPage),
         AppPage.Charts => typeof(ChartsPage),
+        AppPage.QqqGex => typeof(QqqGexPage),
         AppPage.Options => typeof(OptionsPage),
         AppPage.Strategy => typeof(StrategyPage),
         AppPage.News => typeof(NewsPage),

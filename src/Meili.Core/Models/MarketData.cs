@@ -192,6 +192,10 @@ public sealed record OptionContract
 
 public sealed record OptionChain : SourcedData
 {
+    /// <summary>Optional original public provider body for explicit ingestion; never emitted by ordinary CLI/MCP reads.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public ReadOnlyMemory<byte> RawSourcePayload { get; init; }
+
     public required string Underlying { get; init; }
     public double? UnderlyingPrice { get; init; }
     /// <summary>All expirations the source knows about.</summary>

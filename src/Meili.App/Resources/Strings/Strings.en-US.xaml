@@ -6,6 +6,7 @@
 
     <sys:String x:Key="Nav_Dashboard">Overview</sys:String>
     <sys:String x:Key="Nav_Watchlist">Watchlist</sys:String>
+    <sys:String x:Key="Nav_QqqGex">QQQ GEX</sys:String>
     <sys:String x:Key="Nav_Charts">Charts</sys:String>
     <sys:String x:Key="Nav_Options">Options</sys:String>
     <sys:String x:Key="Nav_Strategy">Strategy P/L</sys:String>
