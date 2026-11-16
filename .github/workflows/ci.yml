@@ -55,7 +55,7 @@ jobs:
         working-directory: web/qqq-gex
       - run: node tests/offline-viewer.mjs
         working-directory: web/qqq-gex
-      - run: npm run build:runtime && node test-results/pcs-contract.mjs && node tests/live-display.mjs && npm run test:pipeline
+      - run: npm run build:runtime && node test-results/pcs-contract.mjs && node tests/live-display.mjs && node tests/storage-faults.mjs && npm run test:pipeline
         working-directory: web/qqq-gex
       - run: QQQ_TEST_DB="$(node -p "JSON.parse(require('fs').readFileSync('test-results/pipeline-location.json')).dbPath")" QQQ_TEST_DECISION=test-results/pcs-positive.json node tests/offline-viewer.mjs
         working-directory: web/qqq-gex

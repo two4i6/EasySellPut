@@ -37,14 +37,14 @@ public sealed class DataSourceHealthMonitorTests
         var entered = 0; var inFlight = 0; var max = 0;
         async Task Probe(CancellationToken ct)
         {
-            Interlocked.Increment(ref entered); var n = Interlocked.Increment(ref inFlight); max = Math.Max(n, max);
+            var n = Interlocked.Increment(ref inFlight);int observed;do{observed=Volatile.Read(ref max);if(observed>=n)break;}while(Interlocked.CompareExchange(ref max,n,observed)!=observed);Interlocked.Increment(ref entered);
             try { await Task.Delay(Timeout.InfiniteTimeSpan, ct); } finally { Interlocked.Decrement(ref inFlight); }
         }
         using var monitor = new DataSourceHealthMonitor(Enumerable.Repeat<Func<CancellationToken, Task>>(Probe, 8).ToArray(), activity, new Clock());
         monitor.Start(); var first = monitor.RefreshAsync(); Assert.Same(first, monitor.RefreshAsync());
-        await Until(() => entered == 2); Assert.Equal(2, max);
+        await Until(() => Volatile.Read(ref entered) == 2); Assert.Equal(2, Volatile.Read(ref max));
         activity.SetVisible("main", false); await first; Assert.False(monitor.IsTesting); Assert.Equal(0, inFlight); Assert.Equal(2, entered);
-        activity.SetVisible("main", true); await Until(() => entered == 4);
+        activity.SetVisible("main", true); await Until(() => Volatile.Read(ref entered) == 4);
         var resumed = monitor.RefreshAsync(); monitor.Dispose(); await resumed; Assert.Equal(0, inFlight);
         activity.SetVisible("main", false); activity.SetVisible("main", true); Assert.Equal(4, entered);
     }

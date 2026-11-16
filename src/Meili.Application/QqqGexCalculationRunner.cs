@@ -11,13 +11,17 @@ namespace Meili.Automation;
 /// <summary>Runs only the bundled, hash-verified original GEX model. No caller-selected executable or script.</summary>
 public static class QqqGexCalculationRunner
 {
+    internal static string BundledArchivePath(string baseDirectory,string archiveName)
+    {
+        var root=Path.TrimEndingDirectorySeparator(baseDirectory);return Path.GetFileName(root)=="MacOS"&&Path.GetFileName(Path.GetDirectoryName(root))=="Contents"?Path.GetFullPath(Path.Combine(root,"..","Resources","runtime",archiveName)):Path.Combine(root,"runtime",archiveName);
+    }
     private static async Task<string?> ExtractNodeAsync(string directory,CancellationToken ct)
     {
         using var manifest=typeof(QqqGexCalculationRunner).Assembly.GetManifestResourceStream("QqqGexRuntime/node-lock.json")!;
         using var doc=await JsonDocument.ParseAsync(manifest,cancellationToken:ct);
         var rid=(OperatingSystem.IsWindows()?"win":OperatingSystem.IsMacOS()?"osx":"linux")+"-"+RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant();
         if(!doc.RootElement.GetProperty("platforms").TryGetProperty(rid,out var entry))return null;
-        var name=entry.GetProperty("archive").GetString()!;var archive=Path.Combine(AppContext.BaseDirectory,"runtime",name);
+        var name=entry.GetProperty("archive").GetString()!;var archive=BundledArchivePath(AppContext.BaseDirectory,name);
         if(!File.Exists(archive))return null;
         await using var file=File.OpenRead(archive);var archiveHash=Convert.ToHexString(await SHA256.HashDataAsync(file,ct));
         if(!archiveHash.Equals(entry.GetProperty("archiveSha256").GetString(),StringComparison.OrdinalIgnoreCase))throw new InvalidDataException("Bundled Node archive checksum mismatch");file.Position=0;

@@ -36,7 +36,7 @@ public sealed class CachePanelTests
             await model.RefreshCacheCommand.ExecuteAsync(null); MacHost.Pump();
             var panel = page.FindControl<AppCard>("CachePanel")!; panel.BringIntoView(); MacHost.Pump();
             Assert.NotNull(panel); Assert.Contains(loc["Cache_bars"], model.CacheSummary);
-            Assert.Equal(6, model.StorageSegments.Count); Assert.InRange(model.StorageSegments.Sum(s => s.Fraction), .999999, 1.000001);
+            Assert.Equal(new[]{"market","gex","browser","userdata","logs","cache","other"},model.StorageSegments.Select(s=>s.Id)); Assert.InRange(model.StorageSegments.Sum(s => s.Fraction), .999999, 1.000001);
             Assert.NotNull(page.FindControl<AppStorageBar>("StorageUsageBar"));
             Assert.Single(panel.GetVisualDescendants().OfType<AppHelp>());
             var select = panel.GetVisualDescendants().OfType<AppSelect>().Single(); select.SelectedIndex = 2; MacHost.Pump(); Assert.Equal(2, model.CacheCategoryIndex);

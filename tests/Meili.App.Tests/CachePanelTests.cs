@@ -16,7 +16,7 @@ public sealed class CachePanelTests
                 await ScreenRenderTests.Settle(); var vm = (SettingsViewModel)page.DataContext;
                 await vm.RefreshCacheCommand.ExecuteAsync(null); await ScreenRenderTests.Settle();
                 var panel = (AppCard)page.FindName("CachePanel"); Assert.NotNull(panel); panel.BringIntoView();
-                var storage = (AppStorageBar)page.FindName("StorageUsageBar"); Assert.NotNull(storage); Assert.Equal(6, storage.Segments!.Count);
+                var storage = (AppStorageBar)page.FindName("StorageUsageBar"); Assert.NotNull(storage); Assert.Equal(new[]{"market","gex","browser","userdata","logs","cache","other"},storage.Segments!.Select(s=>s.Id));
                 var select = UiAudit.Descendants<AppSelect>(panel).Single(); select.SelectedIndex = 2;
                 await ScreenRenderTests.Settle(); Assert.Equal(2, vm.CacheCategoryIndex);
                 Assert.Single(UiAudit.Descendants<AppHelp>(panel));
