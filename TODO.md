@@ -134,3 +134,9 @@ Do not check off later steps based on this document or a scaffold alone. Add com
 ### S02b verification
 
 Core 207 and Automation 120 passed; all 58 CLI/MCP cases and full production process smoke passed. CLI help with global options before/after the command leaves nonexistent profiles absent; legacy discovery does not move data, while normal startup retains migration. Existing complete CI Core/Automation/process jobs cover these regressions. Actual signed app discovery remains dependent on S03–S07; no installation feature is claimed here.
+
+### S03 package verification checkpoint
+
+Implemented v1 signed package metadata/payload verifier and format notes in `docs/app-runtime-research/package-v1.md`. Full Automation suite: 129 passed. Verification uses pinned production key/repository/RID; only internal test composition supplies fixture trust. Bounds, exact file hashes, compatibility, duplicate metadata, case collisions and unsafe entries are checked before any extraction. Installation/registry/operation contributions remain pending S04–S07, so the whole migration is not accepted by this checkpoint. Existing platform Automation CI covers the new tests.
+
+Baseline reconciliation: CI [44069964453](https://github.com/two4i6/EasySellPut/actions/runs/44069964453) passed at integrated `975576d`, including the S01 correction and S02a. Newer exact-commit CI remains separately tracked; ancestor success is not claimed for unexecuted package changes.
