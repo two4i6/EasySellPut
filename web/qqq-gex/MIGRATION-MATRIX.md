@@ -254,3 +254,5 @@ Native pixel review found that the first SVG-only ordering fix was insufficient 
 - [x] Cloud Chromium fixture/cache-miss/actual retained-partial details, theme/width/focus/error checks and original chart→application MCP parity pass. Canonical decision/quote/read-only MCP services remain; removed UI-only lifecycle presentation is not a new backend exception.
 - [ ] Exact delivered-commit native input/pixel/compact-header execution and image review: CI144/145 were canceled by concurrent work pushes. CI142 keys/DOM passed, but manual WebKit pixel failure prompted the newer correction. Neither a cross-build nor a canceled run certifies the fix.
 - [ ] Existing full-session/complete-real-history/qualifying-native-alert gates above remain open; removing tabs does not satisfy these data/event requirements.
+
+CI146 Mac Intel actually failed the new native pointer delivery before screenshots; the test-only WebKit routing correction preserves all assertions and still requires hosted execution. Windows native probes passed in146; complete package/pixel status remains distinct.

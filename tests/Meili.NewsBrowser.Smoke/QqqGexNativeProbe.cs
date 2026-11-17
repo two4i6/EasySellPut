@@ -74,7 +74,7 @@ internal static partial class Program
                 await Eval("(()=>{const end=Date.now()+25000;const poll=()=>{try{if("+condition+"){document.title="+JsonSerializer.Serialize(marker)+";return;}}catch(e){}if(Date.now()<end)setTimeout(poll,100);};poll();})()");
                 try{await Until(()=>Title()==marker,label);}
                 catch{
-                    await Eval("document.title='GEX_DIAGNOSTIC '+JSON.stringify({visibility:document.visibilityState,focus:document.hasFocus(),ready:document.readyState,scope:[...document.querySelectorAll('select[aria-label=\"到期日范围\"]')].map(s=>({value:s.value,disabled:s.disabled})),observedExposure:localStorage.getItem('qqq-local:observed-exposure:v1'),body:document.body.innerText.slice(0,5000),errors:window.__gexProbeErrors,fetches:window.__gexProbeFetch,resources:performance.getEntriesByType('resource').slice(-20).map(e=>({asset:e.name.split('/').pop(),duration:Math.round(e.duration),bytes:e.transferSize}))})");
+                    await Eval("document.title='GEX_DIAGNOSTIC '+JSON.stringify({visibility:document.visibilityState,focus:document.hasFocus(),ready:document.readyState,nativePointer:window.__gexNativePointer,scope:[...document.querySelectorAll('select[aria-label=\"到期日范围\"]')].map(s=>({value:s.value,disabled:s.disabled})),observedExposure:localStorage.getItem('qqq-local:observed-exposure:v1'),body:document.body.innerText.slice(0,5000),errors:window.__gexProbeErrors,fetches:window.__gexProbeFetch,resources:performance.getEntriesByType('resource').slice(-20).map(e=>({asset:e.name.split('/').pop(),duration:Math.round(e.duration),bytes:e.transferSize}))})");
                     await Task.Delay(500);Console.Error.WriteLine(Title());throw;
                 }
             }
@@ -172,7 +172,16 @@ internal static partial class Program
                 var windowPoint=MacConvertPoint(nativeView,MacSelector("convertPoint:toView:"),localPoint,IntPtr.Zero);
                 var uptime=MacDouble(MacMessage(MacClass("NSProcessInfo"),MacSelector("processInfo")),MacSelector("systemUptime"));
                 var ev=MacMouseEvent(MacClass("NSEvent"),MacSelector("mouseEventWithType:location:modifierFlags:timestamp:windowNumber:context:eventNumber:clickCount:pressure:"),5,windowPoint,0,uptime,MacMessage(nativeWindow,MacSelector("windowNumber")),IntPtr.Zero,IntPtr.Zero,IntPtr.Zero,0);
-                if(ev==IntPtr.Zero)throw new Exception("Native pointer event unavailable");MacSendEvent(nativeWindow,MacSelector("sendEvent:"),ev);
+                if(ev==IntPtr.Zero)throw new Exception("Native pointer event unavailable");
+                // Match WebKitTestRunner's non-drag routing: NSWindow.sendEvent
+                // may discard synthetic moves before WKWebView sees them.
+                // Test-only SPI, capability checked; no DOM or global-input fallback.
+                var app=MacMessage(MacClass("NSApplication"),MacSelector("sharedApplication"));
+                var move=MacSelector("_simulateMouseMove:");var currentEvent=MacSelector("_setCurrentEvent:");
+                if(!MacHasSelector(nativeView,MacSelector("respondsToSelector:"),move)||!MacHasSelector(app,MacSelector("respondsToSelector:"),currentEvent))throw new Exception("Native WebKit test pointer routing unavailable");
+                var previousEvent=MacMessage(app,MacSelector("currentEvent"));
+                try{MacSendEvent(app,currentEvent,ev);MacSendEvent(nativeView,move,ev);}
+                finally{MacSendEvent(app,currentEvent,previousEvent);}
 #endif
             }
             await Check("window.__gexNativePointer?.trusted===true","trusted native plot pointer");
@@ -223,6 +232,7 @@ internal static partial class Program
 #if !WINDOWS_READER
     [StructLayout(LayoutKind.Sequential)] private struct KeyPoint{public double X,Y;}
     [DllImport("/usr/lib/libobjc.A.dylib",EntryPoint="objc_msgSend")] private static extern IntPtr MacKeyEvent(IntPtr cls,IntPtr selector,ulong type,KeyPoint location,ulong flags,double timestamp,IntPtr windowNumber,IntPtr context,IntPtr characters,IntPtr ignoring,[MarshalAs(UnmanagedType.I1)]bool repeat,ushort keyCode);
+    [DllImport("/usr/lib/libobjc.A.dylib",EntryPoint="objc_msgSend")] [return:MarshalAs(UnmanagedType.I1)] private static extern bool MacHasSelector(IntPtr obj,IntPtr selector,IntPtr target);
     [DllImport("/usr/lib/libobjc.A.dylib",EntryPoint="objc_msgSend")] [return:MarshalAs(UnmanagedType.I1)] private static extern bool MacBool(IntPtr obj,IntPtr selector);
     [DllImport("/usr/lib/libobjc.A.dylib",EntryPoint="objc_msgSend")] private static extern void MacSetBool(IntPtr obj,IntPtr selector,[MarshalAs(UnmanagedType.I1)]bool value);
     [DllImport("/usr/lib/libobjc.A.dylib",EntryPoint="objc_msgSend")] private static extern KeyPoint MacConvertPoint(IntPtr obj,IntPtr selector,KeyPoint point,IntPtr target);
