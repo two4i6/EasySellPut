@@ -1,0 +1,139 @@
+{
+  "kind": "actual-public-delayed-capture",
+  "stages": [
+    {
+      "stage": "core-capture",
+      "seconds": 1.4105073,
+      "data": {
+        "status": "captured_input",
+        "symbol": "QQQ",
+        "basis": "normalized-provider-input",
+        "complete": false,
+        "providerCoverageComplete": false,
+        "calculated": false,
+        "contextDeferred": true,
+        "expectedExpiries": 28,
+        "capturedExpiries": 28,
+        "missingExpiries": 0,
+        "bars": 2248,
+        "matchingBars": 446,
+        "matchingRegularBars": 195,
+        "sourceTimeAligned": false,
+        "missingOi": 0,
+        "missingIv": 212,
+        "timing": "same-market-date-bars-present",
+        "source": "cboe",
+        "asOf": "2026-11-17T04:58:10+00:00",
+        "sourceMarketAt": null,
+        "sourceDelayMinutes": 15,
+        "runtime": "Run the pinned source calculation importer; this operation does not claim a published archive"
+      }
+    },
+    {
+      "stage": "core-publish",
+      "seconds": 2.8521491,
+      "data": {
+        "wireCoverage": "partial-input-only",
+        "queryCoverage": "No complete date published; only supplied partial input retained",
+        "importVersion": "qqq-local-import-v8",
+        "status": "partial",
+        "partialDates": [
+          "2026-11-16"
+        ],
+        "publishedDates": [],
+        "source": "cboe",
+        "revision": "40a800627d5d26a1f090c6d079f9ff163d501087f272621d05a5be69449c4109",
+        "dates": [
+          "2026-11-16"
+        ],
+        "rows": 28,
+        "regularPriceAligned": true,
+        "priceAligned": true,
+        "inputComplete": false,
+        "missingExpiries": [],
+        "historyCoverage": "only supplied captures; gaps not synthesized"
+      }
+    },
+    {
+      "stage": "context-capture",
+      "seconds": 21.4485576,
+      "data": {
+        "status": "captured_input",
+        "symbol": "QQQ",
+        "basis": "normalized-provider-input",
+        "complete": false,
+        "providerCoverageComplete": false,
+        "calculated": false,
+        "contextDeferred": false,
+        "expectedExpiries": 28,
+        "capturedExpiries": 28,
+        "missingExpiries": 0,
+        "bars": 2248,
+        "matchingBars": 446,
+        "matchingRegularBars": 195,
+        "sourceTimeAligned": false,
+        "missingOi": 0,
+        "missingIv": 212,
+        "timing": "same-market-date-bars-present",
+        "source": "cboe",
+        "asOf": "2026-11-17T04:58:10+00:00",
+        "sourceMarketAt": null,
+        "sourceDelayMinutes": 15,
+        "runtime": "Run the pinned source calculation importer; this operation does not claim a published archive"
+      }
+    },
+    {
+      "stage": "context-publish",
+      "seconds": 3.0496647,
+      "data": {
+        "wireCoverage": "partial-input-only",
+        "queryCoverage": "No complete date published; only supplied partial input retained",
+        "importVersion": "qqq-local-import-v8",
+        "status": "partial",
+        "partialDates": [
+          "2026-11-16"
+        ],
+        "publishedDates": [],
+        "source": "cboe",
+        "revision": "8e3736e883678b59546ba0103b6127b322d1d407b8bcd23a0f420afca16cb829",
+        "dates": [
+          "2026-11-16"
+        ],
+        "rows": 28,
+        "regularPriceAligned": true,
+        "priceAligned": true,
+        "inputComplete": false,
+        "missingExpiries": [],
+        "historyCoverage": "only supplied captures; gaps not synthesized"
+      }
+    }
+  ],
+  "decision": {
+    "asOf": "2026-11-17T06:35:20.862Z",
+    "dataStatus": "DELAYED",
+    "timing": {
+      "value": "INSUFFICIENT_DATA",
+      "confidence": 0,
+      "source": {
+        "type": "fallback",
+        "reason": "缺少或陈旧的今日分钟线、VWAP 或常规交易时段输入"
+      }
+    },
+    "candidate": {
+      "status": "UNAVAILABLE",
+      "reason": "缺少同日且时效合格的真实目标到期日期权链"
+    },
+    "dataIssues": [
+      "市场状态不满足 Reactive PCS",
+      "Missing/stale macro quote ^GSPC",
+      "Missing/stale macro quote ^VIX",
+      "Missing/stale macro quote ^VIX3M",
+      "Missing/stale macro quote ^TNX",
+      "Missing/stale macro quote ^IRX",
+      "Missing/stale macro quote DX-Y.NYB",
+      "Missing/stale macro quote SPY",
+      "同日且新鲜的期权链/标的成交时点未对齐；候选不可用"
+    ]
+  },
+  "limitations": "One option-chain source cutoff, not a full session. Missing IV and unverified underlying source timestamp prevent complete/fresh qualification. No alert delivery is certified."
+}

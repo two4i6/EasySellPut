@@ -67,6 +67,15 @@ jobs:
         working-directory: web/qqq-gex
       - run: bun tests/wire-benchmark.ts
         working-directory: web/qqq-gex
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Test private GEX session recovery and repeated rendering
+        run: |
+          dotnet build tests/Meili.Qqq.CloudHost/Meili.Qqq.CloudHost.csproj -m:3 -v minimal
+          python3 build/bundle-qqq-runtime.py linux-x64 tests/Meili.Qqq.CloudHost/bin/Debug/net10.0
+          cd web/qqq-gex
+          node tests/session-soak.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
