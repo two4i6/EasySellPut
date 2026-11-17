@@ -67,7 +67,7 @@ try {
     const cdp=await context.newCDPSession(page);await cdp.send('Page.setWebLifecycleState',{state:'frozen'});await new Promise(r=>setTimeout(r,250));await cdp.send('Page.setWebLifecycleState',{state:'active'});
     await context.setOffline(true);await new Promise(r=>setTimeout(r,250));await context.setOffline(false);await page.evaluate(()=>window.dispatchEvent(new Event('online')));await cdp.detach();
    }
-   assert.equal(await page.getByText('QQQ GEX 视图暂时无法显示',{exact:true}).count(),0);await new Promise(r=>setTimeout(r,pauseMs));
+   assert.equal(await page.getByText('视图设置保存失败；本次视图仍可使用',{exact:true}).count(),0,'transient offline must not permanently block preference writes');   assert.equal(await page.getByText('QQQ GEX 视图暂时无法显示',{exact:true}).count(),0);await new Promise(r=>setTimeout(r,pauseMs));
   }
   await page.screenshot({path:`test-results/qqq-session-soak-${generation}.png`});
   const after=await (await context.request.get(new URL('api/analysis/qqq/local-state',base).href)).json();assert.equal(after.revision,before.revision);assert.equal(digest(),protectedBefore);

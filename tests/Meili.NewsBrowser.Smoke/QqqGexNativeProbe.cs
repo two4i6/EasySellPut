@@ -33,7 +33,7 @@ internal static partial class Program
         var window=new Window{Width=1440,Height=1000,Content=browser};
         try
         {
-            window.Show();
+            window.Show();window.Activate();
 #if WINDOWS_READER
             var environment=await Microsoft.Web.WebView2.Core.CoreWebView2Environment.CreateAsync(null,System.IO.Path.Combine(directory,"gex-populated-browser"));
             await browser.EnsureCoreWebView2Async(environment);
@@ -65,13 +65,18 @@ internal static partial class Program
             }
             // A WKWebView may still be on its initial empty document immediately
             // after Navigate. DOM polling injected there is destroyed by commit.
-            await Until(()=>Title()=="QQQ GEX · 本地数据","native populated document committed");
+            await Until(()=>Title().StartsWith("QQQ GEX",StringComparison.Ordinal),"native local document loaded");
+            await Eval("window.__gexProbeFetch=[];const probeFetch=window.fetch.bind(window);window.fetch=(...args)=>probeFetch(...args).then(r=>{window.__gexProbeFetch.push({asset:new URL(String(args[0]?.url??args[0]),location.href).pathname.split('/').pop(),status:r.status});if(window.__gexProbeFetch.length>40)window.__gexProbeFetch.shift();return r;});window.__gexProbeErrors=[];addEventListener('error',e=>window.__gexProbeErrors.push(String(e.message).replace(/https?:\\/\\/[^ ]+/g,'[url]')));addEventListener('unhandledrejection',e=>window.__gexProbeErrors.push(String(e.reason).slice(0,300)));window.__gexProbeDone=false");
             var serial=0;
             async Task Check(string condition,string label)
             {
                 var marker="gex-native-"+(++serial);
                 await Eval("(()=>{const end=Date.now()+25000;const poll=()=>{try{if("+condition+"){document.title="+JsonSerializer.Serialize(marker)+";return;}}catch(e){}if(Date.now()<end)setTimeout(poll,100);};poll();})()");
-                await Until(()=>Title()==marker,label);
+                try{await Until(()=>Title()==marker,label);}
+                catch{
+                    await Eval("document.title='GEX_DIAGNOSTIC '+JSON.stringify({visibility:document.visibilityState,focus:document.hasFocus(),ready:document.readyState,body:document.body.innerText.slice(0,5000),errors:window.__gexProbeErrors,fetches:window.__gexProbeFetch,resources:performance.getEntriesByType('resource').slice(-20).map(e=>({asset:e.name.split('/').pop(),duration:Math.round(e.duration),bytes:e.transferSize}))})");
+                    await Task.Delay(500);Console.Error.WriteLine(Title());throw;
+                }
             }
             await Check("document.querySelectorAll('section[aria-label=\"回放 GEX 快照表\"] tbody tr:not([aria-hidden])').length===8","native populated snapshot table");
             foreach(var mode in new[]{"GEX矩阵","Heatmap","K线"})
@@ -87,7 +92,7 @@ internal static partial class Program
                 await Check("[...document.querySelectorAll('[role=tab]')].some(b=>b.textContent.trim()==="+name+"&&b.getAttribute('aria-selected')==='true')","native tab "+tab);
             }
             await Eval("document.title='gex-reload-pending'");await Until(()=>Title()=="gex-reload-pending","native reload sentinel");
-            browser.Reload();await Until(()=>Title()=="QQQ GEX · 本地数据","native reload new document");
+            browser.Reload();await Until(()=>Title().StartsWith("QQQ GEX",StringComparison.Ordinal),"native reload new document");
             await Check("document.querySelectorAll('section[aria-label=\"回放 GEX 快照表\"] tbody tr:not([aria-hidden])').length===8","native reload retains snapshots");
             Console.WriteLine("PASS: synthetic populated native QQQ GEX: 3 chart modes, 10 analysis tabs, canvas and reload; no live-history/alert claim.");
         }

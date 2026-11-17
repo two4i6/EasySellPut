@@ -22,7 +22,7 @@ public sealed class QqqGexWorkspace(string directory)
                 var age=DateTimeOffset.UtcNow-value.RootElement.GetProperty("observedAt").GetDateTimeOffset();
                 fresh=age>=TimeSpan.Zero&&age<=TimeSpan.FromSeconds(30);status=fresh?"recent_desktop_observation":"stale_desktop_observation";desktop=value.RootElement.Clone();
             }
-        }catch(Exception e)when(e is IOException or JsonException or InvalidOperationException or UnauthorizedAccessException or FormatException or KeyNotFoundException){status="desktop_observation_unavailable";}
+        }catch(Exception e)when(e is IOException or JsonException or InvalidOperationException or UnauthorizedAccessException or FormatException or KeyNotFoundException){status="desktop_observation_unavailable";Meili.Core.Diagnostics.AppLog.Warn("qqq-gex","Desktop observation unavailable: "+e.GetType().Name);}
         var preferences=new QqqGexPreferences(directory).Read();var selections=new Dictionary<string,JsonElement>();
         foreach(var name in new[]{"exposure","wallTouches","spreadStudy"})if(preferences.values.TryGetValue("qqq-local:observed-"+name+":v1",out var value)){
             try{using var parsed=JsonDocument.Parse(value,new JsonDocumentOptions{MaxDepth=16});if(parsed.RootElement.ValueKind==JsonValueKind.Object)selections[name]=parsed.RootElement.Clone();}catch(JsonException){}
