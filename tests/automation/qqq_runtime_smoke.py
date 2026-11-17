@@ -24,7 +24,7 @@ with tempfile.TemporaryDirectory(prefix='qqq runtime data ') as folder:
  finally:
   if reader:reader.close()
   os.environ['PATH']=old_path
- binaries=list((root/'cache/qqq-runtime').rglob('node.exe' if os.name=='nt' else 'node'));assert len(binaries)==1
+ binaries=list((root/'apps/runtimes/node24').rglob('node.exe' if os.name=='nt' else 'node'));assert len(binaries)==1
  assert subprocess.check_output([str(binaries[0]),'--version'],env=env,text=True).strip()=='v24.22.1'
  with binaries[0].open('ab') as f:f.write(b'tampered')
  rejected=subprocess.run(command,env=env,capture_output=True,text=True,timeout=30);assert rejected.returncode!=0 and not json.loads(rejected.stdout)['success'],rejected.stdout

@@ -104,7 +104,9 @@ public sealed class PrivateAppSession : IPrivateAppSession, IAsyncDisposable
                 await Send(200,"application/json",JsonSerializer.SerializeToUtf8Bytes(result));return;
                 }
                 catch(Exception ex)when(ex is ArgumentException or JsonException or InvalidOperationException or UnauthorizedAccessException or IOException)
-                {await Send(ex is UnauthorizedAccessException?403:ex is ArgumentException or JsonException?400:503,"application/json",JsonSerializer.SerializeToUtf8Bytes(WireJson.Error(ex),WireJson.Options));return;}
+                {
+                    // expected: expose typed invocation errors to the caller without logging financial arguments.
+                    await Send(ex is UnauthorizedAccessException?403:ex is ArgumentException or JsonException?400:503,"application/json",JsonSerializer.SerializeToUtf8Bytes(WireJson.Error(ex),WireJson.Options));return;}
             }
             if(request[0]!="GET"||headers.ContainsKey("Content-Length")){await Send(403,"text/plain",[]);return;}
             var assetPath="ui/"+Uri.UnescapeDataString(route);ModulePackage.ValidatePath(assetPath);

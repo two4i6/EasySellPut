@@ -9,7 +9,7 @@ namespace Meili.Automation.Modules;
 public static class ModuleProcess
 {
     public static Task<JsonElement> ExecuteAsync(string directory, BoundModuleOperation operation, JsonElement arguments, bool allowWrites, CancellationToken ct) =>
-        ExecuteAsync(directory, operation, arguments, allowWrites, new ModuleInstaller(directory), token => QqqGexCalculationRunner.ExtractNodeAsync(directory, token), ct);
+        ExecuteAsync(directory, operation, arguments, allowWrites, new ModuleInstaller(directory), token => PinnedNodeRuntime.ExtractNodeAsync(directory, token), ct);
 
     internal static async Task<JsonElement> ExecuteAsync(string directory, BoundModuleOperation operation, JsonElement arguments, bool allowWrites,
         ModuleInstaller installer, Func<CancellationToken, Task<string?>> runtime, CancellationToken ct)
