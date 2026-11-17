@@ -13,6 +13,7 @@ public sealed record ManagedAppRow(string Id, string Version, bool Enabled)
 /// <summary>Shared explicit local app maintenance; native views provide only selection and presentation.</summary>
 public partial class AppManagementViewModel(string directory, LocalizationService loc) : ObservableObject
 {
+    public string DataDirectory => directory;
     [ObservableProperty] public partial IReadOnlyList<ManagedAppRow> Apps { get; set; } = [];
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ToggleAppCommand), nameof(UninstallAppCommand))]

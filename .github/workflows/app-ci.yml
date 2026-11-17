@@ -41,7 +41,7 @@ jobs:
       - name: Verify pinned model source
         run: python tools/qqq-gex/verify-source.py
       - name: Test shared protocol
-        run: node --test web/app-sdk/engine.test.mjs
+        run: node --test web/app-sdk/engine.test.mjs web/app-sdk/client.test.mjs
       - name: Install app dependencies
         working-directory: web/qqq-gex
         run: npm ci --no-audit --no-fund

@@ -47,7 +47,7 @@ public sealed class ModuleRegistry
     /// <summary>Held for actual app use only, never for an idle MCP transport.</summary>
     public IDisposable AcquireExecution(string appId) => Acquire(appId, exclusive: false);
     internal IDisposable AcquireMaintenance(string appId) => Acquire(appId, exclusive: true);
-    internal IDisposable AcquireJob(string appId) => Acquire(appId, exclusive: true, folderName: "jobs");
+    internal IDisposable AcquireJob(string appId, bool readOnly = false) => Acquire(appId, exclusive: true, folderName: readOnly ? "jobs-read" : "jobs");
     private IDisposable Acquire(string appId, bool exclusive, string folderName = "leases")
     {
         ValidateId(appId); CheckRoot();

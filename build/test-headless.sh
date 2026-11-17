@@ -5,7 +5,7 @@ root=$(cd "$(dirname "$0")/.." && pwd)
 source "$root/tools/env.sh"
 cd "$root"
 python3 build/prepare-app-seed.py --if-current
-node --test web/app-sdk/engine.test.mjs
+node --test web/app-sdk/engine.test.mjs web/app-sdk/client.test.mjs
 mkdir -p build/out/tests
 results=$(mktemp -d "$root/build/out/tests/run-XXXXXXXX")
 export MEILI_RENDER_DIR="$results/render"
@@ -28,6 +28,10 @@ if dotnet build tests/Meili.Automation.Host/Meili.Automation.Host.csproj -c Rele
   cat "$results/cli-mcp.log"
   if ! python3 tests/automation/cache_management_smoke.py > "$results/cache-management.log" 2>&1; then failed=1; fi
   cat "$results/cache-management.log"
+  if ! dotnet build tools/Meili.AppDev/Meili.AppDev.csproj -c Release -m:3 -v minimal > "$results/app-dev-build.log" 2>&1; then failed=1; fi
+  if ! python3 build/pack-app.py --development --repository test/source --output "$results/dev-app.espapp" > "$results/app-dev-package.log" 2>&1; then failed=1; fi
+  if ! python3 tests/automation/app_dev_smoke.py --archive "$results/dev-app.espapp" --public-key "$results/dev-app.espapp.public.pem" > "$results/app-dev.log" 2>&1; then failed=1; fi
+  cat "$results/app-dev.log"
   if ! python3 tests/automation/app_mcp_update_smoke.py > "$results/app-mcp-update.log" 2>&1; then failed=1; fi
   cat "$results/app-mcp-update.log"
   if ! python3 tests/automation/app_maintenance_smoke.py > "$results/app-maintenance.log" 2>&1; then failed=1; fi

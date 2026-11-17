@@ -18,6 +18,7 @@ public partial class SettingsViewModel : ObservableObject
     private readonly bool _ready;
     private readonly WebWorkspace? _workspace;
     private bool _resettingMotion;
+    private bool _syncingLanguage;
     [ObservableProperty] public partial bool ReduceMotionEnabled { get; set; }
     [ObservableProperty] [NotifyPropertyChangedFor(nameof(HasMotionStatus))] public partial string MotionStatus { get; set; } = "";
     public bool HasMotionStatus => !string.IsNullOrEmpty(MotionStatus);
@@ -161,8 +162,13 @@ public partial class SettingsViewModel : ObservableObject
     public SettingsViewModel(SettingsStore store, LocalizationService loc, IThemeController theme, DataDirectoryInfo dataDir, IServiceProvider sp, McpConnectionSetup? connection = null, IUpdateCoordinator? updater = null)
     {
         _store = store; _loc = loc; _theme = theme;
-        Applications=new(dataDir.Path,loc);
-        _loc.LanguageChanged+=(_,_)=>Applications.RefreshLanguage();
+        var applications=sp.GetService(typeof(AppManagementViewModel)) as AppManagementViewModel;
+        Applications=applications?.DataDirectory==dataDir.Path?applications:new(dataDir.Path,loc);
+        _loc.LanguageChanged+=(_,_)=>
+        {
+            Applications.RefreshLanguage();_syncingLanguage=true;
+            try{LanguageIndex=_loc.Language=="en-US"?1:0;}finally{_syncingLanguage=false;}
+        };
         _cacheManager = sp.GetService(typeof(Meili.Caching.CacheManager)) as Meili.Caching.CacheManager;
         Updates = updater is not null ? new UpdateViewModel(store, loc, dataDir, updater)
             : sp.GetService(typeof(UpdateViewModel)) as UpdateViewModel ?? new UpdateViewModel(store, loc, dataDir);
@@ -177,7 +183,7 @@ public partial class SettingsViewModel : ObservableObject
         _loc.LanguageChanged += (_, _) => { FormatCacheSummary(); CacheFeedback = ""; OnPropertyChanged(nameof(AiConnectionStatus)); OnPropertyChanged(nameof(CodexAvailability)); OnPropertyChanged(nameof(ClaudeAvailability)); OnPropertyChanged(nameof(AiTerminalLabel)); };
         _network = sp.GetService(typeof(INetworkController)) as INetworkController;
         var s = store.Current;
-        LanguageIndex = s.Language == "en-US" ? 1 : 0;
+        LanguageIndex = _loc.Language == "en-US" ? 1 : 0;
         ThemeIndex = (int)s.Theme;
         UpDownIndex = (int)s.EffectiveUpDownColors();
         ProxyModeIndex = Math.Max(0, Array.IndexOf(ProxyModes, s.Network.ProxyMode));
@@ -192,7 +198,7 @@ public partial class SettingsViewModel : ObservableObject
 
     partial void OnLanguageIndexChanged(int value)
     {
-        if (!_ready) return;
+        if (!_ready || _syncingLanguage) return;
         var lang = value == 1 ? "en-US" : "zh-CN";
         _loc.Apply(lang);
         _store.Update(s => s.Language = lang);

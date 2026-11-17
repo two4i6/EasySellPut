@@ -82,6 +82,7 @@
             </ui:NavigationView.FooterMenuItems>
         </ui:NavigationView>
             </Grid>
+            <ContentControl Grid.Column="1" x:Name="ModuleAppHost" Visibility="Collapsed"/>
             <Grid Grid.Column="1" x:Name="WebTabHost" Visibility="Collapsed"/>
         </Grid>
 

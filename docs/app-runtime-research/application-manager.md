@@ -11,3 +11,9 @@ The screenshots below are actual 1920×1080 Avalonia/Skia **headless renders**, 
 ![English, dark theme](screenshots/mac-applications-1080p-en-US-True.png)
 
 Pending pilot acceptance, including remaining GEX facade ownership, optional UI attachment, proactive MCP catalog notifications and final signed/native packages, is tracked explicitly in ../../TODO.md. This page describes current local maintenance behavior, not completion of S01–S12.
+
+## Reusable application pages
+
+Enabled signed UI modules can contribute a desktop rail entry. Both platforms use `PrivateAppSession` and a native `PrivateAppView` adapter. The private loopback origin serves only declared signed files and app-owned operations, with a random token, strict origin checks, bounded clients/requests and the shared dispatcher permission/schema rules. Remote article and personal website views have no access to it. Hidden pages release their native view and cancel requests; execution leases remain held until those requests finish cancellation.
+
+`web/app-sdk/client.mjs` provides browser discovery/invocation without sockets or market polling. `tools/Meili.AppDev` is a separate source-development executable: temporary profiles, explicit development public key, read-only operation execution and private UI preview. It is never shipped in a production package and cannot select an existing data directory. See its README for the current original-GEX preview limitation.

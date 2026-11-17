@@ -63,7 +63,7 @@
         </Border>
         <!-- Page host -->
         <Panel Grid.Row="0" Grid.Column="1">
-            <ContentControl x:Name="PageHost" /><Grid x:Name="WebTabHost" IsVisible="False"/>
+            <ContentControl x:Name="PageHost" /><ContentControl x:Name="ModuleAppHost" IsVisible="False"/><Grid x:Name="WebTabHost" IsVisible="False"/>
 
             <!-- In-app alert / error banner (always shown, even when notifications are off) -->
             <Border x:Name="Banner" IsVisible="False" Classes="InfoBar" Margin="24,12" MaxWidth="640"

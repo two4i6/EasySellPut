@@ -11,7 +11,7 @@ using Meili.Core.Quotes;
 namespace Meili.Shared.Services;
 
 /// <summary>Private cache-only viewer. No upstream requests or native JavaScript privileges.</summary>
-public sealed class QqqGexSession : IDisposable
+public sealed class QqqGexSession : Meili.Automation.Modules.IPrivateAppSession
 {
     private readonly TcpListener listener = new(IPAddress.Loopback, 0);
     private readonly CancellationTokenSource stop = new();
@@ -68,6 +68,10 @@ public sealed class QqqGexSession : IDisposable
             cache=new QqqGexResponseStore(databasePath);
         }
         moduleLease=directory is null?null:Meili.Automation.Modules.ModuleAccess.AcquireEnabled(directory,"easysellput.qqq-gex");
+        try
+        {
+            if(directory is not null&&new Meili.Automation.Modules.ModuleRegistry(directory).Read().State.Apps.Any(a=>a.Id==Meili.Automation.Modules.ModuleAccess.QqqGex&&a.HasUi==false))
+                throw new InvalidOperationException("Application core has no installed UI.");
         preferences=directory is null?null:new QqqGexPreferences(directory);
         liveQuotesRequested=preferences is null;
         if(preferences is not null)try{liveQuotesRequested=preferences.Read().values.GetValueOrDefault("qqq-local:mode")=="latest";}catch(Exception ex)when(ex is IOException or System.Text.Json.JsonException or UnauthorizedAccessException){AppLog.Warn("qqq-gex","Quote demand preference unavailable; history mode stays passive",ex);}
@@ -76,6 +80,12 @@ public sealed class QqqGexSession : IDisposable
         QuoteActivity(null,EventArgs.Empty);
         PageUri = new Uri($"http://127.0.0.1:{((IPEndPoint)listener.LocalEndpoint).Port}/{token}/index.html");
         _ = Task.Run(Accept);
+        }
+        catch
+        {
+            if(activity is not null)activity.Changed-=QuoteActivity;if(quotes is not null)quotes.Updated-=OnQuote;
+            quotes?.Unsubscribe(quoteOwner);listener.Stop();moduleLease?.Dispose();throw;
+        }
     }
     public bool IsPageUrl(string url) => Uri.TryCreate(url, UriKind.Absolute, out var u) && u.AbsoluteUri == PageUri.AbsoluteUri;
     private async Task Accept()
@@ -174,16 +184,11 @@ public sealed class QqqGexSession : IDisposable
         }
         AppLog.Warn("qqq-gex","Frontend "+type.GetString()+" "+category.GetString()+" "+string.Join(" ",positions));return true;
     }
-    private static string AssetType(string route)=>Path.GetExtension(route) switch{".html"=>"text/html; charset=utf-8",".css"=>"text/css; charset=utf-8",".js" or ".mjs"=>"text/javascript; charset=utf-8",".woff2"=>"font/woff2",".woff"=>"font/woff",".svg"=>"image/svg+xml",_=>"application/octet-stream"};
+    private static string AssetType(string route)=>Meili.Automation.Modules.PrivateHttp.AssetType(route);
     // Avoid a full UTF-16 response copy between the owned query document and HTTP bytes.
     internal static byte[] SerializeQuery(JsonElement value)=>JsonSerializer.SerializeToUtf8Bytes(value,QueryWireOptions);
     private static readonly JsonSerializerOptions QueryWireOptions=new(){Encoder=System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping};
-    private static bool AcceptsGzip(string? value)=>value?.Split(',').Any(part=>System.Net.Http.Headers.StringWithQualityHeaderValue.TryParse(part.Trim(),out var token)&&token.Value.Equals("gzip",StringComparison.OrdinalIgnoreCase)&&(token.Quality??1)>0)==true;
-    private static async Task Reply(Stream s,int status,string type,byte[] body,CancellationToken ct,bool gzip=false,long elapsed=0)
-    {
-        var encoding="";if(gzip&&status==200&&body.Length>=16384&&(type.Contains("json",StringComparison.Ordinal)||type.Contains("javascript",StringComparison.Ordinal)||type.StartsWith("text/",StringComparison.Ordinal))){using var output=new MemoryStream();using(var compressor=new System.IO.Compression.GZipStream(output,System.IO.Compression.CompressionLevel.Fastest,true))compressor.Write(body);body=output.ToArray();encoding="Content-Encoding: gzip\r\nVary: Accept-Encoding\r\n";}
-        var csp="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; worker-src 'self' blob:; base-uri 'none'; frame-ancestors 'none'; form-action 'none'";
-        await s.WriteAsync(Encoding.ASCII.GetBytes($"HTTP/1.1 {status} Response\r\nContent-Type: {type}\r\nContent-Length: {body.Length}\r\n{encoding}Server-Timing: local;dur={elapsed}\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nReferrer-Policy: no-referrer\r\nContent-Security-Policy: {csp}\r\nConnection: close\r\n\r\n"),ct);await s.WriteAsync(body,ct);
-    }
+    private static bool AcceptsGzip(string? value)=>Meili.Automation.Modules.PrivateHttp.AcceptsGzip(value);
+    private static Task Reply(Stream s,int status,string type,byte[] body,CancellationToken ct,bool gzip=false,long elapsed=0)=>Meili.Automation.Modules.PrivateHttp.ReplyAsync(s,status,type,body,ct,gzip,elapsed);
     public void Dispose(){if(quotes is not null)quotes.Updated-=OnQuote;if(activity is not null)activity.Changed-=QuoteActivity;quotes?.Unsubscribe(quoteOwner);stop.Cancel();listener.Stop();moduleLease?.Dispose();}
 }

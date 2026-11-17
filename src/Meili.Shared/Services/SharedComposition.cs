@@ -55,6 +55,8 @@ public static class SharedComposition
         s.AddSingleton<NetworkController>();
         s.AddSingleton<INetworkController>(sp => sp.GetRequiredService<NetworkController>());
         s.AddSingleton<UpdateViewModel>();
+        s.AddSingleton(sp=>new AppManagementViewModel(dataDir.Path,loc));
+        s.AddSingleton<Meili.Automation.IOperationDispatcher>(sp=>new Meili.Automation.AutomationService(dataDir,sp.GetRequiredService<IMarketDataService>()));
         s.AddTransient<SettingsViewModel>();
         s.AddTransient<DashboardViewModel>();
         s.AddTransient<QuotePanelViewModel>();

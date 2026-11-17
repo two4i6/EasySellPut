@@ -14,11 +14,14 @@ public partial class MainWindow
 {
     private WebWorkspace? _workspace;
     private string? _activeWebsite;
+    private string? _activeModule;
+    private readonly Dictionary<string, Meili.App.Views.Pages.ModuleAppPage> _modulePages=[];
     private readonly Dictionary<string, WebTabPane> _webTabs = [];
     private static readonly AppPage[] BuiltinPages = Enum.GetValues<AppPage>();
     private void SetupWorkspace()
     {
-        var apps=AppServices.Get<SettingsViewModel>().Applications;
+        Closed+=(_,_)=>{CloseModulePresentation();_modulePages.Clear();};
+        var apps=AppServices.Get<AppManagementViewModel>();
         EventHandler refreshApps=(_,_)=>RebuildBuiltinRail();
         apps.Changed+=refreshApps;Activated+=refreshApps;
         Closed+=(_,_)=>{apps.Changed-=refreshApps;Activated-=refreshApps;};
@@ -52,14 +55,21 @@ public partial class MainWindow
             tile.Click += (_,_) => { ShowMarketWorkspace();RootNavigation.Navigate(PageType(page));SyncMarketNavigation(); };
             AnimateTile(tile);BuiltinRail.Children.Add(tile);
         }
+        foreach(var app in ModuleNavigation.Entries(AppServices.DataDirectory.Path))
+        {
+            var tile=new ToggleButton{Tag="app:"+app.Id,Style=(Style)FindResource("WorkspaceTile"),ToolTip=app.Id+" · "+app.Version};
+            tile.Content=CreateNavigationIcon(NavigationIcons.Options,tile);AnimateTile(tile);
+            System.Windows.Automation.AutomationProperties.SetName(tile,app.Id);System.Windows.Automation.AutomationProperties.SetAutomationId(tile,"Application-"+app.Id);
+            var id=app.Id;tile.Click+=(_,_)=>OpenModule(id);BuiltinRail.Children.Add(tile);
+        }
         SelectBuiltinPage();
     }
     private void SelectBuiltinPage()
     {
         var page=Array.Find(BuiltinPages,p=>PageType(p)==_currentPage?.GetType());
-        HomeWorkspace.IsChecked=_activeWebsite is null && page==AppPage.Dashboard;
-        SettingsButton.IsChecked=_activeWebsite is null && page==AppPage.Settings;
-        foreach(var tile in BuiltinRail.Children.OfType<ToggleButton>())tile.IsChecked=_activeWebsite is null && Equals(tile.Tag,page);
+        HomeWorkspace.IsChecked=_activeWebsite is null && _activeModule is null && page==AppPage.Dashboard;
+        SettingsButton.IsChecked=_activeWebsite is null && _activeModule is null && page==AppPage.Settings;
+        foreach(var tile in BuiltinRail.Children.OfType<ToggleButton>())tile.IsChecked=tile.Tag is string module&&module.StartsWith("app:",StringComparison.Ordinal)?_activeModule==module[4..]:_activeWebsite is null && _activeModule is null && Equals(tile.Tag,page);
     }
     private static Viewbox CreateNavigationIcon(string data,Control owner,double size=24) => Meili.App.Views.Controls.LucideIcon.View(data,owner,size);
     private void SetupStatusIcons()
@@ -111,8 +121,24 @@ public partial class MainWindow
         tile.Loaded += (_, _) => Shape(tile.IsMouseOver);
         tile.Checked += (_, _) => Shape(tile.IsMouseOver); tile.Unchecked += (_, _) => Shape(tile.IsMouseOver);
     }
+    internal void OpenModule(string id)
+    {
+        if(!ModuleNavigation.Entries(AppServices.DataDirectory.Path).Any(a=>a.Id==id))return;
+        CloseModulePresentation();_activeModule=id;_activeWebsite=null;
+        NativePageHost.Children.Remove(RootNavigation);WebTabHost.Visibility=Visibility.Collapsed;
+        if(!_modulePages.TryGetValue(id,out var page))_modulePages[id]=page=new Meili.App.Views.Pages.ModuleAppPage(id);
+        ModuleAppHost.Visibility=Visibility.Visible;ModuleAppHost.Content=_presentationSuspended?null:page;
+        foreach(var pane in _webTabs.Values)_=pane.SetPresentationActiveAsync(false);
+        foreach(var tile in WebsiteRail.Children.OfType<ToggleButton>())tile.IsChecked=false;
+        SelectBuiltinPage();
+    }
+    private void CloseModulePresentation()
+    {
+        _activeModule=null;ModuleAppHost.Content=null;ModuleAppHost.Visibility=Visibility.Collapsed;
+    }
     internal void OpenWebsite(WebWorkspaceTab tab)
     {
+        CloseModulePresentation();
         if (!_webTabs.TryGetValue(tab.Id, out var pane))
         {
             pane = new WebTabPane(tab.Url); _webTabs[tab.Id] = pane;
@@ -127,6 +153,7 @@ public partial class MainWindow
     }
     private void ShowMarketWorkspace()
     {
+        CloseModulePresentation();
         _activeWebsite = null; WebTabHost.Visibility = Visibility.Collapsed; SelectBuiltinPage();
         if (!_presentationSuspended && !NativePageHost.Children.Contains(RootNavigation)) NativePageHost.Children.Add(RootNavigation);
         foreach (var button in WebsiteRail.Children.OfType<ToggleButton>()) button.IsChecked = false;

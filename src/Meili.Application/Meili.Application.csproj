@@ -8,7 +8,7 @@
   <ItemGroup><EmbeddedResource Include="../../web/qqq-gex/node-runtime-lock.json" LogicalName="QqqGexRuntime/node-lock.json" /></ItemGroup>
   <ItemGroup><EmbeddedResource Include="../../skills/easysellput-local/SKILL.md" LogicalName="EasySellPut.Skill" /></ItemGroup>
   <ItemGroup><EmbeddedResource Include="Updates/update-public-key.pem" LogicalName="EasySellPut.UpdatePublicKey" /></ItemGroup>
-  <ItemGroup><InternalsVisibleTo Include="Meili.Automation.Tests" /><InternalsVisibleTo Include="Meili.Automation.Host" /></ItemGroup>
+  <ItemGroup><InternalsVisibleTo Include="Meili.Automation.Tests" /><InternalsVisibleTo Include="Meili.Automation.Host" /><InternalsVisibleTo Include="Meili.AppDev" /></ItemGroup>
   <Target Name="BuildQqqGexRuntime" BeforeTargets="AssignTargetPaths">
     <ItemGroup Condition="Exists('../../web/qqq-gex/runtime-dist/import.mjs') and Exists('../../web/qqq-gex/runtime-dist/query.mjs') and Exists('../../web/qqq-gex/runtime-dist/history.mjs')"><EmbeddedResource Include="../../web/qqq-gex/runtime-dist/import.mjs" LogicalName="QqqGexRuntime/import.mjs" /><EmbeddedResource Include="../../web/qqq-gex/runtime-dist/query.mjs" LogicalName="QqqGexRuntime/query.mjs" /><EmbeddedResource Include="../../web/qqq-gex/runtime-dist/history.mjs" LogicalName="QqqGexRuntime/history.mjs" /></ItemGroup>
   </Target>

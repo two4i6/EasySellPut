@@ -10,19 +10,22 @@ public sealed class ModulePackageTests : IDisposable
 {
     private readonly string root = Path.Combine(Path.GetTempPath(), "esp-modules-" + Guid.NewGuid().ToString("N"));
     private readonly ECDsa key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
-    private string Package(string path = "engine/main.mjs", bool tamper = false, string repository = "test/source", int api = 1, bool extra = false, string version = "1.0.0", ModuleOperation[]? operations = null, string scriptText = "export const value=1;")
+    private string Package(string path = "engine/main.mjs", bool tamper = false, string repository = "test/source", int api = 1, bool extra = false, string version = "1.0.0", ModuleOperation[]? operations = null, string scriptText = "export const value=1;", bool ui = false)
     {
         Directory.CreateDirectory(root);
         var filename = Path.Combine(root, Guid.NewGuid().ToString("N") + ".espapp");
         var script = Encoding.UTF8.GetBytes(scriptText);
+        var html = Encoding.UTF8.GetBytes("<!doctype html><title>Fixture app</title><p>Signed fixture application</p>");
         var metadata = operations is null ? null : JsonSerializer.SerializeToUtf8Bytes(operations, new JsonSerializerOptions(JsonSerializerDefaults.Web));
         var files = new List<ModuleFile> { new(path, script.Length, Convert.ToHexString(SHA256.HashData(script))) };
         if (metadata is not null) files.Add(new("operations.json", metadata.Length, Convert.ToHexString(SHA256.HashData(metadata))));
-        var manifest = new ModuleManifest(1, repository, "easysellput.test", version, api, 1, 1, "node24", path, null,
+        if (ui) files.Add(new("ui/index.html", html.Length, Convert.ToHexString(SHA256.HashData(html))));
+        var manifest = new ModuleManifest(1, repository, "easysellput.test", version, api, 1, 1, "node24", path, ui ? "ui/index.html" : null,
             ["linux-x64"], files.ToArray());
         var bytes = JsonSerializer.SerializeToUtf8Bytes(manifest, new JsonSerializerOptions(JsonSerializerDefaults.Web));
         using var zip = ZipFile.Open(filename, ZipArchiveMode.Create);
         void Add(string name, byte[] data) { using var stream = zip.CreateEntry(name).Open(); stream.Write(data); }
+        if (ui) Add("ui/index.html",html);
         if (metadata is not null) Add("operations.json", metadata);
         Add("app.json", bytes);
         Add("app.sig", key.SignData(bytes, HashAlgorithmName.SHA256, DSASignatureFormat.Rfc3279DerSequence));
@@ -32,6 +35,48 @@ public sealed class ModulePackageTests : IDisposable
     }
     private Task<VerifiedModule> Verify(string file, string? publicKey = null) => ModulePackage.VerifyAsync(file,
         publicKey ?? key.ExportSubjectPublicKeyInfoPem(), "test/source", "linux-x64", CancellationToken.None);
+
+    private sealed class ViewDispatcher(string directory,ModuleInstaller installer) : IOperationDispatcher
+    {
+        public Meili.Core.Settings.DataDirectoryInfo DirectoryInfo=>new(directory,Meili.Core.Settings.DataDirectorySource.CommandLine);
+        public async Task<IOperationCatalog> GetCatalogAsync(CancellationToken ct=default)=>ModuleOperations.Merge(await ModuleOperations.ReadAsync(directory,installer,ct));
+        public async Task<JsonElement> ExecuteAsync(string name,JsonElement arguments,bool writes,CancellationToken ct=default)
+        {
+            var bound=(await ModuleOperations.ReadAsync(directory,installer,ct)).Single(o=>o.Definition.Name==name);
+            return WireJson.Element(WireJson.Success(await ModuleProcess.ExecuteAsync(directory,bound,arguments,writes,installer,_=>Task.FromResult<string?>("node"),ct)));
+        }
+        public void Dispose(){}
+    }
+    [Fact]
+    public async Task Private_signed_UI_is_token_origin_and_app_scoped_with_same_headless_handler()
+    {
+        var profile=Path.Combine(root,"private-view");var installer=new ModuleInstaller(profile,(file,ct)=>Verify(file));
+        var schema=JsonSerializer.SerializeToElement(new{type="object",properties=new{},required=Array.Empty<string>(),additionalProperties=false});
+        var read=new ModuleOperation("app_easysellput_test_summary","Evidence",false,schema,"engine/main.mjs");
+        await installer.InstallAsync(Package(ui:true,operations:[read,read with{Name="app_easysellput_test_record",Writes=true}],scriptText:"process.stdout.write(JSON.stringify({fixture:true,source:'retained'}));"));
+        using var dispatcher=new ViewDispatcher(profile,installer);using var http=new HttpClient();
+        var session=await PrivateAppSession.CreateAsync(profile,"easysellput.test",dispatcher,false,installer,CancellationToken.None);
+        try
+        {
+            var page=await http.GetAsync(session.PageUri);Assert.True(page.IsSuccessStatusCode);
+            Assert.Contains("Signed fixture application",await page.Content.ReadAsStringAsync());
+            Assert.Contains("connect-src 'self'",page.Headers.GetValues("Content-Security-Policy").Single());
+            Assert.Equal(System.Net.HttpStatusCode.Forbidden,(await http.GetAsync(new Uri(session.PageUri,"/index.html"))).StatusCode);
+            using(var foreign=new HttpRequestMessage(HttpMethod.Get,session.PageUri)){foreign.Headers.Add("Origin","https://foreign.invalid");Assert.Equal(System.Net.HttpStatusCode.Forbidden,(await http.SendAsync(foreign)).StatusCode);}
+            var catalog=await http.GetStringAsync(new Uri(session.PageUri,"host/catalog"));Assert.Contains(read.Name,catalog);Assert.DoesNotContain("app_easysellput_test_record",catalog);
+            async Task<HttpResponseMessage> Invoke(string operation,object arguments)
+            {
+                var message=new HttpRequestMessage(HttpMethod.Post,new Uri(session.PageUri,"host/invoke"));message.Headers.Add("Origin",session.PageUri.GetLeftPart(UriPartial.Authority));
+                message.Content=new StringContent(JsonSerializer.Serialize(new{operation,arguments}),Encoding.UTF8,"application/json");return await http.SendAsync(message);
+            }
+            using(var response=await Invoke(read.Name,new{})){Assert.True(response.IsSuccessStatusCode);using var doc=JsonDocument.Parse(await response.Content.ReadAsStringAsync());Assert.Equal("retained",doc.RootElement.GetProperty("data").GetProperty("source").GetString());}
+            using(var denied=await Invoke("app_easysellput_test_record",new{}))Assert.Equal(System.Net.HttpStatusCode.Forbidden,denied.StatusCode);
+            using(var invalid=await Invoke(read.Name,new{unexpected=true}))Assert.Equal(System.Net.HttpStatusCode.BadRequest,invalid.StatusCode);
+            Assert.Throws<IOException>(()=>installer.Uninstall("easysellput.test"));
+        }
+        finally{await session.DisposeAsync();}
+        installer.Uninstall("easysellput.test");
+    }
 
     [Theory]
     [InlineData("1.0.0 ")]

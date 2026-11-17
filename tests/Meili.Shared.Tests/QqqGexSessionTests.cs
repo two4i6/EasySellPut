@@ -2,6 +2,18 @@ using Meili.Data.Cache;
 namespace Meili.Shared.Tests;
 public sealed class QqqGexSessionTests
 {
+    [Fact] public void Core_only_viewer_failure_releases_the_execution_lease()
+    {
+        var directory=Path.Combine(Path.GetTempPath(),"gex-core-view-"+Guid.NewGuid().ToString("N"));Directory.CreateDirectory(Path.Combine(directory,"apps"));
+        try
+        {
+            // Metadata fixture only; no executable package is loaded or trusted.
+            File.WriteAllText(Path.Combine(directory,"apps","registry.json"),System.Text.Json.JsonSerializer.Serialize(new Meili.Automation.Modules.ModuleRegistryState(1,1,[new("easysellput.qqq-gex","1.0.0",new string('A',64),1,true,false)]),new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web)));
+            Assert.Throws<InvalidOperationException>(()=>new QqqGexSession(Path.Combine(directory,"cache","qqq-gex.db")));
+            Assert.Equal("uninstalled",new Meili.Automation.Modules.ModuleInstaller(directory).Uninstall("easysellput.qqq-gex").Status);
+        }
+        finally{Directory.Delete(directory,true);}
+    }
     [Fact] public async Task Removed_desktop_only_history_route_is_not_exposed()
     {
         var path=Path.Combine(Path.GetTempPath(),Guid.NewGuid()+".db");using var session=new QqqGexSession(path);using var http=new HttpClient();var response=await http.GetAsync(new Uri(session.PageUri,"api/analysis/qqq/pcs/lifecycle?date=2026-01-02"));Assert.Equal(System.Net.HttpStatusCode.NotFound,response.StatusCode);
