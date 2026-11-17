@@ -63,7 +63,7 @@ internal sealed partial class GexLegacyOperations
         if(resource=="spreadQuote"){
             var response=new QqqGexResponseStore(db).ReadSpreadQuote(path,DateTimeOffset.UtcNow);if(response is null)return new{status="cache_miss",available=false,complete=false};body=response.Body;contentType=response.ContentType;
         }else{
-            var result=await QqqGexCalculationRunner.QueryAsync(directory,path,ct);var json=JsonSerializer.SerializeToElement(result);
+            var result=await QueryAsync(path,ct);var json=JsonSerializer.SerializeToElement(result);
             if(json.TryGetProperty("status",out _))return json;
             if(json.TryGetProperty("body",out var wire)){body=wire.GetString()!;contentType=json.GetProperty("contentType").GetString()!;}
             else{body=json.GetRawText();contentType="application/json";}

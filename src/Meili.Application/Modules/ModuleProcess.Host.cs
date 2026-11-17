@@ -55,7 +55,7 @@ public static partial class ModuleProcess
                 var definition=ModuleHostOperations.Definition(operation.GetString()!);
                 JsonElement reply;
                 try{OperationCatalog.Validate(definition,arguments);reply=await hostCall(definition.Name,arguments,token).ConfigureAwait(false);}
-                catch(Exception ex)when(ex is ArgumentException or JsonException or IOException or HttpRequestException or InvalidOperationException or UnauthorizedAccessException)
+                catch(Exception ex)when(ex is ArgumentException or JsonException or IOException or InvalidDataException or HttpRequestException or InvalidOperationException or UnauthorizedAccessException)
                 {reply=WireJson.Element(WireJson.Error(ex));} // expected: typed host errors are returned to app without financial-argument logging.
                 await Send(new{type="hostResult",id,result=reply}).ConfigureAwait(false);
             }

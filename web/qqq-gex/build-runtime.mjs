@@ -24,3 +24,5 @@ await build({absWorkingDir:root,entryPoints:['tests/spread-study-parity.ts'],plu
 await build({absWorkingDir:root,entryPoints:['runtime/retained-summary.mjs'],bundle:true,platform:'node',format:'esm',outfile:'runtime-dist/retained-summary.mjs',target:'node24'});
 
 await build({absWorkingDir:root,entryPoints:['runtime/operations.mjs'],bundle:true,platform:'node',format:'esm',outfile:'runtime-dist/operations.mjs',target:'node24'});
+
+await build({absWorkingDir:root,entryPoints:['runtime/view.mjs'],bundle:true,platform:'node',format:'esm',outfile:'runtime-dist/view.mjs',target:'node24'});

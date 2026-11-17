@@ -5,8 +5,9 @@ using Meili.Shared.Services;
 namespace Meili.Automation.Apps.QqqGex;
 
 /// <summary>Explicit compatibility adapter until every public facade is supplied by a signed app operation.</summary>
-internal sealed partial class GexLegacyOperations(string directory,Func<CancellationToken,Task<IMarketDataService>> market)
+internal sealed partial class GexLegacyOperations(string directory,Func<CancellationToken,Task<IMarketDataService>> market,Func<string,CancellationToken,Task<object>>? localQuery=null)
 {
+    private Task<object> QueryAsync(string path,CancellationToken ct)=>localQuery is null?QqqGexCalculationRunner.QueryAsync(directory,path,ct):localQuery(path,ct);
     internal async Task<object> ExecuteAsync(string operation,Input a,CancellationToken ct)
     {
         switch(operation)

@@ -44,3 +44,14 @@ This is a first-party signed-code contract, not an OS sandbox. No caller can ena
 Operations may declare at most 16 unique `engineAssets`, restricted to declared `engine/*.mjs` files with a total 128 MiB read budget. The host authenticates/materializes only those dependencies and supplies their paths in request context; tool arguments cannot select executable paths. The GEX facade uses the same pinned Node executable for its original child bundles. Parent cancellation owns the process tree; child output/diagnostics/deadline are bounded.
 
 The reserved single-field `$appError` envelope preserves existing invalid-argument, permission and cancellation errors. Invalid model/data errors retain the host's established `operation_failed` category; no new CLI/MCP error category was added. Ordinary model failure results retain their original `calculation_failed`, incomplete-data and retained-input semantics.
+
+### Logical presentation snapshots
+
+A signed operation may declare `read_app_snapshot` for `preferences` or `desktop`.
+This is a private engine capability, not a public CLI/MCP tool. The runtime binds
+it to the executing app ID and profile; callers supply no path. Reads use the
+existing `SnapshotFile` lock and byte bounds, return the original text or null,
+and do not create an absent profile. New apps use `apps/data/<id>/state/`.
+GEX's two existing presentation files remain in place through explicit compatibility
+aliases; their interpretation/filtering belongs to the app bundle. This capability
+grants no writes, credentials, arbitrary files, networking or maintenance access.

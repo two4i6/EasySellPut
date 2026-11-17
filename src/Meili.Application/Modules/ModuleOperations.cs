@@ -120,9 +120,10 @@ public static partial class ModuleOperations
         if (depth > 12 || schema.ValueKind != JsonValueKind.Object) throw new InvalidDataException("Unsupported module schema.");
         if (schema.EnumerateObject().Select(p => p.Name).Distinct(StringComparer.Ordinal).Count() != schema.EnumerateObject().Count())
             throw new InvalidDataException("Duplicate module schema field.");
-        var allowed = new HashSet<string>(["type", "description", "properties", "required", "additionalProperties", "items", "minItems", "maxItems", "minimum", "maximum", "maxLength", "enum"]);
+        var allowed = new HashSet<string>(["type", "description", "properties", "required", "additionalProperties", "items", "minItems", "maxItems", "minimum", "maximum", "maxLength", "enum", "uniqueItems"]);
         if (schema.EnumerateObject().Any(p => !allowed.Contains(p.Name)) || !schema.TryGetProperty("type", out var type))
             throw new InvalidDataException("Unsupported module schema keyword.");
+        if(schema.TryGetProperty("uniqueItems",out var unique)&&(type.GetString()!="array"||unique.ValueKind is not (JsonValueKind.True or JsonValueKind.False)))throw new InvalidDataException("Invalid uniqueness constraint.");
         switch (type.GetString())
         {
             case "object":

@@ -143,6 +143,27 @@ public sealed class ModulePackageTests : IDisposable
         return JsonSerializer.Serialize(new Uri(Path.Combine(directory,"web","app-sdk","engine-host.mjs")).AbsoluteUri);
     }
     [Fact]
+    public async Task Logical_snapshots_are_read_only_app_scoped_and_preserve_atomic_store_errors()
+    {
+        var profile=Path.Combine(root,"state-calls");var installer=new ModuleInstaller(profile,(file,ct)=>Verify(file));
+        var schema=JsonSerializer.SerializeToElement(new{type="object",properties=new{},required=Array.Empty<string>(),additionalProperties=false});
+        var operation=new ModuleOperation("app_easysellput_test_summary","Saved state",false,schema,"engine/main.mjs",["read_app_snapshot"]);
+        var script="import {createHostEngine} from "+HostSdkUri()+";const engine=await createHostEngine();try{const own=await engine.call('read_app_snapshot',{key:'preferences'});let rejected=false;try{await engine.call('read_app_snapshot',{key:'../../settings'});}catch{rejected=true;}engine.finish({own,rejected});}finally{engine.close();}";
+        await installer.InstallAsync(Package(operations:[operation],scriptText:script));
+        var ownPath=Path.Combine(profile,"apps","data","easysellput.test","state","preferences.json");Directory.CreateDirectory(Path.GetDirectoryName(ownPath)!);
+        const string saved="{\"label\":\"中文 / local\"}";await File.WriteAllTextAsync(ownPath,saved);
+        await File.WriteAllTextAsync(Path.Combine(profile,"qqq-gex-view.json"),"foreign app state");
+        var bound=(await ModuleOperations.ReadAsync(profile,installer,CancellationToken.None)).Single();
+        var result=await ModuleProcess.ExecuteAsync(profile,bound,JsonSerializer.SerializeToElement(new{}),false,installer,_=>Task.FromResult<string?>("node"),CancellationToken.None);
+        Assert.Equal(saved,result.GetProperty("own").GetProperty("body").GetString());Assert.True(result.GetProperty("rejected").GetBoolean());
+        Assert.Equal(saved,await File.ReadAllTextAsync(ownPath));Assert.False(File.Exists(Path.Combine(profile,"settings.json")));
+        await File.WriteAllTextAsync(ownPath,new string('x',65537));
+        Assert.Throws<InvalidDataException>(()=>ModuleState.Read(profile,"easysellput.test","preferences"));
+        Assert.Throws<ArgumentException>(()=>ModuleState.Read(profile,"easysellput.test","../settings"));
+        var missing=Path.Combine(root,"absent-state");Assert.Null(ModuleState.Read(missing,"other.app","desktop").GetProperty("data").GetProperty("body").GetString());Assert.False(Directory.Exists(missing));
+    }
+
+    [Fact]
     public async Task Signed_engine_reuses_typed_existing_market_and_analytics_without_losing_source_metadata()
     {
         var profile=Path.Combine(root,"host-calls");var installer=new ModuleInstaller(profile,(file,ct)=>Verify(file));

@@ -9,11 +9,12 @@ public static class ModuleHostOperations
     internal static void Validate(IReadOnlyList<string>? names)
     {
         if(names is null)return;
-        if(names.Count is <1 or >7||names.Distinct(StringComparer.Ordinal).Count()!=names.Count||names.Any(name=>!Names.Contains(name)))
+        if(names.Count is <1 or >8||names.Distinct(StringComparer.Ordinal).Count()!=names.Count||names.Any(name=>!Names.Contains(name)&&name!="read_app_snapshot"))
             throw new InvalidDataException("Unsupported or duplicate host capability.");
     }
     internal static Operation Definition(string name)
     {
+        if(name=="read_app_snapshot")return new(name,"Read an app-scoped logical presentation snapshot",false,JsonSerializer.SerializeToElement(new{type="object",properties=new{key=new{type="string",@enum=new[]{"preferences","desktop"}}},required=new[]{"key"},additionalProperties=false}));
         if(!Names.Contains(name))throw new UnauthorizedAccessException("Application host capability is not available.");
         return OperationCatalog.All.Single(o=>o.Name==name&&!o.Writes);
     }

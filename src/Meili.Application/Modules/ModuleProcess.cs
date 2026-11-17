@@ -38,9 +38,9 @@ public static partial class ModuleProcess
         }
         if(current.Definition.HostOperations is {Length:>0} operations)
         {
-            if(hostCall is null)throw new InvalidOperationException("This host cannot supply the application's declared host capabilities.");
+            if(hostCall is null&&operations.Any(name=>name!="read_app_snapshot"))throw new InvalidOperationException("This host cannot supply the application's declared host capabilities.");
             return await RunHostAsync(node,script,new{protocol=1,framing="host-jsonl-v1",operation=current.Definition.Name,arguments,
-                context=new{dataDirectory=Path.GetFullPath(directory),appId=current.AppId,appVersion=current.Version,allowWrites=current.Definition.Writes&&allowWrites,hostOperations=operations,assets=dependencies}},operations,hostCall,ct).ConfigureAwait(false);
+                context=new{dataDirectory=Path.GetFullPath(directory),appId=current.AppId,appVersion=current.Version,allowWrites=current.Definition.Writes&&allowWrites,hostOperations=operations,assets=dependencies}},operations,(name,args,token)=>name=="read_app_snapshot"?Task.FromResult(ModuleState.Read(directory,current.AppId,args.GetProperty("key").GetString()!)):hostCall!(name,args,token),ct).ConfigureAwait(false);
         }
         return await RunAsync(node, script, new { protocol = 1, operation = current.Definition.Name, arguments,
             context = new { dataDirectory = Path.GetFullPath(directory), appId = current.AppId, appVersion = current.Version, allowWrites = current.Definition.Writes && allowWrites, assets=dependencies } }, ct).ConfigureAwait(false);

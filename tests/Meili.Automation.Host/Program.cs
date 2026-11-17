@@ -22,6 +22,24 @@ if(args.Length==3 && args[0]=="--module-lease")
     return 0;
 }
 
+// Exact pre-migration view oracle; test host only and no provider/network access.
+if(args.Length==5&&args[0]=="--gex-legacy-view")
+{
+    using var request=System.Text.Json.JsonDocument.Parse(args[2]);
+    async Task<object> OriginalQuery(string path,CancellationToken ct)
+    {
+        var start=new System.Diagnostics.ProcessStartInfo(args[3]){UseShellExecute=false,RedirectStandardOutput=true,RedirectStandardError=true};
+        start.ArgumentList.Add(args[4]);start.ArgumentList.Add(Path.Combine(args[1],"cache","qqq-gex.db"));start.ArgumentList.Add(path);
+        using var process=System.Diagnostics.Process.Start(start)!;var output=process.StandardOutput.ReadToEndAsync(ct);var errors=process.StandardError.ReadToEndAsync(ct);
+        await process.WaitForExitAsync(ct);var body=await output;await errors;
+        if(process.ExitCode!=0)return new{status="calculation_failed",complete=false,exitCode=process.ExitCode,reason="Pinned source runtime rejected input; raw normalized input retained"};
+        using var json=System.Text.Json.JsonDocument.Parse(body);return json.RootElement.Clone();
+    }
+    var adapter=new Meili.Automation.Apps.QqqGex.GexLegacyOperations(args[1],_=>throw new InvalidOperationException("Read-only view requested market access"),OriginalQuery);
+    var result=await adapter.ExecuteAsync("get_qqq_gex_view",new Meili.Automation.Input(request.RootElement),CancellationToken.None);
+    Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(result));return 0;
+}
+
 if(args.Length==3&&args[0]=="--gex-app-fixture-build"){GexAppFixture.Create(args[1],args[2]);return 0;}
 if(args.Length==2 && args[0]=="--app-fixture-build") { AppFixture.Create(args[1]); return 0; }
 
