@@ -17,10 +17,9 @@ public sealed class PrivateAppSession : IPrivateAppSession, IAsyncDisposable
 {
     private readonly TcpListener listener=new(IPAddress.Loopback,0);
     private readonly CancellationTokenSource stop=new();
-    private readonly SemaphoreSlim clients=new(8);
+    private readonly SemaphoreSlim clients=new(PrivateSessionShutdown.Capacity);
     private readonly Task acceptLoop;
-    private readonly object shutdownLock=new();
-    private Task? shutdown;
+    private readonly PrivateSessionShutdown shutdown=new();
     private readonly PrivateAppPresentation presentation=new();
     public void UpdatePresentation(JsonElement value)=>presentation.Update(value);
     private readonly string token=Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
@@ -96,20 +95,5 @@ public sealed class PrivateAppSession : IPrivateAppSession, IAsyncDisposable
     }
     public void Dispose()=>_ = BeginShutdown();
     public ValueTask DisposeAsync()=>new(BeginShutdown());
-    private Task BeginShutdown()
-    {
-        lock(shutdownLock)return shutdown??=ShutdownAsync();
-    }
-    private async Task ShutdownAsync()
-    {
-        stop.Cancel();listener.Stop();
-        try
-        {
-            await acceptLoop.ConfigureAwait(false);
-            // Drain accepted requests before releasing the app execution lease. Navigation disposal
-            // stays nonblocking, while the separate developer host can await scratch-file cleanup.
-            for(var i=0;i<8;i++)await clients.WaitAsync().ConfigureAwait(false);
-        }
-        finally{lease.Dispose();clients.Dispose();stop.Dispose();}
-    }
+    private Task BeginShutdown()=>shutdown.Begin(()=>PrivateSessionShutdown.DrainAsync(acceptLoop,clients,stop,listener,lease));
 }

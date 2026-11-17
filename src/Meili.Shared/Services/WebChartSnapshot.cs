@@ -62,10 +62,11 @@ public static class WebChartSnapshot
     public static object Theme(ChartPalette palette)
     {
         static string Css(ScottPlot.Color c) => $"#{c.R:X2}{c.G:X2}{c.B:X2}";
-        var ui = ThemePalette.For(palette.Dark);
-        static string Token(uint argb) => $"#{argb & 0xFFFFFF:X6}";
-        var components=DesignTokens.ComponentBrushes(palette.Dark).ToDictionary(x=>x.Key,x=>Token(x.Argb));
-        return new { reducedMotion=DesignMotion.Reduced, brand=components["BrandBrush"],focus=components["FocusBrush"],link=components["LinkBrush"],input=components["InputBackgroundBrush"],hover=components["HoverBrush"],pressed=components["PressedBrush"],danger=components["DangerBrush"], dark = palette.Dark, control = Token(ui.Control), border = Token(ui.Border), accent = Token(ui.Accent), errorBackground = Token(ui.ErrorBar), errorText = Token(ui.Degraded), sessionPre = Token(ui.PreMarketTint) + (ui.PreMarketTint >> 24).ToString("X2"), sessionPost = Token(ui.AfterHoursTint) + (ui.AfterHoursTint >> 24).ToString("X2"), background = Css(palette.Background), text = Css(palette.Text), muted = Css(palette.Muted), grid = $"{Css(palette.Grid)}{palette.Grid.A:X2}", up = Css(palette.Up), down = Css(palette.Down), colors = new[] { palette.Series1, palette.Series2, palette.Series3, palette.Series4, palette.Series5, palette.Series6 }.Select(Css) };
+        var theme=Meili.Automation.Modules.AppThemeDefaults.Create(palette.Dark,DesignMotion.Reduced);
+        theme["background"]=Css(palette.Background);theme["text"]=Css(palette.Text);theme["muted"]=Css(palette.Muted);
+        theme["grid"]=$"{Css(palette.Grid)}{palette.Grid.A:X2}";theme["up"]=Css(palette.Up);theme["down"]=Css(palette.Down);
+        theme["colors"]=JsonSerializer.SerializeToNode(new[]{palette.Series1,palette.Series2,palette.Series3,palette.Series4,palette.Series5,palette.Series6}.Select(Css));
+        return theme;
     }
 
 }

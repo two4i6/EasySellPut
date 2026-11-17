@@ -4,7 +4,6 @@ using Meili.Automation;
 using Meili.Core.Abstractions;
 namespace Meili.Shared.Services;
 
-public sealed record QqqGexCaptureState(string Phase,DateTimeOffset? StartedAt=null,DateTimeOffset? UpdatedAt=null,DateTimeOffset? SourceMarketAt=null,int? DelayMinutes=null,int? MissingIv=null,int? CapturedExpiries=null,bool? InputComplete=null);
 /// <summary>Visible workbench demand. Captured input, calculation and readable publication are separate states.</summary>
 public sealed class QqqGexActivity(IMarketDataService market,string directory,DesktopActivity activity) : IDisposable
 {

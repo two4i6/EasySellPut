@@ -22,15 +22,18 @@ internal static partial class Program
         var start=DateTimeOffset.Parse("2026-01-02T14:30:00Z");
         var input=new {symbol="QQQ",source="synthetic-native-engine-test",captures=Enumerable.Range(0,8).SelectMany(i=>new[]{2,5}.Select(d=>new{valuationAt=start.AddMinutes(2*i),expiry=DateTimeOffset.Parse($"2026-01-0{d}T00:00:00Z").ToUnixTimeSeconds(),spot=600+i*.1,result=new{receivedAt=start.AddMinutes(2*i).AddSeconds(1),options=new[]{new{calls=Enumerable.Range(0,41).Select(j=>new{strike=580+j,impliedVolatility=.2,openInterest=100+j+i}),puts=Enumerable.Range(0,41).Select(j=>new{strike=580+j,impliedVolatility=.22,openInterest=90+j+i})}}}})),bars=Enumerable.Range(0,8).Select(i=>new{timestamp=start.AddMinutes(2*i),open=600+i*.1,high=601+i*.1,low=599+i*.1,close=600+i*.1,volume=100+i})};
         await System.IO.File.WriteAllTextAsync(System.IO.Path.Combine(data,"cache","qqq-gex-input.json"),JsonSerializer.Serialize(input));
-        var imported=JsonSerializer.SerializeToElement(await QqqGexCalculationRunner.RunAsync(data));
+        using var signed=new SignedGexFixture(data,directory);
+        await signed.Installer.InstallAsync(signed.Archive);
+        var importResponse=await signed.Dispatcher.ExecuteAsync("calculate_qqq_gex_local",JsonSerializer.SerializeToElement(new{}),true);
+        var imported=importResponse.GetProperty("data");
         if(!imported.TryGetProperty("rows",out var count)||count.GetInt32()!=16)throw new Exception("Native fixture import failed: "+imported);
-        using var session=new QqqGexSession(System.IO.Path.Combine(data,"cache","qqq-gex.db"));
+        await using var session=await signed.OpenAsync();
 #if WINDOWS_READER
         using var browser=new WebView2();
 #else
         var browser=new NewsWebView();
 #endif
-        var window=new Window{Width=1440,Height=1000,Content=browser};
+        var window=new Window{Width=1920,Height=1080,Content=browser};
         try
         {
             window.Show();window.Activate();
@@ -88,9 +91,8 @@ internal static partial class Program
             await Check("[...document.querySelectorAll('canvas')].some(c=>c.width>0&&c.height>0)","native Kline canvas");
             async Task<JsonElement> Workspace()
             {
-                using var service=new AutomationService(new Meili.Core.Settings.DataDirectoryInfo(data,Meili.Core.Settings.DataDirectorySource.CommandLine));
                 using var args=JsonDocument.Parse("{\"resource\":\"workspace\",\"length\":262144}");
-                var response=await service.ExecuteAsync("get_qqq_gex_view",args.RootElement,false);
+                var response=await signed.Dispatcher.ExecuteAsync("get_qqq_gex_view",args.RootElement,false);
                 if(!response.GetProperty("success").GetBoolean())throw new Exception("Native application workspace read failed");
                 using var decoded=JsonDocument.Parse(Convert.FromBase64String(response.GetProperty("data").GetProperty("bodyBase64").GetString()!));return decoded.RootElement.Clone();
             }
@@ -101,7 +103,7 @@ internal static partial class Program
             await Check("document.body.textContent.includes('视图设置保存失败')===false","native preference persistence health");
             JsonElement nativeFocus=default;
             for(var attempt=0;attempt<40;attempt++){var current=await Workspace();if(current.GetProperty("analyticalSelections").TryGetProperty("interaction",out var observed)&&observed.TryGetProperty("focus",out var focus)&&focus.ValueKind==JsonValueKind.Object&&focus.GetProperty("label").GetString()=="播放速度"){nativeFocus=observed.Clone();break;}await Task.Delay(100);}
-            if(nativeFocus.ValueKind!=JsonValueKind.Object||nativeFocus.GetProperty("focus").GetProperty("value").GetString()!="1")throw new Exception("Native focus and MCP disagree");
+            if(nativeFocus.ValueKind!=JsonValueKind.Object||nativeFocus.GetProperty("focus").GetProperty("value").GetString()!="1")throw new Exception("Native focus and signed operation disagree");
             await Eval("[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Heatmap').click()");
             await Check("document.querySelector('select[aria-label=\"到期日范围\"]')?.disabled===false","native editable expiry scope");
             // Mode activation resets the preferred scope in a passive React effect.
@@ -148,7 +150,7 @@ internal static partial class Program
             async Task<JsonElement> Inspection(Func<JsonElement,bool> ready)
             {
                 for(var n=0;n<40;n++){var current=await Workspace();if(current.GetProperty("analyticalSelections").TryGetProperty("interaction",out var observed)&&observed.TryGetProperty("heatmapInspection",out var inspection)&&inspection.ValueKind==JsonValueKind.Object&&ready(inspection))return inspection.Clone();await Task.Delay(100);}
-                throw new TimeoutException("Native heatmap selection did not reach application MCP");
+                throw new TimeoutException("Native heatmap selection did not reach signed app operation");
             }
             var endInspection=await Inspection(v=>v.GetProperty("current").ValueKind==JsonValueKind.Object);
             var endTime=endInspection.GetProperty("current").GetProperty("time").GetDouble();
@@ -187,15 +189,15 @@ internal static partial class Program
             await Check("window.__gexNativePointer?.trusted===true","trusted native plot pointer");
             await Inspection(v=>v.GetProperty("current").ValueKind==JsonValueKind.Object&&!v.GetProperty("keyboard").GetBoolean());
             var pointerObserved=false;for(var n=0;n<40;n++){var current=await Workspace();if(current.GetProperty("analyticalSelections").TryGetProperty("interaction",out var observed)&&observed.TryGetProperty("pointer",out var pointer)&&pointer.ValueKind==JsonValueKind.Object&&pointer.GetProperty("trusted").GetBoolean()){pointerObserved=true;break;}await Task.Delay(100);}
-            if(!pointerObserved)throw new Exception("Trusted native pointer did not reach MCP");
+            if(!pointerObserved)throw new Exception("Trusted native pointer did not reach signed app operation");
 
             await Eval("[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='日内情景推演').click()");
             await Check("(()=>{const g=document.querySelector('[data-heatmap-inspector]');return g&&![...document.querySelectorAll('[aria-busy=\"true\"]')].some(e=>e.contains(g));})()","native scenario computation settled");
             foreach(var dark in new[]{false,true}){
                 var palette=ThemePalette.For(dark);var (up,down)=palette.UpDown(Meili.Core.Settings.UpDownColorMode.RedUp);ScottPlot.Color C(uint n)=>new((byte)(n>>16),(byte)(n>>8),(byte)n);
-                session.UpdatePresentation(ChartPalette.Create(dark,C(up),C(down),C(palette.PrimaryText),C(palette.MutedText),palette));
+                session.UpdatePresentation(AppViewPresentation.Create(ChartPalette.Create(dark,C(up),C(down),C(palette.PrimaryText),C(palette.MutedText),palette)));
                 await Check("document.documentElement.dataset.theme==='"+(dark?"dark":"light")+"'","native GEX palette update");
-                foreach(var width in new[]{1000,1440}){
+                foreach(var width in new[]{1000,1440,1920}){
                     window.Width=width;await Task.Delay(150);
                     await Check("document.querySelectorAll('section[aria-label=\"回放 GEX 快照表\"] tbody tr:not([aria-hidden])').length===8&&!document.body.textContent.includes('QQQ GEX 视图暂时无法显示')","native GEX compact/wide retained data");
                     await Eval("document.querySelector('[data-heatmap-inspector] > rect[tabindex]').focus()");await NativeKey("End");
@@ -225,7 +227,31 @@ internal static partial class Program
             await Eval("document.title='gex-reload-pending'");await Until(()=>Title()=="gex-reload-pending","native reload sentinel");
             browser.Reload();await Until(()=>Title().StartsWith("QQQ GEX",StringComparison.Ordinal),"native reload new document");
             await Check("document.querySelectorAll('section[aria-label=\"回放 GEX 快照表\"] tbody tr:not([aria-hidden])').length===8","native reload retains snapshots");
-            Console.WriteLine("PASS: synthetic populated native QQQ GEX: 3 chart modes, 10 analysis tabs, canvas, DOM focus/trusted native heatmap keys and pointer through MCP, scope changes, light/dark/compact/wide, hide/show and reload; no live-history/alert claim.");
+            // Complete the same-process A -> B app update without recompiling the native host.
+            var hostPath=typeof(Program).Assembly.Location;
+            var hostHash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(await System.IO.File.ReadAllBytesAsync(hostPath)));
+            await session.DisposeAsync();
+            var dbPath=System.IO.Path.Combine(data,"cache","qqq-gex.db");
+            var retained=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(await System.IO.File.ReadAllBytesAsync(dbPath)));
+            var update=signed.CreateUpdate();await signed.Installer.InstallAsync(update,updateOnly:true);
+            await using(var updated=await signed.OpenAsync())
+            {
+#if WINDOWS_READER
+                browser.CoreWebView2.Navigate(updated.PageUri.AbsoluteUri);
+#else
+                browser.Navigate(updated.PageUri.AbsoluteUri);
+#endif
+                await Until(()=>Title().StartsWith("QQQ GEX",StringComparison.Ordinal),"updated native GEX document");
+                await Check("document.querySelectorAll('section[aria-label=\"回放 GEX 快照表\"] tbody tr:not([aria-hidden])').length===8","updated app retains original GEX rows");
+                await Eval("window.__gexUpdated=false;fetch('host/invoke',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operation:'get_qqq_gex_retained_summary_v2',arguments:{}})}).then(r=>r.json()).then(r=>window.__gexUpdated=r.success&&r.data.appVersion==='1.0.1'&&r.data.publishedDays===1)");
+                await Check("window.__gexUpdated===true","updated app-owned operation in native browser");
+            }
+            if(hostHash!=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(await System.IO.File.ReadAllBytesAsync(hostPath))))throw new Exception("Native host changed during app update");
+            if(retained!=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(await System.IO.File.ReadAllBytesAsync(dbPath))))throw new Exception("App update altered retained financial history");
+            signed.Installer.Uninstall("easysellput.qqq-gex");
+            if(retained!=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(await System.IO.File.ReadAllBytesAsync(dbPath))))throw new Exception("Uninstall removed financial history");
+            await signed.Installer.InstallAsync(update);
+            Console.WriteLine("PASS: synthetic populated signed native QQQ GEX: 3 chart modes, 10 analysis tabs, canvas, DOM focus/trusted native heatmap keys and pointer through signed public app operations, scope changes, light/dark/compact/wide, hide/show/reload, independent A/B update/new operation, uninstall/reinstall and fixed host/history hashes; no live-history/alert claim.");
         }
         finally{window.Content=null;window.Close();}
     }

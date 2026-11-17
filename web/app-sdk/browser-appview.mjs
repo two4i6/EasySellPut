@@ -19,7 +19,7 @@ try{
  execFileSync(process.platform==='win32'?'python':'python3',['build/pack-app.py','--development','--repository','test/source','--ui-dir',ui,'--output',archive],{cwd:root,stdio:'pipe'});
  const production=path.join(root,'src/Meili.Cli/bin/Release/net10.0/easysellput.dll');
  const before=createHash('sha256').update(await readFile(production)).digest('hex');
- host=spawn('dotnet',['tools/Meili.AppDev/bin/Release/net10.0/Meili.AppDev.dll','--package',archive,'--public-key',archive+'.public.pem','--repository','test/source'],{cwd:root,stdio:['pipe','pipe','pipe']});
+ host=spawn('dotnet',['tools/Meili.AppDev/bin/Release/net10.0/Meili.AppDev.dll','--package',archive,'--public-key',archive+'.public.pem','--repository','test/source','--view','generic'],{cwd:root,stdio:['pipe','pipe','pipe']});
  host.stderr.on('data',data=>{if(diagnostics.length<65536)diagnostics+=data;});
  preview=await new Promise((resolve,reject)=>{
   const reader=createInterface({input:host.stdout});const timeout=setTimeout(()=>reject(Error('Developer host startup timed out: '+diagnostics)),30000);

@@ -40,7 +40,7 @@ with tempfile.TemporaryDirectory(prefix='actual GEX signed app ')as directory:
  fixtures=root/'fixtures';profile=root/'profile';cache=profile/'cache';cache.mkdir(parents=True)
  subprocess.run([*base,'--gex-app-fixture-build',str(args.archive.resolve()),str(fixtures)],check=True,timeout=30)
  command=[*base,'--app-fixture',str(fixtures/'public.pem'),node]
- raw={'symbol':'QQQ','source':'synthetic package fixture','bars':[{'timestamp':'2026-01-02T14:30:00Z','open':600,'high':601,'low':599,'close':600,'volume':100}], 'captures':[{'valuationAt':'2026-01-02T14:32:00Z','expiry':1767571200,'spot':600,'result':{'receivedAt':'2026-01-02T14:32:01Z','options':[{'calls':[{'strike':600,'impliedVolatility':.2,'openInterest':100}],'puts':[{'strike':600,'impliedVolatility':.2,'openInterest':50}]}]}}]}
+ raw=json.loads(pathlib.Path('tests/fixtures/qqq-gex/app-input.json').read_text(encoding='utf-8'))
  input_file=cache/'qqq-gex-input.json';input_file.write_text(json.dumps(raw));db=cache/'qqq-gex.db';oracle=root/'oracle.db'
  def original(script,*arguments):
   result=subprocess.run([node,str(model/script),*map(str,arguments)],capture_output=True,text=True,encoding='utf-8',check=True,timeout=120);return json.loads(result.stdout)

@@ -2,7 +2,7 @@ using Meili.Core.Time;
 namespace Meili.Shared.Services;
 
 /// <summary>Presentation demand only. Alerts retain their original market-session cadence.</summary>
-public sealed class DesktopActivity
+public sealed class DesktopActivity : Meili.Automation.Modules.IAppActivity
 {
     private readonly HashSet<string> _visible=[];
     public bool AnyVisible=>_visible.Count>0;

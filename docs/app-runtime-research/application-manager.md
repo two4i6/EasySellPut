@@ -16,7 +16,7 @@ Pending pilot acceptance, including remaining GEX facade ownership, final signed
 
 Enabled signed UI modules can contribute a desktop rail entry. Both platforms use `PrivateAppSession` and a native `PrivateAppView` adapter. The private loopback origin serves only declared signed files and app-owned operations, with a random token, strict origin checks, bounded clients/requests and the shared dispatcher permission/schema rules. Remote article and personal website views have no access to it. Hidden pages release their native view and cancel requests; execution leases remain held until those requests finish cancellation.
 
-`web/app-sdk/client.mjs` provides browser discovery/invocation without sockets or market polling. `tools/Meili.AppDev` is a separate source-development executable: temporary profiles, explicit development public key, read-only operation execution and private UI preview. It is never shipped in a production package and cannot select an existing data directory. See its README for the current original-GEX preview limitation.
+`web/app-sdk/client.mjs` provides browser discovery/invocation without sockets or market polling. `tools/Meili.AppDev` is a separate source-development executable: temporary profiles, explicit development public key, read-only operation execution and private UI preview. It is never shipped in a production package and cannot select an existing data directory. The original GEX page now uses the same UI-free application session as its native adapter; see [development instructions](../../tools/Meili.AppDev/README.md) for explicit seed/theme/language options.
 
 ## Shared presentation
 
@@ -29,3 +29,15 @@ The browser SDK's `applyTheme` is now reused by the original GEX adapter. It com
 This is a computed fixture screenshot, not live-market or native WebView evidence. Chromium empty/computed journeys verify no remote requests or script errors, preserved document/history selection, expiry switching and live theme/reduced-motion updates.
 
 The existing GEX page also exposes the same scoped `host/catalog`, `host/invoke` and read-only presentation contract when the desktop explicitly injects its shared dispatcher. Only authenticated operations belonging to GEX appear; it cannot proxy unrelated host tools. Its legacy chart endpoints and QuoteHub channels remain compatible while domain handlers move into the app package. Native app/profile mismatch and core-only UI startup are rejected before opening financial storage.
+
+## Shared original GEX document host
+
+`Meili.Application/Apps/QqqGex/QqqGexAppSession` owns the original page's bounded private document server. Native `QqqGexSession` is a presentation adapter; AppDev reuses the same server without desktop assemblies. Generic and GEX sessions share request parsing, operation scope, presentation snapshots, bounded request draining and one-time execution-lease release. Generated `app-theme-defaults.json` comes from the existing design tokens; native overrides preserve user-selected market colors. Mutable presentation snapshots never modify shared defaults.
+
+Actual Chromium/AppDev captures below use an explicit **synthetic single historical observation**, not live coverage or a native desktop capture. The original page correctly leaves unavailable history/decisions empty. Wide and compact layouts were visually inspected; 1280 px collapses the analysis rail while preserving the chart and snapshot table.
+
+![Original GEX source preview, 1920×1080, synthetic historical input](screenshots/app-dev-gex-1920x1080.png)
+
+![Original GEX source preview, 1280×1080, synthetic historical input](screenshots/app-dev-gex-1280x1080.png)
+
+The native populated probe now signs the real GEX UI/runtime/contracts with an ephemeral test-only key, installs it, imports through its signed calculation handler and reads workspace observations through its signed view handler. It retains all keyboard/pointer/theme/layout/hide/reload checks, adds 1920×1080, and upgrades A→B in the same host process to discover/call a new operation before uninstall/reinstall and host/database hash checks. This source change cross-builds for WPF and Avalonia; native execution must be confirmed by the revision's four platform CI jobs before final pilot acceptance.

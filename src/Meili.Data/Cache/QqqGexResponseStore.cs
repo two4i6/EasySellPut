@@ -24,6 +24,8 @@ public sealed partial class QqqGexResponseStore
         cmd.CommandText="CREATE TABLE IF NOT EXISTS qqq_gex_local_day_hashes(day TEXT PRIMARY KEY,sha256 TEXT NOT NULL)";cmd.ExecuteNonQuery();
         } catch(SqliteException error) when(error.SqliteErrorCode is 11 or 26) { storageFailure="sqlite_corrupt";Meili.Core.Diagnostics.AppLog.Warn("qqq-gex","Corrupt storage retained; GEX unavailable, SQLite code "+error.SqliteErrorCode); }
     }
+    /// <summary>Release this store's idle SQLite handles after a document host drains; active consumers are not interrupted.</summary>
+    public void ReleaseIdleConnections(){using var connection=new SqliteConnection(connectionString);SqliteConnection.ClearPool(connection);}
     private SqliteConnection Open(){if(IsUnavailable)throw new InvalidDataException("GEX storage is unavailable; original file retained");var c=new SqliteConnection(connectionString);try{c.Open();return c;}catch{c.Dispose();throw;}}
     public object? LatestPartial()
     {

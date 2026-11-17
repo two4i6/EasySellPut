@@ -20,7 +20,8 @@ def check_capture(base,node,fixtures,root,mode="aligned"):
  installed=subprocess.run([*command,'install',str(profile),str(fixtures/'1.0.0-core.espapp')],capture_output=True,text=True,encoding='utf-8',timeout=30)
  assert installed.returncode==0,(installed.stdout,installed.stderr)
  actual=run(command,str(profile),'capture_qqq_gex_input')['data']
- assert actual.pop('inputPath')==str(profile/'cache/qqq-gex-input.json')
+ published=pathlib.Path(actual.pop('inputPath'))
+ assert published==profile/'cache/qqq-gex-input.json' and published.is_file(),str(published)
  expected.pop('inputPath');assert actual==expected,(actual,expected)
  assert actual['status']=='captured_input'
  if mode in('aligned','large'):assert actual['matchingRegularBars']==4 and actual['providerCoverageComplete']
