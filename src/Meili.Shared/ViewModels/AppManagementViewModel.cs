@@ -27,22 +27,28 @@ public partial class AppManagementViewModel(string directory, LocalizationServic
     private bool CanMaintain() => !IsBusy;
     private bool HasSelection() => !IsBusy && SelectedApp is not null;
     public event EventHandler? Changed;
-    public void RefreshLanguage() { OnPropertyChanged(nameof(ToggleLabel)); OnPropertyChanged(nameof(SelectedStatus)); }
+    private string? statusKey;
+    private void ShowStatus(string? key) { statusKey=key;Status=key is null?"":loc[key]; }
+    public void RefreshLanguage()
+    {
+        OnPropertyChanged(nameof(ToggleLabel));OnPropertyChanged(nameof(SelectedStatus));
+        if(statusKey is not null)Status=loc[statusKey];
+    }
     private async Task Maintain(Func<ModuleInstaller, Task> action)
     {
         if(IsBusy)return;
-        IsBusy=true;Status="";
+        IsBusy=true;ShowStatus(null);
         try
         {
             await action(new ModuleInstaller(directory));
             var rows = await Task.Run(()=>new ModuleInstaller(directory).Inspect().State.Apps.Select(a=>new ManagedAppRow(a.Id,a.Version,a.Enabled)).ToArray());
             var id=SelectedApp?.Id;Apps=rows;SelectedApp=Apps.FirstOrDefault(a=>a.Id==id)??Apps.FirstOrDefault();
-            Status=loc[Apps.Count==0?"Apps_Empty":"Apps_Done"];Changed?.Invoke(this,EventArgs.Empty);
+            ShowStatus(Apps.Count==0?"Apps_Empty":"Apps_Done");Changed?.Invoke(this,EventArgs.Empty);
         }
         catch(Exception ex) when(ex is IOException or UnauthorizedAccessException or ArgumentException or InvalidOperationException or System.Security.Cryptography.CryptographicException or System.Text.Json.JsonException)
         {
             Meili.Core.Diagnostics.AppLog.Warn("apps","Application maintenance failed",ex);
-            Status=loc["Apps_Error"];
+            ShowStatus("Apps_Error");
         }
         finally{IsBusy=false;}
     }

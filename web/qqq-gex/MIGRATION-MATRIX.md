@@ -277,3 +277,5 @@ CI151 Apple Silicon desktop and Windows x64 desktop passed fully, but both Windo
 - [ ] Actual source-market timestamp alignment, same-day regular bars, missing IV/context resolution and complete historical corpus from genuine retained inputs. No inversion, backfill fabrication or timestamp shifting.
 - [ ] Genuine qualifying canonical market signal followed by exactly-once native notification/audio; zero alerts and test tones cannot satisfy this gate.
 - [ ] Long-term archive growth/stability. Single-sample data SQLite~4.3MiB versus~121MiB fixed Node runtime is recorded separately; unique history is retained.
+
+CI158 identified an actual Settings app-status localization regression (English page retained Chinese status,5.5% pixel mismatch). Shared status now retains/retranslates its resource key; no pixel tolerance was relaxed. All10 language-page comparisons and full Mac headless suite passed locally with CI fonts (144pass/1 existing live skip); Shared129 passed. The actual partial-cohort page also rendered correctly. Exact native Mac/package CI is still required.
