@@ -11,11 +11,15 @@ public sealed class SnapshotFile
 {
     private readonly string _path;
     private readonly int _maxBytes;
+    private readonly Action<string, string> _replace;
     private string? _expected;
     public SnapshotFile(string path) : this(path, int.MaxValue) { }
 
-    public SnapshotFile(string path, int maxBytes)
+    public SnapshotFile(string path, int maxBytes) : this(path, maxBytes, static (source, destination) => File.Replace(source, destination, null)) { }
+
+    internal SnapshotFile(string path, int maxBytes, Action<string, string> replace)
     {
+        _replace = replace;
         ArgumentOutOfRangeException.ThrowIfNegative(maxBytes);
         _maxBytes = maxBytes;
         _path = path;
@@ -41,22 +45,29 @@ public sealed class SnapshotFile
             var bytes = new UTF8Encoding(false).GetBytes(text);
             if (bytes.Length > _maxBytes) throw new InvalidDataException("Snapshot exceeds configured byte limit");
             File.WriteAllBytes(temp, bytes);
+            var intended = Convert.ToHexString(SHA256.HashData(bytes));
             var until=Environment.TickCount64+3000;var recheck=false;
             while(true)
             {
                 // Keep the coordinator and CAS check across transient Windows readers
                 // (including older processes without delete sharing).
-                if(recheck&&Fingerprint(writeLeaseHeld:true)!=_expected)throw new DataConflictException(_path);
+                if (recheck)
+                {
+                    if (Fingerprint(writeLeaseHeld: true) != _expected) throw new DataConflictException(_path);
+                    if (!File.Exists(temp) || Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(temp))) != intended)
+                        throw new InvalidDataException("Staged snapshot changed before replacement retry");
+                }
                 try
                 {
-                    if(File.Exists(_path))File.Replace(temp,_path,null);
+                    if(File.Exists(_path))_replace(temp,_path);
                     else File.Move(temp,_path);
                     break;
                 }
-                catch(IOException ex)when(OperatingSystem.IsWindows()&&((ex.HResult&0xffff)is 32 or 33)&&Environment.TickCount64<until)
-                {recheck=true;Thread.Sleep(5);} // expected: bounded sharing/lock contention; no permission or corruption retry.
+                catch(IOException ex)when(((OperatingSystem.IsWindows() && ((ex.HResult & 0xffff) is 32 or 33)) || ex.HResult == unchecked((int)0x80070497)) && Environment.TickCount64<until)
+                {recheck=true;Thread.Sleep(5);} // ReplaceFile error 1175 preserves both names; retry only unchanged snapshots.
+                // Other partial-replacement errors (1176/1177), permissions and corruption surface.
             }
-            _expected = Convert.ToHexString(SHA256.HashData(bytes));
+            _expected = intended;
         }
         finally { if (File.Exists(temp)) File.Delete(temp); }
     }

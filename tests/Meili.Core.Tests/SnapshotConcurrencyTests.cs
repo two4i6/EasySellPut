@@ -5,6 +5,41 @@ namespace Meili.Core.Tests;
 
 public sealed class SnapshotConcurrencyTests
 {
+    [Theory]
+    [InlineData("unchanged")]
+    [InlineData("destination")]
+    [InlineData("staged")]
+    [InlineData("unsafe-error")]
+    public void ReplaceFile_1175_retries_only_unchanged_snapshots(string scenario)
+    {
+        var directory = Path.Combine(Path.GetTempPath(), "snapshot-1175-" + Guid.NewGuid());
+        Directory.CreateDirectory(directory);
+        var path = Path.Combine(directory, "snapshot.json");
+        try
+        {
+            File.WriteAllText(path, "original");
+            var attempts = 0;
+            var snapshot = new SnapshotFile(path, int.MaxValue, (source, destination) =>
+            {
+                if (++attempts == 1)
+                {
+                    if (scenario == "destination") File.WriteAllText(destination, "external");
+                    if (scenario == "staged") File.WriteAllText(source, "tampered");
+                    throw new IOException("Injected ReplaceFile failure", unchecked((int)(scenario == "unsafe-error" ? 0x80070498 : 0x80070497)));
+                }
+                File.Replace(source, destination, null);
+            });
+            if (scenario == "destination") Assert.Throws<DataConflictException>(() => snapshot.Write("updated"));
+            else if (scenario == "staged") Assert.Throws<InvalidDataException>(() => snapshot.Write("updated"));
+            else if (scenario == "unsafe-error") Assert.Throws<IOException>(() => snapshot.Write("updated"));
+            else snapshot.Write("updated");
+            Assert.Equal(scenario == "unchanged" ? 2 : 1, attempts);
+            Assert.Equal(scenario == "unchanged" ? "updated" : scenario == "destination" ? "external" : "original", File.ReadAllText(path));
+            Assert.Empty(Directory.GetFiles(directory, "*.tmp"));
+        }
+        finally { Directory.Delete(directory, true); }
+    }
+
     [Fact]
     public void Byte_limits_reject_oversized_snapshots_without_replacing_valid_content()
     {
