@@ -41,3 +41,16 @@ Actual Chromium/AppDev captures below use an explicit **synthetic single histori
 ![Original GEX source preview, 1280×1080, synthetic historical input](screenshots/app-dev-gex-1280x1080.png)
 
 The native populated probe now signs the real GEX UI/runtime/contracts with an ephemeral test-only key, installs it, imports through its signed calculation handler and reads workspace observations through its signed view handler. It retains all keyboard/pointer/theme/layout/hide/reload checks, adds 1920×1080, and upgrades A→B in the same host process to discover/call a new operation before uninstall/reinstall and host/database hash checks. This source change cross-builds for WPF and Avalonia; native execution must be confirmed by the revision's four platform CI jobs before final pilot acceptance.
+
+
+## Native signed-payload evidence
+
+The four native WebView steps passed at host code `cc9a576` ([integrated run](https://github.com/two4i6/EasySellPut/actions/runs/44143805711)); the source includes all original chart/tab/trusted-input assertions and independent A→B/new-operation/history-hash checks. These captures are real WebView2/WKWebView **test windows with synthetic historical inputs**. They are not live feeds or screenshots of the complete main-window chrome. Native work-area constraints affect capture height: the 1920-wide test request produced the actual dimensions below; source Chromium and manager headless captures above retain exact 1080p canvases.
+
+![Windows x64 WebView2, light, actual 1904×1041 capture](screenshots/native-windows-gex-light.png)
+
+![Mac Intel WKWebView, light, actual 1920×970 capture](screenshots/native-mac-intel-gex-light.png)
+
+![Mac Apple Silicon WKWebView, dark, actual 1920×677 capture](screenshots/native-mac-arm-gex-dark.png)
+
+The original chart's assumptions and missing-input states stay visible. Neither fixture counts nor the original page's CBOE guidance certify a real provider snapshot. Later test-host changes await asynchronous shutdown before deleting scratch directories; they do not change the captured product UI.

@@ -75,7 +75,7 @@ Design: [architecture](docs/55-主程序与可独立更新子应用架构研究.
   - Keep explicit version handling for breaking contracts and read→write changes; preserve permission checks at invocation.
   - Acceptance: MCP remains running across a compatible GEX update; old requests finish on A, subsequent requests run B; stale discovery and unsupported notifications fail safely.
 
-- [ ] **S09 — Add reusable desktop application hosting and management UI.** Depends on S08.
+- [x] **S09 — Add reusable desktop application hosting and management UI.** Depends on S08.
   - Add a shared module navigation model and platform AppView adapters; preserve native chrome, personal web tabs and article splitting.
   - Reuse cards/selects/help/dialogs/loading, tokens, Lucide and interruptible motion. Keep settings/language/theme in the footer.
   - Support core-only install, optional UI installation, rail visibility, enabled state and actionable update/uninstall states.
@@ -330,7 +330,7 @@ Extracted the original GEX private document session into UI-free Application and
 
 Automation 181 and Shared 134 passed. Actual Chromium generic SDK and original signed GEX/model journeys passed with 1920/1280×1080 screenshots, three charts, write denial, pending-request cleanup and unchanged source/production DLL. WPF/Avalonia native probes cross-build; their populated GEX journey now installs the actual signed app, performs A→B/new-operation/uninstall/reinstall and fixed host/history hash checks. Four-platform execution and exact-current aggregate remain required; this checkpoint does not check off S09/S12 prematurely. Windows capture fixture now compares native path objects and still requires the published file to exist, avoiding separator-only failures.
 
-### Final pilot regression follow-up (pending remote authentication)
+### Final pilot regression follow-up (historical authentication interruption)
 
 The d5abea3 native Windows x64 probe executed the actual signed original GEX page, chart/tab/input/theme/layout journeys and screenshots, then correctly rejected the test B package because it removed the old summary operation. The fixture now adds a new operation/engine alongside the unchanged old contract, preserving production compatibility enforcement. WPF native probe and full test project cross-build after the fix; execution is not yet claimed. Shutdown now logs failures as well as propagating them to awaiters; Core 211 and targeted shutdown 2 passed.
 
@@ -351,3 +351,10 @@ Both Windows CLI jobs still rejected the test's lexical path equality before rea
 Exact CI at 184c127 exposed two additional real boundaries without relaxed assertions: a production CLI watchlist write failed with I/O while an MCP client remained open, and Windows ARM64 observed a broken input pipe instead of the expected malformed-engine failure. Mutable JSON prevalidation still used uncoordinated `File.ReadAllText`; settings/alerts/strategy and drawing validation now reuse SnapshotFile. Atomic publication also tolerates bounded Windows sharing/lock errors from legacy readers while retaining the writer coordinator and rechecking CAS on retries. Other permission/corruption/I/O errors still fail; temporary files are removed. A cross-platform retained-reader test and two explicit Windows-only timeout/conflict tests cover the boundary.
 
 Both one-shot and duplex engines now classify premature pipe closure as an engine protocol failure, preserving caller cancellation and public error categories. Host calls, trailing output and permission assertions are unchanged. Local Core passed 212 with the two Windows-specific cases correctly skipped; Automation passed 183, including both engine modes. Full aggregate and the new Windows native cases remain required before acceptance. This follow-up does not relabel the failed CI runs as successful.
+
+
+### S09 acceptance — reusable desktop hosting and original signed UI
+
+S09 is accepted against the UI behavior requirements. Code cc9a576's integrated run [44143805711](https://github.com/two4i6/EasySellPut/actions/runs/44143805711) passed the native WebView step on Windows x64/ARM64 and Mac Intel/Apple Silicon, including the actual signed original GEX A→B/new-operation journey, trusted input, three charts/ten tabs, theme/size/hide/reload and retained host/history hashes. Windows x64/ARM64 and Apple Silicon full desktop/package/updater jobs also passed; Mac Intel packaging and overall integrated acceptance remain S12 gates. Shared native manager tests and original source-host 1920/1280×1080 captures already passed locally. Representative real native images were inspected and added with actual capture sizes; they are synthetic historical test windows, not live data or a 1080p claim for a constrained native work area.
+
+The Windows Shared failure was immediate scratch-directory deletion after nonblocking Dispose, not missing request-drain ownership. Async GEX fixtures/cloud/native test hosts now await DisposeAsync before cleanup. Shared 134 and WPF/Avalonia/cloud-host builds passed; the test no longer clears a pool to mask its own session lifetime. Public native detach remains nonblocking and the execution lease remains held until all accepted requests finish. Final complete CI is still required in S12.

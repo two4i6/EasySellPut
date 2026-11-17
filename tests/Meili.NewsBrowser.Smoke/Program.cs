@@ -257,7 +257,7 @@ internal static partial class Program
 
     private static async Task ProbeQqqLocal(string directory)
     {
-        using var session=new QqqGexSession();
+        await using var session=new QqqGexSession();
 #if WINDOWS_READER
         var browser=new WebView2();
 #else
