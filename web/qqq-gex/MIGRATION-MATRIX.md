@@ -256,3 +256,7 @@ Native pixel review found that the first SVG-only ordering fix was insufficient 
 - [ ] Existing full-session/complete-real-history/qualifying-native-alert gates above remain open; removing tabs does not satisfy these data/event requirements.
 
 CI146 Mac Intel actually failed the new native pointer delivery before screenshots; the test-only WebKit routing correction preserves all assertions and still requires hosted execution. Windows native probes passed in146; complete package/pixel status remains distinct.
+
+CI148 Web failed an immediate Escape focus-return observation. A bounded wait for actual trigger focus now precedes the unchanged strict equality assertion; the full historical-workspace cloud test passed locally. Delivered CI remains required; other pending/native gates above stay open.
+
+CI148 follow-up: Windows x64/ARM64 desktop jobs passed fully; Mac Intel trusted input→MCP and native pixel checks passed, its packaging result remained pending. Actual Windows compact-header/scenario captures were reviewed. Apple Silicon desktop and CLI/MCP remain queued/unverified; full four-platform and real-market acceptance stays unchecked.

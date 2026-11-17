@@ -48,7 +48,7 @@ try{
  const notice=page.getByTestId('qqq-local-notice');assert.ok((await notice.boundingBox()).height<=36);
  await page.getByRole('button',{name:'数据与存储说明',exact:true}).click();
  await page.getByText('不能视为实时或完整交易日。',{exact:false}).waitFor();
- await page.keyboard.press('Escape');assert.ok(await page.getByRole('button',{name:'数据与存储说明',exact:true}).evaluate(e=>e===document.activeElement));
+ await page.keyboard.press('Escape');await page.waitForFunction(()=>document.activeElement?.getAttribute('aria-label')==='数据与存储说明');assert.ok(await page.getByRole('button',{name:'数据与存储说明',exact:true}).evaluate(e=>e===document.activeElement));
  storage={canCapture:true,archiveWarning:true};await notice.filter({hasText:'历史归档超过 1 GiB'}).waitFor();
  await page.getByRole('button',{name:'数据与存储说明',exact:true}).click();await page.getByText('不会自动删除唯一历史。',{exact:false}).waitFor();await page.keyboard.press('Escape');
  storage={canCapture:false,error:'fixture disk fault'};await notice.filter({hasText:'GEX 存储不可用，写入暂停'}).waitFor();
