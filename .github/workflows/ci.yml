@@ -348,6 +348,11 @@ jobs:
           $arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant()
           python build/pack-desktop.py --rid "$os-$arch" --output build/out/ci/desktop
           if ($LASTEXITCODE -ne 0) { throw 'Desktop packaging failed' }
+      - name: Check native GEX inspection pixels
+        shell: pwsh
+        run: |
+          python tests/webcharts/check_gex_native_pixels.py build/out/ci
+          if ($LASTEXITCODE -ne 0) { throw 'Native GEX inspection pixel check failed' }
       - name: Test packaged app & updater
         shell: pwsh
         run: |
