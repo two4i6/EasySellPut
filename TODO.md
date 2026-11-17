@@ -82,7 +82,7 @@ Design: [architecture](docs/55-主程序与可独立更新子应用架构研究.
   - Keep private application origins/capabilities isolated from articles/personal pages; release only the hidden app's resources.
   - Acceptance: Chinese/English, light/dark, compact/wide and keyboard/reduced-motion journeys with actual 1080p screenshots and native WebView checks.
 
-- [ ] **S10 — Improve scheduling and shared development components.** Depends on verified runtime behavior in S08/S09.
+- [x] **S10 — Improve scheduling and shared development components.** Depends on verified runtime behavior in S08/S09.
   - Replace the global operation bottleneck only after explicit resource/thread-safety ownership is tested.
   - Bound CPU/provider work, cross-process heavy GEX jobs, queues and outputs; propagate deadline/cancellation without partial-write ambiguity.
   - Add reusable Web SDK/UI/token packages and a separate development host; no production dev/trust bypass.
@@ -358,3 +358,10 @@ Both one-shot and duplex engines now classify premature pipe closure as an engin
 S09 is accepted against the UI behavior requirements. Code cc9a576's integrated run [44143805711](https://github.com/two4i6/EasySellPut/actions/runs/44143805711) passed the native WebView step on Windows x64/ARM64 and Mac Intel/Apple Silicon, including the actual signed original GEX A→B/new-operation journey, trusted input, three charts/ten tabs, theme/size/hide/reload and retained host/history hashes. Windows x64/ARM64 and Apple Silicon full desktop/package/updater jobs also passed; Mac Intel packaging and overall integrated acceptance remain S12 gates. Shared native manager tests and original source-host 1920/1280×1080 captures already passed locally. Representative real native images were inspected and added with actual capture sizes; they are synthetic historical test windows, not live data or a 1080p claim for a constrained native work area.
 
 The Windows Shared failure was immediate scratch-directory deletion after nonblocking Dispose, not missing request-drain ownership. Async GEX fixtures/cloud/native test hosts now await DisposeAsync before cleanup. Shared 134 and WPF/Avalonia/cloud-host builds passed; the test no longer clears a pool to mask its own session lifetime. Public native detach remains nonblocking and the execution lease remains held until all accepted requests finish. Final complete CI is still required in S12.
+
+
+### S10 acceptance — scheduling, SDK and isolated development
+
+S10 is accepted. The complete cc9a576 offline aggregate passed at `build/out/tests/run-RVgYfM2l`: 1,042 .NET tests passed and two Windows-specific sharing cases were explicitly skipped on Linux (both actually passed in Windows x64 Core 214/214 CI). SDK 9, Python 57, all 58 real CLI/MCP cases, signed original GEX/capture/persistent MCP and cross-process maintenance/scheduling passed. Unrelated pure pricing progresses while provider/live work waits; per-app admission precedes bounded CPU work, writers serialize across processes while committed archive readers progress, cancellation/owner EOF releases leases, and outputs/diagnostics/source receipts/input uploads are bounded.
+
+The shared engine/market/browser/presentation SDK and complete original GEX AppDev preview are documented in `web/app-sdk/README.md` and `tools/Meili.AppDev/README.md`. Actual generic and original-page Chromium journeys passed at unchanged presentation code d9ffa13 with source isolation, seeded original model, write denial, 1920/1280×1080 rendering and awaited scratch cleanup. Generated defaults and native adapters use the existing design tokens; no second quote timer/socket, provider implementation or permanent broker was added. Later fixture-only awaited cleanup does not change these production behaviors. Remaining final integrated gate is tracked in S12.
