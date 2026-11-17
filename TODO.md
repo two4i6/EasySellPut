@@ -226,3 +226,11 @@ Verification: real persistent MCP A→B smoke passed in both 2025 protocol revis
 ### S11 optional UI artifact coverage
 
 The independent five-platform app workflow now builds/packages/verifies both core-only and UI-capable app variants, without invoking .NET or desktop host builds. Shared source/model checks and retained-observation integrity tests apply to both. Local full UI artifact verification and main-only release policy guard passed. These remain development-key artifacts; real signing/promoting/publishing stays in the protected main-only workflow and was not dispatched.
+
+### S07 typed common host capabilities checkpoint
+
+Signed operations can now declare a small read-only host-operation allowlist and reuse existing routed market services/Analytics through bounded duplex JSON-lines, instead of adding app-local network clients or copying calculation code. The production dispatcher bypasses app redispatch for these host calls and reuses its current provider/state gates. Existing operation capabilities cannot silently expand during update. Shared SDK, developer host and real CLI/official MCP fixtures use the same protocol; undeclared/maintenance calls, reused request IDs, trailing output and cancellation are tested.
+
+Verification: Automation 164, Core 211 and SDK 6/6 passed; actual signed app processes preserved exact quote source/as-of/delay through provider plus original BSM calculation. Slow-provider cancellation released the lease and allowed uninstall. Real CLI/MCP A/B smoke passed all 2025/2026/subscription modes with the same fixture-provider result, no host DLL rebuild and no production trust override. CI invokes these tests on its existing five CLI platforms. Original GEX capture and legacy route migration remain pending; the capability transport alone is not full S07 acceptance.
+
+The previous source revision `2eb1141` completed the full offline aggregate: 1,013 .NET tests, 57 Python guards, all 58 real CLI/MCP capability cases, cache/process/developer-host checks and cross-process app maintenance/scheduling passed (`build/out/tests/run-KIl6j3SJ`). Current host-call changes have their focused checks above; previous success is not claimed as current native delivery acceptance.

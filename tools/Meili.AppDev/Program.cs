@@ -52,6 +52,7 @@ finally
 
 sealed class DevDispatcher(string directory,ModuleInstaller installer,string node):IOperationDispatcher
 {
+    private readonly AutomationService host=new(new(directory,DataDirectorySource.CommandLine));
     public DataDirectoryInfo DirectoryInfo=>new(directory,DataDirectorySource.CommandLine);
     public async Task<IOperationCatalog> GetCatalogAsync(CancellationToken ct=default)=>ModuleOperations.Merge(await ModuleOperations.ReadAsync(directory,installer,ct));
     public async Task<JsonElement> ExecuteAsync(string name,JsonElement arguments,bool allowWrites,CancellationToken ct=default)
@@ -59,7 +60,7 @@ sealed class DevDispatcher(string directory,ModuleInstaller installer,string nod
         if(allowWrites)throw new UnauthorizedAccessException("Development host is read-only.");
         var operation=(await ModuleOperations.ReadAsync(directory,installer,ct)).SingleOrDefault(o=>o.Definition.Name==name)??throw new ArgumentException("Unknown app operation.");
         OperationCatalog.Validate(new(operation.Definition.Name,operation.Definition.Description,operation.Definition.Writes,operation.Definition.Schema),arguments);
-        return WireJson.Element(WireJson.Success(await ModuleProcess.ExecuteAsync(directory,operation,arguments,false,installer,_=>Task.FromResult<string?>(node),ct)));
+        return WireJson.Element(WireJson.Success(await ModuleProcess.ExecuteAsync(directory,operation,arguments,false,installer,_=>Task.FromResult<string?>(node),ct,host.ExecuteHostOperationAsync)));
     }
-    public void Dispose(){}
+    public void Dispose()=>host.Dispose();
 }

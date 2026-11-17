@@ -6,13 +6,13 @@ using System.Text.Json;
 namespace Meili.Automation.Modules;
 
 /// <summary>First-party, signed, bounded JSON engine. Process isolation is not an untrusted-code sandbox.</summary>
-public static class ModuleProcess
+public static partial class ModuleProcess
 {
-    public static Task<JsonElement> ExecuteAsync(string directory, BoundModuleOperation operation, JsonElement arguments, bool allowWrites, CancellationToken ct) =>
-        ExecuteAsync(directory, operation, arguments, allowWrites, new ModuleInstaller(directory), token => PinnedNodeRuntime.ExtractNodeAsync(directory, token), ct);
+    public static Task<JsonElement> ExecuteAsync(string directory, BoundModuleOperation operation, JsonElement arguments, bool allowWrites, CancellationToken ct, Func<string,JsonElement,CancellationToken,Task<JsonElement>>? hostCall = null) =>
+        ExecuteAsync(directory, operation, arguments, allowWrites, new ModuleInstaller(directory), token => PinnedNodeRuntime.ExtractNodeAsync(directory, token), ct, hostCall);
 
     internal static async Task<JsonElement> ExecuteAsync(string directory, BoundModuleOperation operation, JsonElement arguments, bool allowWrites,
-        ModuleInstaller installer, Func<CancellationToken, Task<string?>> runtime, CancellationToken ct)
+        ModuleInstaller installer, Func<CancellationToken, Task<string?>> runtime, CancellationToken ct, Func<string,JsonElement,CancellationToken,Task<JsonElement>>? hostCall = null)
     {
         if (operation.Definition.Writes && !allowWrites) throw new UnauthorizedAccessException();
         using var lease = new ModuleRegistry(directory).AcquireExecution(operation.AppId);
@@ -28,6 +28,12 @@ public static class ModuleProcess
         var script = await asset.MaterializeScriptAsync(ct).ConfigureAwait(false);
         var node = await runtime(ct).ConfigureAwait(false)
             ?? throw new InvalidOperationException("Pinned Node runtime is unavailable; install a complete host package.");
+        if(current.Definition.HostOperations is {Length:>0} operations)
+        {
+            if(hostCall is null)throw new InvalidOperationException("This host cannot supply the application's declared host capabilities.");
+            return await RunHostAsync(node,script,new{protocol=1,framing="host-jsonl-v1",operation=current.Definition.Name,arguments,
+                context=new{dataDirectory=Path.GetFullPath(directory),appId=current.AppId,appVersion=current.Version,allowWrites=current.Definition.Writes&&allowWrites,hostOperations=operations}},operations,hostCall,ct).ConfigureAwait(false);
+        }
         return await RunAsync(node, script, new { protocol = 1, operation = current.Definition.Name, arguments,
             context = new { dataDirectory = Path.GetFullPath(directory), appId = current.AppId, appVersion = current.Version, allowWrites = current.Definition.Writes && allowWrites } }, ct).ConfigureAwait(false);
     }

@@ -85,7 +85,7 @@ public sealed class ModuleInstaller
                 foreach (var old in ModuleOperations.ReadPackage(previous, previousPath))
                 {
                     var next = candidateOperations.SingleOrDefault(o => o.Definition.Name == old.Definition.Name);
-                    if (next is null || next.Definition.Writes != old.Definition.Writes || !JsonElement.DeepEquals(next.Definition.Schema, old.Definition.Schema))
+                    if (next is null || next.Definition.Writes != old.Definition.Writes || !ModuleHostOperations.Equivalent(next.Definition.HostOperations,old.Definition.HostOperations) || !JsonElement.DeepEquals(next.Definition.Schema, old.Definition.Schema))
                         throw new InvalidDataException("Breaking operation changes require a new public operation name.");
                 }
             }

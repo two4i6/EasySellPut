@@ -16,10 +16,12 @@ internal static class AppFixture
             var schema=JsonSerializer.SerializeToElement(new{type="object",properties=new{},required=Array.Empty<string>(),additionalProperties=false});
             var definitions=new List<ModuleOperation>{
                 new ModuleOperation("app_easysellput_test_summary","Fixture evidence summary",false,schema,"engine/main.mjs"),
-                new ModuleOperation("app_easysellput_test_record","Fixture explicit recording",true,schema,"engine/main.mjs")};
+                new ModuleOperation("app_easysellput_test_record","Fixture explicit recording",true,schema,"engine/main.mjs"),
+                new ModuleOperation("app_easysellput_test_market","Fixture shared provider request",false,schema,"engine/host.mjs",["get_quotes"])};
             if(version=="1.0.1")definitions.Add(new("app_easysellput_test_added","Fixture added operation",false,schema,"engine/main.mjs"));
             var operations=JsonSerializer.SerializeToUtf8Bytes(definitions,new JsonSerializerOptions(JsonSerializerDefaults.Web));
-            var payload=new Dictionary<string,byte[]>{{"engine/main.mjs",script},{"operations.json",operations}};
+            var hostScript=System.Text.Encoding.UTF8.GetBytes("import{createInterface}from'node:readline';const lines=createInterface({input:process.stdin})[Symbol.asyncIterator]();await lines.next();process.stdout.write(JSON.stringify({type:'hostCall',id:1,operation:'get_quotes',arguments:{symbols:['AAPL']}})+'\\n');const reply=JSON.parse((await lines.next()).value);process.stdout.write(JSON.stringify({type:'result',result:reply.result.data})+'\\n');await lines.return();process.stdin.pause();");
+            var payload=new Dictionary<string,byte[]>{{"engine/main.mjs",script},{"engine/host.mjs",hostScript},{"operations.json",operations}};
             var manifest=new ModuleManifest(1,"test/source","easysellput.test",version,1,1,1,"node24","engine/main.mjs",null,
                 [System.Runtime.InteropServices.RuntimeInformation.RuntimeIdentifier],payload.Select(p=>new ModuleFile(p.Key,p.Value.Length,Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(p.Value)))).ToArray());
             var body=JsonSerializer.SerializeToUtf8Bytes(manifest,new JsonSerializerOptions(JsonSerializerDefaults.Web));
@@ -57,7 +59,7 @@ internal static class AppFixture
             if(op.Writes&&!allowWrites)throw new UnauthorizedAccessException();
             var bound=(await ModuleOperations.ReadAsync(directory.Path,installer,ct)).SingleOrDefault(o=>o.Definition.Name==operation);
             return bound is null?await fallback.ExecuteAsync(operation,arguments,allowWrites,ct):
-                WireJson.Element(WireJson.Success(await ModuleProcess.ExecuteAsync(directory.Path,bound,arguments,allowWrites,installer,_=>Task.FromResult<string?>(runtime),ct)));
+                WireJson.Element(WireJson.Success(await ModuleProcess.ExecuteAsync(directory.Path,bound,arguments,allowWrites,installer,_=>Task.FromResult<string?>(runtime),ct,fallback.ExecuteHostOperationAsync)));
         }
         public void Dispose()=>fallback.Dispose();
     }

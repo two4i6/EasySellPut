@@ -38,11 +38,22 @@ public sealed partial class AutomationService(DataDirectoryInfo directory, IMark
         }
         var module = (await Modules.ModuleOperations.ReadAsync(DirectoryInfo.Path, ct)).SingleOrDefault(o => o.Definition.Name == operation);
         if (module is not null)
-            return WireJson.Element(WireJson.Success(await Modules.ModuleProcess.ExecuteAsync(DirectoryInfo.Path, module, args, allowWrites, ct)));
+            return WireJson.Element(WireJson.Success(await Modules.ModuleProcess.ExecuteAsync(DirectoryInfo.Path, module, args, allowWrites, ct, ExecuteHostOperationAsync)));
         using var legacyLease = operation.Contains("_qqq_gex_", StringComparison.Ordinal) ? Modules.ModuleAccess.AcquireEnabled(DirectoryInfo.Path, Modules.ModuleAccess.QqqGex) : null;
         await _gate.WaitAsync(ct);
         try { ct.ThrowIfCancellationRequested(); return WireJson.Element(WireJson.Success(await ExecuteCoreAsync(operation, new Input(args), ct))); }
         finally { _gate.Release(); }
+    }
+
+    /// <summary>Stable common read capabilities for signed app engines; never invokes another app or maintenance.</summary>
+    internal async Task<JsonElement> ExecuteHostOperationAsync(string name,JsonElement arguments,CancellationToken ct)
+    {
+        var definition=Modules.ModuleHostOperations.Definition(name);OperationCatalog.Validate(definition,arguments);
+        var pure=name is "calculate_option" or "calculate_indicators" or "analyze_strategy";
+        var gate=pure?PureCalculationGate:_gate;
+        await gate.WaitAsync(ct).ConfigureAwait(false);
+        try{return await Task.Run(async()=>WireJson.Element(WireJson.Success(await ExecuteCoreAsync(name,new Input(arguments),ct))),ct).ConfigureAwait(false);}
+        finally{gate.Release();}
     }
 
     private SettingsStore Settings()

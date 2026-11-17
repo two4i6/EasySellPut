@@ -30,3 +30,11 @@ GEX bundles are prepared explicitly with `python3 build/prepare-app-seed.py`; or
 ## Optional UI variants
 
 Immutable installed archives use `apps/packages/<id>/<version>/<package-sha256>/package.espapp`. The original version-only layout remains readable, but never masks an existing corrupt hash-addressed variant. Attaching UI to a core-only installation at the same release requires unchanged runtime/model/protocol/data/platform identity and byte-identical existing files. Only new `ui/` and `notices/` files are allowed. Once UI is attached, different same-version contents are refused. Updating code requires a new version; uninstall retains all variants and data. Operation discovery carries the exact package hash and stale calls must rediscover after activation.
+
+## Typed shared host calls
+
+An operation may declare `hostOperations`, a bounded unique allowlist of existing common read-only market/Analytics operations. The host currently permits quotes, bars, expirations, option chains, option pricing, indicators and strategy math. It validates each call against the existing built-in schema and dispatches directly to the shared provider/Analytics owner; recursive app calls, writes, maintenance, arbitrary URLs/files/processes are unavailable. Adding/removing capabilities on an existing operation requires a new operation name.
+
+These operations use protocol-1 framing `host-jsonl-v1`: initial request, strictly increasing bounded `hostCall` IDs, matching `hostResult`, then one terminal `result`. Frames/aggregate output/call count/runtime/diagnostics are bounded; duplicate fields, undeclared capabilities, reused IDs, trailing output and missing completion fail closed. Cancellation reaches provider work and kills the app process before releasing execution ownership. `web/app-sdk/engine-host.mjs` shares the framing implementation. Existing one-shot engines remain compatible.
+
+This is a first-party signed-code contract, not an OS sandbox. No caller can enable a capability absent from authenticated package metadata, and declaring host operations does not grant write permission or create a market stream.

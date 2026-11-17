@@ -52,6 +52,10 @@ with tempfile.TemporaryDirectory(prefix='signed apps and MCP ') as directory:
             assert 'app_easysellput_test_added' not in names
             a = client.call('app_easysellput_test_summary', {})
             assert a['structuredContent']['data']['version'] == '1.0.0'
+            market=client.call('app_easysellput_test_market',{})['structuredContent']['data']
+            quote=market['quotes'][0]
+            assert quote['source']=='fixture' and quote['price']==100 and quote['delayMinutes']==15 and quote['asOf']=='2026-11-13T15:00:00+00:00',quote
+            assert run(command,str(profile),'app_easysellput_test_market')['data']==market
             denied = client.call('app_easysellput_test_record', {})
             assert denied['isError'] and not denied['structuredContent']['success']
             pid = client.process.pid

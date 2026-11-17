@@ -118,6 +118,68 @@ public sealed class ModulePackageTests : IDisposable
         await Assert.ThrowsAsync<InvalidDataException>(()=>installer.VerifyInstalledAsync(app.Id));
     }
 
+    private static string HostSdkUri()
+    {
+        var directory=AppContext.BaseDirectory;
+        while(!File.Exists(Path.Combine(directory,"MeiliTerminal.slnx")))directory=Path.GetDirectoryName(directory)??throw new IOException("Missing repository.");
+        return JsonSerializer.Serialize(new Uri(Path.Combine(directory,"web","app-sdk","engine-host.mjs")).AbsoluteUri);
+    }
+    [Fact]
+    public async Task Signed_engine_reuses_typed_existing_market_and_analytics_without_losing_source_metadata()
+    {
+        var profile=Path.Combine(root,"host-calls");var installer=new ModuleInstaller(profile,(file,ct)=>Verify(file));
+        var schema=JsonSerializer.SerializeToElement(new{type="object",properties=new{},required=Array.Empty<string>(),additionalProperties=false});
+        var operation=new ModuleOperation("app_easysellput_test_summary","Sourced calculation",false,schema,"engine/main.mjs",["get_quotes","calculate_option"]);
+        var script="import {createHostEngine} from "+HostSdkUri()+";const engine=await createHostEngine();try{const market=await engine.call('get_quotes',{symbols:['AAPL']});const q=market.quotes[0];const calc=await engine.call('calculate_option',{right:'call',spot:q.price,strike:100,years:1,rate:0,volatility:.2});engine.finish({source:q.source,asOf:q.asOf,delayMinutes:q.delayMinutes,price:q.price,model:calc.model,value:calc.greeks.price});}finally{engine.close();}";
+        await installer.InstallAsync(Package(operations:[operation],scriptText:script));
+        using var service=new AutomationService(new(profile,Meili.Core.Settings.DataDirectorySource.CommandLine),new FakeMarket());
+        var bound=(await ModuleOperations.ReadAsync(profile,installer,CancellationToken.None)).Single();
+        var result=await ModuleProcess.ExecuteAsync(profile,bound,JsonSerializer.SerializeToElement(new{}),false,installer,_=>Task.FromResult<string?>("node"),CancellationToken.None,service.ExecuteHostOperationAsync);
+        Assert.Equal("fixture",result.GetProperty("source").GetString());Assert.Equal(100,result.GetProperty("price").GetDouble());Assert.Equal(15,result.GetProperty("delayMinutes").GetInt32());
+        Assert.Equal(DateTimeOffset.Parse("2026-11-13T15:00:00Z"),result.GetProperty("asOf").GetDateTimeOffset());Assert.True(result.GetProperty("value").GetDouble()>0);
+        Assert.False(File.Exists(Path.Combine(profile,"settings.json")));
+        await Assert.ThrowsAsync<InvalidDataException>(()=>installer.InstallAsync(Package(version:"1.0.1",operations:[operation with{HostOperations=["get_quotes","get_bars","calculate_option"]}],scriptText:script)));
+        installer.Uninstall("easysellput.test");
+    }
+
+    [Fact]
+    public async Task Host_capabilities_refuse_maintenance_and_cancel_provider_work_without_leaking_app_lease()
+    {
+        var profile=Path.Combine(root,"host-cancel");var installer=new ModuleInstaller(profile,(file,ct)=>Verify(file));
+        var schema=JsonSerializer.SerializeToElement(new{type="object",properties=new{},required=Array.Empty<string>(),additionalProperties=false});
+        var operation=new ModuleOperation("app_easysellput_test_summary","Bounded market request",false,schema,"engine/main.mjs",["clear_cache"]);
+        await Assert.ThrowsAsync<InvalidDataException>(()=>installer.InstallAsync(Package(operations:[operation])));
+        operation=operation with{HostOperations=["get_quotes"]};
+        var script="import {createHostEngine} from "+HostSdkUri()+";const engine=await createHostEngine();try{engine.finish(await engine.call('get_quotes',{symbols:['AAPL']}));}finally{engine.close();}";
+        await installer.InstallAsync(Package(operations:[operation],scriptText:script));
+        using var service=new AutomationService(new(profile,Meili.Core.Settings.DataDirectorySource.CommandLine),new FakeMarket{DelayQuotes=true});
+        var bound=(await ModuleOperations.ReadAsync(profile,installer,CancellationToken.None)).Single();
+        using var stop=new CancellationTokenSource(TimeSpan.FromMilliseconds(500));
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(()=>ModuleProcess.ExecuteAsync(profile,bound,JsonSerializer.SerializeToElement(new{}),false,installer,_=>Task.FromResult<string?>("node"),stop.Token,service.ExecuteHostOperationAsync));
+        Assert.Equal("uninstalled",installer.Uninstall("easysellput.test").Status);
+    }
+
+    [Theory]
+    [InlineData("undeclared")]
+    [InlineData("duplicate")]
+    [InlineData("trailing")]
+    public async Task Host_frames_reject_undeclared_calls_reused_ids_and_trailing_output(string fault)
+    {
+        Directory.CreateDirectory(root);var script=Path.Combine(root,"bad-frame.mjs");
+        var body=fault switch
+        {
+            "undeclared"=>"process.stdout.write(JSON.stringify({type:'hostCall',id:1,operation:'clear_cache',arguments:{category:'all'}})+'\\n');setInterval(()=>{},1000);",
+            "duplicate"=>"const frame=JSON.stringify({type:'hostCall',id:1,operation:'get_quotes',arguments:{symbols:['AAPL']}})+'\\n';process.stdout.write(frame+frame);setInterval(()=>{},1000);",
+            _=>"process.stdout.write(JSON.stringify({type:'result',result:{}})+'\\nnot-protocol');"
+        };
+        await File.WriteAllTextAsync(script,body);
+        var calls=0;
+        Task<JsonElement> Host(string name,JsonElement input,CancellationToken ct){calls++;return Task.FromResult(WireJson.Element(WireJson.Success(new{})));}
+        if(fault=="trailing")await Assert.ThrowsAsync<InvalidDataException>(()=>ModuleProcess.RunHostAsync("node",script,new{},["get_quotes"],Host,CancellationToken.None));
+        else await Assert.ThrowsAsync<UnauthorizedAccessException>(()=>ModuleProcess.RunHostAsync("node",script,new{},["get_quotes"],Host,CancellationToken.None));
+        Assert.Equal(fault=="duplicate"?1:0,calls);
+    }
+
     [Theory]
     [InlineData("1.0.0 ")]
     [InlineData("01.0.0")]

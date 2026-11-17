@@ -181,7 +181,7 @@ public static class Program
                 Title = CultureInfo.InvariantCulture.TextInfo.ToTitleCase(x.Name.Replace('_',' ')),
                 Description = x.Description,
                 InputSchema = x.Schema,
-                Annotations = new ToolAnnotations { ReadOnlyHint = !x.Writes, DestructiveHint = x.Writes && (x.Name.StartsWith("delete_",StringComparison.Ordinal) || x.Name.StartsWith("clear_",StringComparison.Ordinal) || x.Name=="save_strategy"), IdempotentHint = !x.Writes, OpenWorldHint = x.Name is "search_symbols" or "get_quotes" or "get_bars" or "get_expirations" or "get_option_chain" or "get_fundamentals" or "get_financials" or "get_news" or "get_market_events" or "get_chart_analysis" or "analyze_option_chain" or "get_pricing_assumptions" or "get_volatility_insights" or "record_option_snapshot" or "probe_data_sources" }
+                Annotations = new ToolAnnotations { ReadOnlyHint = !x.Writes, DestructiveHint = x.Writes && (x.Name.StartsWith("delete_",StringComparison.Ordinal) || x.Name.StartsWith("clear_",StringComparison.Ordinal) || x.Name=="save_strategy"), IdempotentHint = !x.Writes, OpenWorldHint = !OperationCatalog.All.Any(o=>o.Name==x.Name)||x.Name.Contains("_qqq_gex_",StringComparison.Ordinal)||x.Name is "search_symbols" or "get_quotes" or "get_bars" or "get_expirations" or "get_option_chain" or "get_fundamentals" or "get_financials" or "get_news" or "get_market_events" or "get_chart_analysis" or "analyze_option_chain" or "get_pricing_assumptions" or "get_volatility_insights" or "record_option_snapshot" or "probe_data_sources" }
             }).ToList()
         };
         })

@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace Meili.Automation.Modules;
 
-public sealed record ModuleOperation(string Name, string Description, bool Writes, JsonElement Schema, string EntryPoint);
+public sealed record ModuleOperation(string Name, string Description, bool Writes, JsonElement Schema, string EntryPoint, string[]? HostOperations = null);
 public sealed record BoundModuleOperation(string AppId, string Version, ModuleOperation Definition, string PackageSha256);
 
 /// <summary>Authenticated discovery only; never starts an engine or grants write permission.</summary>
@@ -60,6 +60,7 @@ public static partial class ModuleOperations
                     op.Schema.ValueKind != JsonValueKind.Object || !op.Schema.TryGetProperty("type", out var type) || type.GetString() != "object")
                     throw new InvalidDataException("Invalid module operation definition.");
                 ValidateSchema(op.Schema, 0);
+                ModuleHostOperations.Validate(op.HostOperations);
                 ModulePackage.ValidatePath(op.EntryPoint);
                 if (!op.EntryPoint.StartsWith("engine/", StringComparison.Ordinal) || !op.EntryPoint.EndsWith(".mjs", StringComparison.Ordinal) ||
                     !verified.Manifest.Files.Any(f => f.Path == op.EntryPoint)) throw new InvalidDataException("Missing module operation entrypoint.");
