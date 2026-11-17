@@ -76,6 +76,11 @@ jobs:
           python3 build/bundle-qqq-runtime.py linux-x64 tests/Meili.Qqq.CloudHost/bin/Debug/net10.0
           cd web/qqq-gex
           node tests/session-soak.mjs
+      - name: Test isolated signed app Web UI
+        run: |
+          dotnet build src/Meili.Cli/Meili.Cli.csproj -c Release -m:3 -v minimal
+          dotnet build tools/Meili.AppDev/Meili.AppDev.csproj -c Release -m:3 -v minimal
+          node web/app-sdk/browser-appview.mjs
       - name: Test shared app engine SDK
         run: node --test web/app-sdk/engine.test.mjs web/app-sdk/client.test.mjs web/app-sdk/engine-host.test.mjs web/app-sdk/presentation.test.mjs
       - name: Build & verify independent app fixture
