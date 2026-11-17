@@ -7,6 +7,17 @@ public sealed class McpSessionTests : IDisposable
 {
     private readonly string _dir=Path.Combine(Path.GetTempPath(),"mcp-session-"+Guid.NewGuid().ToString("N"));
     [Fact]
+    public async Task Concurrent_heartbeat_replacement_never_temporarily_hides_an_initialized_session()
+    {
+        using var owner=new McpSessionLease(_dir,false,()=>"fixture client");owner.Publish();
+        var writer=Task.Run(()=>{for(var i=0;i<40;i++)owner.Publish();});
+        for(var i=0;i<40;i++)
+        {
+            var status=McpSessions.Read(_dir);Assert.True(status.Available);Assert.Single(status.Connections);
+        }
+        await writer;
+    }
+    [Fact]
     public void Only_initialized_live_sessions_in_this_data_directory_are_reported()
     {
         Assert.Empty(McpSessions.Read(_dir).Connections);

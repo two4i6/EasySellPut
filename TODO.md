@@ -190,3 +190,9 @@ Checks: Automation 152, Shared 128, 57 Python guards, persistent MCP A/B and ful
 ### Independent app CI follow-up
 
 The first exact independent app CI at `65ac757` ([44090239474](https://github.com/two4i6/EasySellPut/actions/runs/44090239474)) passed native Mac Intel, Mac Apple Silicon and Linux core jobs. Both Windows jobs exposed a test-fixture cleanup bug: Python's SQLite connection context manager commits but does not close the connection, leaving the temporary database locked. The fixture now explicitly closes it before package verification/cleanup; assertions and platform coverage are unchanged. Local package verification passed after the fix; new Windows/native results remain pending. Full local integration also caught a live-language caption/row-height mismatch; that product correction is being verified separately with unchanged pixel checks.
+
+### S08 Windows heartbeat and footer responsiveness correction
+
+Exact integrated CI [44095348131](https://github.com/two4i6/EasySellPut/actions/runs/44095348131) passed UI, Web/model, all four desktop package jobs and four CLI targets; Windows x64 CLI exposed a transient missing MCP diagnostic while the heartbeat atomically replaced its JSON file. Reader and writer now share SnapshotFile coordination and delete-sharing semantics. A concurrent 40-publish/40-read regression preserves an initialized session without relaxing liveness/permission checks. The footer performs one background scan at a time, discards hidden/disposed generations and formats cached state immediately on theme/language/copy changes. It creates no hidden polling timer.
+
+Focused checks passed: MCP diagnostic tests 3, Shared 129, actual footer/AI setup plus background hide/restore UI tests 4. UI tests now explicitly await a fresh asynchronous status scan. No aggregate green result is claimed for the failed run or for the uncommitted generic AppView work.

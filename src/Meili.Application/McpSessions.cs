@@ -27,7 +27,9 @@ public static class McpSessions
                 try
                 {
                     if (file.Length > 8192 || file.LinkTarget is not null) continue;
-                    var session = JsonSerializer.Deserialize<McpSessionInfo>(File.ReadAllText(file.FullName), WireJson.Options);
+                    var text = new SnapshotFile(file.FullName, 8192).Read();
+                    if (text is null) continue;
+                    var session = JsonSerializer.Deserialize<McpSessionInfo>(text, WireJson.Options);
                     if (session is null || session.Client == SetupClientName || string.IsNullOrWhiteSpace(session.Client) || session.Client.Length > 64 || !Guid.TryParseExact(session.SessionId, "N", out _) || Path.GetFileNameWithoutExtension(file.Name) != session.SessionId || session.ProcessId <= 0 || session.ProcessStartTicks <= 0
                         || now - session.UpdatedAt > TimeSpan.FromSeconds(30) || session.UpdatedAt - now > TimeSpan.FromSeconds(5)) continue;
                     using var process = Process.GetProcessById(session.ProcessId);
