@@ -20,7 +20,7 @@ public sealed class SnapshotFile
     public string? Read()
     {
         if (!File.Exists(_path)) { _expected = null; return null; }
-        var bytes = File.ReadAllBytes(_path);
+        var bytes = ReadSnapshotBytes();
         _expected = Convert.ToHexString(SHA256.HashData(bytes));
         return Encoding.UTF8.GetString(bytes).TrimStart('\uFEFF');
     }
@@ -41,7 +41,19 @@ public sealed class SnapshotFile
         finally { if (File.Exists(temp)) File.Delete(temp); }
     }
 
-    private string? Fingerprint() => File.Exists(_path) ? Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(_path))) : null;
+    private string? Fingerprint() => File.Exists(_path) ? Convert.ToHexString(SHA256.HashData(ReadSnapshotBytes())) : null;
+
+    private byte[] ReadSnapshotBytes()
+    {
+        // Atomic replacement needs delete sharing on Windows. Keep this handle on
+        // the complete old inode/file object if another writer publishes a new one.
+        // Do not allow in-place writes; the writer lease and CAS remain unchanged.
+        using var stream = new FileStream(_path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
+        if (stream.Length > int.MaxValue) throw new IOException("Snapshot exceeds supported byte length");
+        var bytes = new byte[(int)stream.Length];
+        stream.ReadExactly(bytes);
+        return bytes;
+    }
 
     private FileStream Acquire()
     {
