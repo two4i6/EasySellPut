@@ -56,8 +56,11 @@ internal static partial class Program
                 if(entry.FullName is "app.json" or "app.sig")continue;
                 using var stream=entry.Open();using var memory=new MemoryStream();stream.CopyTo(memory);payload[entry.FullName]=memory.ToArray();
             }
-            foreach(var path in new[]{"operations.json","engine/retained-summary.mjs"})
-                payload[path]=System.Text.Encoding.UTF8.GetBytes(System.Text.Encoding.UTF8.GetString(payload[path]).Replace("get_qqq_gex_retained_summary","get_qqq_gex_retained_summary_v2",StringComparison.Ordinal));
+            var operations=System.Text.Json.Nodes.JsonNode.Parse(payload["operations.json"])!.AsArray();
+            var added=operations.Single(o=>o!["name"]!.GetValue<string>()=="get_qqq_gex_retained_summary")!.DeepClone();
+            added["name"]="get_qqq_gex_retained_summary_v2";added["entryPoint"]="engine/retained-summary-v2.mjs";operations.Add(added);
+            payload["operations.json"]=System.Text.Encoding.UTF8.GetBytes(operations.ToJsonString());
+            payload["engine/retained-summary-v2.mjs"]=System.Text.Encoding.UTF8.GetBytes(System.Text.Encoding.UTF8.GetString(payload["engine/retained-summary.mjs"]).Replace("get_qqq_gex_retained_summary","get_qqq_gex_retained_summary_v2",StringComparison.Ordinal));
             var json=new JsonSerializerOptions(JsonSerializerDefaults.Web);
             using var manifestStream=original.GetEntry("app.json")!.Open();
             var manifest=JsonSerializer.Deserialize<ModuleManifest>(manifestStream,json)!;

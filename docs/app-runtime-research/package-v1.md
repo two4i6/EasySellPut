@@ -1,6 +1,6 @@
 # First-party module package v1
 
-The verifier, profile registry, explicit CLI maintenance and leased GEX asset loading are implemented. Full domain/catalog ownership and native delivery acceptance are tracked in TODO.md.
+The verifier, profile registry, explicit CLI maintenance, leased GEX asset loading, app-owned domain operations and dynamic CLI/MCP catalog are implemented. Exact-revision native delivery acceptance is recorded in TODO.md.
 
 The ZIP contains exactly `app.json`, `app.sig` and the payload files listed by the signed manifest. Directory entries are unnecessary. `app.sig` is an ECDSA P-256/SHA-256 DER signature over the exact UTF-8 bytes of `app.json`, using the installation's pinned release key. No canonicalization is performed after signing. Production verification binds the compiled repository and runtime ID; local unconfigured builds do not trust external packages. Test keys are supplied only through the internal test composition boundary.
 

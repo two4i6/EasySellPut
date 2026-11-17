@@ -62,7 +62,14 @@ public sealed class UxInteractionTests
             // A refreshed/recycled dashboard card can change its binding after navigation.
             // Assert the symbol actually supplied to the click, not a later binding value.
             // NavigationHub posts to the dispatcher; allow its target bindings to settle as on later page changes.
-            var clickedSymbol=Assert.IsType<string>(quote.CommandParameter);Assert.False(string.IsNullOrEmpty(clickedSymbol));quote.Command!.Execute(clickedSymbol);await Settle();Assert.Equal(AppPage.Charts,w.CurrentPage);Assert.Equal(clickedSymbol,AppServices.Get<SymbolContext>().Current);
+            var clickedSymbol=Assert.IsType<string>(quote.CommandParameter);Assert.False(string.IsNullOrEmpty(clickedSymbol));
+            var context=AppServices.Get<SymbolContext>();var transitions=new List<string>();
+            EventHandler<string> changed=(_,symbol)=>transitions.Add(symbol+Environment.NewLine+Environment.StackTrace);
+            context.Changed+=changed;
+            try{quote.Command!.Execute(clickedSymbol);await Settle();}
+            finally{context.Changed-=changed;}
+            Assert.Equal(AppPage.Charts,w.CurrentPage);
+            Assert.True(clickedSymbol==context.Current,"Expected "+clickedSymbol+", actual "+context.Current+Environment.NewLine+string.Join(Environment.NewLine,transitions));
             w.Navigate(AppPage.Watchlist);await Settle();var vm=AppServices.Get<WatchlistViewModel>();var page=w.CurrentView!;
             vm.SelectedRow=null;MacHost.Pump();var remove=page.GetVisualDescendants().OfType<Button>().First(b=>b.Command==vm.RemoveSelectedCommand);Assert.False(remove.IsEnabled);
             vm.SelectedRow=vm.Rows.FirstOrDefault();MacHost.Pump();if(vm.SelectedRow is not null)Assert.True(remove.IsEnabled);

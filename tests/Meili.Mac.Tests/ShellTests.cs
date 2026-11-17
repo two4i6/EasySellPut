@@ -103,7 +103,7 @@ public class ShellTests
     }
 
     [AvaloniaFact]
-    public void Keyboard_wizard_opens_from_typing_and_menu()
+    public async Task Keyboard_wizard_opens_from_typing_and_menu()
     {
         var w = Open();
         try
@@ -119,8 +119,14 @@ public class ShellTests
             MacHost.Pump();
             w.KeyPress(Avalonia.Input.Key.Enter, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.Enter, null);
             MacHost.Pump();
+            // Navigation is posted to the UI dispatcher; first-use page composition and
+            // context adoption can outlive synchronous render pumping in a full suite.
+            var deadline=DateTimeOffset.UtcNow.AddSeconds(3);
+            while((w.CurrentPage!=AppPage.Charts||AppServices.Get<ChartsViewModel>().SymbolText!="MSFT")&&DateTimeOffset.UtcNow<deadline)
+            {await Task.Delay(10);MacHost.Pump();}
             Assert.False(w.WizardVisible);
             Assert.Equal(AppPage.Charts, w.CurrentPage);
+            Assert.Equal("MSFT", AppServices.Get<SymbolContext>().Current);
             Assert.Equal("MSFT", AppServices.Get<ChartsViewModel>().SymbolText);
 
             w.OpenWizard();                           // ⌘F / menu

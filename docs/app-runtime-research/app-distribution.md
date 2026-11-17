@@ -18,7 +18,7 @@ The host retains `/releases/latest`. Apps use `/releases/tags/apps` and signed `
 
 `Apps · Build & Test` builds the original GEX engine and shared SDK directly on Linux x64, Windows x64/ARM64 and macOS Intel/Apple Silicon, without building the .NET host or a GUI. Its `App-core-*` downloads use ephemeral **development-only** signatures and are not installable in production hosts. The generated public key accompanies the artifact for inspection; no private key is retained or embedded.
 
-The full `CI · Test & Package` remains required and continues all desktop/CLI/native/WebView checks. Its app artifact also covers optional UI, exact original bundles, an actual read-only retained-evidence operation, signing and offline release promotion. It retains the same source, licences/notices, runtime lock and model revision. The shared host/CLI compilation does not invoke npm; complete host packaging explicitly prepares a compatibility seed.
+The full `CI · Test & Package` remains required and continues all desktop/CLI/native/WebView checks. Its app artifact also covers optional UI, exact original bundles, all existing GEX operations, retained-evidence summary, signing and offline release promotion. It retains the same source, licences/notices, runtime lock and model revision. The shared host/CLI compilation does not invoke npm; complete host packaging explicitly prepares a compatibility seed.
 
 ## Main-only preparation and publication
 
@@ -31,7 +31,9 @@ App releases and the catalog are GitHub prereleases with `latest=false`, so they
 
 ## Scope and remaining acceptance
 
-The current artifact can supply authenticated operations and update its GEX engine/UI without recompiling the host. Existing C# GEX routes/capture remain compatibility facades; complete domain ownership, generic AppView/Web SDK/development host, optional UI attachment to the same app version, proactive catalog notifications and full native pilot evidence remain tracked in `TODO.md`. Do not describe those as completed based on these delivery scripts alone.
+The package owns the eight existing GEX facades and a retained-evidence summary operation, their contracts, capture orchestration and original model bundles. Existing C# entry points delegate to installed app handlers; unregistered profiles retain the verified compatibility seed. The generic private AppView/SDK, complete UI-free GEX document host, isolated development preview, same-version core→UI attachment and MCP catalog notifications are implemented. These behaviors are exercised independently of release signing.
+
+Final pilot acceptance is recorded separately in `TODO.md`: exact-revision offline/native tests, original-model parity, fixed host hashes, retained evidence and independent A/B update journeys must pass. An app build or a draft script alone is not native acceptance. Secret-backed main release preparation/publication was not dispatched from `work`.
 
 ## Running MCP clients
 

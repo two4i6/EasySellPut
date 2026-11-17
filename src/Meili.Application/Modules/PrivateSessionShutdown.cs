@@ -22,7 +22,7 @@ internal sealed class PrivateSessionShutdown
         {
             try{await drain().ConfigureAwait(false);completion.TrySetResult();}
             catch(OperationCanceledException ex){completion.TrySetCanceled(ex.CancellationToken);}
-            catch(Exception ex){completion.TrySetException(ex);}
+            catch(Exception ex){Meili.Core.Diagnostics.AppLog.Warn("app-view","Private session shutdown failed",ex);completion.TrySetException(ex);}
         }
     }
     internal static async Task DrainAsync(Task acceptLoop,SemaphoreSlim clients,CancellationTokenSource stop,TcpListener listener,IDisposable? lease,Action? stopped=null,Action? drained=null)
