@@ -19,6 +19,7 @@ EasySellPut is a local .NET 10 app: Windows WPF, macOS Avalonia, cross-platform 
 - Existing `Meili.Shared.Services` namespaces in Application are compatibility names, not assembly dependencies. Reuse their pricing, IV/OI and safety services.
 - Bound network/concurrent work, propagate cancellation, keep I/O off the UI thread, marshal presentation updates back, and reject stale async continuations after navigation or request replacement.
 - Preserve unrelated changes and public contracts. Do not publish releases or merge upstream without instruction.
+- Track the approved modular-app migration in [TODO.md](TODO.md). Complete, verify, record and push each numbered step to `work` separately; keep pending work and exact-commit CI status explicit. Follow its headless-first boundaries and preserve existing UI/CLI/MCP contracts.
 
 ## Business contracts and data
 
