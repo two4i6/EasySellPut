@@ -55,7 +55,7 @@ Design: [architecture](docs/55-主程序与可独立更新子应用架构研究.
   - Preserve default uninstall data, shared caches/runtime and other applications; reject incompatible data rollback.
   - Acceptance: install A → update B → disable/uninstall → reinstall, cancellation and failure recovery in temporary profiles; no installation/maintenance execution tool exposed through MCP.
 
-- [ ] **S06 — Build and load QQQ GEX as an independent package.** Depends on S05.
+- [x] **S06 — Build and load QQQ GEX as an independent package.** Depends on S05.
   - Build current original GEX UI/engine as a versioned artifact, preserving source manifests, algorithms, licences and exact input behavior.
   - Resolve activated assets/scripts from verified packages instead of embedding fresh GEX builds into ordinary host/CLI compilation.
   - Keep optional UI and required core aligned to the same app release; retain verified offline seed behavior if needed.
@@ -255,3 +255,11 @@ First-use extraction now creates the shared executable without overwriting an ex
 The eight established GEX contracts now live in `web/qqq-gex/public-contracts.json`, embedded as metadata by ordinary host compilation and carried in signed app notices. GEX-specific legacy routing, chunking and UI-kernel projections moved into `Apps/QqqGex/GexLegacyOperations`; the generic coverage dispatcher delegates to that explicit compatibility adapter. No model algorithm, source timing, archive path or existing handler behavior changed. This isolates the remaining migration target; compiled capture compatibility still exists and is not described as independent app execution.
 
 Verification: exact before/after equality of all 58 operation names/order/descriptions/permissions/schemas; Automation 164 and all 58 real CLI/MCP capability cases passed. Independently built signed core artifact retained exact original engine bundles/model identity and passed retained-data/hash checks. Python guards passed. Public names and ordinary host builds remain unchanged; no npm invocation was added to compilation.
+
+### S06/S07 original GEX operations through independent packages
+
+App-owned handlers now supply the established calculation, history-rebuild and replay operations through signed companion dependencies on the exact original financial bundles. The generic host performs only authenticated dependency materialization, execution ownership/bounds and typed error decoding. Public schemas/permissions remain frozen. Source archive locations, missing-input behavior, repeat-import receipts, tick-precision range validation and original model-failure semantics are retained.
+
+The actual-app integration fixture signs existing build outputs with an in-memory test-only key; A/core → A/UI → B/UI runs through real CLI/official MCP with unchanged host DLL bytes. It compares calculations, replay and history against the original bundle oracle, exercises write filtering and invalid-argument parity, adds a real retained-data reader only in B, and verifies archive hashes across reads/update/uninstall/reinstall. A second run uses the exact checksum-pinned Node from a built CLI package with PATH containing no system executables; it passed. All four shipped app operations have meaningful real CLI/MCP cases, and the dynamic app inventory must match those exercised cases. Both source and extracted-package variants are wired into all five native CLI CI jobs.
+
+Automation 169, SDK 8/8 and Python guards 57 passed. This closes S06 package/runtime acceptance, including actual original GEX A/B and optional UI attachment; it does not close S07's remaining capture/archive/view/lifecycle/live-decision migration or S09/S12 native UI acceptance. No production trust override, private test key file or published release was introduced.

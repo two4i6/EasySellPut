@@ -38,3 +38,9 @@ An operation may declare `hostOperations`, a bounded unique allowlist of existin
 These operations use protocol-1 framing `host-jsonl-v1`: initial request, strictly increasing bounded `hostCall` IDs, matching `hostResult`, then one terminal `result`. Frames/aggregate output/call count/runtime/diagnostics are bounded; duplicate fields, undeclared capabilities, reused IDs, trailing output and missing completion fail closed. Cancellation reaches provider work and kills the app process before releasing execution ownership. `web/app-sdk/engine-host.mjs` shares the framing implementation. Existing one-shot engines remain compatible.
 
 This is a first-party signed-code contract, not an OS sandbox. No caller can enable a capability absent from authenticated package metadata, and declaring host operations does not grant write permission or create a market stream.
+
+## Signed companion engines and facade errors
+
+Operations may declare at most 16 unique `engineAssets`, restricted to declared `engine/*.mjs` files with a total 128 MiB read budget. The host authenticates/materializes only those dependencies and supplies their paths in request context; tool arguments cannot select executable paths. The GEX facade uses the same pinned Node executable for its original child bundles. Parent cancellation owns the process tree; child output/diagnostics/deadline are bounded.
+
+The reserved single-field `$appError` envelope preserves existing invalid-argument, permission and cancellation errors. Invalid model/data errors retain the host's established `operation_failed` category; no new CLI/MCP error category was added. Ordinary model failure results retain their original `calculation_failed`, incomplete-data and retained-input semantics.

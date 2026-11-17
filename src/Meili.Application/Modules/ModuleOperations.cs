@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace Meili.Automation.Modules;
 
-public sealed record ModuleOperation(string Name, string Description, bool Writes, JsonElement Schema, string EntryPoint, string[]? HostOperations = null);
+public sealed record ModuleOperation(string Name, string Description, bool Writes, JsonElement Schema, string EntryPoint, string[]? HostOperations = null, string[]? EngineAssets = null);
 public sealed record BoundModuleOperation(string AppId, string Version, ModuleOperation Definition, string PackageSha256);
 
 /// <summary>Authenticated discovery only; never starts an engine or grants write permission.</summary>
@@ -61,6 +61,19 @@ public static partial class ModuleOperations
                     throw new InvalidDataException("Invalid module operation definition.");
                 ValidateSchema(op.Schema, 0);
                 ModuleHostOperations.Validate(op.HostOperations);
+                if(op.EngineAssets is {} dependencies)
+                {
+                    if(dependencies.Length>16||dependencies.Distinct(StringComparer.Ordinal).Count()!=dependencies.Length)throw new InvalidDataException("Invalid engine dependencies.");
+                    long total=0;
+                    foreach(var dependency in dependencies)
+                    {
+                        ModulePackage.ValidatePath(dependency);
+                        var file=app.Files.SingleOrDefault(f=>f.Path==dependency);
+                        if(!dependency.StartsWith("engine/",StringComparison.Ordinal)||!dependency.EndsWith(".mjs",StringComparison.Ordinal)||file is null)throw new InvalidDataException("Undeclared engine dependency.");
+                        total+=file.Size;
+                    }
+                    if(total>128*1024*1024)throw new InvalidDataException("Engine dependency budget exceeded.");
+                }
                 ModulePackage.ValidatePath(op.EntryPoint);
                 if (!op.EntryPoint.StartsWith("engine/", StringComparison.Ordinal) || !op.EntryPoint.EndsWith(".mjs", StringComparison.Ordinal) ||
                     !verified.Manifest.Files.Any(f => f.Path == op.EntryPoint)) throw new InvalidDataException("Missing module operation entrypoint.");

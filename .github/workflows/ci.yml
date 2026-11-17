@@ -197,6 +197,12 @@ jobs:
         run: |
           python tests/automation/app_mcp_update_smoke.py
           if ($LASTEXITCODE -ne 0) { throw 'Independent app MCP update regression failed' }
+      - name: Test signed original GEX app operations
+        run: |
+          python build/pack-app.py --development --repository test/source --ui-dir web/qqq-gex/dist --output "$env:RUNNER_TEMP/gex-pilot.espapp"
+          if ($LASTEXITCODE -ne 0) { throw 'GEX pilot package failed' }
+          python tests/automation/app_gex_operations_smoke.py --archive "$env:RUNNER_TEMP/gex-pilot.espapp"
+          if ($LASTEXITCODE -ne 0) { throw 'Original GEX signed app regression failed' }
       - name: Test cross-process app maintenance
         run: |
           python tests/automation/app_maintenance_smoke.py
@@ -233,6 +239,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Extracted CLI / MCP process checks failed' }
           python tests/automation/qqq_runtime_smoke.py --executable $executable
           if ($LASTEXITCODE -ne 0) { throw 'Bundled GEX runtime checks failed' }
+          python tests/automation/app_gex_operations_smoke.py --archive "$env:RUNNER_TEMP/gex-pilot.espapp" --bundle-directory (Join-Path $extract $name)
+          if ($LASTEXITCODE -ne 0) { throw 'Signed GEX app without system Node failed' }
           python tests/automation/cache_management_smoke.py --executable $executable
           if ($LASTEXITCODE -ne 0) { throw 'Extracted cache maintenance checks failed' }
       - name: Upload CLI package

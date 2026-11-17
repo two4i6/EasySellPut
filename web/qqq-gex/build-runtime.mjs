@@ -22,3 +22,5 @@ await build({absWorkingDir:root,entryPoints:['tests/spread-study-parity.ts'],plu
 
 // App-owned operation bundles share the headless engine SDK; no host build is involved.
 await build({absWorkingDir:root,entryPoints:['runtime/retained-summary.mjs'],bundle:true,platform:'node',format:'esm',outfile:'runtime-dist/retained-summary.mjs',target:'node24'});
+
+await build({absWorkingDir:root,entryPoints:['runtime/operations.mjs'],bundle:true,platform:'node',format:'esm',outfile:'runtime-dist/operations.mjs',target:'node24'});

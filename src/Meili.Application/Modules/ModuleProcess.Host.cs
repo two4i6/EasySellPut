@@ -42,7 +42,7 @@ public static partial class ModuleProcess
                 if(kind.GetString()=="result")
                 {
                     if(value.EnumerateObject().Count()!=2||!value.TryGetProperty("result",out var result))throw new InvalidDataException("Invalid application result.");
-                    var owned=result.Clone();process.StandardInput.Close();
+                    var owned=DecodeResult(result);process.StandardInput.Close();
                     // A result must be the last frame; trailing output is not silently accepted.
                     if(await reader.HasMoreAsync(token).ConfigureAwait(false))throw new InvalidDataException("Unexpected trailing application output.");
                     await process.WaitForExitAsync(token).ConfigureAwait(false);await errors.ConfigureAwait(false);

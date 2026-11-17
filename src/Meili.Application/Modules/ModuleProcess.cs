@@ -28,14 +28,35 @@ public static partial class ModuleProcess
         var script = await asset.MaterializeScriptAsync(ct).ConfigureAwait(false);
         var node = await runtime(ct).ConfigureAwait(false)
             ?? throw new InvalidOperationException("Pinned Node runtime is unavailable; install a complete host package.");
+        var dependencies=new Dictionary<string,string>(StringComparer.Ordinal);
+        foreach(var dependency in current.Definition.EngineAssets??[])
+        {
+            using var companion=await ModuleAssets.TryOpenAsync(directory,current.AppId,dependency,installer,ct).ConfigureAwait(false)??throw new InvalidDataException("Signed engine dependency is unavailable.");
+            dependencies.Add(dependency,await companion.MaterializeScriptAsync(ct).ConfigureAwait(false));
+        }
         if(current.Definition.HostOperations is {Length:>0} operations)
         {
             if(hostCall is null)throw new InvalidOperationException("This host cannot supply the application's declared host capabilities.");
             return await RunHostAsync(node,script,new{protocol=1,framing="host-jsonl-v1",operation=current.Definition.Name,arguments,
-                context=new{dataDirectory=Path.GetFullPath(directory),appId=current.AppId,appVersion=current.Version,allowWrites=current.Definition.Writes&&allowWrites,hostOperations=operations}},operations,hostCall,ct).ConfigureAwait(false);
+                context=new{dataDirectory=Path.GetFullPath(directory),appId=current.AppId,appVersion=current.Version,allowWrites=current.Definition.Writes&&allowWrites,hostOperations=operations,assets=dependencies}},operations,hostCall,ct).ConfigureAwait(false);
         }
         return await RunAsync(node, script, new { protocol = 1, operation = current.Definition.Name, arguments,
-            context = new { dataDirectory = Path.GetFullPath(directory), appId = current.AppId, appVersion = current.Version, allowWrites = current.Definition.Writes && allowWrites } }, ct).ConfigureAwait(false);
+            context = new { dataDirectory = Path.GetFullPath(directory), appId = current.AppId, appVersion = current.Version, allowWrites = current.Definition.Writes && allowWrites, assets=dependencies } }, ct).ConfigureAwait(false);
+    }
+
+    internal static JsonElement DecodeResult(JsonElement value)
+    {
+        if(value.ValueKind!=JsonValueKind.Object||!value.TryGetProperty("$appError",out var error))return value.Clone();
+        if(value.EnumerateObject().Count()!=1||error.ValueKind!=JsonValueKind.Object||!error.TryGetProperty("code",out var code)||code.ValueKind!=JsonValueKind.String||!error.TryGetProperty("message",out var text)||text.ValueKind!=JsonValueKind.String||text.GetString()!.Length>1000)
+            throw new InvalidDataException("Malformed application error.");
+        var message=text.GetString();
+        throw code.GetString() switch
+        {
+            "invalid_arguments"=>new ArgumentException(message),
+            "permission_denied"=>new UnauthorizedAccessException(message),
+            "cancelled"=>new OperationCanceledException(message),
+            _=>new InvalidDataException(message)
+        };
     }
 
     internal static async Task<JsonElement> RunAsync(string executable, string script, object request, CancellationToken ct)
@@ -68,7 +89,7 @@ public static partial class ModuleProcess
             var output = await stdout.ConfigureAwait(false); await stderr.ConfigureAwait(false);
             if (process.ExitCode != 0) throw new InvalidDataException("Application engine failed; retained input/data were not rolled back.");
             using var document = JsonDocument.Parse(output, new JsonDocumentOptions { MaxDepth = 64 });
-            return document.RootElement.Clone();
+            return DecodeResult(document.RootElement);
         }
         finally
         {

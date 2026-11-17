@@ -10,7 +10,7 @@ public sealed class ModulePackageTests : IDisposable
 {
     private readonly string root = Path.Combine(Path.GetTempPath(), "esp-modules-" + Guid.NewGuid().ToString("N"));
     private readonly ECDsa key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
-    private string Package(string path = "engine/main.mjs", bool tamper = false, string repository = "test/source", int api = 1, bool extra = false, string version = "1.0.0", ModuleOperation[]? operations = null, string scriptText = "export const value=1;", bool ui = false)
+    private string Package(string path = "engine/main.mjs", bool tamper = false, string repository = "test/source", int api = 1, bool extra = false, string version = "1.0.0", ModuleOperation[]? operations = null, string scriptText = "export const value=1;", bool ui = false, string id = "easysellput.test", Dictionary<string,string>? companions = null)
     {
         Directory.CreateDirectory(root);
         var filename = Path.Combine(root, Guid.NewGuid().ToString("N") + ".espapp");
@@ -18,13 +18,15 @@ public sealed class ModulePackageTests : IDisposable
         var html = Encoding.UTF8.GetBytes("<!doctype html><title>Fixture app</title><p>Signed fixture application</p>");
         var metadata = operations is null ? null : JsonSerializer.SerializeToUtf8Bytes(operations, new JsonSerializerOptions(JsonSerializerDefaults.Web));
         var files = new List<ModuleFile> { new(path, script.Length, Convert.ToHexString(SHA256.HashData(script))) };
+        foreach(var pair in companions??[]) {var data=Encoding.UTF8.GetBytes(pair.Value);files.Add(new(pair.Key,data.Length,Convert.ToHexString(SHA256.HashData(data))));}
         if (metadata is not null) files.Add(new("operations.json", metadata.Length, Convert.ToHexString(SHA256.HashData(metadata))));
         if (ui) files.Add(new("ui/index.html", html.Length, Convert.ToHexString(SHA256.HashData(html))));
-        var manifest = new ModuleManifest(1, repository, "easysellput.test", version, api, 1, 1, "node24", path, ui ? "ui/index.html" : null,
+        var manifest = new ModuleManifest(1, repository, id, version, api, 1, 1, "node24", path, ui ? "ui/index.html" : null,
             ["linux-x64"], files.ToArray());
         var bytes = JsonSerializer.SerializeToUtf8Bytes(manifest, new JsonSerializerOptions(JsonSerializerDefaults.Web));
         using var zip = ZipFile.Open(filename, ZipArchiveMode.Create);
         void Add(string name, byte[] data) { using var stream = zip.CreateEntry(name).Open(); stream.Write(data); }
+        foreach(var pair in companions??[])Add(pair.Key,Encoding.UTF8.GetBytes(pair.Value));
         if (ui) Add("ui/index.html",html);
         if (metadata is not null) Add("operations.json", metadata);
         Add("app.json", bytes);
@@ -188,6 +190,32 @@ public sealed class ModulePackageTests : IDisposable
         if(fault=="trailing")await Assert.ThrowsAsync<InvalidDataException>(()=>ModuleProcess.RunHostAsync("node",script,new{},["get_quotes"],Host,CancellationToken.None));
         else await Assert.ThrowsAsync<UnauthorizedAccessException>(()=>ModuleProcess.RunHostAsync("node",script,new{},["get_quotes"],Host,CancellationToken.None));
         Assert.Equal(fault=="duplicate"?1:0,calls);
+    }
+
+    [Fact]
+    public async Task Companion_engines_are_explicit_signed_assets_not_caller_selected_paths()
+    {
+        var profile=Path.Combine(root,"companions");var installer=new ModuleInstaller(profile,(file,ct)=>Verify(file));
+        var schema=JsonSerializer.SerializeToElement(new{type="object",properties=new{},required=Array.Empty<string>(),additionalProperties=false});
+        var operation=new ModuleOperation("app_easysellput_test_summary","Signed child engine",false,schema,"engine/main.mjs",EngineAssets:["engine/child.mjs"]);
+        var script="import{execFileSync}from'node:child_process';let body='';for await(const chunk of process.stdin)body+=chunk;const request=JSON.parse(body);process.stdout.write(execFileSync(process.execPath,[request.context.assets['engine/child.mjs']]));";
+        await installer.InstallAsync(Package(operations:[operation],scriptText:script,companions:new(){{"engine/child.mjs","process.stdout.write(JSON.stringify({source:'signed-companion',price:123.45}));"}}));
+        var bound=(await ModuleOperations.ReadAsync(profile,installer,CancellationToken.None)).Single();
+        var result=await ModuleProcess.ExecuteAsync(profile,bound,JsonSerializer.SerializeToElement(new{}),false,installer,_=>Task.FromResult<string?>("node"),CancellationToken.None);
+        Assert.Equal("signed-companion",result.GetProperty("source").GetString());Assert.Equal(123.45,result.GetProperty("price").GetDouble());
+        foreach(var invalid in new[]{new[]{"engine/missing.mjs"},new[]{"../foreign.mjs"},new[]{"engine/main.mjs","engine/main.mjs"}})
+            await Assert.ThrowsAsync<InvalidDataException>(()=>installer.InstallAsync(Package(version:"1.0.1",operations:[operation with{EngineAssets=invalid}],scriptText:script)));
+    }
+    [Theory]
+    [InlineData("invalid_arguments","invalid_arguments")]
+    [InlineData("permission_denied","permission_denied")]
+    [InlineData("cancelled","cancelled")]
+    [InlineData("invalid_data","operation_failed")]
+    public void App_errors_preserve_public_wire_error_categories(string code,string expected)
+    {
+        var value=JsonSerializer.SerializeToElement(new Dictionary<string,object>{{"$appError",new{code,message="Bounded app failure"}}});
+        var error=Record.Exception(()=>ModuleProcess.DecodeResult(value));Assert.NotNull(error);
+        Assert.Equal(expected,WireJson.Code(error));
     }
 
     [Theory]

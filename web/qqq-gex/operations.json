@@ -3,7 +3,94 @@
     "name": "get_qqq_gex_retained_summary",
     "description": "Count locally retained GEX published/partial dates and observed inputs without reading full profiles. Counts are evidence inventory, not complete market coverage or payload-integrity certification.",
     "writes": false,
-    "schema": { "type": "object", "properties": {}, "required": [], "additionalProperties": false },
+    "schema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    },
     "entryPoint": "engine/retained-summary.mjs"
+  },
+  {
+    "name": "rebuild_qqq_gex_history",
+    "description": "Resume bounded imports of locally retained normalized observations through the original algorithm. Each input commits independently; failures persist and are retried only when requested. Never fills unavailable history.",
+    "writes": true,
+    "schema": {
+      "type": "object",
+      "properties": {
+        "limit": {
+          "type": "integer",
+          "description": "limit argument for rebuild_qqq_gex_history; observe this field's schema type, bounds and operation semantics.",
+          "minimum": 1,
+          "maximum": 500
+        },
+        "retryFailed": {
+          "type": "boolean",
+          "description": "retryFailed argument for rebuild_qqq_gex_history; observe this field's schema type, bounds and operation semantics."
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "entryPoint": "engine/operations.mjs",
+    "engineAssets": [
+      "engine/history.mjs"
+    ]
+  },
+  {
+    "name": "get_qqq_gex_replay",
+    "description": "Compute original causal directional replay from local imported history only. Range is bounded to 366 days; ranges above 32 days use original daily summaries; missing data/runtime is explicit and no remote source is consulted.",
+    "writes": false,
+    "schema": {
+      "type": "object",
+      "properties": {
+        "from": {
+          "type": "string",
+          "description": "ISO-8601 range start",
+          "maxLength": 200
+        },
+        "to": {
+          "type": "string",
+          "description": "ISO-8601 exclusive range end",
+          "maxLength": 200
+        },
+        "page": {
+          "type": "integer",
+          "description": "page argument for get_qqq_gex_replay; observe this field's schema type, bounds and operation semantics.",
+          "minimum": 1,
+          "maximum": 100000
+        },
+        "pageSize": {
+          "type": "integer",
+          "description": "pageSize argument for get_qqq_gex_replay; observe this field's schema type, bounds and operation semantics.",
+          "minimum": 1,
+          "maximum": 200
+        }
+      },
+      "required": [
+        "from",
+        "to"
+      ],
+      "additionalProperties": false
+    },
+    "entryPoint": "engine/operations.mjs",
+    "engineAssets": [
+      "engine/query.mjs"
+    ]
+  },
+  {
+    "name": "calculate_qqq_gex_local",
+    "description": "Run the bundled original GEX algorithm on the previously captured local normalized input and atomically publish its local display resources. Uses the bundled pinned Node runtime; reports unavailable or invalid input rather than installing a runtime or inventing data.",
+    "writes": true,
+    "schema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    },
+    "entryPoint": "engine/operations.mjs",
+    "engineAssets": [
+      "engine/import.mjs"
+    ]
   }
 ]

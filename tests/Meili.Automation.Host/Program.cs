@@ -22,6 +22,7 @@ if(args.Length==3 && args[0]=="--module-lease")
     return 0;
 }
 
+if(args.Length==3&&args[0]=="--gex-app-fixture-build"){GexAppFixture.Create(args[1],args[2]);return 0;}
 if(args.Length==2 && args[0]=="--app-fixture-build") { AppFixture.Create(args[1]); return 0; }
 
 // Temporary-key app tests use this host only; production CLI has no equivalent switch.

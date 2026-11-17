@@ -20,3 +20,9 @@ export function writeResult(value, output = process.stdout) {
   if (body === undefined || Buffer.byteLength(body) > 16 * 1024 * 1024) throw Error('App result exceeds protocol bounds');
   output.write(body);
 }
+
+/** Reserved typed error envelope; the host maps it to existing public CLI/MCP error semantics. */
+export function writeError(code,message,output=process.stdout){
+ if(!['invalid_arguments','permission_denied','cancelled','invalid_data'].includes(code)||typeof message!=='string'||message.length>1000)throw Error('Invalid app error');
+ writeResult({$appError:{code,message}},output);
+}
