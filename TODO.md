@@ -29,6 +29,8 @@ Design: [architecture](docs/55-主程序与可独立更新子应用架构研究.
   - Acceptance: reproducible baseline, meaningful failure attribution, and local/native evidence linked before changing module ownership.
 
 - [ ] **S02 — Introduce the UI-free operation boundary.** Depends on S01.
+  - [x] S02a: immutable catalog snapshot and transport-independent dispatcher; preserve the built-in provider, public contracts and MCP permission filtering.
+  - [ ] S02b: profile-scoped resolver and two-stage CLI parsing; this remains pending, not implied by S02a.
   - Introduce immutable operation definitions/catalog snapshots and a small dispatcher/provider interface in the shared application boundary.
   - Keep existing operations and handlers as the first provider; preserve schemas, ordering and WireJson results.
   - Make CLI help/parsing, MCP discovery/resources and invocation resolve the same catalog and permission policy.
@@ -121,3 +123,10 @@ Design: [architecture](docs/55-主程序与可独立更新子应用架构研究.
 | S01 | Local baseline passed; exact-commit CI pending | This baseline correction commit | 961 .NET tests, 55 Python guards, all 58 real CLI/MCP capability cases, process/cache checks passed; Chromium timeline 4/4 passed. CI [44066016588](https://github.com/two4i6/EasySellPut/actions/runs/44066016588) exposed an animation observation race, corrected without changing product motion or weakening assertions. |
 
 Do not check off later steps based on this document or a scaffold alone. Add completed commit IDs, focused/full checks, screenshots and exact-commit CI links as work proceeds.
+
+### S02a verification
+
+- Automation: 120 passed, including schema lifetime/immutability, duplicate permission shadowing, catalog parity, denied writes and cancellation without data-directory creation.
+- All 58 existing operations passed real CLI/MCP capability cases, schema/result/permission parity. Production CLI/MCP process smoke passed, including setup, shared data reload and EOF.
+- Existing CI CLI/MCP jobs already execute the complete Automation suite and capability/process checks; no new public operation or permission was introduced, so inventories and schemas are unchanged.
+- S01 exact-commit CI remained queued at the last check; no native green result is claimed. S02a is a verified incremental boundary commit, not completion of S02 or package installation.

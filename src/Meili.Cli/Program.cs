@@ -73,7 +73,7 @@ public static class Program
                 if (json) Console.WriteLine(WireJson.Element(WireJson.Success(new
                 {
                     version = typeof(Program).Assembly.GetName().Version?.ToString(3),
-                    operations = OperationCatalog.All.Where(o => parsed.Operation is null || o.Name == parsed.Operation)
+                    operations = OperationCatalog.Snapshot.All.Where(o => parsed.Operation is null || o.Name == parsed.Operation)
                         .Select(o => new { o.Name, o.Description, o.Writes, inputSchema = o.Schema })
                 })).GetRawText());
                 else PrintHelp(parsed.Operation);
@@ -98,7 +98,7 @@ public static class Program
         }
     }
 
-    private static async Task ServeMcp(AutomationService service, bool writes, int timeout, CancellationToken ct)
+    private static async Task ServeMcp(IOperationDispatcher service, bool writes, int timeout, CancellationToken ct)
     {
         string? observedClient=null;
         var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { Args = [], DisableDefaults = true });
@@ -142,7 +142,7 @@ public static class Program
             {
                 "easysellput://guides/workflows"=>AiWorkflowGuide.Markdown,
                 "easysellput://guides/skill"=>AiSkillInstaller.Content,
-                "easysellput://capabilities"=>WireJson.Element(new{readOnly=!writes,operations=OperationCatalog.All.Where(o=>writes||!o.Writes).Select(o=>new{o.Name,o.Description,o.Writes,inputSchema=o.Schema})}).GetRawText(),
+                "easysellput://capabilities"=>WireJson.Element(new{readOnly=!writes,operations=service.Catalog.All.Where(o=>writes||!o.Writes).Select(o=>new{o.Name,o.Description,o.Writes,inputSchema=o.Schema})}).GetRawText(),
                 _=>throw new ModelContextProtocol.McpProtocolException("Unknown resource URI; arbitrary file/URL reads are not supported.",ModelContextProtocol.McpErrorCode.InvalidParams)
             };
             return ValueTask.FromResult(new ReadResourceResult{Contents=[new TextResourceContents{Uri=uri!,MimeType=uri=="easysellput://capabilities"?"application/json":"text/markdown",Text=content}]});
@@ -152,7 +152,7 @@ public static class Program
             observedClient=request.Server.ClientInfo?.Name;
             return ValueTask.FromResult(new ListToolsResult
         {
-            Tools = OperationCatalog.All.Where(x => writes || !x.Writes).Select(x => new Tool
+            Tools = service.Catalog.All.Where(x => writes || !x.Writes).Select(x => new Tool
             {
                 Name = x.Name,
                 Title = CultureInfo.InvariantCulture.TextInfo.ToTitleCase(x.Name.Replace('_',' ')),
@@ -248,7 +248,7 @@ public static class Program
             };
         }
         else if (aliases.TryGetValue(command, out var mapped)) command = mapped;
-        var op = OperationCatalog.Find(command);
+        var op = OperationCatalog.Snapshot.Find(command);
         if (help) return new(command, WireJson.Element(new { }), directory, timeout, false, writes, true, version);
         JsonObject values = new();
         if (input is not null)
@@ -277,7 +277,7 @@ public static class Program
     private static void PrintHelp(string? operation)
     {
         Console.WriteLine("EasySellPut — local CLI + stdio MCP\nUsage: easysellput <command> [options] [--json] [--data-dir PATH] [--timeout 60]\n       easysellput mcp serve [--allow-writes] [--data-dir PATH]\nMaintenance: update check|download [--json] (signed stable desktop updates; installation is desktop-confirmed)\nSetup: connect codex|claude-code [--check] [--json] (verifies MCP, installs skill and registers the client)\n       install-skill --client codex|claude-code [--project PATH] [--json] (CLI only; preserves custom skills; known bundled upgrades are backed up)\nAliases: live-bars, live, liquidity, quote, bars, search, expirations, options, fundamentals, financials, news, events, chart, option-analysis, insights, presets, sources, price, indicators\nGroups: watchlist list/add/remove/create-group/rename-group/delete-group; strategy list/save/delete/analyze; alerts list/history/save/delete/enable; settings show\nUse any operation name below directly. --input FILE accepts an argument JSON object.\nNumbers use invariant decimal units. --help after an operation prints its JSON schema.\nExit: 0 success, 1 failure, 2 arguments, 3 permission, 4 conflict, 130 cancelled/timeout.");
-        foreach (var op in OperationCatalog.All.Where(o => operation is null || o.Name == operation))
+        foreach (var op in OperationCatalog.Snapshot.All.Where(o => operation is null || o.Name == operation))
         {
             Console.WriteLine($"\n{op.Name}{(op.Writes ? " [writes local data]" : "")}: {op.Description}");
             if (operation is not null) Console.WriteLine(JsonSerializer.Serialize(op.Schema, new JsonSerializerOptions { WriteIndented = true }));

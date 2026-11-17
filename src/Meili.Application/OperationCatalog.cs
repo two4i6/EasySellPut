@@ -115,6 +115,7 @@ public static partial class OperationCatalog
         return new JsonObject { ["type"] = "array", ["minItems"] = 1, ["maxItems"] = 32, ["items"] = new JsonObject { ["type"] = "object", ["properties"] = fields, ["required"] = new JsonArray("type", "side", "quantity", "premium"), ["additionalProperties"] = false } };
     }
     public static Operation Find(string name) => All.FirstOrDefault(x => x.Name == name) ?? throw new ArgumentException($"Unknown operation: {name}");
+    public static IOperationCatalog Snapshot { get; } = new OperationSnapshot(All);
     public static void Validate(Operation op, JsonElement args) => ValidateSchema(op.Schema, args, "arguments");
     private static void ValidateSchema(JsonElement schema, JsonElement value, string path)
     {

@@ -14,7 +14,7 @@ using Right = Meili.Analytics.OptionRight;
 namespace Meili.Automation;
 
 /// <summary>UI-free application boundary shared by CLI and MCP. Serializes requests within one host.</summary>
-public sealed partial class AutomationService(DataDirectoryInfo directory, IMarketDataService? market = null, IReadOnlyList<IDataProvider>? diagnosticProviders = null, ILiquiditySeriesSource? liquiditySource = null, TimeProvider? liquidityClock = null, IQuoteStreamSource? quoteStream = null, IMarketDataService? liveBarMarket = null, TimeProvider? liveClock = null) : IDisposable
+public sealed partial class AutomationService(DataDirectoryInfo directory, IMarketDataService? market = null, IReadOnlyList<IDataProvider>? diagnosticProviders = null, ILiquiditySeriesSource? liquiditySource = null, TimeProvider? liquidityClock = null, IQuoteStreamSource? quoteStream = null, IMarketDataService? liveBarMarket = null, TimeProvider? liveClock = null) : IDisposable, IOperationDispatcher
 {
     private readonly SemaphoreSlim _gate = new(1);
     private readonly bool _injectedMarket = market is not null;
@@ -22,10 +22,11 @@ public sealed partial class AutomationService(DataDirectoryInfo directory, IMark
     private Meili.Data.Routing.FailoverRouter? _probeRouter;
     private IMarketDataService? _market = market;
     public DataDirectoryInfo DirectoryInfo { get; } = directory;
+    public IOperationCatalog Catalog => OperationCatalog.Snapshot;
 
     public async Task<JsonElement> ExecuteAsync(string operation, JsonElement args, bool allowWrites, CancellationToken ct = default)
     {
-        var op = OperationCatalog.Find(operation);
+        var op = Catalog.Find(operation);
         OperationCatalog.Validate(op, args);
         if (op.Writes && !allowWrites) throw new UnauthorizedAccessException();
         await _gate.WaitAsync(ct);
