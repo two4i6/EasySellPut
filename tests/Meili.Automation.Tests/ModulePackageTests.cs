@@ -164,6 +164,32 @@ public sealed class ModulePackageTests : IDisposable
     }
 
     [Fact]
+    public async Task Signed_app_reads_exact_request_owned_source_bytes_without_pagination_refetch_or_public_raw_exposure()
+    {
+        var profile=Path.Combine(root,"source-calls");var installer=new ModuleInstaller(profile,(file,ct)=>Verify(file));
+        var schema=JsonSerializer.SerializeToElement(new{type="object",properties=new{},required=Array.Empty<string>(),additionalProperties=false});
+        var operation=new ModuleOperation("app_easysellput_test_summary","Original source",false,schema,"engine/main.mjs",["open_market_snapshot","read_market_snapshot"]);
+        var script="import {createHostEngine} from "+HostSdkUri()+";import{createHash}from'node:crypto';const engine=await createHostEngine();try{const opened=await engine.call('open_market_snapshot',{kind:'chain',symbol:'QQQ',expiry:'2027-06-18'});async function read(meta){const chunks=[];for(let offset=0;offset<meta.size;){const chunk=await engine.call('read_market_snapshot',{receipt:meta.receipt,offset,length:32768});chunks.push(Buffer.from(chunk.bodyBase64,'base64'));offset+=chunk.chunkBytes;}return Buffer.concat(chunks);}const body=await read(opened),raw=await read(opened.raw),chain=JSON.parse(body);engine.finish({chain,rawSize:raw.length,rawHash:createHash('sha256').update(raw).digest('hex'),jsonHash:createHash('sha256').update(body).digest('hex'),advertised:opened.sha256});}finally{engine.close();}";
+        await installer.InstallAsync(Package(operations:[operation],scriptText:script));
+        var raw=Enumerable.Range(0,100001).Select(i=>(byte)(i%256)).ToArray();
+        var chain=await new FakeMarket().GetChainAsync("QQQ",new(2027,6,18));
+        var at=DateTimeOffset.Parse("2026-11-13T14:45:00Z");chain=chain with{RawSourcePayload=raw,UnderlyingLastTradeAt=at,AsOf=at.AddMinutes(15),FetchedAt=at.AddMinutes(16),DelayMinutes=15,UnderlyingPrice=100};
+        using var service=new AutomationService(new(profile,Meili.Core.Settings.DataDirectorySource.CommandLine),new FakeMarket{ChainOverride=chain});
+        using var host=service.BeginModuleHostSession();
+        var bound=(await ModuleOperations.ReadAsync(profile,installer,CancellationToken.None)).Single();
+        var result=await ModuleProcess.ExecuteAsync(profile,bound,JsonSerializer.SerializeToElement(new{}),false,installer,_=>Task.FromResult<string?>("node"),CancellationToken.None,host.InvokeAsync);
+        Assert.True(JsonElement.DeepEquals(WireJson.Element(chain),result.GetProperty("chain")));Assert.Equal(raw.Length,result.GetProperty("rawSize").GetInt32());
+        Assert.Equal(Convert.ToHexString(SHA256.HashData(raw)).ToLowerInvariant(),result.GetProperty("rawHash").GetString());Assert.Equal(result.GetProperty("jsonHash").GetString()!.ToUpperInvariant(),result.GetProperty("advertised").GetString());
+        Assert.False(result.GetProperty("chain").TryGetProperty("rawSourcePayload",out _));Assert.False(File.Exists(Path.Combine(profile,"cache","qqq-gex.db")));
+        var opened=(await host.InvokeAsync("open_market_snapshot",JsonSerializer.SerializeToElement(new{kind="chain",symbol="QQQ"}),CancellationToken.None)).GetProperty("data");
+        var read=JsonSerializer.SerializeToElement(new{receipt=opened.GetProperty("receipt").GetString(),offset=0});
+        using var foreign=service.BeginModuleHostSession();await Assert.ThrowsAsync<ArgumentException>(()=>foreign.InvokeAsync("read_market_snapshot",read,CancellationToken.None));
+        await host.InvokeAsync("open_market_snapshot",JsonSerializer.SerializeToElement(new{kind="bars",symbol="QQQ"}),CancellationToken.None);
+        await Assert.ThrowsAsync<ArgumentException>(()=>host.InvokeAsync("read_market_snapshot",read,CancellationToken.None));
+        await Assert.ThrowsAsync<ArgumentException>(()=>host.InvokeAsync("open_market_snapshot",JsonSerializer.SerializeToElement(new{kind="chain",symbol="QQQ",interval="1d"}),CancellationToken.None));
+    }
+
+    [Fact]
     public async Task Signed_engine_reuses_typed_existing_market_and_analytics_without_losing_source_metadata()
     {
         var profile=Path.Combine(root,"host-calls");var installer=new ModuleInstaller(profile,(file,ct)=>Verify(file));

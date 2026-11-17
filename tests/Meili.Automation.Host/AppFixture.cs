@@ -58,8 +58,9 @@ internal static class AppFixture
             var op=(await GetCatalogAsync(ct)).Find(operation);OperationCatalog.Validate(op,arguments);
             if(op.Writes&&!allowWrites)throw new UnauthorizedAccessException();
             var bound=(await ModuleOperations.ReadAsync(directory.Path,installer,ct)).SingleOrDefault(o=>o.Definition.Name==operation);
+            using var hostSession=fallback.BeginModuleHostSession();
             return bound is null?await fallback.ExecuteAsync(operation,arguments,allowWrites,ct):
-                WireJson.Element(WireJson.Success(await ModuleProcess.ExecuteAsync(directory.Path,bound,arguments,allowWrites,installer,_=>Task.FromResult<string?>(runtime),ct,fallback.ExecuteHostOperationAsync)));
+                WireJson.Element(WireJson.Success(await ModuleProcess.ExecuteAsync(directory.Path,bound,arguments,allowWrites,installer,_=>Task.FromResult<string?>(runtime),ct,hostSession.InvokeAsync)));
         }
         public void Dispose()=>fallback.Dispose();
     }

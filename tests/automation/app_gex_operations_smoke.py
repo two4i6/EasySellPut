@@ -42,10 +42,10 @@ with tempfile.TemporaryDirectory(prefix='actual GEX signed app ')as directory:
  raw={'symbol':'QQQ','source':'synthetic package fixture','bars':[{'timestamp':'2026-01-02T14:30:00Z','open':600,'high':601,'low':599,'close':600,'volume':100}], 'captures':[{'valuationAt':'2026-01-02T14:32:00Z','expiry':1767571200,'spot':600,'result':{'receivedAt':'2026-01-02T14:32:01Z','options':[{'calls':[{'strike':600,'impliedVolatility':.2,'openInterest':100}],'puts':[{'strike':600,'impliedVolatility':.2,'openInterest':50}]}]}}]}
  input_file=cache/'qqq-gex-input.json';input_file.write_text(json.dumps(raw));db=cache/'qqq-gex.db';oracle=root/'oracle.db'
  def original(script,*arguments):
-  result=subprocess.run([node,str(model/script),*map(str,arguments)],capture_output=True,text=True,check=True,timeout=120);return json.loads(result.stdout)
+  result=subprocess.run([node,str(model/script),*map(str,arguments)],capture_output=True,text=True,encoding='utf-8',check=True,timeout=120);return json.loads(result.stdout)
  expected=original('import.mjs',input_file,oracle)
  def install(name):
-  result=subprocess.run([*command,'install',str(profile),str(fixtures/(name+'.espapp'))],capture_output=True,text=True,timeout=30)
+  result=subprocess.run([*command,'install',str(profile),str(fixtures/(name+'.espapp'))],capture_output=True,text=True,encoding='utf-8',timeout=30)
   assert result.returncode==0,(result.stdout,result.stderr)
  install('1.0.0-core')
  client=Mcp(command,str(profile))
@@ -73,7 +73,7 @@ with tempfile.TemporaryDirectory(prefix='actual GEX signed app ')as directory:
   assert invalid['isError']and invalid['structuredContent']['error']['code']=='invalid_arguments',invalid
   assert run(command,str(profile),'get_qqq_gex_replay','--from','bad-time','--to',requested['to'],code=2)['error']['code']=='invalid_arguments'
   def legacy_view(arguments):
-   result=subprocess.run([*base,'--gex-legacy-view',str(profile),json.dumps(arguments),node,str(model/'query.mjs')],capture_output=True,text=True,timeout=120)
+   result=subprocess.run([*base,'--gex-legacy-view',str(profile),json.dumps(arguments),node,str(model/'query.mjs')],capture_output=True,text=True,encoding='utf-8',timeout=120)
    assert result.returncode==0,(arguments,result.stdout,result.stderr)
    return json.loads(result.stdout)
   for view_arguments in [{'resource':'workspace'},{'resource':'partial'},{'resource':'display'},{'resource':'evidence'},{'resource':'exposureManifest','date':'2026-01-02'},{'resource':'spreadQuote','date':'2026-01-02','expiry':'2026-01-05','at':'2026-01-02T14:32:00Z','shortStrike':600,'longStrike':599},{'resource':'analysis','date':'2026-01-02','at':'2026-01-02T14:32:00Z','analysis':'exposure'}]:
@@ -86,7 +86,7 @@ with tempfile.TemporaryDirectory(prefix='actual GEX signed app ')as directory:
    assert hashlib.sha256(db.read_bytes()).hexdigest()==view_hash
   # Non-ASCII/HTML-sensitive strings and arbitrary provider bytes retain exact existing chunk hashes.
   preferences={'qqq-local:observed-exposure:v1':json.dumps({'label':'中文 + <>& \"'},ensure_ascii=False),'qqq-local:theme':'中文','qqq-local:auth-secret':'must remain hidden'}
-  (profile/'qqq-gex-view.json').write_text(json.dumps(preferences,ensure_ascii=False))
+  (profile/'qqq-gex-view.json').write_text(json.dumps(preferences,ensure_ascii=False),encoding='utf-8')
   workspace_args={'resource':'workspace','length':31}
   expected_workspace=legacy_view(workspace_args)
   assert client.call('get_qqq_gex_view',workspace_args)['structuredContent']['data']==expected_workspace
@@ -156,7 +156,7 @@ with tempfile.TemporaryDirectory(prefix='actual GEX signed app ')as directory:
  assert declared=={'get_qqq_gex_retained_summary','calculate_qqq_gex_local','get_qqq_gex_replay','rebuild_qqq_gex_history','get_qqq_gex_archive','get_qqq_gex_lifecycle','get_qqq_gex_live_decision','get_qqq_gex_view'},('Add a meaningful real CLI/MCP scenario for every signed app operation',declared)
  retained=hashlib.sha256(db.read_bytes()).hexdigest()
  production=pathlib.Path('src/Meili.Cli/bin/Release/net10.0/easysellput.dll').resolve()
- removed=subprocess.run([dotnet,str(production),'apps','uninstall','easysellput.qqq-gex','--data-dir',str(profile),'--json'],capture_output=True,text=True,timeout=20)
+ removed=subprocess.run([dotnet,str(production),'apps','uninstall','easysellput.qqq-gex','--data-dir',str(profile),'--json'],capture_output=True,text=True,encoding='utf-8',timeout=20)
  assert removed.returncode==0,(removed.stdout,removed.stderr)
  assert hashlib.sha256(db.read_bytes()).hexdigest()==retained
  install('1.0.1-ui')

@@ -55,3 +55,15 @@ and do not create an absent profile. New apps use `apps/data/<id>/state/`.
 GEX's two existing presentation files remain in place through explicit compatibility
 aliases; their interpretation/filtering belongs to the app bundle. This capability
 grants no writes, credentials, arbitrary files, networking or maintenance access.
+
+### Request-owned market source receipts
+
+`open_market_snapshot` and `read_market_snapshot` are private read-only engine
+capabilities. They reuse the caller's routed market service and return complete
+provider DTO bytes plus a separate original-provider byte receipt where available.
+They do not page/refetch a chain, apply a financial model, persist observations,
+start a timer or open another market connection. One session retains at most the
+latest DTO and raw payload (each at most 128 MiB); chunks are at most 1 MiB.
+Receipts cannot be read by another request and expire on replacement/disposal.
+Ordinary public chain tools continue to omit raw provider bodies. Apps must verify
+advertised hashes before interpreting or retaining the bytes.

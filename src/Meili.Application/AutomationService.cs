@@ -38,11 +38,36 @@ public sealed partial class AutomationService(DataDirectoryInfo directory, IMark
         }
         var module = (await Modules.ModuleOperations.ReadAsync(DirectoryInfo.Path, ct)).SingleOrDefault(o => o.Definition.Name == operation);
         if (module is not null)
-            return WireJson.Element(WireJson.Success(await Modules.ModuleProcess.ExecuteAsync(DirectoryInfo.Path, module, args, allowWrites, ct, ExecuteHostOperationAsync)));
+        {
+            using var session=BeginModuleHostSession();
+            return WireJson.Element(WireJson.Success(await Modules.ModuleProcess.ExecuteAsync(DirectoryInfo.Path, module, args, allowWrites, ct, session.InvokeAsync)));
+        }
         using var legacyLease = operation.Contains("_qqq_gex_", StringComparison.Ordinal) ? Modules.ModuleAccess.AcquireEnabled(DirectoryInfo.Path, Modules.ModuleAccess.QqqGex) : null;
         await _gate.WaitAsync(ct);
         try { ct.ThrowIfCancellationRequested(); return WireJson.Element(WireJson.Success(await ExecuteCoreAsync(operation, new Input(args), ct))); }
         finally { _gate.Release(); }
+    }
+
+    internal Modules.ModuleMarketSession BeginModuleHostSession()=>new(OpenMarketSnapshotAsync,ExecuteHostOperationAsync);
+    private async Task<Modules.ModuleMarketSnapshot> OpenMarketSnapshotAsync(JsonElement arguments,CancellationToken ct)
+    {
+        OperationCatalog.Validate(Modules.ModuleHostOperations.Definition("open_market_snapshot"),arguments);
+        var input=new Input(arguments);var symbol=Symbol(input.Text("symbol"));
+        await _gate.WaitAsync(ct).ConfigureAwait(false);
+        try
+        {
+            var provider=await Market(ct).ConfigureAwait(false);
+            if(input.Text("kind")=="chain")
+            {
+                if(input.Has("interval")||input.Has("from")||input.Has("to"))throw new ArgumentException("Chain source accepts only symbol and expiry.");
+                var chain=await provider.GetChainAsync(symbol,input.Date("expiry"),ct).ConfigureAwait(false);
+                return new(chain,chain.RawSourcePayload);
+            }
+            if(input.Has("expiry"))throw new ArgumentException("Bar source does not accept expiry.");
+            var from=input.Instant("from");var to=input.Instant("to");if(from>to)throw new ArgumentException("from must not be after to.");
+            return new(await provider.GetBarsAsync(new(symbol,ParseInterval(input.Text("interval","1d")),from,to),ct).ConfigureAwait(false));
+        }
+        finally{_gate.Release();}
     }
 
     /// <summary>Stable common read capabilities for signed app engines; never invokes another app or maintenance.</summary>
