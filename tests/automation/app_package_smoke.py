@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Verify the independently built GEX artifact; fixture keys are never product trust overrides."""
 import argparse
+from contextlib import closing
 import hashlib
 import json
 import pathlib
@@ -46,7 +47,7 @@ with tempfile.TemporaryDirectory(prefix='app-package-smoke-') as folder:
             return json.loads(completed.stdout)
         assert run_summary()['storageAvailable'] is False and not profile.exists()
         cache = profile / 'cache'; cache.mkdir(parents=True); db = cache / 'qqq-gex.db'
-        with sqlite3.connect(db) as connection:
+        with closing(sqlite3.connect(db)) as connection, connection:
             connection.executescript("CREATE TABLE qqq_gex_local_days(day TEXT); INSERT INTO qqq_gex_local_days VALUES('2026-01-02'),('2026-01-05'); CREATE TABLE qqq_gex_partial_days(day TEXT); INSERT INTO qqq_gex_partial_days VALUES('2026-01-06'); CREATE TABLE qqq_gex_observed_inputs(identity TEXT); INSERT INTO qqq_gex_observed_inputs VALUES('fixture');")
         before = hashlib.sha256(db.read_bytes()).hexdigest()
         result = run_summary()

@@ -10,16 +10,25 @@ public sealed class ModuleAssetLease : IDisposable
     private readonly byte[] bytes;
     private readonly IDisposable lease;
     private readonly string executionDirectory;
+    private readonly string ownedRoot;
     public string Version { get; }
-    internal ModuleAssetLease(byte[] bytes, string version, IDisposable lease, string executionDirectory)
-    { this.bytes = bytes; Version = version; this.lease = lease; this.executionDirectory = executionDirectory; }
+    internal ModuleAssetLease(byte[] bytes, string version, IDisposable lease, string executionDirectory, string ownedRoot)
+    { this.bytes = bytes; Version = version; this.lease = lease; this.executionDirectory = Path.GetFullPath(executionDirectory); this.ownedRoot = Path.TrimEndingDirectorySeparator(Path.GetFullPath(ownedRoot)); }
     public Stream OpenRead() => new MemoryStream(bytes, writable: false);
     internal async Task<string> MaterializeScriptAsync(CancellationToken ct)
     {
         var hash = Convert.ToHexString(SHA256.HashData(bytes));
-        var current = new DirectoryInfo(executionDirectory);
-        for (var parent = current; parent is not null; parent = parent.Parent)
+        var relative = Path.GetRelativePath(ownedRoot, executionDirectory);
+        if (Path.IsPathRooted(relative) || relative == ".." || relative.StartsWith(".." + Path.DirectorySeparatorChar, StringComparison.Ordinal))
+            throw new InvalidDataException("Module execution directory escaped its owned root.");
+        var comparison = OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+        // The explicitly selected profile is the trust anchor. Check every owned
+        // component including apps itself, not OS ancestors such as macOS /var.
+        for (var parent = new DirectoryInfo(executionDirectory); parent is not null; parent = parent.Parent)
+        {
             if (parent.Exists && parent.LinkTarget is not null) throw new InvalidDataException("Linked module execution directory.");
+            if (string.Equals(Path.TrimEndingDirectorySeparator(parent.FullName), ownedRoot, comparison)) break;
+        }
         Directory.CreateDirectory(executionDirectory);
         var path = Path.Combine(executionDirectory, hash + ".mjs");
         if (File.Exists(path) && new FileInfo(path).LinkTarget is not null) throw new InvalidDataException("Linked module script.");
@@ -69,7 +78,7 @@ public static class ModuleAssets
             var bytes = output.ToArray();
             if (bytes.LongLength != file.Size || !Convert.ToHexString(SHA256.HashData(bytes)).Equals(file.Sha256, StringComparison.OrdinalIgnoreCase))
                 throw new InvalidDataException("Module asset changed after verification.");
-            return new(bytes, verified.Manifest.Version, lease, Path.Combine(registry.Root, "execution", id, verified.Manifest.Version));
+            return new(bytes, verified.Manifest.Version, lease, Path.Combine(registry.Root, "execution", id, verified.Manifest.Version), registry.Root);
         }
         catch { lease.Dispose(); throw; }
     }
