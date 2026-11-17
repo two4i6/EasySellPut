@@ -20,6 +20,9 @@ for name in ['ai','@ai-sdk/openai']:
 # Shared calculations and bounded read tools remain part of the product.
 for name in ['qqqGexCalculation.ts','qqqExposureWorkbench.ts','qqqIntradayDirectionalSummary.ts','engines/analysis/QqqGexResearch.ts']:
  if not(web/'upstream/src/lib'/name).is_file():raise SystemExit('Shared calculation removed: '+name)
+contracts=json.loads((web/'public-contracts.json').read_text())
+read_tools={operation['name'] for operation in contracts if operation.get('writes') is False}
 for name in ['get_qqq_gex_archive','get_qqq_gex_view','get_qqq_gex_replay']:
- if name not in(root/'src/Meili.Application/OperationCatalog.Coverage.cs').read_text():raise SystemExit('Read tool removed: '+name)
+ if name not in read_tools:raise SystemExit('Read tool removed or made writable: '+name)
+if 'Apps.QqqGex.GexContracts.All' not in(root/'src/Meili.Application/OperationCatalog.Coverage.cs').read_text():raise SystemExit('App contracts disconnected from the host catalog')
 print('PASS: retired workbench surfaces/dependencies absent; shared analytics and read tools retained')

@@ -205,7 +205,8 @@ def main():
             write_tools = writer.request('tools/list')['result']['tools']
             writer.check_live_status(True)
             assert {tool['name'] for tool in write_tools} == set(operations)
-            assert not writer.call('rename_watchlist_group', {'groupId': group, 'name': 'MCP'}).get('isError', False)
+            renamed=writer.call('rename_watchlist_group', {'groupId': group, 'name': 'MCP'})
+            assert not renamed.get('isError', False), renamed
             # A second process writes, then the long-running MCP host must read the new snapshot.
             run(command, data, 'watchlist', 'add', 'MSFT', '--group-id', group)
             groups = writer.call('get_watchlists', {})['structuredContent']['data']
