@@ -92,5 +92,122 @@
     "engineAssets": [
       "engine/import.mjs"
     ]
+  },
+  {
+    "name": "get_qqq_gex_archive",
+    "description": "Read the exact locally retained page archive: date discovery, snapshot metadata, lossless per-strike profile, 2-minute bars or original provider-body metadata (resource=providers, hash used by view providerRaw). No remote fallback or observation writes. Continuations require the first page revision; changed revisions require restarting. Missing history and incomplete IV remain explicit.",
+    "writes": false,
+    "schema": {
+      "type": "object",
+      "properties": {
+        "resource": {
+          "type": "string",
+          "description": "Bounded archive view",
+          "enum": [
+            "dates",
+            "snapshots",
+            "profile",
+            "bars",
+            "providers"
+          ],
+          "maxLength": 200
+        },
+        "archiveState": {
+          "type": "string",
+          "description": "published (default) or partial; partial raw observations never certify regular replay or complete history",
+          "enum": [
+            "published",
+            "partial"
+          ],
+          "maxLength": 200
+        },
+        "date": {
+          "type": "string",
+          "description": "Trading date YYYY-MM-DD; required except dates",
+          "maxLength": 200
+        },
+        "expiry": {
+          "type": "string",
+          "description": "Expiry YYYY-MM-DD; required for profile",
+          "maxLength": 200
+        },
+        "capturedAt": {
+          "type": "string",
+          "description": "Exact capturedAt from snapshot listing; required for profile",
+          "maxLength": 200
+        },
+        "page": {
+          "type": "integer",
+          "description": "page argument for get_qqq_gex_archive; observe this field's schema type, bounds and operation semantics.",
+          "minimum": 1,
+          "maximum": 100000
+        },
+        "pageSize": {
+          "type": "integer",
+          "description": "pageSize argument for get_qqq_gex_archive; observe this field's schema type, bounds and operation semantics.",
+          "minimum": 1,
+          "maximum": 200
+        },
+        "revision": {
+          "type": "string",
+          "description": "First page revision; required for page > 1",
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "resource"
+      ],
+      "additionalProperties": false
+    },
+    "entryPoint": "engine/operations.mjs",
+    "engineAssets": [
+      "engine/query.mjs"
+    ]
+  },
+  {
+    "name": "get_qqq_gex_lifecycle",
+    "description": "Read hash-verified locally recorded source PCS lifecycle observations for one trading date. Never computes or invents historical points; missing coverage stays explicit.",
+    "writes": false,
+    "schema": {
+      "type": "object",
+      "properties": {
+        "date": {
+          "type": "string",
+          "description": "ISO calendar date YYYY-MM-DD",
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "date"
+      ],
+      "additionalProperties": false
+    },
+    "entryPoint": "engine/operations.mjs",
+    "engineAssets": []
+  },
+  {
+    "name": "get_qqq_gex_live_decision",
+    "description": "Evaluate the pinned source PCS daily/previous-close gate, timing and real-chain candidate from retained local routed inputs. Read-only, no remote fallback. Source delays, date alignment and stale/missing inputs remain explicit; never grants account/order permission.",
+    "writes": false,
+    "schema": {
+      "type": "object",
+      "properties": {
+        "regimeMode": {
+          "type": "string",
+          "description": "Source regime engine",
+          "enum": [
+            "unified",
+            "overlay"
+          ],
+          "maxLength": 200
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "entryPoint": "engine/operations.mjs",
+    "engineAssets": [
+      "engine/query.mjs"
+    ]
   }
 ]
