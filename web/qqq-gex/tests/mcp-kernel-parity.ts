@@ -1,3 +1,8 @@
+import {exposureReplayTableRows,exposureReplayDisplayDeltaDetails} from '../upstream/src/lib/qqqExposureReplay';
+import {qqqRegularBarIndex,qqqPulseSeries,qqqWindowVolatility,qqqRegularObservationCutoff,prepareRvolBaseline,qqqRvolFromBaseline} from '../upstream/src/lib/qqqIntradayIndicators';
+import {prepareQqqOptionObservations,qqqObservationPrefix,qqqObservationSpotIndex} from '../upstream/src/lib/qqqOptionObservationHistory';
+import {qqqSnapshotAtmIv} from '../upstream/src/lib/qqqAtmIvObservation';
+import {readLocalContext} from '../runtime/local-context';
 import {qqqReadableMarkers} from '../upstream/src/lib/qqqChartReadability';
 import {prepareExposureChartReplay,exposureReplayChartPayload} from '../upstream/src/lib/qqqExposureChartReplay';
 import {buildQqqPcsIntradayChartData,buildObservedPriceLowMarkers} from '../upstream/src/components/Strategy/qqq/QqqPcsIntradayChart.shared';
@@ -28,8 +33,33 @@ try{for(const scope of ['selected','0dte','all'] as const){const expiries=all.fi
  }
  for(const policy of ['partial','complete'] as const)for(const mode of ['gamma','gamma-call','gamma-put'] as const){const input=dayScenarioInput(raw.at(-1),date,spotAt(raw.at(-1)!.time)),expected=buildDayScenario(input,mode,policy),result=(await call('dayScenario',{scope,mode,policy})).result;equal(result,{...expected,policy,forecastBands:scenarioExpectedBandsFromInput(input,expected.times,expiry,scope==='all'?'all':'selected')});}equal((await call('dayScenario',{scope})).result,(await call('dayScenario',{scope,policy:'partial'})).result);
  }
+ // Scrubbing must preserve the original table's causal prefix and delta explanations.
+ const cursorTimes=[...new Set([Date.parse(date+'T14:29:59Z'),...day.rows.map((r:any)=>Date.parse(r.availableAt??r.capturedAt)),cutoff])].sort((a,b)=>a-b);
+ for(const cursor of cursorTimes)for(const scope of ['selected','0dte','all'] as const){
+  const raw=exposureFrames(all,cursor,scope,expiry,date),frames=scope==='all'?await prepareAggregateGammaFrames(raw,spotAt,signal):raw;
+  const response=await call('replayTable',{scope,at:new Date(cursor).toISOString()});
+  if(!frames.length){assert.equal(response.status,'causal_frame_missing');continue;}
+  const rows=exposureReplayTableRows(frames,bars);
+  equal(response.result,rows.map((row,i)=>({...row,displayValues:[...row.displayValues],delta:exposureReplayDisplayDeltaDetails(row,rows[i-1])})));
+  assert.ok(response.result.every((row:any)=>row.time<=cursor),'no future table snapshot');
+ }
+ // Match useQqqIntradayStudy, not merely the transport adapter: IV is only
+ // available after the last receipt/computation timestamp of its profile.
+ for(const cursor of cursorTimes){
+  const raw=exposureFrames(all,cursor,'selected',expiry,date),response=await call('pulse',{at:new Date(cursor).toISOString()});
+  if(!raw.length){assert.equal(response.status,'causal_frame_missing');continue;}
+  const tracks=await prepareQqqOptionObservations(all.filter(e=>e.expiryDate===expiry),raw.map(f=>({...f,profiles:f.profiles.filter(p=>p.expiry===expiry)})),date,signal,profile=>({profile}));
+  const pulseCutoff=qqqRegularObservationCutoff(date,cursor),snapshot=qqqObservationPrefix(tracks.find(t=>t.expiry===expiry)?.history??[],pulseCutoff).at(-1),observationSpot=qqqObservationSpotIndex(bars,date);
+  const iv=snapshot?qqqSnapshotAtmIv(snapshot.profile,observationSpot(snapshot.time))||null:null,index=qqqRegularBarIndex(bars,date),points=qqqObservationPrefix(qqqPulseSeries(index),pulseCutoff);
+  equal(response.result.points,points);
+  equal(response.result.volatility,[10,30].map(minutes=>qqqWindowVolatility(index,pulseCutoff,minutes as 10|30,iv,snapshot?.time??null,expiry)));
+  const reference=readLocalContext(db,date,0,'volume',new Date(cursor).toISOString());
+  equal(response.result.rvol,qqqRvolFromBaseline(points.at(-1),await prepareRvolBaseline(reference.days,date,signal),pulseCutoff));
+  assert.ok(points.every(p=>p.time<=pulseCutoff),'no unclosed future pulse bar');
+ }
+ console.log('PASS replay cursor/scopes and pulse closed-bars/receipt-time/IV/RVOL parity against original UI preparation; fixture or retained sample only.');
  for(const analysis of ['exposure','overlays','atmIv','maxPain','priceReactions'])equal((await call(analysis,{scope:'0dte',expiry:'2026-01-09'})).result,(await call(analysis,{scope:'0dte'})).result);
  await assert.rejects(()=>call('overlays',{overlays:'unknown'}),/Invalid overlay/);await assert.rejects(()=>call('exposure',{overlays:'iv'}),/Invalid overlay/);
- console.log(process.env.QQQ_PARITY_DB?'Dataset: retained real partial delayed sample; no complete-day claim.':'Dataset: synthetic fixture; not market data.');
+ console.log(process.env.QQQ_PARITY_DB&&!process.env.QQQ_PARITY_SYNTHETIC?'Dataset: retained real partial delayed sample; no complete-day claim.':'Dataset: synthetic fixture; not market data.');
  console.log(process.env.QQQ_PARITY_SCENARIO_ONLY?'PASS scenario policy and forecast-band parity: 3 scopes ×3 gamma modes ×2 policies and UI partial default.':'PASS UI→MCP kernel numerical parity: 3 expiry scopes × 5 exposure modes × 3 metrics; ATM IV/Max Pain/overview/discovery/overlays/2,10,30-minute activity/scenario match original UI kernels, including missing values. Includes empty/single/multiple strike filters, all 16 overlay combinations and all 8 price-reaction layer combinations with original bars/zones/markers. Limited datasets; positive marker cohorts and native rendering remain separate gates.');
 }finally{db.close();}
