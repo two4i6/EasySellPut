@@ -74,7 +74,7 @@ internal static partial class Program
                 await Eval("(()=>{const end=Date.now()+25000;const poll=()=>{try{if("+condition+"){document.title="+JsonSerializer.Serialize(marker)+";return;}}catch(e){}if(Date.now()<end)setTimeout(poll,100);};poll();})()");
                 try{await Until(()=>Title()==marker,label);}
                 catch{
-                    await Eval("document.title='GEX_DIAGNOSTIC '+JSON.stringify({visibility:document.visibilityState,focus:document.hasFocus(),ready:document.readyState,body:document.body.innerText.slice(0,5000),errors:window.__gexProbeErrors,fetches:window.__gexProbeFetch,resources:performance.getEntriesByType('resource').slice(-20).map(e=>({asset:e.name.split('/').pop(),duration:Math.round(e.duration),bytes:e.transferSize}))})");
+                    await Eval("document.title='GEX_DIAGNOSTIC '+JSON.stringify({visibility:document.visibilityState,focus:document.hasFocus(),ready:document.readyState,scope:[...document.querySelectorAll('select[aria-label=\"到期日范围\"]')].map(s=>({value:s.value,disabled:s.disabled})),observedExposure:localStorage.getItem('qqq-local:observed-exposure:v1'),body:document.body.innerText.slice(0,5000),errors:window.__gexProbeErrors,fetches:window.__gexProbeFetch,resources:performance.getEntriesByType('resource').slice(-20).map(e=>({asset:e.name.split('/').pop(),duration:Math.round(e.duration),bytes:e.transferSize}))})");
                     await Task.Delay(500);Console.Error.WriteLine(Title());throw;
                 }
             }
@@ -103,6 +103,10 @@ internal static partial class Program
             if(nativeFocus.ValueKind!=JsonValueKind.Object||nativeFocus.GetProperty("focus").GetProperty("value").GetString()!="1")throw new Exception("Native focus and MCP disagree");
             await Eval("[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Heatmap').click()");
             await Check("document.querySelector('select[aria-label=\"到期日范围\"]')?.disabled===false","native editable expiry scope");
+            // Mode activation resets the preferred scope in a passive React effect.
+            // Wait across its first paint before sending the next control event.
+            await Eval("window.__gexScopeSettled=false;requestAnimationFrame(()=>requestAnimationFrame(()=>window.__gexScopeSettled=true))");
+            await Check("window.__gexScopeSettled===true","native scope activation effects settled");
             await Eval("(()=>{const s=document.querySelector('select[aria-label=\"到期日范围\"]');s.value='all';s.dispatchEvent(new Event('change',{bubbles:true}));})()");
             await Check("JSON.parse(localStorage.getItem('qqq-local:observed-exposure:v1')??'null')?.scope==='all'","native all-expiry scope observation");
             await Eval("(()=>{const s=document.querySelector('select[aria-label=\"到期日范围\"]');s.value='selected';s.dispatchEvent(new Event('change',{bubbles:true}));})()");
