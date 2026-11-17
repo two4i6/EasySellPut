@@ -1,5 +1,7 @@
 // Local build adapter observes presentation state without changing pinned source kernels.
 export function observeUi(contents,file){
+ // esbuild receives native Windows paths and checkout line endings.
+ file=file.replaceAll('\\','/');contents=contents.replaceAll('\r\n','\n');
  const hooks=[
   ['QqqExposureWorkbench.tsx',`  const selectedStrikes=useMemo(()=>new Set(strikeKey?strikeKey.split(',').map(Number):[]),[strikeKey]);`,'exposure',{date:'data.view.date',expiry:'selectedExpiry',scope:'scope',cursor:'cursor',effectiveAt:'frame?.time??null',playing:'playing',playbackSpeed:'playbackSpeed',heatmapView:'heatmapView',mode:'mode',metric:'metric',radius:'radius',gain:'gain',keys:'keys',heat:'heat',historyMarks:'historyMarks',dayRange:'dayRange',overlays:'overlays',reactions:'reactions',discovery:'discovery',changeMinutes:'changeMinutes',focusedStrike:'focusedStrike',strikeHover:'strikeHover',observationMinutes:'observationMinutes',inverted:'inverted',smooth:'smooth',barZoom:'barZoom',selectedStrikes:'[...selectedStrikes]'}],
   ['QqqWallTouchStatsCard.tsx','  const stats = useMemo(() => summarizeWallTouches(events), [events]);','wallTouches',{date:'date',expiry:'expiry',dte:'dte',gamma:'gamma',period:'period',side:'side',horizon:'horizon',statsKnown:'statsKnown'}],

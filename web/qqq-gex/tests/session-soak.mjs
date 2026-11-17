@@ -52,19 +52,29 @@ try {
   const selection=JSON.parse(workspace.preferences.values['qqq-local:observed-exposure:v1']);assert.equal(selection.date,'2026-01-02');assert.deepEqual(selection,JSON.parse(browserSelection));assert.deepEqual(workspace.analyticalSelections.exposure,selection);assert.ok(selection.effectiveAt>0);assert.ok(selection.selectedStrikes.length>0);
   assert.equal(workspace.desktop.fresh,true);assert.equal(workspace.desktop.lastObserved.state.capture.phase,'idle');assert.equal(workspace.desktop.lastObserved.state.ready,true);
   async function interactionRead(){
-   let observed;
-   for(let n=0;n<100;n++){const raw=await page.evaluate(()=>localStorage.getItem('qqq-local:observed-interaction:v1'));const saved=await(await context.request.get(new URL('preferences',base).href)).json();if(raw&&saved.values['qqq-local:observed-interaction:v1']===raw){observed=JSON.parse(raw);break;}await new Promise(r=>setTimeout(r,100));}
-   assert.ok(observed,'interaction must reach native storage');
-   const response=JSON.parse(execFileSync('dotnet',[host,'--operation',dir,'get_qqq_gex_view',JSON.stringify({resource:'workspace'})],{encoding:'utf8',maxBuffer:1048576}));assert.equal(response.success,true);
-   const data=JSON.parse(Buffer.from(response.data.bodyBase64,'base64').toString('utf8'));assert.deepEqual(data.analyticalSelections.interaction,observed);return observed;
+   for(let n=0;n<100;n++){
+    const raw=await page.evaluate(()=>localStorage.getItem('qqq-local:observed-interaction:v1'));const saved=await(await context.request.get(new URL('preferences',base).href)).json();
+    if(raw&&saved.values['qqq-local:observed-interaction:v1']===raw){
+     const observed=JSON.parse(raw),response=JSON.parse(execFileSync('dotnet',[host,'--operation',dir,'get_qqq_gex_view',JSON.stringify({resource:'workspace'})],{encoding:'utf8',maxBuffer:1048576}));assert.equal(response.success,true);
+     const data=JSON.parse(Buffer.from(response.data.bodyBase64,'base64').toString('utf8'));
+     // A newer observation can commit during the operation; retry until all three revisions agree.
+     if(JSON.stringify(data.analyticalSelections.interaction)===JSON.stringify(observed)){assert.deepEqual(data.analyticalSelections.interaction,observed);return observed;}
+    }
+    await new Promise(r=>setTimeout(r,100));
+   }
+   assert.fail('browser, native storage and application MCP interaction revisions must agree');
   }
   const canvas=page.locator('canvas:visible').first(),bounds=await canvas.boundingBox();assert.ok(bounds);
   for(const fraction of [.3,.5,.7]){await page.mouse.move(bounds.x+bounds.width*fraction,bounds.y+bounds.height*.3);await new Promise(r=>setTimeout(r,150));if(await page.locator('[data-qqq-hover]').count())break;}
-  await page.locator('[data-qqq-hover]').waitFor({state:'attached',timeout:30000});const hovered=JSON.parse(await page.locator('[data-qqq-hover]').first().getAttribute('data-qqq-hover'));
-  // One cursor time can render first without GEX, then with asynchronously loaded walls.
-  // Wait for the entire source payload, not just its unchanged time.
-  await page.waitForFunction(expected=>JSON.stringify(JSON.parse(localStorage.getItem('qqq-local:observed-interaction:v1')??'null')?.chartHover)===expected,JSON.stringify(hovered));
-  const hoverRead=await interactionRead();assert.deepEqual(hoverRead.chartHover,hovered);assert.ok(hoverRead.pointer);assert.equal(hoverRead.chartTimeUnits,'Unix seconds');await page.screenshot({path:`test-results/qqq-hover-${generation}.png`});
+  await page.locator('[data-qqq-hover]').waitFor({state:'attached',timeout:30000});
+  let hoverRead,hovered;
+  for(let n=0;n<100;n++){
+   const read=await interactionRead(),current=JSON.parse(await page.locator('[data-qqq-hover]').first().getAttribute('data-qqq-hover'));
+   // Same time can gain asynchronously loaded GEX/walls. Compare a coherent complete payload.
+   if(JSON.stringify(read.chartHover)===JSON.stringify(current)){hoverRead=read;hovered=current;break;}
+   await new Promise(r=>setTimeout(r,100));
+  }
+  assert.ok(hoverRead,'original renderer and application hover must converge');assert.deepEqual(hoverRead.chartHover,hovered);assert.ok(hoverRead.pointer);assert.equal(hoverRead.chartTimeUnits,'Unix seconds');await page.screenshot({path:`test-results/qqq-hover-${generation}.png`});
   const speed=page.getByLabel('播放速度',{exact:true});await speed.focus();await page.waitForFunction(()=>JSON.parse(localStorage.getItem('qqq-local:observed-interaction:v1')??'null')?.focus?.label==='播放速度');const focusRead=await interactionRead();assert.equal(focusRead.focus.value,await speed.inputValue());await page.screenshot({path:`test-results/qqq-focus-${generation}.png`});
   await page.mouse.move(1,1);await page.waitForFunction(()=>JSON.parse(localStorage.getItem('qqq-local:observed-interaction:v1')??'null')?.chartHover===null);assert.equal((await interactionRead()).chartHover,null);
   await page.getByRole('button',{name:'Heatmap',exact:true}).click();
