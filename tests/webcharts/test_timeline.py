@@ -95,8 +95,9 @@ class TimelineTests(unittest.TestCase):
             p.locator('#event-close').focus()
             p.evaluate('meiliChart.render(structuredClone(meiliChart.inspect().state))')
             self.assertEqual(p.evaluate('document.activeElement.id'),'event-close')
-            p.evaluate("meiliMotion.enter(document.querySelector('#event-detail'))")
-            self.assertTrue(p.locator('#event-detail').evaluate('(e)=>e.getAnimations().length>0'))
+            # Observe startup in the same browser task: a separate protocol round trip
+            # can outlive the short animation on a busy CI runner.
+            self.assertTrue(p.locator('#event-detail').evaluate('(e)=>{meiliMotion.enter(e);return e.getAnimations().length>0;}'))
             self.process.stdin.write('reduced-on\n');self.process.stdin.flush()
             self.wait('meiliChart.inspect().state.theme.reducedMotion && document.documentElement.dataset.reducedMotion === "true"')
             self.wait("document.querySelector('#event-detail').getAnimations().length === 0")

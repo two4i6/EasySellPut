@@ -117,7 +117,7 @@ Design: [architecture](docs/55-主程序与可独立更新子应用架构研究.
 
 | Step | Status | Commit / push | Verification |
 | --- | --- | --- | --- |
-| S00 | Completed locally; push recorded after commit | This plan commit | Both research reports and three JSON records checked; source remains unchanged; remote fast-forward preserved six GEX commits |
-| S01 | Next | — | Exact baseline CI #138 queued; previous #136/#137 green; navigation fix already present remotely |
+| S00 | Completed and pushed | `d07b81f` | Research/plan checks passed; remote work synchronized |
+| S01 | Local baseline passed; exact-commit CI pending | This baseline correction commit | 961 .NET tests, 55 Python guards, all 58 real CLI/MCP capability cases, process/cache checks passed; Chromium timeline 4/4 passed. CI [44066016588](https://github.com/two4i6/EasySellPut/actions/runs/44066016588) exposed an animation observation race, corrected without changing product motion or weakening assertions. |
 
 Do not check off later steps based on this document or a scaffold alone. Add completed commit IDs, focused/full checks, screenshots and exact-commit CI links as work proceeds.
