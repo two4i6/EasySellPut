@@ -24,7 +24,7 @@ public sealed class QqqGexWorkspace(string directory)
             }
         }catch(Exception e)when(e is IOException or JsonException or InvalidOperationException or UnauthorizedAccessException or FormatException or KeyNotFoundException){status="desktop_observation_unavailable";Meili.Core.Diagnostics.AppLog.Warn("qqq-gex","Desktop observation unavailable: "+e.GetType().Name);}
         var preferences=new QqqGexPreferences(directory).Read();var selections=new Dictionary<string,JsonElement>();
-        foreach(var name in new[]{"exposure","wallTouches","spreadStudy"})if(preferences.values.TryGetValue("qqq-local:observed-"+name+":v1",out var value)){
+        foreach(var name in new[]{"exposure","wallTouches","spreadStudy","interaction"})if(preferences.values.TryGetValue("qqq-local:observed-"+name+":v1",out var value)){
             try{using var parsed=JsonDocument.Parse(value,new JsonDocumentOptions{MaxDepth=16});if(parsed.RootElement.ValueKind==JsonValueKind.Object)selections[name]=parsed.RootElement.Clone();}catch(JsonException){}
         }
         return new{preferences,analyticalSelections=selections,desktop=new{available=desktop.HasValue,status,fresh,lastObserved=desktop},coverage="Allowlisted persisted UI preferences and last desktop observation only. A recent observation does not certify a running/visible window or live market freshness; source timestamps remain authoritative. No network, capture, preference mutation or process control."};

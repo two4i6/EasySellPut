@@ -51,6 +51,20 @@ try {
   assert.equal(operation.success,true);const workspace=JSON.parse(Buffer.from(operation.data.bodyBase64,'base64').toString('utf8'));
   const selection=JSON.parse(workspace.preferences.values['qqq-local:observed-exposure:v1']);assert.equal(selection.date,'2026-01-02');assert.deepEqual(selection,JSON.parse(browserSelection));assert.deepEqual(workspace.analyticalSelections.exposure,selection);assert.ok(selection.effectiveAt>0);assert.ok(selection.selectedStrikes.length>0);
   assert.equal(workspace.desktop.fresh,true);assert.equal(workspace.desktop.lastObserved.state.capture.phase,'idle');assert.equal(workspace.desktop.lastObserved.state.ready,true);
+  async function interactionRead(){
+   let observed;
+   for(let n=0;n<100;n++){const raw=await page.evaluate(()=>localStorage.getItem('qqq-local:observed-interaction:v1'));const saved=await(await context.request.get(new URL('preferences',base).href)).json();if(raw&&saved.values['qqq-local:observed-interaction:v1']===raw){observed=JSON.parse(raw);break;}await new Promise(r=>setTimeout(r,100));}
+   assert.ok(observed,'interaction must reach native storage');
+   const response=JSON.parse(execFileSync('dotnet',[host,'--operation',dir,'get_qqq_gex_view',JSON.stringify({resource:'workspace'})],{encoding:'utf8',maxBuffer:1048576}));assert.equal(response.success,true);
+   const data=JSON.parse(Buffer.from(response.data.bodyBase64,'base64').toString('utf8'));assert.deepEqual(data.analyticalSelections.interaction,observed);return observed;
+  }
+  const canvas=page.locator('canvas:visible').first(),bounds=await canvas.boundingBox();assert.ok(bounds);
+  for(const fraction of [.3,.5,.7]){await page.mouse.move(bounds.x+bounds.width*fraction,bounds.y+bounds.height*.3);await new Promise(r=>setTimeout(r,150));if(await page.locator('[data-qqq-hover]').count())break;}
+  await page.locator('[data-qqq-hover]').waitFor({state:'attached',timeout:30000});const hovered=JSON.parse(await page.locator('[data-qqq-hover]').first().getAttribute('data-qqq-hover'));
+  await page.waitForFunction(time=>JSON.parse(localStorage.getItem('qqq-local:observed-interaction:v1')??'null')?.chartHover?.hover?.time===time,hovered.hover.time);
+  const hoverRead=await interactionRead();assert.deepEqual(hoverRead.chartHover,hovered);assert.ok(hoverRead.pointer);assert.equal(hoverRead.chartTimeUnits,'Unix seconds');await page.screenshot({path:`test-results/qqq-hover-${generation}.png`});
+  const speed=page.getByLabel('播放速度',{exact:true});await speed.focus();await page.waitForFunction(()=>JSON.parse(localStorage.getItem('qqq-local:observed-interaction:v1')??'null')?.focus?.label==='播放速度');const focusRead=await interactionRead();assert.equal(focusRead.focus.value,await speed.inputValue());await page.screenshot({path:`test-results/qqq-focus-${generation}.png`});
+  await page.mouse.move(1,1);await page.waitForFunction(()=>JSON.parse(localStorage.getItem('qqq-local:observed-interaction:v1')??'null')?.chartHover===null);assert.equal((await interactionRead()).chartHover,null);
   const api=new URL('api/analysis/qqq/gex/day?date=2026-01-02&from=2026-01-02T05%3A00%3A00Z&to=2026-01-03T05%3A00%3A00Z&expiryDate=2026-01-02',base);
   const before=await (await context.request.get(new URL('api/analysis/qqq/local-state',base).href)).json();assert.equal(before.ready,true);assert.equal(before.capture.phase,'idle','test host must not claim live capture');
   for(let i=0;i<cycles;i++){

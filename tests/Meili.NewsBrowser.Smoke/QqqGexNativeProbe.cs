@@ -85,6 +85,36 @@ internal static partial class Program
                 await Check("document.querySelectorAll('section[aria-label=\"回放 GEX 快照表\"] tbody tr:not([aria-hidden])').length===8&&!document.body.textContent.includes('QQQ GEX 视图暂时无法显示')","native "+mode);
             }
             await Check("[...document.querySelectorAll('canvas')].some(c=>c.width>0&&c.height>0)","native Kline canvas");
+            async Task<JsonElement> Workspace()
+            {
+                using var service=new AutomationService(new Meili.Core.Settings.DataDirectoryInfo(data,Meili.Core.Settings.DataDirectorySource.CommandLine));
+                using var args=JsonDocument.Parse("{\"resource\":\"workspace\",\"length\":262144}");
+                var response=await service.ExecuteAsync("get_qqq_gex_view",args.RootElement,false);
+                if(!response.GetProperty("success").GetBoolean())throw new Exception("Native application workspace read failed");
+                using var decoded=JsonDocument.Parse(Convert.FromBase64String(response.GetProperty("data").GetProperty("bodyBase64").GetString()!));return decoded.RootElement.Clone();
+            }
+            await Eval("document.querySelector('select[aria-label=\"播放速度\"]').focus()");
+            await Check("JSON.parse(localStorage.getItem('qqq-local:observed-interaction:v1')??'null')?.focus?.label==='播放速度'","native DOM focus observation");
+            await Check("JSON.parse(localStorage.getItem('qqq-local:observed-interaction:v1')??'null')?.focus?.value==='1'","native playback value observation");
+            // Allow the existing bounded native preference bridge to acknowledge the observation.
+            await Check("document.body.textContent.includes('视图设置保存失败')===false","native preference persistence health");
+            JsonElement nativeFocus=default;
+            for(var attempt=0;attempt<40;attempt++){var current=await Workspace();if(current.GetProperty("analyticalSelections").TryGetProperty("interaction",out var observed)&&observed.TryGetProperty("focus",out var focus)&&focus.ValueKind==JsonValueKind.Object&&focus.GetProperty("label").GetString()=="播放速度"){nativeFocus=observed.Clone();break;}await Task.Delay(100);}
+            if(nativeFocus.ValueKind!=JsonValueKind.Object||nativeFocus.GetProperty("focus").GetProperty("value").GetString()!="1")throw new Exception("Native focus and MCP disagree");
+            await Eval("[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Heatmap').click()");
+            await Check("document.querySelector('select[aria-label=\"到期日范围\"]')?.disabled===false","native editable expiry scope");
+            await Eval("(()=>{const s=document.querySelector('select[aria-label=\"到期日范围\"]');s.value='all';s.dispatchEvent(new Event('change',{bubbles:true}));})()");
+            await Check("JSON.parse(localStorage.getItem('qqq-local:observed-exposure:v1')??'null')?.scope==='all'","native all-expiry scope observation");
+            await Eval("(()=>{const s=document.querySelector('select[aria-label=\"到期日范围\"]');s.value='selected';s.dispatchEvent(new Event('change',{bubbles:true}));})()");
+            await Check("JSON.parse(localStorage.getItem('qqq-local:observed-exposure:v1')??'null')?.scope==='selected'","native selected-expiry scope observation");
+            foreach(var dark in new[]{false,true}){
+                var palette=ThemePalette.For(dark);var (up,down)=palette.UpDown(Meili.Core.Settings.UpDownColorMode.RedUp);ScottPlot.Color C(uint n)=>new((byte)(n>>16),(byte)(n>>8),(byte)n);
+                session.UpdatePresentation(ChartPalette.Create(dark,C(up),C(down),C(palette.PrimaryText),C(palette.MutedText),palette));
+                await Check("document.documentElement.dataset.theme==='"+(dark?"dark":"light")+"'","native GEX palette update");
+            }
+            foreach(var width in new[]{1000,1440}){window.Width=width;await Task.Delay(150);await Check("document.querySelectorAll('section[aria-label=\"回放 GEX 快照表\"] tbody tr:not([aria-hidden])').length===8&&!document.body.textContent.includes('QQQ GEX 视图暂时无法显示')","native GEX compact/wide retained data");}
+            window.Hide();await Task.Delay(250);window.Show();window.Activate();
+            await Check("document.querySelectorAll('section[aria-label=\"回放 GEX 快照表\"] tbody tr:not([aria-hidden])').length===8","native hide/show preserves GEX rows");
             foreach(var tab in new[]{"Gamma 地图","行权价分布","成交持仓","结构事件","活动响应","日内节奏","组合分析","触位统计","Max Pain / Time","ATM IV"})
             {
                 var name=JsonSerializer.Serialize(tab);
@@ -94,7 +124,7 @@ internal static partial class Program
             await Eval("document.title='gex-reload-pending'");await Until(()=>Title()=="gex-reload-pending","native reload sentinel");
             browser.Reload();await Until(()=>Title().StartsWith("QQQ GEX",StringComparison.Ordinal),"native reload new document");
             await Check("document.querySelectorAll('section[aria-label=\"回放 GEX 快照表\"] tbody tr:not([aria-hidden])').length===8","native reload retains snapshots");
-            Console.WriteLine("PASS: synthetic populated native QQQ GEX: 3 chart modes, 10 analysis tabs, canvas and reload; no live-history/alert claim.");
+            Console.WriteLine("PASS: synthetic populated native QQQ GEX: 3 chart modes, 10 analysis tabs, canvas, DOM focus through MCP, scope changes, light/dark/compact/wide, hide/show and reload; no live-history/alert claim.");
         }
         finally{window.Content=null;window.Close();}
     }

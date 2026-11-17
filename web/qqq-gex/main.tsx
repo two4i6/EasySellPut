@@ -1,3 +1,4 @@
+import {observeInteractions} from './adapters/interaction-state';
 import {RecoveryBoundary as Boundary} from './adapters/recovery-boundary';
 import {captureLabel} from './adapters/cache-health';
 import {applyLocalPresentation} from './adapters/local-presentation';
@@ -23,6 +24,7 @@ window.fetch=(input,init)=>{const url=new URL(typeof input==='string'?input:inpu
 // A cached viewing session never opens Yahoo's live stream.
 window.EventSource=class {static CONNECTING=0;static OPEN=1;static CLOSED=2;readyState=2;CONNECTING=0;OPEN=1;CLOSED=2;addEventListener(){} removeEventListener(){} close(){}} as any;
 await restoreLocalPreferences(localBase,originalFetch);
+observeInteractions();
 try{const response=await originalFetch(new URL('presentation',localBase));if(response.ok)applyLocalPresentation(await response.json());}catch{/* Native theme unavailable in standalone browser. */}
 try{const response=await originalFetch(new URL('api/analysis/qqq/local-state',localBase));if(response.ok){const state=await response.json();localRevision=state.revision??'';latestLocalDate=state.latestDate??null;initialPartial=state.partial??null;initialStorage=state.storage??null;initialCapture=state.capture??null;initialReady=state.ready??Boolean(state.latestDate);if(typeof state.latestDate==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(state.latestDate)){const saved=localStorage.getItem('qqq-gex:snapshot-date:v1');const selected=localStorage.getItem('qqq-local:mode')!=='latest'&&saved&&/^\d{4}-\d{2}-\d{2}$/.test(saved)?saved:state.latestDate;localStorage.setItem('qqq-gex:date-mode:v1',localStorage.getItem('qqq-local:mode')==='latest'&&selected===new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())?'follow':'fixed');localStorage.setItem('qqq-gex:snapshot-date:v1',selected);document.title=`QQQ GEX · ${selected} · 本地历史`;}}}catch{/* Cache-miss UI remains available. */}
 const {QqqPcsGexStandaloneContent}=await import('./upstream/src/app/analysis/qqq/gex/page.component');

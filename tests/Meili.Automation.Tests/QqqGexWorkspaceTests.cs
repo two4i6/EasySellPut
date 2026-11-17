@@ -9,7 +9,7 @@ public sealed class QqqGexWorkspaceTests
     {
         var dir=Path.Combine(Path.GetTempPath(),Guid.NewGuid().ToString("N"));Directory.CreateDirectory(dir);
         try{
-            var prefs=new QqqGexPreferences(dir);prefs.Patch(prefs.Read().revision,new(){{"qqq-local:observed-exposure:v1","{\"cursor\":123,\"scope\":\"all\"}"},{"qqq-gex:left-tab:v1","ATM IV"}});
+            var prefs=new QqqGexPreferences(dir);prefs.Patch(prefs.Read().revision,new(){{"qqq-local:observed-exposure:v1","{\"cursor\":123,\"scope\":\"all\"}"},{"qqq-gex:left-tab:v1","ATM IV"},{"qqq-local:observed-interaction:v1","{\"focus\":{\"label\":\"播放速度\",\"value\":\"2\"},\"chartHover\":null}"}});
             var workspace=new QqqGexWorkspace(dir);workspace.Observe(new{ready=false,capture=new{phase="capturing",missingIv=3},quote=(object?)null});
             var before=File.ReadAllText(Path.Combine(dir,"qqq-gex-desktop-state.json"));
             using var service=new AutomationService(new(dir,DataDirectorySource.CommandLine));
@@ -18,6 +18,7 @@ public sealed class QqqGexWorkspaceTests
             using var body=JsonDocument.Parse(Convert.FromBase64String(chunk.GetProperty("bodyBase64").GetString()!));
             Assert.Equal("ATM IV",body.RootElement.GetProperty("preferences").GetProperty("values").GetProperty("qqq-gex:left-tab:v1").GetString());
             Assert.Equal(123,body.RootElement.GetProperty("analyticalSelections").GetProperty("exposure").GetProperty("cursor").GetInt32());
+            Assert.Equal("2",body.RootElement.GetProperty("analyticalSelections").GetProperty("interaction").GetProperty("focus").GetProperty("value").GetString());
             var desktop=body.RootElement.GetProperty("desktop");Assert.True(desktop.GetProperty("fresh").GetBoolean());Assert.Equal("capturing",desktop.GetProperty("lastObserved").GetProperty("state").GetProperty("capture").GetProperty("phase").GetString());
             Assert.Equal(before,File.ReadAllText(Path.Combine(dir,"qqq-gex-desktop-state.json")));Assert.False(File.Exists(Path.Combine(dir,"cache","qqq-gex.db")));
             // A changed saved filter invalidates continuation rather than mixing snapshots.
