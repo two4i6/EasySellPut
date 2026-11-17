@@ -112,6 +112,7 @@ internal static partial class Program
             await ProbeWorkbench(directory);
             await ProbeQqqLocal(directory);
             await ProbeQqqPopulated(directory);
+            await ProbePrivateApp(directory);
 #if !WINDOWS_READER
             await ProbeMenuBar();
 #endif

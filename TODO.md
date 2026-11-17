@@ -273,3 +273,9 @@ The compatibility viewer now reuses the strict bounded HTTP header parser and re
 ### S09/S10 actual browser SDK and development-host journey
 
 Added a real Chromium fixture that packages signed UI files, starts the separate scratch-only developer host, loads its actual tokenized AppView, and executes the actual app-owned retained-data engine through the shared browser SDK. It verifies signed scope/write filtering, foreign tool/token/origin rejection, no remote traffic or financial storage creation, pending presentation cancellation, awaited profile cleanup and unchanged production DLL bytes. The local run passed; the Web CI job now builds the separate developer/CLI binaries and runs this journey after its existing original GEX/browser suites. This is browser/private-server evidence, not native WebView or full GEX UI migration acceptance.
+
+### S09 native AppView probe coverage
+
+Extended the existing four-platform native browser smoke host with an actual ephemeral-signed generic app package. It uses the production private session/API and pinned bundled Node, opens the real WKWebView/WebView2 `PrivateAppView` adapter, verifies the app-owned engine result and read-only scope, blocks external navigation, pins maintenance during the view lifetime, then releases/uninstalls while preserving a retained fixture marker. Fixture trust exists only in the non-shipped smoke assembly; no product setting or command bypass was added.
+
+Both Mac/Avalonia and Windows/WPF smoke targets compile successfully in this Linux environment. Native execution is not claimed here: the existing Windows/macOS x64/ARM64 CI jobs automatically run the expanded probe, and their current runs remain queued. This explicitly remains a pending native S09/S12 acceptance gate.
