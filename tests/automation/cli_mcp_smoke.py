@@ -93,6 +93,24 @@ class Mcp:
             raise AssertionError('MCP server did not exit on stdin EOF')
 
 
+def check_cold_writer_profiles(command,root):
+    for epoch in range(3):
+        data=str(pathlib.Path(root)/('cold writer '+str(epoch)))
+        created=run(command,data,'watchlist','create-group','--name','before')['data']
+        group=created['group']['id']
+        writer=Mcp(command,data,writes=True)
+        try:
+            writer.request('tools/list');writer.check_live_status(True)
+            renamed=writer.call('rename_watchlist_group',{'groupId':group,'name':'after'})
+            assert not renamed.get('isError',False),(epoch,renamed,local_diagnostics(data),''.join(writer.errors)[-4000:])
+            run(command,data,'watchlist','add','MSFT','--group-id',group)
+            groups=writer.call('get_watchlists',{})['structuredContent']['data']
+            selected=next(item for item in groups if item['id']==group)
+            assert selected['name']=='after' and 'MSFT'in selected['symbols'],selected
+        finally:writer.close()
+        assert next(item for item in run(command,data,'watchlist','list')['data']if item['id']==group)['name']=='after'
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--dll', default='src/Meili.Cli/bin/Debug/net10.0/easysellput.dll')
@@ -222,7 +240,8 @@ def main():
         finally:
             writer.close()
         assert next(g for g in run(command, data, 'watchlist', 'list')['data'] if g['id'] == group)['name'] == 'MCP'
-    print('PASS: native SQLite/provider composition, catalog/discovery parity, real CLI processes, official SDK MCP stdio handshake/discovery/calls/errors/read-only/write mode/EOF, shared local data and pricing parity')
+        check_cold_writer_profiles(command,data)
+    print('PASS: native SQLite/provider composition, catalog/discovery parity, real CLI processes, official SDK MCP stdio handshake/discovery/calls/errors/read-only/write mode/EOF, three isolated cold writer profiles, shared local data and pricing parity')
 
 
 if __name__ == '__main__':
