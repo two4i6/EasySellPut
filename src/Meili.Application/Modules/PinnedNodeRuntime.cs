@@ -38,7 +38,14 @@ internal static class PinnedNodeRuntime
         else {using var gzip=new GZipStream(file,CompressionMode.Decompress,true);using var tar=new TarReader(gzip,true);TarEntry? part;var found=false;while((part=await tar.GetNextEntryAsync(cancellationToken:ct)) is not null){if(part.Name!=member)continue;if(part.EntryType is not (TarEntryType.RegularFile or TarEntryType.V7RegularFile))throw new InvalidDataException("Node executable is not a file");await part.DataStream!.CopyToAsync(data,ct);found=true;break;}if(!found)throw new InvalidDataException("Node executable missing");}
         var bytes=data.ToArray();if(!Convert.ToHexString(SHA256.HashData(bytes)).Equals(binaryHash,StringComparison.OrdinalIgnoreCase))throw new InvalidDataException("Node executable checksum mismatch");
         Directory.CreateDirectory(Path.GetDirectoryName(target)!);var temp=target+"."+Guid.NewGuid().ToString("N")+".tmp";
-        try{await File.WriteAllBytesAsync(temp,bytes,ct);if(!OperatingSystem.IsWindows())File.SetUnixFileMode(temp,UnixFileMode.UserRead|UnixFileMode.UserWrite|UnixFileMode.UserExecute);File.Move(temp,target,true);}finally{if(File.Exists(temp))File.Delete(temp);}
+        try{await File.WriteAllBytesAsync(temp,bytes,ct);if(!OperatingSystem.IsWindows())File.SetUnixFileMode(temp,UnixFileMode.UserRead|UnixFileMode.UserWrite|UnixFileMode.UserExecute);try{File.Move(temp,target,false);}
+            catch(IOException)when(File.Exists(target))
+            {
+                // Another app/process may have activated the same immutable runtime and started it.
+                // Verify and reuse it; never replace an executable already in use on Windows.
+                await using var concurrent=File.OpenRead(target);
+                if(!Convert.ToHexString(await SHA256.HashDataAsync(concurrent,ct)).Equals(binaryHash,StringComparison.OrdinalIgnoreCase))throw new InvalidDataException("Concurrent runtime checksum mismatch");
+            }}finally{if(File.Exists(temp))File.Delete(temp);}
         return target;
     }
 }

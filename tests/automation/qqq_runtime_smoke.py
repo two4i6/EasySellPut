@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Run the packaged GEX model without a system Node executable; then reject tampering."""
-import argparse,json,pathlib,subprocess,tempfile,os,base64
+import argparse,json,pathlib,subprocess,tempfile,os,base64,shutil
 from cli_mcp_smoke import Mcp
 p=argparse.ArgumentParser();p.add_argument('--executable',type=pathlib.Path,required=True);a=p.parse_args()
 with tempfile.TemporaryDirectory(prefix='qqq runtime data ') as folder:
@@ -24,6 +24,16 @@ with tempfile.TemporaryDirectory(prefix='qqq runtime data ') as folder:
  finally:
   if reader:reader.close()
   os.environ['PATH']=old_path
+ # First expansion is shared by simultaneous read/write consumers, not an overwrite
+ # of a running Windows node.exe. Copy only the closed fixture's retained input/store.
+ shared=root/'parallel profile';shutil.copytree(root/'cache',shared/'cache')
+ parallel=[]
+ for operation,arguments in [('calculate_qqq_gex_local',[]),('get_qqq_gex_replay',['--from','2026-01-02T05:00:00Z','--to','2026-01-03T05:00:00Z'])]:
+  parallel.append(subprocess.Popen([str(a.executable.resolve()),operation,*arguments,'--json','--data-dir',str(shared),'--timeout','120'],env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True))
+ for process in parallel:
+  stdout,stderr=process.communicate(timeout=150)
+  assert process.returncode==0 and json.loads(stdout)['success'],(stdout,stderr)
+ assert len(list((shared/'apps/runtimes/node24').rglob('node.exe' if os.name=='nt' else 'node')))==1
  binaries=list((root/'apps/runtimes/node24').rglob('node.exe' if os.name=='nt' else 'node'));assert len(binaries)==1
  assert subprocess.check_output([str(binaries[0]),'--version'],env=env,text=True).strip()=='v24.22.1'
  with binaries[0].open('ab') as f:f.write(b'tampered')

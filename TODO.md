@@ -37,19 +37,19 @@ Design: [architecture](docs/55-主程序与可独立更新子应用架构研究.
   - Resolve global options and data directory before profile-scoped operation discovery; basic help/version remain available without starting engines or network work.
   - Acceptance: all current operation cases execute through real CLI/MCP; no UI assemblies enter the CLI dependency graph; cancellation/permission/error parity stays intact.
 
-- [ ] **S03 — Define signed module packages and compatibility.** Depends on S02.
+- [x] **S03 — Define signed module packages and compatibility.** Depends on S02.
   - Define app ID/version, host/engine protocol, supported public contracts, runtime, data format, optional UI and file-table schema.
   - Validate signed manifests, scope/repository, bounded metadata, paths, files/hashes, archive expansion, duplicates/links and compatibility before activation.
   - Reuse established cryptographic/download checks where appropriate; retain separate host-update and app-install state machines.
   - Acceptance: valid core-only package accepted; tampered, wrong-app/source, incompatible and unsafe packages rejected without changing active code or data.
 
-- [ ] **S04 — Implement profile-scoped registry and execution leases.** Depends on S03.
+- [x] **S04 — Implement profile-scoped registry and execution leases.** Depends on S03.
   - Use SnapshotFile revisions and cross-process coordination for installed/preferred/effective versions, enabled state and pending transactions.
   - Separate actual execution/data leases from long-lived MCP diagnostic presence. Validate process identity and generation; reject stale async work.
   - Keep packages immutable and outside macOS signed bundles; code/runtime are not disposable caches.
   - Acceptance: two processes cannot corrupt activation; crashes/expired owners recover safely; an idle MCP process does not permanently lock compatible patches.
 
-- [ ] **S05 — Add explicit local app maintenance.** Depends on S04.
+- [x] **S05 — Add explicit local app maintenance.** Depends on S04.
   - Add CLI app list/info/doctor and explicit local install/update/disable/uninstall actions using trusted package identities.
   - Implement staging, verification, durable transaction recovery, activation and deferred cleanup.
   - Preserve default uninstall data, shared caches/runtime and other applications; reject incompatible data rollback.
@@ -240,3 +240,12 @@ The previous source revision `2eb1141` completed the full offline aggregate: 1,0
 Private app pages now receive the same existing native palette, language and reduced-motion projection through a bounded cancellable presentation endpoint. The browser SDK supplies lifetime-owned change observation. Both native module adapters attach/detach the shared presentation events; failed page startup also releases them. GEX reuses the shared token application helper and only emits expensive resize/theme events when tokens actually change, rather than on every data/quote event.
 
 Verification: Automation 164, affected Avalonia manager/navigation/theme journeys 57, browser SDK 8/8, Mac build and complete Windows test project cross-compilation passed. Actual Chromium empty/computed GEX journeys passed with no remote traffic/script errors, expiry/revision and theme/motion behavior preserved. Original local calculation/storage/timing/partial-history pipeline and PCS contract suite passed. Inspected the actual 1920×1080 computed fixture screenshot saved with application-manager.md; native Windows/macOS acceptance remains delivery-CI owned.
+
+
+### S03–S05 primitive acceptance closure
+
+Package verification, profile registry/leases and explicit local maintenance are complete against their stated primitive acceptance cases: authenticated core-only packages; tamper/source/protocol/path rejection without activation; real cross-process exclusion/crash-owner release; staged immutable variants and CAS activation; interrupted journal reconciliation; install/update/disable/uninstall/reinstall retaining observations/backups and suppressing seed fallback. Core/runtime executables are outside disposable caches. Existing unit, real-process and signed transport fixtures cover these behaviors. This checks off S03–S05, not S06–S12 or native pilot acceptance; unsupported data migrations still refuse activation rather than attempting an unverified rollback.
+
+### S04 immutable runtime concurrency acceptance
+
+First-use extraction now creates the shared executable without overwriting an existing destination. Concurrent owners authenticate and reuse the winner's exact bytes, preventing replacement of a running Windows executable. The actual packaged runtime smoke now starts calculation and archive reading concurrently against a new shared profile with no runtime directory and no system Node, before the existing checksum-tampering rejection. Fresh Linux self-contained package passed the expanded smoke; Windows/macOS CI runs the same script in its extracted-package checks.
