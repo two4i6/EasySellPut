@@ -194,3 +194,5 @@ analysis 复用导入的 UI 内核：exposure、replayTable、gammaModel、atmIv
 QQQ GEX 部分采集：`get_qqq_gex_view resource=partial` 返回与桌面“部分采集”表相同的最新元数据，无需桌面打开；`get_qqq_gex_archive archiveState=partial` 可分别分页读取 dates/snapshots/profile/bars。默认 archiveState=published 保持原行为，两种记录绝不混作完整交易日，也不能用 partial 直接授权常规回放。
 
 QQQ GEX 的 `workspace.analyticalSelections.interaction` 还提供私有页面最近观察到的焦点、控件值、指针、可见提示及原始 K 线悬停数据。`observedAt` 是观察时间，`documentId` 区分页面；指针为 CSS 视口像素，图表时间为 Unix 秒。500ms 合并更新，经本地偏好桥保存，不能代表瞬时屏幕或原生全局输入。密码／文本草稿不导出；隐藏页面清空交互。超长内容明确返回 `detailsOmitted`，完整序列请读 chartStudies/archive；提示文字最多4条、各1000字符。缺失字段、旧时间戳及未验证的原生输入流程不能当作实时完整覆盖。
+
+热图当前检查结果见 `interaction.heatmapInspection`：保留原始单元格、null、缺失输入原因、模式、键盘观察及 `scenario`／覆盖信息。其时间是 Unix 毫秒（`heatmapTimeUnits`），K 线仍为 Unix 秒。情景估值不是历史实测。`tooltipsOmitted`、`detailsOmitted` 和 `observationLimits` 明示观察上限，不能把省略内容当成不存在；完整序列继续读 heatmapField/dayScenario/archive。

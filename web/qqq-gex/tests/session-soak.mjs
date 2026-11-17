@@ -79,6 +79,23 @@ try {
   await page.mouse.move(1,1);await page.waitForFunction(()=>JSON.parse(localStorage.getItem('qqq-local:observed-interaction:v1')??'null')?.chartHover===null);assert.equal((await interactionRead()).chartHover,null);
   await page.getByRole('button',{name:'Heatmap',exact:true}).click();
   for(const scope of ['all','selected']){await page.getByLabel('到期日范围',{exact:true}).selectOption(scope);await page.waitForFunction(scope=>JSON.parse(localStorage.getItem('qqq-local:observed-exposure:v1')??'null')?.scope===scope,scope);}
+  const inspector=page.locator('[data-heatmap-inspector] > rect[tabindex="0"]');await page.waitForFunction(()=>{const g=document.querySelector('[data-heatmap-inspector]');return g&&![...document.querySelectorAll('[aria-busy="true"]')].some(e=>e.contains(g));});await inspector.focus();
+  async function inspectionRead(){
+   for(let n=0;n<100;n++){const read=await interactionRead(),raw=await page.locator('[data-qqq-inspection]').getAttribute('data-qqq-inspection'),source=JSON.parse(raw);if(source.current&&JSON.stringify(read.heatmapInspection)===JSON.stringify(source)){assert.deepEqual(read.heatmapInspection,source);return source;}await new Promise(r=>setTimeout(r,100));}
+   assert.fail('source heatmap inspector and MCP must converge');
+  }
+  await inspector.press('Home');const home=await inspectionRead();await inspector.press('End');const end=await inspectionRead();assert.ok(end.current.time>home.current.time);
+  await inspector.press('ArrowLeft');const previous=await inspectionRead();assert.ok(previous.current.time<end.current.time);assert.equal(previous.current.strike,end.current.strike);
+  await inspector.press('ArrowUp');const upper=await inspectionRead();assert.ok(upper.current.strike>previous.current.strike);assert.equal(upper.current.time,previous.current.time);
+  assert.equal((await interactionRead()).heatmapTimeUnits,'Unix milliseconds');await page.screenshot({path:`test-results/qqq-heatmap-keyboard-${generation}.png`});
+  await inspector.press('Escape');await page.waitForFunction(()=>JSON.parse(localStorage.getItem('qqq-local:observed-interaction:v1')??'null')?.heatmapInspection?.current===null);assert.equal((await interactionRead()).heatmapInspection.current,null);
+  // Actual browser pointer picks a source tile, not a synthetic data injection.
+  await inspector.hover();const pointed=await inspectionRead();assert.equal(pointed.keyboard,false);assert.ok(Number.isFinite(pointed.current.strike));
+  await page.mouse.move(1,1);await page.waitForFunction(()=>JSON.parse(localStorage.getItem('qqq-local:observed-interaction:v1')??'null')?.heatmapInspection?.current===null);
+  await page.getByRole('button',{name:'日内情景推演',exact:true}).click();
+  await page.waitForFunction(()=>{const g=document.querySelector('[data-heatmap-inspector]');return g&&![...document.querySelectorAll('[aria-busy="true"]')].some(e=>e.contains(g));});
+  await inspector.focus();await inspector.press('End');const scenarioInspection=await inspectionRead();assert.equal(scenarioInspection.scenario,true);assert.equal(scenarioInspection.priceAxis,true);assert.ok(scenarioInspection.coverage);await page.screenshot({path:`test-results/qqq-scenario-inspection-${generation}.png`});
+  await page.getByRole('button',{name:'历史快照',exact:true}).click();
   const api=new URL('api/analysis/qqq/gex/day?date=2026-01-02&from=2026-01-02T05%3A00%3A00Z&to=2026-01-03T05%3A00%3A00Z&expiryDate=2026-01-02',base);
   const before=await (await context.request.get(new URL('api/analysis/qqq/local-state',base).href)).json();assert.equal(before.ready,true);assert.equal(before.capture.phase,'idle','test host must not claim live capture');
   for(let i=0;i<cycles;i++){

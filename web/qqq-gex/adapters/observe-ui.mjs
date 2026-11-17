@@ -19,5 +19,10 @@ export function observeUi(contents,file){
   if(!contents.includes(anchor))throw Error('Pinned chart cursor observation anchor changed');
   contents=contents.replace(anchor,'    return <>\n      <span hidden data-qqq-hover={JSON.stringify({hover,hoverDetails,granularity,tooltipDetails})} />\n      {showGex && !tooltipDetails');
  }
+ if(file.endsWith('/QqqHeatmapInspector.tsx')){
+  const anchor='  return <g data-heatmap-inspector>';
+  if(!contents.includes(anchor))throw Error('Pinned heatmap inspector observation anchor changed');
+  contents=contents.replace(anchor,'  return <g data-heatmap-inspector data-qqq-inspection={JSON.stringify({current,inputStatus,label,priceAxis,mode,scenario:Boolean(scenario),coverage:scenario?.field.coverage??null,keyboard:keyboard.current})}>');
+ }
  return contents;
 }

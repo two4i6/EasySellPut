@@ -16,14 +16,27 @@ export function observeInteractions(){
  function publish(inactive=false){
   clearTimeout(timer);timer=undefined;
   const visible=!inactive&&!document.hidden,focus=visible?describe(document.activeElement):null;
-  const tooltips=visible?[...document.querySelectorAll('[role="tooltip"],[aria-label="K 线简洁信息"]')].filter(e=>e.getClientRects().length&&getComputedStyle(e).visibility!=='hidden'&&getComputedStyle(e).opacity!=='0'&&!e.closest('[aria-hidden="true"]')).slice(0,4).map(e=>({text:(e.textContent??'').trim().slice(0,1000),textTruncated:(e.textContent?.length??0)>1000})):[];
+  const shown=(e:Element)=>e.getClientRects().length&&getComputedStyle(e).visibility!=='hidden'&&getComputedStyle(e).opacity!=='0'&&!e.closest('[aria-hidden="true"]');
+  const visibleTips=visible?[...document.querySelectorAll('[role="tooltip"],[aria-label="K 线简洁信息"],[data-heatmap-inspector] [role="status"]')].filter(shown):[];
+  const tooltips=visibleTips.slice(0,4).map(e=>{const text=(e.textContent??'').trim();return {text:text.slice(0,1000),textTruncated:text.length>1000};});
+  function originalState(attribute:string){
+   const raw=visible?[...document.querySelectorAll('['+attribute+']')].find(e=>shown(e)&&e.parentElement?.getClientRects().length)?.getAttribute(attribute):null;
+   if(!raw)return null;try{return JSON.parse(raw);}catch{return {unavailable:'invalid_chart_observation'};}
+  }
+  // K-line observer spans are intentionally hidden; inspect their visible parent.
   let chartHover:any=null;const raw=visible?[...document.querySelectorAll('[data-qqq-hover]')].find(e=>e.parentElement?.getClientRects().length)?.getAttribute('data-qqq-hover'):null;
   if(raw)try{chartHover=JSON.parse(raw);}catch{chartHover={unavailable:'invalid_chart_hover'};}
-  const state:any={scope:'private_gex_document',documentId,pointerUnits:'CSS viewport pixels',chartTimeUnits:'Unix seconds',visible,documentHasFocus:visible&&document.hasFocus(),focus,pointer:visible?pointer:null,tooltips,chartHover};
-  let body=JSON.stringify(state);if(new TextEncoder().encode(body).length>6500){state.chartHover=chartHover?{hover:chartHover.hover,granularity:chartHover.granularity,detailsOmitted:'bounded observation exceeded; complete chart data remains in chartStudies/archive'}:null;state.detailsOmitted=true;body=JSON.stringify(state);}
-  if(new TextEncoder().encode(body).length>6500){state.tooltips=[];state.detailsOmitted=true;body=JSON.stringify(state);}
-  if(body===last)return;last=body;
-  try{localStorage.setItem(key,JSON.stringify({observedAt:new Date().toISOString(),...state}));}catch{/* Presentation observation cannot block a chart. */}
+  const heatmapInspection=originalState('data-qqq-inspection');
+  const state:any={scope:'private_gex_document',documentId,pointerUnits:'CSS viewport pixels',chartTimeUnits:'Unix seconds',heatmapTimeUnits:'Unix milliseconds',visible,documentHasFocus:visible&&document.hasFocus(),focus,pointer:visible?pointer:null,tooltips,tooltipsOmitted:Math.max(0,visibleTips.length-tooltips.length),chartHover,heatmapInspection,
+   observationLimits:{maxStateBytes:6500,maxPersistedBytes:8192,maxTooltips:4,maxTooltipCharacters:1000,coalesceMs:500},detailsOmitted:visibleTips.length>tooltips.length||tooltips.some(t=>t.textTruncated)};
+  let body=JSON.stringify(state);if(new TextEncoder().encode(body).length>6500){
+   state.chartHover=chartHover?{hover:chartHover.hover,granularity:chartHover.granularity,detailsOmitted:'bounded observation exceeded; complete chart data remains in chartStudies/archive'}:null;
+   state.heatmapInspection=heatmapInspection?{current:heatmapInspection.current,inputStatus:heatmapInspection.inputStatus,mode:heatmapInspection.mode,scenario:heatmapInspection.scenario,detailsOmitted:'bounded observation exceeded; complete heatmap data remains in heatmapField/dayScenario/archive'}:null;
+   state.detailsOmitted=true;body=JSON.stringify(state);
+  }
+  if(new TextEncoder().encode(body).length>6500){state.tooltipsOmitted+=state.tooltips.length;state.tooltips=[];state.detailsOmitted=true;body=JSON.stringify(state);}
+  if(body===last)return;
+  try{localStorage.setItem(key,JSON.stringify({observedAt:new Date().toISOString(),...state}));last=body;}catch{/* Presentation observation cannot block a chart. */}
  }
  const schedule=()=>{if(suspended)return;if(!timer)timer=setTimeout(()=>publish(),500);};
  document.addEventListener('pointermove',event=>{pointer={x:Math.round(event.clientX),y:Math.round(event.clientY),trusted:event.isTrusted,target:describe(event.target instanceof Element?event.target:null)};schedule();},{passive:true});
@@ -31,6 +44,6 @@ export function observeInteractions(){
  for(const event of ['focusin','focusout','change','input'])document.addEventListener(event,schedule,{passive:true});
  window.addEventListener('focus',schedule);window.addEventListener('blur',schedule);
  document.addEventListener('visibilitychange',()=>publish(document.hidden));window.addEventListener('pagehide',()=>{suspended=true;publish(true);},{capture:true});window.addEventListener('pageshow',()=>{suspended=false;schedule();});
- const changes=new MutationObserver(schedule);changes.observe(document.getElementById('root')??document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['data-qqq-hover','aria-selected','aria-pressed','aria-expanded']});
+ const changes=new MutationObserver(schedule);changes.observe(document.getElementById('root')??document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['data-qqq-hover','data-qqq-inspection','aria-selected','aria-pressed','aria-expanded']});
  schedule();
 }

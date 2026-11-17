@@ -111,6 +111,24 @@ internal static partial class Program
             await Check("JSON.parse(localStorage.getItem('qqq-local:observed-exposure:v1')??'null')?.scope==='all'","native all-expiry scope observation");
             await Eval("(()=>{const s=document.querySelector('select[aria-label=\"到期日范围\"]');s.value='selected';s.dispatchEvent(new Event('change',{bubbles:true}));})()");
             await Check("JSON.parse(localStorage.getItem('qqq-local:observed-exposure:v1')??'null')?.scope==='selected'","native selected-expiry scope observation");
+            // DOM keyboard dispatch in each native engine; physical OS input remains separate.
+            await Check("(()=>{const g=document.querySelector('[data-heatmap-inspector]');return g&&![...document.querySelectorAll('[aria-busy=\"true\"]')].some(e=>e.contains(g));})()","native heatmap computation settled");
+            await Eval("(()=>{const r=document.querySelector('[data-heatmap-inspector] > rect[tabindex]');r.focus();r.dispatchEvent(new KeyboardEvent('keydown',{key:'End',bubbles:true}));})()");
+            await Check("JSON.parse(document.querySelector('[data-qqq-inspection]')?.getAttribute('data-qqq-inspection')??'null')?.current?.time>0","native heatmap End selection");
+            await Check("JSON.stringify(JSON.parse(document.querySelector('[data-qqq-inspection]').getAttribute('data-qqq-inspection')))===JSON.stringify(JSON.parse(localStorage.getItem('qqq-local:observed-interaction:v1')??'null')?.heatmapInspection)","native original heatmap and observed state agree");
+            async Task<JsonElement> Inspection(Func<JsonElement,bool> ready)
+            {
+                for(var n=0;n<40;n++){var current=await Workspace();if(current.GetProperty("analyticalSelections").TryGetProperty("interaction",out var observed)&&observed.TryGetProperty("heatmapInspection",out var inspection)&&inspection.ValueKind==JsonValueKind.Object&&ready(inspection))return inspection.Clone();await Task.Delay(100);}
+                throw new TimeoutException("Native heatmap selection did not reach application MCP");
+            }
+            var endInspection=await Inspection(v=>v.GetProperty("current").ValueKind==JsonValueKind.Object);
+            var endTime=endInspection.GetProperty("current").GetProperty("time").GetDouble();
+            if(endTime<1e12||!endInspection.GetProperty("keyboard").GetBoolean()||endInspection.GetProperty("scenario").GetBoolean())throw new Exception("Native history heatmap units or provenance disagree");
+            await Eval("document.querySelector('[data-heatmap-inspector] > rect[tabindex]').dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowLeft',bubbles:true}))");
+            var leftInspection=await Inspection(v=>v.GetProperty("current").ValueKind==JsonValueKind.Object&&v.GetProperty("current").GetProperty("time").GetDouble()<endTime);
+            if(leftInspection.GetProperty("current").GetProperty("strike").GetDouble()!=endInspection.GetProperty("current").GetProperty("strike").GetDouble())throw new Exception("Native heatmap horizontal navigation changed strike");
+            await Eval("document.querySelector('[data-heatmap-inspector] > rect[tabindex]').dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}))");
+            await Inspection(v=>v.GetProperty("current").ValueKind==JsonValueKind.Null);
             foreach(var dark in new[]{false,true}){
                 var palette=ThemePalette.For(dark);var (up,down)=palette.UpDown(Meili.Core.Settings.UpDownColorMode.RedUp);ScottPlot.Color C(uint n)=>new((byte)(n>>16),(byte)(n>>8),(byte)n);
                 session.UpdatePresentation(ChartPalette.Create(dark,C(up),C(down),C(palette.PrimaryText),C(palette.MutedText),palette));
@@ -128,7 +146,7 @@ internal static partial class Program
             await Eval("document.title='gex-reload-pending'");await Until(()=>Title()=="gex-reload-pending","native reload sentinel");
             browser.Reload();await Until(()=>Title().StartsWith("QQQ GEX",StringComparison.Ordinal),"native reload new document");
             await Check("document.querySelectorAll('section[aria-label=\"回放 GEX 快照表\"] tbody tr:not([aria-hidden])').length===8","native reload retains snapshots");
-            Console.WriteLine("PASS: synthetic populated native QQQ GEX: 3 chart modes, 10 analysis tabs, canvas, DOM focus through MCP, scope changes, light/dark/compact/wide, hide/show and reload; no live-history/alert claim.");
+            Console.WriteLine("PASS: synthetic populated native QQQ GEX: 3 chart modes, 10 analysis tabs, canvas, DOM focus/heatmap keyboard through MCP, scope changes, light/dark/compact/wide, hide/show and reload; no live-history/alert claim.");
         }
         finally{window.Content=null;window.Close();}
     }

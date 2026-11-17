@@ -1,7 +1,7 @@
 # QQQ GEX workbench migration (in progress)
 
 Source: option-seller `work@8abee90a260071cbe9b1519a56548e8bf5a8d18e`.
-317 files are tracked in `source-manifest.json`: 311 original byte-preserved
+322 files are tracked in `source-manifest.json`: 316 original byte-preserved
 files and 6 reproducible local presentation patches.
 `python3 tools/qqq-gex/verify-source.py` verifies fidelity. Original calculation,
 research, indicators, replay and archive algorithms remain the single implementation.
@@ -133,3 +133,5 @@ Read-only MCP chart follow-up: `get_qqq_gex_view` resource `analysis` includes `
 Scenario migration note: `analysis=dayScenario` now defaults to `policy=partial`, matching the retained UI, and includes source forecast-band data and coverage. Request `policy=complete` for the former MCP wrapper default. Excluded contracts and missing contributions remain disclosed; no IV is synthesized.
 
 `analysis=chartStudies` exposes retained2m K-line observations/markers, trade map, RSI/volume, KC/zones, table/structure/observed trends, gamma history and native visibility. Use `preset` or `hiddenLegends` (22 fixed legend keys); `hiddenLegends=[]` explicitly enables all native legends. `analysis=directionalMarkers` separates stored emitted alerts from historical replay-derived markers and never writes. `analysis=structureEvents` accepts `discovery` and2/10/30-minute windows; full events remain available beyond display's12/80 limits. Analysis timestamps must be within the requested Eastern date. Query filters up to2000 strikes use bounded stdin when necessary, avoiding Windows command-line limits. See MIGRATION-MATRIX.md for exact coverage and limitations.
+
+Read-only MCP workspace also exposes bounded private-document focus, pointer, K-line hover and heatmap inspection. K-line time is Unix seconds; heatmap time is Unix milliseconds. Original missing-value reasons and hypothetical scenario provenance remain explicit. See MIGRATION-MATRIX.md for the coverage map, limits and remaining real/native acceptance TODOs.
