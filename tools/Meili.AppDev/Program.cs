@@ -54,7 +54,7 @@ sealed class DevDispatcher(string directory,ModuleInstaller installer,string nod
 {
     private readonly AutomationService host=new(new(directory,DataDirectorySource.CommandLine));
     public DataDirectoryInfo DirectoryInfo=>new(directory,DataDirectorySource.CommandLine);
-    public async Task<IOperationCatalog> GetCatalogAsync(CancellationToken ct=default)=>ModuleOperations.Merge(await ModuleOperations.ReadAsync(directory,installer,ct));
+    public async Task<IOperationCatalog> GetCatalogAsync(CancellationToken ct=default){var snapshot=await ModuleOperations.ReadSnapshotAsync(directory,installer,ct);return ModuleOperations.Merge(snapshot.Operations,snapshot.Issues);}
     public async Task<JsonElement> ExecuteAsync(string name,JsonElement arguments,bool allowWrites,CancellationToken ct=default)
     {
         if(allowWrites)throw new UnauthorizedAccessException("Development host is read-only.");

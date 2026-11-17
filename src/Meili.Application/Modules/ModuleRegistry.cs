@@ -7,7 +7,7 @@ using Meili.Core.Settings;
 namespace Meili.Automation.Modules;
 
 public sealed record InstalledModule(string Id, string Version, string PackageSha256, int DataFormat, bool Enabled, bool? HasUi = null);
-public sealed record ModuleRegistryState(int SchemaVersion, long Generation, InstalledModule[] Apps, string[]? SuppressedSeeds = null);
+public sealed record ModuleRegistryState(int SchemaVersion, long Generation, InstalledModule[] Apps, string[]? SuppressedSeeds = null, Dictionary<string,int>? RetainedFormats = null);
 public sealed record ModuleRegistrySnapshot(ModuleRegistryState State, string Revision);
 
 /// <summary>Profile metadata with optimistic cross-process writes. Metadata alone never authorizes code execution.</summary>
@@ -39,7 +39,13 @@ public sealed class ModuleRegistry
         var current = text is null ? new ModuleRegistryState(1, 0, []) : JsonSerializer.Deserialize<ModuleRegistryState>(text, Json)
             ?? throw new InvalidDataException("Invalid module registry.");
         Validate(current);
-        var state = new ModuleRegistryState(1, checked(current.Generation + 1), apps.ToArray(), (suppressedSeeds ?? current.SuppressedSeeds ?? []).ToArray()); Validate(state);
+        var formats=new Dictionary<string,int>(current.RetainedFormats??new Dictionary<string,int>(),StringComparer.Ordinal);
+        foreach(var app in current.Apps.Concat(apps))
+        {
+            if(formats.TryGetValue(app.Id,out var retained)&&retained!=app.DataFormat)throw new InvalidDataException("Retained data format changes require a verified migration.");
+            formats[app.Id]=app.DataFormat;
+        }
+        var state = new ModuleRegistryState(1, checked(current.Generation + 1), apps.ToArray(), (suppressedSeeds ?? current.SuppressedSeeds ?? []).ToArray(),formats); Validate(state);
         file.Write(JsonSerializer.Serialize(state, Json));
         return Read();
     }
@@ -85,10 +91,14 @@ public sealed class ModuleRegistry
         var suppressed = state.SuppressedSeeds ?? [];
         if (suppressed.Length > 256 || suppressed.Distinct(StringComparer.Ordinal).Count() != suppressed.Length) throw new InvalidDataException("Invalid suppressed module seeds.");
         foreach (var id in suppressed) ValidateId(id);
+        var formats=state.RetainedFormats??new Dictionary<string,int>();
+        if(formats.Count>256)throw new InvalidDataException("Too many retained app formats.");
+        foreach(var entry in formats){ValidateId(entry.Key);if(entry.Value<1)throw new InvalidDataException("Invalid retained app format.");}
         foreach (var app in state.Apps)
         {
             if (app is null) throw new InvalidDataException("Null module registration.");
             ValidateId(app.Id);
+            if(formats.TryGetValue(app.Id,out var format)&&format!=app.DataFormat)throw new InvalidDataException("Active app format differs from retained data ownership.");
             if (!Version.TryParse(app.Version, out var version) || version.Build < 0 || version.Revision != -1 || version.ToString(3) != app.Version || app.DataFormat < 1 ||
                 app.PackageSha256 is null || app.PackageSha256.Length != 64 || app.PackageSha256.Any(c => !char.IsAsciiHexDigit(c)))
                 throw new InvalidDataException("Invalid module registration.");

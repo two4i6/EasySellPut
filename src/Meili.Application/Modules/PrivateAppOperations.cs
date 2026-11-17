@@ -27,8 +27,8 @@ public sealed class PrivateAppOperations
         {
             if(route=="host/catalog"&&method=="GET"&&!headers.ContainsKey("Content-Length"))
             {
-                var operations=await ModuleOperations.ReadAsync(directory,installer,ct).ConfigureAwait(false);
-                await Send(200,"application/json",JsonSerializer.SerializeToUtf8Bytes(new{appId=id,allowWrites=writes,operations=operations.Where(o=>o.AppId==id&&(writes||!o.Definition.Writes)).Select(o=>new{o.Definition.Name,o.Definition.Description,o.Definition.Writes,inputSchema=o.Definition.Schema})},WireJson.Options));return true;
+                var discovery=await ModuleOperations.ReadSnapshotAsync(directory,installer,ct).ConfigureAwait(false);var operations=discovery.Operations;
+                await Send(200,"application/json",JsonSerializer.SerializeToUtf8Bytes(new{appId=id,allowWrites=writes,unavailableApps=discovery.Issues.Where(issue=>issue.AppId is null||issue.AppId==id),operations=operations.Where(o=>o.AppId==id&&(writes||!o.Definition.Writes)).Select(o=>new{o.Definition.Name,o.Definition.Description,o.Definition.Writes,inputSchema=o.Definition.Schema})},WireJson.Options));return true;
             }
             if(route=="host/invoke"&&method=="POST")
             {
@@ -41,7 +41,8 @@ public sealed class PrivateAppOperations
                 try{ModulePackage.RejectDuplicates(input.RootElement);}catch(InvalidDataException){throw new ArgumentException("Duplicate app invocation field.");}
                 if(input.RootElement.ValueKind!=JsonValueKind.Object||input.RootElement.EnumerateObject().Count()!=2||!input.RootElement.TryGetProperty("operation",out var op)||op.ValueKind!=JsonValueKind.String||!input.RootElement.TryGetProperty("arguments",out var arguments))
                 {await Send(400,"application/json",[]);return true;}
-                var bound=(await ModuleOperations.ReadAsync(directory,installer,ct).ConfigureAwait(false)).SingleOrDefault(o=>o.AppId==id&&o.Definition.Name==op.GetString());
+                var available=await ModuleOperations.ReadSnapshotAsync(directory,installer,ct).ConfigureAwait(false);available.RequireAvailable(id);
+                var bound=available.Operations.SingleOrDefault(o=>o.AppId==id&&o.Definition.Name==op.GetString());
                 if(bound is null||bound.Definition.Writes&&!writes){await Send(403,"application/json",[]);return true;}
                 OperationCatalog.Validate(new(bound.Definition.Name,bound.Definition.Description,bound.Definition.Writes,bound.Definition.Schema),arguments);
                 deadline.CancelAfter(TimeSpan.FromMinutes(2));

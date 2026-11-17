@@ -44,7 +44,7 @@ internal static class AppFixture
         async Task<IOperationCatalog> Catalog(string? path)
         {
             var directory = LocalPaths.Resolve(path,migrateLegacy:false);
-            return ModuleOperations.Merge(await ModuleOperations.ReadAsync(directory.Path,Installer(directory.Path),CancellationToken.None));
+            var snapshot=await ModuleOperations.ReadSnapshotAsync(directory.Path,Installer(directory.Path),CancellationToken.None);return ModuleOperations.Merge(snapshot.Operations,snapshot.Issues);
         }
         return await Meili.Cli.Program.RunAsync(args, directory=>new Dispatcher(directory,Installer(directory.Path),runtime),Catalog);
     }
@@ -52,7 +52,7 @@ internal static class AppFixture
     {
         private readonly AutomationService fallback = new(directory,new Meili.Automation.Tests.FakeMarket());
         public DataDirectoryInfo DirectoryInfo => directory;
-        public async Task<IOperationCatalog> GetCatalogAsync(CancellationToken ct=default) => ModuleOperations.Merge(await ModuleOperations.ReadAsync(directory.Path,installer,ct));
+        public async Task<IOperationCatalog> GetCatalogAsync(CancellationToken ct=default) {var snapshot=await ModuleOperations.ReadSnapshotAsync(directory.Path,installer,ct);return ModuleOperations.Merge(snapshot.Operations,snapshot.Issues);}
         public async Task<JsonElement> ExecuteAsync(string operation, JsonElement arguments, bool allowWrites, CancellationToken ct=default)
         {
             var op=(await GetCatalogAsync(ct)).Find(operation);OperationCatalog.Validate(op,arguments);

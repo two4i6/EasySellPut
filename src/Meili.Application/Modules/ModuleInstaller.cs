@@ -72,17 +72,32 @@ public sealed class ModuleInstaller
             var snapshot = registry.Read();
             var existing = snapshot.State.Apps.SingleOrDefault(a => a.Id == candidate.Manifest.Id);
             if (updateOnly && existing is null) throw new ArgumentException("Module must be installed before updating.");
+            if(candidate.Manifest.Id==ModuleAccess.QqqGex&&candidate.Manifest.DataFormat!=1&&File.Exists(Path.Combine(Path.GetDirectoryName(registry.Root)!,"cache","qqq-gex.db")))
+                throw new InvalidDataException("Legacy GEX observations require format 1 until a separately verified migration.");
+            if(snapshot.State.RetainedFormats?.TryGetValue(candidate.Manifest.Id,out var retainedFormat)==true&&retainedFormat!=candidate.Manifest.DataFormat)
+                throw new InvalidDataException("Retained application data require the existing format; uninstall is not a data migration.");
             if (existing is not null && (Version.Parse(existing.Version) > Version.Parse(candidate.Manifest.Version) ||
                 existing.DataFormat != candidate.Manifest.DataFormat))
                 throw new InvalidDataException("Module downgrade or incompatible data migration requires a separate verified plan.");
             if (existing is not null)
             {
                 var previousPath = InstalledArchive(existing);
-                var previous = await verify(previousPath, ct);
-                if (previous.PackageSha256 != existing.PackageSha256) throw new InvalidDataException("Active module package changed.");
+                VerifiedModule previous;IReadOnlyList<BoundModuleOperation> previousOperations;
+                try
+                {
+                    previous=await verify(previousPath,ct);
+                    if(previous.PackageSha256!=existing.PackageSha256)throw new InvalidDataException("Active module package changed.");
+                    previousOperations=ModuleOperations.ReadPackage(previous,previousPath);
+                }
+                catch(Exception ex)when((ex is IOException or InvalidDataException or JsonException or UnauthorizedAccessException)&&candidate.PackageSha256==existing.PackageSha256&&candidate.Manifest.Version==existing.Version)
+                {
+                    // expected: an explicit install may restore exactly the authenticated archive already recorded.
+                    // A different candidate cannot bypass unknown previous permission/schema contracts.
+                    previous=candidate;previousOperations=candidateOperations;
+                }
                 if(existing.Version==candidate.Manifest.Version&&previous.PackageSha256!=candidate.PackageSha256)
                     ValidateUiAttachment(previous.Manifest,candidate.Manifest);
-                foreach (var old in ModuleOperations.ReadPackage(previous, previousPath))
+                foreach (var old in previousOperations)
                 {
                     var next = candidateOperations.SingleOrDefault(o => o.Definition.Name == old.Definition.Name);
                     if (next is null || next.Definition.Writes != old.Definition.Writes || !ModuleHostOperations.Equivalent(next.Definition.HostOperations,old.Definition.HostOperations) || !JsonElement.DeepEquals(next.Definition.Schema, old.Definition.Schema))
@@ -100,8 +115,16 @@ public sealed class ModuleInstaller
             if (Directory.Exists(target))
             {
                 RejectLink(target);
-                var installed = await verify(Path.Combine(target, "package.espapp"), ct);
-                if (installed.PackageSha256 != candidate.PackageSha256) throw new InvalidDataException("Existing module version has different contents.");
+                var intact=false;
+                try{var installed=await verify(Path.Combine(target,"package.espapp"),ct);intact=installed.PackageSha256==candidate.PackageSha256;}
+                catch(Exception ex)when(ex is IOException or InvalidDataException or JsonException or UnauthorizedAccessException)
+                { /* expected: authenticated candidate restores this exact hash-addressed object; preserve its corrupt predecessor below. */ }
+                if(!intact)
+                {
+                    var quarantine=Folder("quarantine",candidate.Manifest.Id,candidate.Manifest.Version);
+                    Directory.Move(target,Path.Combine(quarantine,candidate.PackageSha256+"."+Guid.NewGuid().ToString("N")));
+                    Directory.Move(stage,target);
+                }
             }
             else Directory.Move(stage, target);
             Record("staged"); ct.ThrowIfCancellationRequested();
@@ -148,6 +171,12 @@ public sealed class ModuleInstaller
         ModuleRegistry.ValidateId(id);
         var app = registry.Read().State.Apps.SingleOrDefault(a => a.Id == id && a.Enabled)
             ?? throw new ArgumentException("Module is not installed or enabled.");
+        return await VerifySnapshotAsync(app,ct).ConfigureAwait(false);
+    }
+    // Discovery authenticates an immutable snapshot without pinning maintenance. Old archives
+    // are retained; execution still re-resolves under its own real execution lease.
+    internal async Task<VerifiedModule> VerifySnapshotAsync(InstalledModule app,CancellationToken ct)
+    {
         var archive = InstalledArchive(app);
         var verified = await verify(archive, ct);
         if (verified.Manifest.Id != app.Id || verified.Manifest.Version != app.Version ||

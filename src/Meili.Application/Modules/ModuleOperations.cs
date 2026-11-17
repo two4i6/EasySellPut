@@ -12,22 +12,36 @@ public static partial class ModuleOperations
     public static Task<IReadOnlyList<BoundModuleOperation>> ReadAsync(string directory, CancellationToken ct = default) =>
         ReadAsync(directory, new ModuleInstaller(directory), ct);
 
-    internal static async Task<IReadOnlyList<BoundModuleOperation>> ReadAsync(string directory, ModuleInstaller installer, CancellationToken ct)
+    internal static async Task<IReadOnlyList<BoundModuleOperation>> ReadAsync(string directory,ModuleInstaller installer,CancellationToken ct)=>
+        (await ReadSnapshotAsync(directory,installer,ct).ConfigureAwait(false)).Operations;
+    public static Task<ModuleDiscovery> ReadSnapshotAsync(string directory,CancellationToken ct=default)=>ReadSnapshotAsync(directory,new ModuleInstaller(directory),ct);
+    internal static async Task<ModuleDiscovery> ReadSnapshotAsync(string directory,ModuleInstaller installer,CancellationToken ct)
     {
-        ct.ThrowIfCancellationRequested();
-        var result = new List<BoundModuleOperation>();
-        foreach (var app in installer.Inspect().State.Apps.Where(a => a.Enabled))
+        ct.ThrowIfCancellationRequested();var result=new List<BoundModuleOperation>();var issues=new List<OperationCatalogIssue>();
+        ModuleRegistryState state;
+        try{state=installer.Inspect().State;}
+        catch(Exception ex)when(ex is IOException or InvalidDataException or JsonException or UnauthorizedAccessException or InvalidOperationException)
         {
-            using var lease = new ModuleRegistry(directory).AcquireExecution(app.Id);
-            var verified = await installer.VerifyInstalledAsync(app.Id, ct).ConfigureAwait(false);
-            if (!verified.Manifest.Files.Any(f => f.Path == "operations.json")) continue;
-            foreach (var bound in ReadPackage(verified, installer.InstalledArchive(installer.Inspect().State.Apps.Single(a=>a.Id==app.Id))))
+            // expected: report immutable diagnostics; never recreate a corrupt registry or activate seed apps.
+            return new(Array.AsReadOnly(result.ToArray()),Array.AsReadOnly(new[]{new OperationCatalogIssue(null,"app_registry_unavailable","Application registry is unavailable; preserve the file and inspect apps doctor. Built-in host tools remain available.")}),null);
+        }
+        foreach(var app in state.Apps.Where(app=>app.Enabled))
+        {
+            ct.ThrowIfCancellationRequested();
+            try
             {
-                if (result.Any(o => o.Definition.Name == bound.Definition.Name)) throw new InvalidDataException("Duplicate module operation.");
-                result.Add(bound);
+                var verified=await installer.VerifySnapshotAsync(app,ct).ConfigureAwait(false);
+                var operations=ReadPackage(verified,installer.InstalledArchive(app));
+                if(operations.Any(bound=>result.Any(previous=>previous.Definition.Name==bound.Definition.Name)))throw new InvalidDataException("Duplicate module operation.");
+                result.AddRange(operations);
+            }
+            catch(Exception ex)when(ex is IOException or InvalidDataException or JsonException or UnauthorizedAccessException or InvalidOperationException or ArgumentException)
+            {
+                // expected: quarantine discovery for this app only; diagnostics stay explicit and archives/data are preserved.
+                issues.Add(new(app.Id,"app_verification_failed","Application unavailable; run apps doctor and restore a trusted package. Retained data are preserved."));
             }
         }
-        return result.AsReadOnly();
+        return new(Array.AsReadOnly(result.ToArray()),Array.AsReadOnly(issues.ToArray()),state);
     }
 
     internal static IReadOnlyList<BoundModuleOperation> ReadPackage(VerifiedModule verified, string archive)
@@ -89,7 +103,7 @@ public static partial class ModuleOperations
             }
         return result.AsReadOnly();
     }
-    public static IOperationCatalog Merge(IEnumerable<BoundModuleOperation> contributions)
+    public static IOperationCatalog Merge(IEnumerable<BoundModuleOperation> contributions,IEnumerable<OperationCatalogIssue>? issues=null)
     {
         var items = OperationCatalog.All.ToList();
         foreach (var item in contributions)
@@ -99,7 +113,7 @@ public static partial class ModuleOperations
             var replacement = new Operation(op.Name, op.Description, op.Writes, op.Schema);
             if (index < 0) items.Add(replacement); else items[index] = replacement;
         }
-        return new OperationSnapshot(items);
+        return new OperationSnapshot(items,issues);
     }
     private static void ValidateSchema(JsonElement schema, int depth)
     {

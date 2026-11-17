@@ -4,7 +4,7 @@ export interface WireResult<T = unknown> { schemaVersion: number; success: boole
 export interface AppClient {
   presentation(options?:RequestOptions):Promise<{version:number;value:{language:string;theme:Record<string,unknown>}|null}>;
   presentationChanges(signal:AbortSignal):AsyncGenerator<{version:number;value:{language:string;theme:Record<string,unknown>}|null}>;
-  list(options?: RequestOptions): Promise<{ appId: string; allowWrites: boolean; operations: AppTool[] }>;
+  list(options?: RequestOptions): Promise<{ appId: string; allowWrites: boolean; operations: AppTool[]; unavailableApps?:{appId:string|null;code:string;message:string}[] }>;
   call(operation: string, args?: Record<string, unknown>, options?: RequestOptions): Promise<WireResult>;
 }
 export function createAppClient(page?: { href: string }): AppClient;

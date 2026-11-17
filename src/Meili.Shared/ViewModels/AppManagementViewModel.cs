@@ -46,7 +46,7 @@ public partial class AppManagementViewModel(string directory, LocalizationServic
             var id=SelectedApp?.Id;Apps=rows;SelectedApp=Apps.FirstOrDefault(a=>a.Id==id)??Apps.FirstOrDefault();
             ShowStatus(Apps.Count==0?"Apps_Empty":"Apps_Done");Changed?.Invoke(this,EventArgs.Empty);
         }
-        catch(Exception ex) when(ex is IOException or UnauthorizedAccessException or ArgumentException or InvalidOperationException or System.Security.Cryptography.CryptographicException or System.Text.Json.JsonException)
+        catch(Exception ex) when(ex is IOException or InvalidDataException or UnauthorizedAccessException or ArgumentException or InvalidOperationException or System.Security.Cryptography.CryptographicException or System.Text.Json.JsonException)
         {
             Meili.Core.Diagnostics.AppLog.Warn("apps","Application maintenance failed",ex);
             ShowStatus("Apps_Error");

@@ -40,7 +40,7 @@ internal sealed class AppCatalogNotifications : IAsyncDisposable
         async Task Check(bool notify)
         {
             var catalog=await dispatcher.GetCatalogAsync(stop.Token).ConfigureAwait(false);
-            var next=Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(catalog.All.Where(o=>writes||!o.Writes).Select(o=>new{o.Name,o.Description,o.Writes,o.Schema}),WireJson.Options)));
+            var next=Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(new{operations=catalog.All.Where(o=>writes||!o.Writes).Select(o=>new{o.Name,o.Description,o.Writes,o.Schema}),issues=catalog.Issues},WireJson.Options)));
             var changed=fingerprint is not null&&fingerprint!=next;fingerprint=next;
             if(notify&&changed)
             {

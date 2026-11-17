@@ -91,10 +91,11 @@ public static class Program
                 if (json) Console.WriteLine(WireJson.Element(WireJson.Success(new
                 {
                     version = typeof(Program).Assembly.GetName().Version?.ToString(3),
+                    unavailableApps=catalog.Issues,
                     operations = catalog.All.Where(o => parsed.Operation is null || o.Name == parsed.Operation)
                         .Select(o => new { o.Name, o.Description, o.Writes, inputSchema = o.Schema })
                 })).GetRawText());
-                else PrintHelp(parsed.Operation, catalog);
+                else {PrintHelp(parsed.Operation, catalog);foreach(var issue in catalog.Issues)Console.Error.WriteLine($"{issue.AppId??"registry"}: {issue.Message}");}
                 return 0;
             }
             if (parsed.Version) { Console.WriteLine(typeof(Program).Assembly.GetName().Version?.ToString(3)); return 0; }
@@ -164,7 +165,7 @@ public static class Program
             {
                 "easysellput://guides/workflows"=>AiWorkflowGuide.Markdown,
                 "easysellput://guides/skill"=>AiSkillInstaller.Content,
-                "easysellput://capabilities"=>WireJson.Element(new{readOnly=!writes,operations=currentCatalog.All.Where(o=>writes||!o.Writes).Select(o=>new{o.Name,o.Description,o.Writes,inputSchema=o.Schema})}).GetRawText(),
+                "easysellput://capabilities"=>WireJson.Element(new{readOnly=!writes,unavailableApps=currentCatalog.Issues,operations=currentCatalog.All.Where(o=>writes||!o.Writes).Select(o=>new{o.Name,o.Description,o.Writes,inputSchema=o.Schema})}).GetRawText(),
                 _=>throw new ModelContextProtocol.McpProtocolException("Unknown resource URI; arbitrary file/URL reads are not supported.",ModelContextProtocol.McpErrorCode.InvalidParams)
             };
             return new ReadResourceResult{Contents=[new TextResourceContents{Uri=uri!,MimeType=uri=="easysellput://capabilities"?"application/json":"text/markdown",Text=content}]};
@@ -175,6 +176,7 @@ public static class Program
             var currentCatalog = await service.GetCatalogAsync(cancel);
             return new ListToolsResult
         {
+            Meta=currentCatalog.Issues.Count==0?null:new JsonObject{["unavailableApps"]=JsonSerializer.SerializeToNode(currentCatalog.Issues,WireJson.Options)},
             Tools = currentCatalog.All.Where(x => writes || !x.Writes).Select(x => new Tool
             {
                 Name = x.Name,

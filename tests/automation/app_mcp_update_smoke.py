@@ -101,5 +101,17 @@ with tempfile.TemporaryDirectory(prefix='signed apps and MCP ') as directory:
             assert writer.call('app_easysellput_test_record', {})['structuredContent']['data']['allowWrites'] is True
         finally:
             writer.close()
+        registry=profile/'apps/registry.json';state=json.loads(registry.read_text());app=next(a for a in state['apps']if a['id']=='easysellput.test')
+        archive=profile/'apps/packages'/app['id']/app['version']/app['packageSha256']/'package.espapp';archive.write_bytes(b'corrupt signed fixture')
+        preserved=registry.read_bytes();reader=Client(command,str(profile))
+        try:
+            tools=reader.request('tools/list')['result'];assert not any(t['name'].startswith('app_easysellput_test_')for t in tools['tools'])
+            issue=tools['_meta']['unavailableApps'][0];assert issue['appId']=='easysellput.test' and issue['code']=='app_verification_failed',issue
+            healthy=reader.call('calculate_option',{'right':'call','spot':100,'strike':100,'years':1,'volatility':.2})
+            assert healthy['structuredContent']['success'] and healthy['structuredContent']['data']['greeks']['price']>0,healthy
+            failed=reader.call('app_easysellput_test_summary',{});assert failed['isError'] and failed['structuredContent']['error']['code']=='operation_failed',failed
+            assert 'apps doctor'in failed['structuredContent']['error']['recovery']
+            assert registry.read_bytes()==preserved and archive.read_bytes()==b'corrupt signed fixture'
+        finally:reader.close()
 assert hashlib.sha256(host.read_bytes()).hexdigest() == before
 print('PASS: fixed host, signed app A/B, long-lived official MCP in 2025/2026 modes, CLI parity, read-only enforcement and EOF (fixture trust only)')

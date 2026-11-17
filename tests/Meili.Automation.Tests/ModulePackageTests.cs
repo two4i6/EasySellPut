@@ -10,7 +10,7 @@ public sealed class ModulePackageTests : IDisposable
 {
     private readonly string root = Path.Combine(Path.GetTempPath(), "esp-modules-" + Guid.NewGuid().ToString("N"));
     private readonly ECDsa key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
-    private string Package(string path = "engine/main.mjs", bool tamper = false, string repository = "test/source", int api = 1, bool extra = false, string version = "1.0.0", ModuleOperation[]? operations = null, string scriptText = "export const value=1;", bool ui = false, string id = "easysellput.test", Dictionary<string,string>? companions = null)
+    private string Package(string path = "engine/main.mjs", bool tamper = false, string repository = "test/source", int api = 1, bool extra = false, string version = "1.0.0", ModuleOperation[]? operations = null, string scriptText = "export const value=1;", bool ui = false, string id = "easysellput.test", Dictionary<string,string>? companions = null, int dataFormat = 1)
     {
         Directory.CreateDirectory(root);
         var filename = Path.Combine(root, Guid.NewGuid().ToString("N") + ".espapp");
@@ -21,7 +21,7 @@ public sealed class ModulePackageTests : IDisposable
         foreach(var pair in companions??[]) {var data=Encoding.UTF8.GetBytes(pair.Value);files.Add(new(pair.Key,data.Length,Convert.ToHexString(SHA256.HashData(data))));}
         if (metadata is not null) files.Add(new("operations.json", metadata.Length, Convert.ToHexString(SHA256.HashData(metadata))));
         if (ui) files.Add(new("ui/index.html", html.Length, Convert.ToHexString(SHA256.HashData(html))));
-        var manifest = new ModuleManifest(1, repository, id, version, api, 1, 1, "node24", path, ui ? "ui/index.html" : null,
+        var manifest = new ModuleManifest(1, repository, id, version, api, 1, dataFormat, "node24", path, ui ? "ui/index.html" : null,
             ["linux-x64"], files.ToArray());
         var bytes = JsonSerializer.SerializeToUtf8Bytes(manifest, new JsonSerializerOptions(JsonSerializerDefaults.Web));
         using var zip = ZipFile.Open(filename, ZipArchiveMode.Create);
@@ -222,6 +222,85 @@ public sealed class ModulePackageTests : IDisposable
         var value=JsonSerializer.SerializeToElement(new Dictionary<string,object>{{"$appError",new{code,message="Bounded app failure"}}});
         var error=Record.Exception(()=>ModuleProcess.DecodeResult(value));Assert.NotNull(error);
         Assert.Equal(expected,WireJson.Code(error));
+    }
+
+    [Fact]
+    public async Task Broken_app_is_explicitly_unavailable_while_other_apps_and_builtin_tools_keep_working()
+    {
+        var profile=Path.Combine(root,"isolated-failure");var installer=new ModuleInstaller(profile,(file,ct)=>Verify(file));
+        var schema=JsonSerializer.SerializeToElement(new{type="object",properties=new{},required=Array.Empty<string>(),additionalProperties=false});
+        var first=new ModuleOperation("app_easysellput_test_summary","First app",false,schema,"engine/main.mjs");
+        var second=new ModuleOperation("app_other_fixture_summary","Second app",false,schema,"engine/main.mjs");
+        await installer.InstallAsync(Package(operations:[first],scriptText:"process.stdout.write('{}');"));
+        await installer.InstallAsync(Package(id:"other.fixture",operations:[second],scriptText:"process.stdout.write(JSON.stringify({source:'healthy-signed-app'}));"));
+        var old=(await ModuleOperations.ReadAsync(profile,installer,CancellationToken.None)).Single(o=>o.AppId=="easysellput.test");
+        var archive=installer.InstalledArchive(installer.Inspect().State.Apps.Single(a=>a.Id==old.AppId));await File.WriteAllBytesAsync(archive,[1,2,3]);
+        var snapshot=await ModuleOperations.ReadSnapshotAsync(profile,installer,CancellationToken.None);
+        Assert.Equal("easysellput.test",Assert.Single(snapshot.Issues).AppId);Assert.Equal("other.fixture",Assert.Single(snapshot.Operations).AppId);
+        var invoked=false;
+        await Assert.ThrowsAsync<AppUnavailableException>(()=>ModuleProcess.ExecuteAsync(profile,old,JsonSerializer.SerializeToElement(new{}),false,installer,_=>{invoked=true;return Task.FromResult<string?>("node");},CancellationToken.None));Assert.False(invoked);
+        var healthy=await ModuleProcess.ExecuteAsync(profile,snapshot.Operations.Single(),JsonSerializer.SerializeToElement(new{}),false,installer,_=>Task.FromResult<string?>("node"),CancellationToken.None);
+        Assert.Equal("healthy-signed-app",healthy.GetProperty("source").GetString());Assert.Equal(new byte[]{1,2,3},await File.ReadAllBytesAsync(archive));
+        using var service=new AutomationService(new(profile,Meili.Core.Settings.DataDirectorySource.CommandLine),new FakeMarket());
+        var quotes=await service.ExecuteAsync("get_quotes",JsonSerializer.SerializeToElement(new{symbols=new[]{"AAPL"}}),false);
+        Assert.Equal(100,quotes.GetProperty("data").GetProperty("quotes")[0].GetProperty("price").GetDouble());
+    }
+    [Fact]
+    public async Task Corrupt_app_registry_preserves_evidence_and_does_not_disable_host_pricing_or_market_tools()
+    {
+        var profile=Path.Combine(root,"bad-registry");Directory.CreateDirectory(Path.Combine(profile,"apps"));var path=Path.Combine(profile,"apps","registry.json");const string original="{retained corrupt fixture";await File.WriteAllTextAsync(path,original);
+        using var service=new AutomationService(new(profile,Meili.Core.Settings.DataDirectorySource.CommandLine),new FakeMarket());
+        var catalog=await service.GetCatalogAsync();Assert.Equal("app_registry_unavailable",Assert.Single(catalog.Issues).Code);Assert.NotNull(catalog.Find("get_quotes"));
+        Assert.Throws<AppUnavailableException>(()=>catalog.Find("get_qqq_gex_replay"));
+        var result=await service.ExecuteAsync("calculate_option",JsonSerializer.SerializeToElement(new{right="call",spot=100,strike=100,years=1,volatility=.2}),false);
+        Assert.True(result.GetProperty("data").GetProperty("greeks").GetProperty("price").GetDouble()>0);
+        Assert.Equal(original,await File.ReadAllTextAsync(path));
+    }
+
+    [Fact]
+    public async Task Metadata_discovery_keeps_one_coherent_version_without_blocking_a_compatible_update()
+    {
+        var profile=Path.Combine(root,"discovery-race");var installer=new ModuleInstaller(profile,(file,ct)=>Verify(file));
+        var schema=JsonSerializer.SerializeToElement(new{type="object",properties=new{},required=Array.Empty<string>(),additionalProperties=false});
+        var operation=new ModuleOperation("app_easysellput_test_summary","Stable contract",false,schema,"engine/main.mjs");
+        await installer.InstallAsync(Package(operations:[operation]));var active=installer.Inspect().State.Apps.Single();var oldArchive=installer.InstalledArchive(active);
+        var entered=new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);var release=new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var reader=new ModuleInstaller(profile,async(file,ct)=>{var verified=await Verify(file);if(file==oldArchive){entered.TrySetResult();await release.Task.WaitAsync(ct);}return verified;});
+        var pending=ModuleOperations.ReadSnapshotAsync(profile,reader,CancellationToken.None);
+        try{await entered.Task.WaitAsync(TimeSpan.FromSeconds(10));await installer.InstallAsync(Package(version:"1.0.1",operations:[operation,operation with{Name="app_easysellput_test_added"}]),updateOnly:true);}
+        finally{release.TrySetResult();}
+        Assert.Equal("1.0.0",Assert.Single((await pending).Operations).Version);
+        var current=await ModuleOperations.ReadSnapshotAsync(profile,installer,CancellationToken.None);Assert.Empty(current.Issues);Assert.All(current.Operations,bound=>Assert.Equal("1.0.1",bound.Version));Assert.Equal(2,current.Operations.Count);
+    }
+
+    [Fact]
+    public async Task Uninstall_retains_data_format_ownership_and_rejects_incompatible_reinstall()
+    {
+        var profile=Path.Combine(root,"retained-format");var installer=new ModuleInstaller(profile,(file,ct)=>Verify(file));
+        await installer.InstallAsync(Package(dataFormat:1));var data=Path.Combine(profile,"retained-observations.fixture");await File.WriteAllTextAsync(data,"untouched data");
+        installer.Uninstall("easysellput.test");Assert.Equal(1,installer.Inspect().State.RetainedFormats!["easysellput.test"]);
+        await Assert.ThrowsAsync<InvalidDataException>(()=>installer.InstallAsync(Package(version:"2.0.0",dataFormat:2)));
+        Assert.Empty(installer.Inspect().State.Apps);Assert.Equal("untouched data",await File.ReadAllTextAsync(data));
+        await installer.InstallAsync(Package(version:"1.0.1",dataFormat:1));Assert.Equal(1,installer.Inspect().State.Apps.Single().DataFormat);
+    }
+    [Fact]
+    public async Task Explicit_exact_archive_repair_preserves_corrupt_evidence_and_does_not_bypass_contract_checks()
+    {
+        var profile=Path.Combine(root,"repair");var installer=new ModuleInstaller(profile,(file,ct)=>Verify(file));var package=Package();
+        await installer.InstallAsync(package);var active=installer.Inspect().State.Apps.Single();var archive=installer.InstalledArchive(active);
+        await File.WriteAllBytesAsync(archive,[1,2,3]);
+        await Assert.ThrowsAsync<InvalidDataException>(()=>installer.InstallAsync(Package(version:"1.0.1",scriptText:"// Different candidate cannot bypass an unreadable previous contract")));
+        await installer.InstallAsync(package);
+        Assert.Equal(active.PackageSha256,(await installer.VerifyInstalledAsync(active.Id)).PackageSha256);
+        var backup=Assert.Single(Directory.GetFiles(Path.Combine(profile,"apps","quarantine"),"package.espapp",SearchOption.AllDirectories));Assert.Equal(new byte[]{1,2,3},await File.ReadAllBytesAsync(backup));
+    }
+    [Fact]
+    public async Task Legacy_GEX_data_cannot_be_adopted_as_an_incompatible_format_without_a_migration()
+    {
+        var profile=Path.Combine(root,"legacy-format");Directory.CreateDirectory(Path.Combine(profile,"cache"));var observations=Path.Combine(profile,"cache","qqq-gex.db");await File.WriteAllTextAsync(observations,"retained legacy evidence");
+        var installer=new ModuleInstaller(profile,(file,ct)=>Verify(file));
+        await Assert.ThrowsAsync<InvalidDataException>(()=>installer.InstallAsync(Package(id:ModuleAccess.QqqGex,dataFormat:2)));
+        Assert.Equal("retained legacy evidence",await File.ReadAllTextAsync(observations));Assert.Empty(installer.Inspect().State.Apps);
     }
 
     [Theory]
