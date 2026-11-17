@@ -74,7 +74,7 @@ public static partial class ModuleOperations
                     op.Schema.ValueKind != JsonValueKind.Object || !op.Schema.TryGetProperty("type", out var type) || type.GetString() != "object")
                     throw new InvalidDataException("Invalid module operation definition.");
                 ValidateSchema(op.Schema, 0);
-                ModuleHostOperations.Validate(op.HostOperations);
+                ModuleHostOperations.Validate(op.HostOperations,op.Writes);
                 if(op.EngineAssets is {} dependencies)
                 {
                     if(dependencies.Length>16||dependencies.Distinct(StringComparer.Ordinal).Count()!=dependencies.Length)throw new InvalidDataException("Invalid engine dependencies.");

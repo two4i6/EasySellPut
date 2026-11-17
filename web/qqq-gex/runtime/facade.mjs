@@ -66,5 +66,19 @@ function lifecycle(date){
   result.recorded=result.points.length>0;return result;
  }finally{database.close();}
 }
-return {root,db,args,execute,utc,day,pageNumber,query,lifecycle,hasHistory,hasRows};
+return {root,db,args,execute,utc,instantTicks,day,pageNumber,query,lifecycle,hasHistory,hasRows};
+}
+
+// Preserve the established System.Text.Json default encoder used by chunked facade bytes.
+export function dotnetJson(value){
+ function quoted(text){return '"'+[...text].map(character=>{
+  if(character==='\\')return '\\\\';
+  const short={'\b':'\\b','\t':'\\t','\n':'\\n','\f':'\\f','\r':'\\r'}[character];if(short)return short;
+  if(character.charCodeAt(0)<32||character.charCodeAt(0)>=127||['"',"'",'&','+','<','>','`'].includes(character))return Array.from({length:character.length},(_,i)=>'\\u'+character.charCodeAt(i).toString(16).toUpperCase().padStart(4,'0')).join('');
+  return character;
+ }).join('')+'"';}
+ if(typeof value==='string')return quoted(value);
+ if(value===null||typeof value==='number'||typeof value==='boolean')return JSON.stringify(value);
+ if(Array.isArray(value))return '['+value.map(dotnetJson).join(',')+']';
+ return '{'+Object.entries(value).map(([key,item])=>quoted(key)+':'+dotnetJson(item)).join(',')+'}';
 }

@@ -135,3 +135,22 @@ Scenario migration note: `analysis=dayScenario` now defaults to `policy=partial`
 `analysis=chartStudies` exposes retained2m K-line observations/markers, trade map, RSI/volume, KC/zones, table/structure/observed trends, gamma history and native visibility. Use `preset` or `hiddenLegends` (22 fixed legend keys); `hiddenLegends=[]` explicitly enables all native legends. `analysis=directionalMarkers` separates stored emitted alerts from historical replay-derived markers and never writes. `analysis=structureEvents` accepts `discovery` and2/10/30-minute windows; full events remain available beyond display's12/80 limits. Analysis timestamps must be within the requested Eastern date. Query filters up to2000 strikes use bounded stdin when necessary, avoiding Windows command-line limits. See MIGRATION-MATRIX.md for exact coverage and limitations.
 
 Read-only MCP workspace also exposes bounded private-document focus, pointer, K-line hover and heatmap inspection. K-line time is Unix seconds; heatmap time is Unix milliseconds. Original missing-value reasons and hypothetical scenario provenance remain explicit. See MIGRATION-MATRIX.md for the coverage map, limits and remaining real/native acceptance TODOs.
+
+## Independent app facade ownership
+
+`runtime/operations.mjs`, `view.mjs`, `capture.mjs` and `facade.mjs` supply all eight
+existing public GEX operations through the signed application package. The three
+original financial bundles remain unchanged and are the model implementation.
+Capture uses request-owned typed host source snapshots; it starts no socket or
+timer. Provider raw bytes, source-time alignment, closed consecutive 1m pairs,
+missing IV/OI, partial evidence and first-observation retention remain explicit.
+`write_app_input` publishes only verified complete input through SnapshotFile CAS.
+Legacy C# entrypoints remain compatibility adapters/seeds; an installed app owns
+capture/calculation calls from the native activity as well as CLI/MCP dispatch.
+The installed capture performs full context once rather than repeating the legacy
+two-stage bootstrap. No archive database relocation/schema rollback occurs.
+
+See [the migration checklist](../../TODO.md) for current source/native acceptance;
+original-model historical/live-data limitations above are not certification of
+complete market coverage. App-only delivery follows the separate signed catalog,
+not a host release or a production development-key override.

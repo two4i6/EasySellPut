@@ -32,7 +32,7 @@ internal static class AppFixture
         }
     }
 
-    public static async Task<int> RunAsync(string publicKey, string runtime, string[] args)
+    public static async Task<int> RunAsync(string publicKey, string runtime, string[] args,string? captureFixture=null)
     {
         var key = File.ReadAllText(publicKey);
         ModuleInstaller Installer(string path) => new(path, (file, token) => ModulePackage.VerifyAsync(file,key,"test/source",System.Runtime.InteropServices.RuntimeInformation.RuntimeIdentifier,token));
@@ -46,11 +46,11 @@ internal static class AppFixture
             var directory = LocalPaths.Resolve(path,migrateLegacy:false);
             var snapshot=await ModuleOperations.ReadSnapshotAsync(directory.Path,Installer(directory.Path),CancellationToken.None);return ModuleOperations.Merge(snapshot.Operations,snapshot.Issues);
         }
-        return await Meili.Cli.Program.RunAsync(args, directory=>new Dispatcher(directory,Installer(directory.Path),runtime),Catalog);
+        return await Meili.Cli.Program.RunAsync(args, directory=>new Dispatcher(directory,Installer(directory.Path),runtime,captureFixture),Catalog);
     }
-    private sealed class Dispatcher(DataDirectoryInfo directory, ModuleInstaller installer, string runtime) : IOperationDispatcher
+    private sealed class Dispatcher(DataDirectoryInfo directory, ModuleInstaller installer, string runtime,string? captureFixture) : IOperationDispatcher
     {
-        private readonly AutomationService fallback = new(directory,new Meili.Automation.Tests.FakeMarket());
+        private readonly AutomationService fallback = new(directory,captureFixture is not null?GexCaptureFixture.Market(captureFixture):new Meili.Automation.Tests.FakeMarket());
         public DataDirectoryInfo DirectoryInfo => directory;
         public async Task<IOperationCatalog> GetCatalogAsync(CancellationToken ct=default) {var snapshot=await ModuleOperations.ReadSnapshotAsync(directory.Path,installer,ct);return ModuleOperations.Merge(snapshot.Operations,snapshot.Issues);}
         public async Task<JsonElement> ExecuteAsync(string operation, JsonElement arguments, bool allowWrites, CancellationToken ct=default)

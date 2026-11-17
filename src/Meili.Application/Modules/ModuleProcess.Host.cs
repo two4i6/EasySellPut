@@ -22,11 +22,13 @@ public static partial class ModuleProcess
             while((read=await process.StandardError.BaseStream.ReadAsync(buffer,token).ConfigureAwait(false))>0)
                 if((total+=read)>65536){deadline.Cancel();throw new InvalidDataException("Application diagnostics exceed bound.");}
         }
-        var errors=DrainErrors();var reader=new Frames(process.StandardOutput.BaseStream);
+        var publishing=declared.Contains("write_app_input",StringComparer.Ordinal);
+        var callLimit=publishing?1024:256;long sent=0;
+        var errors=DrainErrors();var reader=new Frames(process.StandardOutput.BaseStream,publishing?256L*1024*1024:64L*1024*1024);
         async Task Send(object frame)
         {
             var bytes=JsonSerializer.SerializeToUtf8Bytes(frame,WireJson.Options);
-            if(bytes.Length>16*1024*1024)throw new InvalidDataException("Host result exceeds bound.");
+            if(bytes.Length>16*1024*1024||(sent+=bytes.Length)>(publishing?512L*1024*1024:64L*1024*1024))throw new InvalidDataException("Host result exceeds bound.");
             await process.StandardInput.BaseStream.WriteAsync(bytes,token).ConfigureAwait(false);
             await process.StandardInput.BaseStream.WriteAsync(new byte[]{10},token).ConfigureAwait(false);
             await process.StandardInput.BaseStream.FlushAsync(token).ConfigureAwait(false);
@@ -49,13 +51,13 @@ public static partial class ModuleProcess
                     if(process.ExitCode!=0)throw new InvalidDataException("Application engine failed after its result.");
                     return owned;
                 }
-                if(kind.GetString()!="hostCall"||value.EnumerateObject().Count()!=4||!value.TryGetProperty("id",out var identity)||!identity.TryGetInt32(out var id)||id!=nextId++||id>256||
+                if(kind.GetString()!="hostCall"||value.EnumerateObject().Count()!=4||!value.TryGetProperty("id",out var identity)||!identity.TryGetInt32(out var id)||id!=nextId++||id>callLimit||
                     !value.TryGetProperty("operation",out var operation)||operation.ValueKind!=JsonValueKind.String||!value.TryGetProperty("arguments",out var arguments)||arguments.ValueKind!=JsonValueKind.Object||
                     !declared.Contains(operation.GetString(),StringComparer.Ordinal))throw new UnauthorizedAccessException("Undeclared or malformed application host call.");
                 var definition=ModuleHostOperations.Definition(operation.GetString()!);
                 JsonElement reply;
                 try{OperationCatalog.Validate(definition,arguments);reply=await hostCall(definition.Name,arguments,token).ConfigureAwait(false);}
-                catch(Exception ex)when(ex is ArgumentException or JsonException or IOException or InvalidDataException or HttpRequestException or InvalidOperationException or UnauthorizedAccessException)
+                catch(Exception ex)when(ex is ArgumentException or FormatException or JsonException or IOException or InvalidDataException or HttpRequestException or InvalidOperationException or UnauthorizedAccessException)
                 {reply=WireJson.Element(WireJson.Error(ex));} // expected: typed host errors are returned to app without financial-argument logging.
                 await Send(new{type="hostResult",id,result=reply}).ConfigureAwait(false);
             }
@@ -68,7 +70,7 @@ public static partial class ModuleProcess
             {if(ex is not OperationCanceledException)AppLog.Warn("apps","Host-call diagnostics ended",ex);}
         }
     }
-    private sealed class Frames(Stream stream)
+    private sealed class Frames(Stream stream,long maximum)
     {
         private readonly byte[] buffer=new byte[16384];private int offset,count;private long total;
         public async Task<byte[]> ReadAsync(CancellationToken ct)
@@ -78,7 +80,7 @@ public static partial class ModuleProcess
             {
                 if(offset==count){count=await stream.ReadAsync(buffer,ct).ConfigureAwait(false);offset=0;if(count==0)throw new InvalidDataException("Application closed without a complete frame.");}
                 var end=Array.IndexOf(buffer,(byte)10,offset,count-offset);var length=(end<0?count:end)-offset;
-                if(body.Length+length>16*1024*1024||(total+=length+1)>64*1024*1024)throw new InvalidDataException("Application host output exceeds bound.");
+                if(body.Length+length>16*1024*1024||(total+=length+1)>maximum)throw new InvalidDataException("Application host output exceeds bound.");
                 body.Write(buffer,offset,length);offset+=length;
                 if(end>=0){offset++;return body.ToArray();}
             }

@@ -43,6 +43,18 @@ if(args.Length==5&&args[0]=="--gex-legacy-view")
 if(args.Length==3&&args[0]=="--gex-app-fixture-build"){GexAppFixture.Create(args[1],args[2]);return 0;}
 if(args.Length==2 && args[0]=="--app-fixture-build") { AppFixture.Create(args[1]); return 0; }
 
+if(args.Length is 2 or 3&&args[0]=="--gex-capture-original")
+{
+    try
+    {
+        var result=await new QqqGexCaptureService(GexCaptureFixture.Market(args.Length==3?args[2]:"aligned"),args[1]).CaptureAsync();
+        Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(result));return 0;
+    }
+    catch(Meili.Data.Http.DataSourceException error){Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(WireJson.Error(error)));return 1;}
+}
+if(args.Length>=5&&args[0]=="--app-capture-fixture-mode")return await AppFixture.RunAsync(args[1],args[2],args[4..],args[3]);
+if(args.Length>=4&&args[0]=="--app-capture-fixture")return await AppFixture.RunAsync(args[1],args[2],args[3..],"aligned");
+
 // Temporary-key app tests use this host only; production CLI has no equivalent switch.
 if(args.Length >= 4 && args[0]=="--app-fixture")
     return await AppFixture.RunAsync(args[1],args[2],args[3..]);

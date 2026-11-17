@@ -61,7 +61,7 @@ Design: [architecture](docs/55-主程序与可独立更新子应用架构研究.
   - Keep optional UI and required core aligned to the same app release; retain verified offline seed behavior if needed.
   - Acceptance: fixed host binary hashes run package A and B without a host rebuild; headless execution needs neither GUI nor system Node. This step alone does not certify full domain independence.
 
-- [ ] **S07 — Move GEX domain ownership behind its module interface.** Depends on S06.
+- [x] **S07 — Move GEX domain ownership behind its module interface.** Depends on S06.
   - Move GEX-specific operation definitions, routing, capture orchestration, data projections and schema ownership out of the generic host boundary.
   - Retain the original model as one implementation; obtain common market/analytics inputs through typed host capabilities.
   - Preserve existing public GEX facades, derived-cache generation fencing, observations/partial/full archives, preferences and workspace provenance.
@@ -305,3 +305,14 @@ Remote CI exposed a surface guard still looking for GEX literals in the retired 
 ### S07 request-owned complete source snapshots
 
 Added private typed complete market-source receipts for the upcoming app-owned capture: same routed provider/gate, original DTO timestamps and separate original byte hashes, bounded chunks, no pagination refetch, no persistent source cache or additional market connection. Receipt ownership/lifetime is the executing request; stale/foreign receipts fail. Desktop/CLI/MCP and the development host reuse the same session adapter. Signed-engine source-byte/integrity/ownership tests pass in the full Automation suite (177). The Windows original-query fixture now explicitly decodes/writes UTF-8; the previous code-page failure was in test transport, not the GEX model. Capture orchestration itself remains pending.
+
+
+### S07 complete installed-app domain cutover
+
+All eight established public GEX facades are now supplied by the signed package, including source capture, archive/view/lifecycle projections and original financial calculation/query/history execution. Native capture/calculation compatibility entrypoints delegate to the installed handler; bootstrap avoids a duplicate full-context capture. The original three financial bundles remain the single model implementation. Shared source receipts, SDK byte/hash transport and atomic logical-input publication are reused across applications; permissions, bounded jobs, deadlines, generation fencing, protected data and provenance remain explicit.
+
+Legacy format-1 files are adopted **in place** through fixed compatibility aliases, without relocation, unverified SQLite copying or rollback. Unsupported data-format changes still refuse activation; old compiled routes are frozen compatibility seeds for unregistered profiles, suppressed after uninstall. Installed app changes require only a new authenticated app package.
+
+Verification: Automation 179, Shared 132, Core 211, SDK 9, Python guards 57 and workflow/surface guards passed; complete Windows tests cross-compile. Actual fixed-host CLI/MCP A/core→A/UI→B/UI and all eight facades passed using only the extracted pinned Node with system PATH empty. Capture was compared with original C# ingestion for aligned/delayed/unverified/sub-tick-boundary CBOE, missing IV, partial expiries, changed raw revisions and a 20,000-contract chain; original source errors, raw bytes, normalized inputs and repeated first-observation retention matched. Source timeout/cancellation, incomplete uploads, write denial, hashes, conflicts and linked snapshot paths are covered. Fixtures do not certify live market completeness.
+
+Remote revision d4b501e passed Windows x64, Mac Apple Silicon and Mac Intel desktop jobs, and all four native browser probes (Windows ARM64's later unrelated shared-fixture subscription assertion failed). Its Windows CLI cleanup failure was a test SQLite handle left open; connections now close explicitly. The WPF quote ownership test now uses isolated production registrations while retaining the same assertions. Exact-revision CI and full final aggregate remain S09/S12 acceptance gates; no main merge or release was performed.

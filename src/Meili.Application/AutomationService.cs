@@ -52,20 +52,54 @@ public sealed partial class AutomationService(DataDirectoryInfo directory, IMark
     private async Task<Modules.ModuleMarketSnapshot> OpenMarketSnapshotAsync(JsonElement arguments,CancellationToken ct)
     {
         OperationCatalog.Validate(Modules.ModuleHostOperations.Definition("open_market_snapshot"),arguments);
-        var input=new Input(arguments);var symbol=Symbol(input.Text("symbol"));
+        var input=new Input(arguments);
+        static string SourceSymbol(string value)
+        {
+            value=value.Trim().ToUpperInvariant();
+            if(value.Length is <1 or >32||!(char.IsAsciiLetter(value[0])||value[0]=='^')||value.Any(c=>!char.IsAsciiLetterOrDigit(c)&&c is not ('^' or '=' or '.' or '-')))throw new ArgumentException("Invalid market source symbol.");
+            return value;
+        }
+        var kind=input.Text("kind");var symbol=kind=="quotes"?null:SourceSymbol(input.Text("symbol"));
+        string[]? symbols=null;DateOnly? expiry=null;DateTimeOffset? from=null,to=null;
+        var interval=Meili.Core.Models.BarInterval.Day1;
+        if(kind is "quotes" or "expirations")
+        {
+            if(input.Has("expiry")||input.Has("interval")||input.Has("from")||input.Has("to"))throw new ArgumentException("Invalid market source arguments.");
+            if(kind=="expirations"&&input.Has("symbols"))throw new ArgumentException("Expiry source accepts one symbol.");
+            if(kind=="quotes")
+            {
+                if(input.Has("symbol")||!input.Has("symbols"))throw new ArgumentException("Quote source requires symbols.");
+                symbols=arguments.GetProperty("symbols").EnumerateArray().Select(v=>SourceSymbol(v.GetString()!)).ToArray();
+            }
+        }
+        else
+        {
+            if(input.Has("symbols"))throw new ArgumentException("Source accepts one symbol.");
+            if(kind=="chain")
+            {
+                if(input.Has("interval")||input.Has("from")||input.Has("to"))throw new ArgumentException("Chain source accepts only symbol and expiry.");
+                expiry=input.Date("expiry");
+            }
+            else
+            {
+                if(input.Has("expiry"))throw new ArgumentException("Bar source does not accept expiry.");
+                from=input.Instant("from");to=input.Instant("to");if(from>to)throw new ArgumentException("from must not be after to.");
+                interval=ParseInterval(input.Text("interval","1d"));
+            }
+        }
         await _gate.WaitAsync(ct).ConfigureAwait(false);
         try
         {
             var provider=await Market(ct).ConfigureAwait(false);
-            if(input.Text("kind")=="chain")
+            if(kind=="quotes")return new(await provider.GetQuotesAsync(symbols!,ct).ConfigureAwait(false));
+            if(kind=="expirations")return new(await provider.GetExpirationsAsync(symbol!,ct).ConfigureAwait(false));
+            if(kind=="chain")
             {
-                if(input.Has("interval")||input.Has("from")||input.Has("to"))throw new ArgumentException("Chain source accepts only symbol and expiry.");
-                var chain=await provider.GetChainAsync(symbol,input.Date("expiry"),ct).ConfigureAwait(false);
+                var chain=await provider.GetChainAsync(symbol!,expiry,ct).ConfigureAwait(false);
                 return new(chain,chain.RawSourcePayload);
             }
-            if(input.Has("expiry"))throw new ArgumentException("Bar source does not accept expiry.");
-            var from=input.Instant("from");var to=input.Instant("to");if(from>to)throw new ArgumentException("from must not be after to.");
-            return new(await provider.GetBarsAsync(new(symbol,ParseInterval(input.Text("interval","1d")),from,to),ct).ConfigureAwait(false));
+            var series=await provider.GetBarsAsync(new(symbol!,interval,from,to),ct).ConfigureAwait(false);
+            return new(new{series,marketSessions=series.Bars.Select(bar=>Meili.Core.Time.MarketClock.GetSession(bar.Time)).ToArray()});
         }
         finally{_gate.Release();}
     }

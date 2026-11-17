@@ -29,7 +29,7 @@ public sealed class QqqGexActivity(IMarketDataService market,string directory,De
                 try{
                     Update(State with{Phase="capturing",StartedAt=DateTimeOffset.UtcNow});
                     var bootstrap=!new Meili.Data.Cache.QqqGexResponseStore(Path.Combine(directory,"cache","qqq-gex.db")).HasLocalHistory();
-                    if(bootstrap){await CaptureAndPublish(false,false);if(Status is "imported" or "partial")await CaptureAndPublish(true,true);}
+                    if(bootstrap){var deferred=await CaptureAndPublish(false,false);if(deferred&&(Status is "imported" or "partial"))await CaptureAndPublish(true,true);}
                     else await CaptureAndPublish(true,false);
                 }catch(OperationCanceledException)when(!stop.IsCancellationRequested){Update(State with{Phase="source_timeout"});AppLog.Warn("qqq-gex","Source deadline reached; next capture remains scheduled");}
                 catch(Exception ex) when(ex is not OperationCanceledException){Update(State with{Phase="failed"});AppLog.Warn("qqq-gex","Capture/calculation failed: "+ex.GetType().Name);}
@@ -40,7 +40,7 @@ public sealed class QqqGexActivity(IMarketDataService market,string directory,De
             }
         }catch(OperationCanceledException) when(stop.IsCancellationRequested){}
     }
-    private async Task CaptureAndPublish(bool includeContext,bool enriching)
+    private async Task<bool> CaptureAndPublish(bool includeContext,bool enriching)
     {
                     Update(State with{Phase=enriching?"enriching":"capturing",StartedAt=State.StartedAt??DateTimeOffset.UtcNow});
                     var result=await new QqqGexCaptureService(market,directory).CaptureAsync(stop.Token,includeContext);
@@ -56,6 +56,7 @@ public sealed class QqqGexActivity(IMarketDataService market,string directory,De
                         Update(State with{Phase=phase,InputComplete=complete});
                         if(phase is "imported" or "partial"&&!stop.IsCancellationRequested)Ui.Platform.Run(()=>{if(!stop.IsCancellationRequested)Published?.Invoke();});
                     }
+                    return raw.TryGetProperty("contextDeferred",out var deferred)&&deferred.GetBoolean();
     }
     public void Dispose(){activity.Changed-=VisibilityChanged;stop.Cancel();}
 }

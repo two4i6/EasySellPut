@@ -21,6 +21,7 @@ public static class WireJson
     public static string Code(Exception e) => e switch
     {
         AiSetupException setup => setup.Code,
+        Modules.ModuleOperationFailure app => app.Code,
         SkillInstallConflictException => "skill_conflict",
         Core.Settings.DataConflictException => "data_conflict",
         ArgumentException or JsonException or FormatException or OverflowException => "invalid_arguments",
@@ -41,7 +42,7 @@ public static class WireJson
         "io_error" => "Check the selected local directory and permissions; do not switch to another data directory silently.",
         _ => "Inspect local diagnostics and report the unresolved limitation; do not invent a successful result."
     };
-    private static string SafeMessage(Exception e) => e is Modules.AppUnavailableException?e.Message: e is AiSetupException setup ? setup.Message : e is SkillInstallConflictException conflict ? conflict.Message
+    private static string SafeMessage(Exception e) => e is Modules.ModuleOperationFailure?e.Message:e is Modules.AppUnavailableException?e.Message: e is AiSetupException setup ? setup.Message : e is SkillInstallConflictException conflict ? conflict.Message
         : e is Meili.Data.Routing.AllSourcesFailedException all ? $"All sources failed for {all.Capability}: {string.Join(", ", all.Errors.Select(x => x.Source))}. Check connectivity and provider availability."
         : e is Meili.Data.Http.DataSourceException source ? $"Source {source.SourceId}: {source.Kind} (HTTP {source.StatusCode?.ToString() ?? "unknown"})."
         : e is ArgumentException or JsonException or FormatException or OverflowException or Core.Settings.DataConflictException ? e.Message

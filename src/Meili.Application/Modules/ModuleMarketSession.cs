@@ -20,7 +20,16 @@ internal sealed class ModuleMarketSession(
         ct.ThrowIfCancellationRequested();
         if(name=="open_market_snapshot")
         {
-            var source=await open(arguments,ct).ConfigureAwait(false);
+            ModuleMarketSnapshot source;
+            using var deadline=CancellationTokenSource.CreateLinkedTokenSource(ct);
+            deadline.CancelAfter(arguments.TryGetProperty("timeoutMs",out var timeout)?timeout.GetInt32():90000);
+            try{source=await open(arguments,deadline.Token).ConfigureAwait(false);}
+            catch(Exception ex)when(!ct.IsCancellationRequested&&(ex is ArgumentException or FormatException or InvalidDataException or JsonException or IOException or HttpRequestException or InvalidOperationException or OperationCanceledException or Meili.Data.Http.DataSourceException or Meili.Data.Routing.AllSourcesFailedException))
+            {
+                // expected: return bounded standard diagnostics and exception kind, never provider bodies/credentials.
+                var error=WireJson.Element(WireJson.Error(ex));
+                return WireJson.Element(new{success=false,error=error.GetProperty("error"),sourceException=ex.GetType().Name});
+            }
             var bytes=JsonSerializer.SerializeToUtf8Bytes(source.Value,WireJson.Options);
             if(bytes.Length>Maximum||source.Raw.Length>Maximum)throw new InvalidDataException("Market snapshot exceeds bound.");
             body=bytes;raw=source.Raw;receipt=Guid.NewGuid().ToString("N");rawReceipt=raw.IsEmpty?null:Guid.NewGuid().ToString("N");

@@ -610,5 +610,22 @@
     "hostOperations": [
       "read_app_snapshot"
     ]
+  },
+  {
+    "name": "capture_qqq_gex_input",
+    "description": "Capture one coherent QQQ option snapshot from existing routed providers and complete 2-minute price buckets to local normalized input. Explicit network/write; preserves delay, gaps and provider snapshot times. Does not calculate or claim historical completeness.",
+    "writes": true,
+    "schema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    },
+    "entryPoint": "engine/capture.mjs",
+    "hostOperations": [
+      "open_market_snapshot",
+      "read_market_snapshot",
+      "write_app_input"
+    ]
   }
 ]

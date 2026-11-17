@@ -38,9 +38,10 @@ public static partial class ModuleProcess
         }
         if(current.Definition.HostOperations is {Length:>0} operations)
         {
-            if(hostCall is null&&operations.Any(name=>name!="read_app_snapshot"))throw new InvalidOperationException("This host cannot supply the application's declared host capabilities.");
+            if(hostCall is null&&operations.Any(name=>name is not ("read_app_snapshot" or "write_app_input")))throw new InvalidOperationException("This host cannot supply the application's declared host capabilities.");
+            using var inputWriter=new ModuleInputWriter(directory,current.AppId,current.Definition.Writes&&allowWrites);
             return await RunHostAsync(node,script,new{protocol=1,framing="host-jsonl-v1",operation=current.Definition.Name,arguments,
-                context=new{dataDirectory=Path.GetFullPath(directory),appId=current.AppId,appVersion=current.Version,allowWrites=current.Definition.Writes&&allowWrites,hostOperations=operations,assets=dependencies}},operations,(name,args,token)=>name=="read_app_snapshot"?Task.FromResult(ModuleState.Read(directory,current.AppId,args.GetProperty("key").GetString()!)):hostCall!(name,args,token),ct).ConfigureAwait(false);
+                context=new{dataDirectory=Path.GetFullPath(directory),appId=current.AppId,appVersion=current.Version,allowWrites=current.Definition.Writes&&allowWrites,hostOperations=operations,maxHostCalls=operations.Contains("write_app_input")?1024:256,assets=dependencies}},operations,(name,args,token)=>name=="read_app_snapshot"?Task.FromResult(ModuleState.Read(directory,current.AppId,args.GetProperty("key").GetString()!)):name=="write_app_input"?Task.FromResult(inputWriter.Write(args)):hostCall!(name,args,token),ct).ConfigureAwait(false);
         }
         return await RunAsync(node, script, new { protocol = 1, operation = current.Definition.Name, arguments,
             context = new { dataDirectory = Path.GetFullPath(directory), appId = current.AppId, appVersion = current.Version, allowWrites = current.Definition.Writes && allowWrites, assets=dependencies } }, ct).ConfigureAwait(false);
@@ -57,6 +58,8 @@ public static partial class ModuleProcess
             "invalid_arguments"=>new ArgumentException(message),
             "permission_denied"=>new UnauthorizedAccessException(message),
             "cancelled"=>new OperationCanceledException(message),
+            "data_conflict"=>new Meili.Core.Settings.DataConflictException("application input"),
+            "data_source_error" or "io_error"=>new ModuleOperationFailure(code.GetString()!,message!),
             _=>new InvalidDataException(message)
         };
     }
@@ -105,4 +108,9 @@ public static partial class ModuleProcess
             }
         }
     }
+}
+
+internal sealed class ModuleOperationFailure(string code,string message):Exception(message)
+{
+    internal string Code {get;}=code;
 }

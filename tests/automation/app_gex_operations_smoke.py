@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Actual GEX model behind signed app A/B, fixed host, optional UI and retained data (offline fixture)."""
 import argparse
+from contextlib import closing
 import hashlib
 import json
 import pathlib
@@ -97,7 +98,7 @@ with tempfile.TemporaryDirectory(prefix='actual GEX signed app ')as directory:
   assert forbidden['isError']and forbidden['structuredContent']['error']['code']=='invalid_arguments'
   import gzip
   raw_provider=b'\x00original provider fixture \xff';provider_hash=hashlib.sha256(raw_provider).hexdigest().upper()
-  with sqlite3.connect(db)as connection:
+  with closing(sqlite3.connect(db))as connection,connection:
    connection.execute('CREATE TABLE IF NOT EXISTS qqq_gex_provider_raw(sha256 TEXT PRIMARY KEY,source TEXT,as_of INTEGER,fetched_at INTEGER,body BLOB,encoding TEXT)')
    connection.execute('INSERT INTO qqq_gex_provider_raw VALUES(?,?,?,?,?,?)',(provider_hash,'fixture',1,2,gzip.compress(raw_provider),'gzip-v1'))
   raw_args={'resource':'providerRaw','providerHash':provider_hash}
@@ -122,17 +123,17 @@ with tempfile.TemporaryDirectory(prefix='actual GEX signed app ')as directory:
    assert decision['status']=='calculation_failed'and not decision['complete']and decision['exitCode']==rejected.returncode
   lifecycle=client.call('get_qqq_gex_lifecycle',{'date':'2026-01-02'})['structuredContent']['data']
   assert lifecycle['available']and lifecycle['storageAvailable']and not lifecycle['complete']
-  with sqlite3.connect(db)as connection:connection.execute('DELETE FROM qqq_gex_pcs_lifecycle')
+  with closing(sqlite3.connect(db))as connection,connection:connection.execute('DELETE FROM qqq_gex_pcs_lifecycle')
   point={'time':'2026-01-02T14:32:00Z','status':'fixture observation, not live'};body=json.dumps(point,separators=(',',':'));digest=hashlib.sha256(body.encode()).hexdigest()
-  with sqlite3.connect(db)as connection:
+  with closing(sqlite3.connect(db))as connection,connection:
    connection.execute('CREATE TABLE IF NOT EXISTS qqq_gex_pcs_lifecycle(day TEXT,time INTEGER,body TEXT,sha256 TEXT)')
    connection.execute('INSERT INTO qqq_gex_pcs_lifecycle VALUES(?,?,?,?)',('2026-01-02',1,body,digest))
   for actual in [client.call('get_qqq_gex_lifecycle',{'date':'2026-01-02'})['structuredContent']['data'],run(command,str(profile),'get_qqq_gex_lifecycle','--date','2026-01-02')['data']]:
    assert actual['points']==[point]and actual['recorded']and actual['storageAvailable']and not actual['complete']
-  with sqlite3.connect(db)as connection:connection.execute("UPDATE qqq_gex_pcs_lifecycle SET sha256='corrupt'")
+  with closing(sqlite3.connect(db))as connection,connection:connection.execute("UPDATE qqq_gex_pcs_lifecycle SET sha256='corrupt'")
   corrupt=client.call('get_qqq_gex_lifecycle',{'date':'2026-01-02'})
   assert corrupt['isError']and corrupt['structuredContent']['error']['code']=='operation_failed',corrupt
-  with sqlite3.connect(db)as connection:connection.execute('UPDATE qqq_gex_pcs_lifecycle SET sha256=?',(digest,))
+  with closing(sqlite3.connect(db))as connection,connection:connection.execute('UPDATE qqq_gex_pcs_lifecycle SET sha256=?',(digest,))
   retained=hashlib.sha256(db.read_bytes()).hexdigest()
   install('1.0.0-ui')
   assert client.call('get_qqq_gex_replay',requested)['structuredContent']['data']==replay
@@ -153,7 +154,10 @@ with tempfile.TemporaryDirectory(prefix='actual GEX signed app ')as directory:
   assert actual['structuredContent']['data']==repeated,(actual,repeated)
   assert writer.call('rebuild_qqq_gex_history',{'limit':1})['structuredContent']['data']==expected_history
  finally:writer.close()
- assert declared=={'get_qqq_gex_retained_summary','calculate_qqq_gex_local','get_qqq_gex_replay','rebuild_qqq_gex_history','get_qqq_gex_archive','get_qqq_gex_lifecycle','get_qqq_gex_live_decision','get_qqq_gex_view'},('Add a meaningful real CLI/MCP scenario for every signed app operation',declared)
+ assert declared=={'get_qqq_gex_retained_summary','calculate_qqq_gex_local','get_qqq_gex_replay','rebuild_qqq_gex_history','get_qqq_gex_archive','get_qqq_gex_lifecycle','get_qqq_gex_live_decision','get_qqq_gex_view','capture_qqq_gex_input'},('Add a meaningful real CLI/MCP scenario for every signed app operation',declared)
+ from app_gex_capture_smoke import check_capture,check_source_failure
+ for mode in ['aligned','delayed-cboe','unverified-cboe','boundary-cboe','missing-iv','partial','changed-raw','large']:check_capture(base,node,fixtures,root,mode)
+ check_source_failure(base,node,fixtures,root)
  retained=hashlib.sha256(db.read_bytes()).hexdigest()
  production=pathlib.Path('src/Meili.Cli/bin/Release/net10.0/easysellput.dll').resolve()
  removed=subprocess.run([dotnet,str(production),'apps','uninstall','easysellput.qqq-gex','--data-dir',str(profile),'--json'],capture_output=True,text=True,encoding='utf-8',timeout=20)
@@ -163,4 +167,4 @@ with tempfile.TemporaryDirectory(prefix='actual GEX signed app ')as directory:
  assert run(command,str(profile),'get_qqq_gex_replay','--from',requested['from'],'--to',requested['to'])['data']==replay
  assert hashlib.sha256(db.read_bytes()).hexdigest()==retained
  assert hashlib.sha256(host.read_bytes()).hexdigest()==before
-print('PASS: actual original GEX calculation/replay/history/archive/decision/lifecycle/view through signed app, unchanged host A/B, optional UI attachment, real added retained-data operation and uninstall/reinstall preservation (fixture, not live/native)')
+print('PASS: all 8 original GEX facades through signed app, unchanged host A/B, optional UI attachment, real added retained-data operation and uninstall/reinstall preservation (fixture, not live/native)')

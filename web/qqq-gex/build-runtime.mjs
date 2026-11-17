@@ -26,3 +26,5 @@ await build({absWorkingDir:root,entryPoints:['runtime/retained-summary.mjs'],bun
 await build({absWorkingDir:root,entryPoints:['runtime/operations.mjs'],bundle:true,platform:'node',format:'esm',outfile:'runtime-dist/operations.mjs',target:'node24'});
 
 await build({absWorkingDir:root,entryPoints:['runtime/view.mjs'],bundle:true,platform:'node',format:'esm',outfile:'runtime-dist/view.mjs',target:'node24'});
+
+await build({absWorkingDir:root,entryPoints:['runtime/capture.mjs'],bundle:true,platform:'node',format:'esm',outfile:'runtime-dist/capture.mjs',target:'node24'});

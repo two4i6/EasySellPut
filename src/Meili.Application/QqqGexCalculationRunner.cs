@@ -17,7 +17,12 @@ public static class QqqGexCalculationRunner
         if(limit is <1 or >400)throw new ArgumentOutOfRangeException(nameof(limit));
         return ExecuteAsync(directory,"history.mjs",JsonSerializer.Serialize(new {limit,retryFailed}),ct);
     }
-    public static Task<object> RunAsync(string directory,CancellationToken ct=default)=>ExecuteAsync(directory,"import.mjs",null,ct);
+    public static async Task<object> RunAsync(string directory,CancellationToken ct=default)
+    {
+        var discovery=await Modules.ModuleOperations.ReadSnapshotAsync(directory,ct).ConfigureAwait(false);discovery.RequireAvailable(Modules.ModuleAccess.QqqGex);
+        var operation=discovery.Operations.SingleOrDefault(item=>item.AppId==Modules.ModuleAccess.QqqGex&&item.Definition.Name=="calculate_qqq_gex_local");
+        return operation is null?await ExecuteAsync(directory,"import.mjs",null,ct).ConfigureAwait(false):await Modules.ModuleProcess.ExecuteAsync(directory,operation,JsonSerializer.SerializeToElement(new{}),true,ct).ConfigureAwait(false);
+    }
     public static async Task<object> QueryAsync(string directory,string path,CancellationToken ct=default)
     {
         if(Encoding.UTF8.GetByteCount(path)>65536||!(path.StartsWith("/api/analysis/qqq/local-analysis?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/local-archive?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/pcs/backtest?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/pcs?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/gex/intraday-context?",StringComparison.Ordinal)||path.StartsWith("/api/analysis/qqq/gex/exposure?",StringComparison.Ordinal)||(path=="/api/analysis/qqq/pcs/local-decision"||path.StartsWith("/api/analysis/qqq/pcs/local-decision?",StringComparison.Ordinal))))throw new ArgumentException("Unsupported local query");

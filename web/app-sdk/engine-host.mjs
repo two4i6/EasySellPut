@@ -10,12 +10,12 @@ export async function createHostEngine(input = process.stdin, output = process.s
   return {
     request,
     async call(operation,args){
-      if(finished||busy||!request.context.hostOperations.includes(operation)||++id>256)throw Error('Undeclared, concurrent or excessive host call');
+      if(finished||busy||!request.context.hostOperations.includes(operation)||++id>(request.context.maxHostCalls??256))throw Error('Undeclared, concurrent or excessive host call');
       busy=true;
       try{
         send({type:'hostCall',id,operation,arguments:args});const reply=await read();
         if(reply.type!=='hostResult'||reply.id!==id||!reply.result)throw Error('Mismatched host reply');
-        if(!reply.result.success){const error=Error(reply.result.error?.message??'Host capability failed');error.code=reply.result.error?.code;throw error;}
+        if(!reply.result.success){const error=Error(reply.result.error?.message??'Host capability failed');error.code=reply.result.error?.code;error.sourceException=reply.result.sourceException;throw error;}
         return reply.result.data;
       }finally{busy=false;}
     },

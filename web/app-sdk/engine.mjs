@@ -23,6 +23,6 @@ export function writeResult(value, output = process.stdout) {
 
 /** Reserved typed error envelope; the host maps it to existing public CLI/MCP error semantics. */
 export function writeError(code,message,output=process.stdout){
- if(!['invalid_arguments','permission_denied','cancelled','invalid_data'].includes(code)||typeof message!=='string'||message.length>1000)throw Error('Invalid app error');
+ if(!['invalid_arguments','permission_denied','cancelled','invalid_data','data_conflict','data_source_error','io_error'].includes(code)||typeof message!=='string'||message.length>1000)throw Error('Invalid app error');
  writeResult({$appError:{code,message}},output);
 }

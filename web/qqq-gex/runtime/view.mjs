@@ -1,6 +1,6 @@
 // App-owned view routing/projections. Shared providers remain in the host; original financial math stays in query.mjs.
 import {createHostEngine} from '../../app-sdk/engine-host.mjs';
-import {createFacade,InputError} from './facade.mjs';
+import {createFacade,InputError,dotnetJson} from './facade.mjs';
 import {existsSync} from 'node:fs';
 import {DatabaseSync} from 'node:sqlite';
 import {createHash} from 'node:crypto';
@@ -14,19 +14,6 @@ function required(key){if(!present(key))throw new InputError(key+' is required')
 function instant(key){const value=required(key);utc(value);return value;}
 function date(key){return day(required(key));}
 function range(from,to,max){const first=Date.parse(instant(from)),last=Date.parse(instant(to));if(last<=first||last-first>max)throw new InputError('Invalid bounded '+from+'/'+to+' window');}
-// Preserve the established System.Text.Json default encoder used by chunked facade bytes.
-function dotnetJson(value){
- function quoted(text){return '"'+[...text].map(character=>{
-  if(character==='\\')return '\\\\';
-  const short={'\b':'\\b','\t':'\\t','\n':'\\n','\f':'\\f','\r':'\\r'}[character];if(short)return short;
-  if(character.charCodeAt(0)<32||character.charCodeAt(0)>=127||['"',"'",'&','+','<','>','`'].includes(character))return Array.from({length:character.length},(_,i)=>'\\u'+character.charCodeAt(i).toString(16).toUpperCase().padStart(4,'0')).join('');
-  return character;
- }).join('')+'"';}
- if(typeof value==='string')return quoted(value);
- if(value===null||typeof value==='number'||typeof value==='boolean')return JSON.stringify(value);
- if(Array.isArray(value))return '['+value.map(dotnetJson).join(',')+']';
- return '{'+Object.entries(value).map(([key,item])=>quoted(key)+':'+dotnetJson(item)).join(',')+'}';
-}
 function chunks(resource,body,contentType='application/json'){
  const bytes=Buffer.isBuffer(body)?body:Buffer.from(body),offset=integer('offset',0,0,134217728),length=integer('length',65536,1,262144);
  if(offset>0&&!present('sha256'))throw new InputError('Continuation requires first chunk sha256');

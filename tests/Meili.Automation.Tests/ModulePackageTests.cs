@@ -157,10 +157,63 @@ public sealed class ModulePackageTests : IDisposable
         var result=await ModuleProcess.ExecuteAsync(profile,bound,JsonSerializer.SerializeToElement(new{}),false,installer,_=>Task.FromResult<string?>("node"),CancellationToken.None);
         Assert.Equal(saved,result.GetProperty("own").GetProperty("body").GetString());Assert.True(result.GetProperty("rejected").GetBoolean());
         Assert.Equal(saved,await File.ReadAllTextAsync(ownPath));Assert.False(File.Exists(Path.Combine(profile,"settings.json")));
+        if(!OperatingSystem.IsWindows())
+        {
+            var outside=Path.Combine(root,"outside.json");await File.WriteAllTextAsync(outside,"unrelated");File.Delete(ownPath);File.CreateSymbolicLink(ownPath,outside);
+            Assert.Throws<InvalidDataException>(()=>ModuleState.Read(profile,"easysellput.test","preferences"));
+            using var writer=new ModuleInputWriter(profile,"easysellput.test",true);var inputPath=Path.Combine(Path.GetDirectoryName(ownPath)!,"input.json");File.CreateSymbolicLink(inputPath,outside);
+            Assert.Throws<InvalidDataException>(()=>writer.Write(JsonSerializer.SerializeToElement(new{offset=0,totalBytes=2,sha256=Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes("{}"))),bodyBase64="e30=",final=true})));
+            Assert.Equal("unrelated",await File.ReadAllTextAsync(outside));File.Delete(inputPath);File.Delete(ownPath);
+        }
         await File.WriteAllTextAsync(ownPath,new string('x',65537));
         Assert.Throws<InvalidDataException>(()=>ModuleState.Read(profile,"easysellput.test","preferences"));
         Assert.Throws<ArgumentException>(()=>ModuleState.Read(profile,"easysellput.test","../settings"));
         var missing=Path.Combine(root,"absent-state");Assert.Null(ModuleState.Read(missing,"other.app","desktop").GetProperty("data").GetProperty("body").GetString());Assert.False(Directory.Exists(missing));
+    }
+
+    [Fact]
+    public async Task Signed_input_publication_requires_writes_and_atomically_preserves_conflicts_hashes_and_incomplete_uploads()
+    {
+        var profile=Path.Combine(root,"input-calls");var installer=new ModuleInstaller(profile,(file,ct)=>Verify(file));
+        var schema=JsonSerializer.SerializeToElement(new{type="object",properties=new{},required=Array.Empty<string>(),additionalProperties=false});
+        var operation=new ModuleOperation("app_easysellput_test_record","Record input",true,schema,"engine/main.mjs",["write_app_input"]);
+        const string body="{\"value\":\"中文\"}";var bytes=Encoding.UTF8.GetBytes(body);var digest=Convert.ToHexString(SHA256.HashData(bytes));
+        var inputPath=Path.Combine(profile,"apps","data","easysellput.test","state","input.json");Directory.CreateDirectory(Path.GetDirectoryName(inputPath)!);await File.WriteAllTextAsync(inputPath,"{\"old\":true}");
+        var script="import {createHostEngine} from "+HostSdkUri()+";import{readFileSync}from'node:fs';import{join}from'node:path';const engine=await createHostEngine();try{const bytes=Buffer.from('"+Convert.ToBase64String(bytes)+"','base64'),base={totalBytes:bytes.length,sha256:'"+digest+"'};const first=await engine.call('write_app_input',{...base,offset:0,bodyBase64:bytes.subarray(0,5).toString('base64'),final:false});const before=readFileSync(join(engine.request.context.dataDirectory,'apps/data/easysellput.test/state/input.json'),'utf8');const committed=await engine.call('write_app_input',{...base,offset:5,bodyBase64:bytes.subarray(5).toString('base64'),final:true});engine.finish({first,before,committed});}finally{engine.close();}";
+        await installer.InstallAsync(Package(operations:[operation],scriptText:script));
+        var bound=(await ModuleOperations.ReadAsync(profile,installer,CancellationToken.None)).Single();
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(()=>ModuleProcess.ExecuteAsync(profile,bound,JsonSerializer.SerializeToElement(new{}),false,installer,_=>Task.FromResult<string?>("node"),CancellationToken.None));
+        var result=await ModuleProcess.ExecuteAsync(profile,bound,JsonSerializer.SerializeToElement(new{}),true,installer,_=>Task.FromResult<string?>("node"),CancellationToken.None);
+        Assert.Equal("{\"old\":true}",result.GetProperty("before").GetString());Assert.False(result.GetProperty("first").GetProperty("committed").GetBoolean());Assert.True(result.GetProperty("committed").GetProperty("committed").GetBoolean());Assert.Equal(body,await File.ReadAllTextAsync(inputPath));
+        JsonElement Chunk(int offset,int count,bool final,string? hash=null)=>JsonSerializer.SerializeToElement(new{offset,totalBytes=bytes.Length,sha256=hash??digest,bodyBase64=Convert.ToBase64String(bytes,offset,count),final});
+        using(var incomplete=new ModuleInputWriter(profile,"easysellput.test",true))incomplete.Write(Chunk(0,5,false));
+        Assert.Equal(body,await File.ReadAllTextAsync(inputPath));
+        using(var conflicting=new ModuleInputWriter(profile,"easysellput.test",true))
+        {
+            conflicting.Write(Chunk(0,5,false));new Meili.Core.Settings.SnapshotFile(inputPath).Write("{\"external\":true}");
+            Assert.Throws<Meili.Core.Settings.DataConflictException>(()=>conflicting.Write(Chunk(5,bytes.Length-5,true)));
+        }
+        Assert.Equal("{\"external\":true}",await File.ReadAllTextAsync(inputPath));
+        using(var corrupt=new ModuleInputWriter(profile,"easysellput.test",true))Assert.Throws<InvalidDataException>(()=>corrupt.Write(Chunk(0,bytes.Length,true,new string('0',64))));
+        Assert.Equal("{\"external\":true}",await File.ReadAllTextAsync(inputPath));
+        await Assert.ThrowsAsync<InvalidDataException>(()=>installer.InstallAsync(Package(id:"other.readonly",operations:[operation with{Name="app_other_readonly_record",Writes=false}])));
+    }
+
+    [Fact]
+    public async Task Market_source_deadline_releases_the_shared_provider_gate_and_disposal_expires_receipts()
+    {
+        var profile=Path.Combine(root,"source-deadline");
+        var market=new FakeMarket{BarsOverride=async(request,ct)=>{await Task.Delay(Timeout.InfiniteTimeSpan,ct);throw new InvalidOperationException("Unreachable");}};
+        using var service=new AutomationService(new(profile,Meili.Core.Settings.DataDirectorySource.CommandLine),market);
+        var session=service.BeginModuleHostSession();
+        var expired=await session.InvokeAsync("open_market_snapshot",JsonSerializer.SerializeToElement(new{kind="bars",symbol="QQQ",timeoutMs=5}),CancellationToken.None);
+        Assert.False(expired.GetProperty("success").GetBoolean());Assert.Equal("cancelled",expired.GetProperty("error").GetProperty("code").GetString());
+        var quotes=await service.ExecuteAsync("get_quotes",JsonSerializer.SerializeToElement(new{symbols=new[]{"AAPL"}}),false).WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.True(quotes.GetProperty("success").GetBoolean());
+        using var cancelled=new CancellationTokenSource();cancelled.Cancel();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(()=>session.InvokeAsync("open_market_snapshot",JsonSerializer.SerializeToElement(new{kind="chain",symbol="QQQ"}),cancelled.Token));
+        session.Dispose();await Assert.ThrowsAsync<ObjectDisposedException>(()=>session.InvokeAsync("open_market_snapshot",JsonSerializer.SerializeToElement(new{kind="chain",symbol="QQQ"}),CancellationToken.None));
+        Assert.False(Directory.Exists(profile));
     }
 
     [Fact]
@@ -186,7 +239,7 @@ public sealed class ModulePackageTests : IDisposable
         using var foreign=service.BeginModuleHostSession();await Assert.ThrowsAsync<ArgumentException>(()=>foreign.InvokeAsync("read_market_snapshot",read,CancellationToken.None));
         await host.InvokeAsync("open_market_snapshot",JsonSerializer.SerializeToElement(new{kind="bars",symbol="QQQ"}),CancellationToken.None);
         await Assert.ThrowsAsync<ArgumentException>(()=>host.InvokeAsync("read_market_snapshot",read,CancellationToken.None));
-        await Assert.ThrowsAsync<ArgumentException>(()=>host.InvokeAsync("open_market_snapshot",JsonSerializer.SerializeToElement(new{kind="chain",symbol="QQQ",interval="1d"}),CancellationToken.None));
+        Assert.False((await host.InvokeAsync("open_market_snapshot",JsonSerializer.SerializeToElement(new{kind="chain",symbol="QQQ",interval="1d"}),CancellationToken.None)).GetProperty("success").GetBoolean());
     }
 
     [Fact]

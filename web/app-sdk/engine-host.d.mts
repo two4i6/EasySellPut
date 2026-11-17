@@ -1,5 +1,5 @@
 export interface HostEngine {
-  readonly request: {protocol:1;framing:'host-jsonl-v1';operation:string;arguments:Record<string,unknown>;context:{dataDirectory:string;appId:string;appVersion:string;allowWrites:boolean;hostOperations:string[]}};
+  readonly request: {protocol:1;framing:'host-jsonl-v1';operation:string;arguments:Record<string,unknown>;context:{dataDirectory:string;appId:string;appVersion:string;allowWrites:boolean;hostOperations:string[];maxHostCalls?:number;assets?:Readonly<Record<string,string>>}};
   call<T=unknown>(operation:string,args:Record<string,unknown>):Promise<T>;
   finish(result:unknown):void;
   close():void;

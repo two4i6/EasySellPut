@@ -13,6 +13,17 @@ public sealed class QqqGexCaptureService(IMarketDataService market,string dataDi
     {
         var captureBudget=captureTimeout??TimeSpan.FromSeconds(90);if(captureBudget<=TimeSpan.Zero||captureBudget>TimeSpan.FromSeconds(90))throw new ArgumentOutOfRangeException(nameof(captureTimeout));
         ct.ThrowIfCancellationRequested();
+        var discovery=await Meili.Automation.Modules.ModuleOperations.ReadSnapshotAsync(dataDirectory,ct).ConfigureAwait(false);
+        discovery.RequireAvailable(Meili.Automation.Modules.ModuleAccess.QqqGex);
+        if(discovery.Operations.Any(operation=>operation.AppId==Meili.Automation.Modules.ModuleAccess.QqqGex&&operation.Definition.Name=="capture_qqq_gex_input"))
+        {
+            // Compatibility callers reuse their existing provider; the installed app owns all capture logic.
+            using var service=new AutomationService(new(dataDirectory,DataDirectorySource.CommandLine),market);
+            using var installedDeadline=CancellationTokenSource.CreateLinkedTokenSource(ct);if(captureTimeout is not null)installedDeadline.CancelAfter(captureBudget);
+            var result=await service.ExecuteAsync("capture_qqq_gex_input",JsonSerializer.SerializeToElement(new{}),true,installedDeadline.Token).ConfigureAwait(false);
+            return result.GetProperty("data").Clone();
+        }
+
         using var execution=Meili.Automation.Modules.ModuleAccess.AcquireEnabled(dataDirectory,"easysellput.qqq-gex");
         using var job=await Meili.Automation.Modules.ModuleJobs.AcquireAsync(dataDirectory,"easysellput.qqq-gex",ct).ConfigureAwait(false);
         var callerCt=ct;using var deadline=CancellationTokenSource.CreateLinkedTokenSource(ct);deadline.CancelAfter(captureBudget);ct=deadline.Token;

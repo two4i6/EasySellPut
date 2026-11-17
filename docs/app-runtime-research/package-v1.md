@@ -33,7 +33,7 @@ Immutable installed archives use `apps/packages/<id>/<version>/<package-sha256>/
 
 ## Typed shared host calls
 
-An operation may declare `hostOperations`, a bounded unique allowlist of existing common read-only market/Analytics operations. The host currently permits quotes, bars, expirations, option chains, option pricing, indicators and strategy math. It validates each call against the existing built-in schema and dispatches directly to the shared provider/Analytics owner; recursive app calls, writes, maintenance, arbitrary URLs/files/processes are unavailable. Adding/removing capabilities on an existing operation requires a new operation name.
+An operation may declare `hostOperations`, a bounded unique allowlist of existing common read-only market/Analytics operations. The host currently permits quotes, bars, expirations, option chains, option pricing, indicators and strategy math. It validates each call against the existing built-in schema and dispatches directly to the shared provider/Analytics owner; recursive app calls, ordinary host mutations, maintenance and arbitrary URLs/files/processes are unavailable. Adding/removing capabilities on an existing operation requires a new operation name.
 
 These operations use protocol-1 framing `host-jsonl-v1`: initial request, strictly increasing bounded `hostCall` IDs, matching `hostResult`, then one terminal `result`. Frames/aggregate output/call count/runtime/diagnostics are bounded; duplicate fields, undeclared capabilities, reused IDs, trailing output and missing completion fail closed. Cancellation reaches provider work and kills the app process before releasing execution ownership. `web/app-sdk/engine-host.mjs` shares the framing implementation. Existing one-shot engines remain compatible.
 
@@ -43,7 +43,7 @@ This is a first-party signed-code contract, not an OS sandbox. No caller can ena
 
 Operations may declare at most 16 unique `engineAssets`, restricted to declared `engine/*.mjs` files with a total 128 MiB read budget. The host authenticates/materializes only those dependencies and supplies their paths in request context; tool arguments cannot select executable paths. The GEX facade uses the same pinned Node executable for its original child bundles. Parent cancellation owns the process tree; child output/diagnostics/deadline are bounded.
 
-The reserved single-field `$appError` envelope preserves existing invalid-argument, permission and cancellation errors. Invalid model/data errors retain the host's established `operation_failed` category; no new CLI/MCP error category was added. Ordinary model failure results retain their original `calculation_failed`, incomplete-data and retained-input semantics.
+The reserved single-field `$appError` envelope preserves existing invalid-argument, permission, cancellation, conflict, source and I/O errors. Invalid model/data errors retain the host's established `operation_failed` category; no new CLI/MCP error category was added. Ordinary model failure results retain their original `calculation_failed`, incomplete-data and retained-input semantics.
 
 ### Logical presentation snapshots
 
@@ -65,5 +65,33 @@ They do not page/refetch a chain, apply a financial model, persist observations,
 start a timer or open another market connection. One session retains at most the
 latest DTO and raw payload (each at most 128 MiB); chunks are at most 1 MiB.
 Receipts cannot be read by another request and expire on replacement/disposal.
+Bar snapshots contain the original `series` plus per-bar `marketSessions` from the
+shared MarketClock; apps do not copy the exchange calendar. Source calls accept
+a bounded remaining deadline, including futures symbols such as `CL=F`.
 Ordinary public chain tools continue to omit raw provider bodies. Apps must verify
 advertised hashes before interpreting or retaining the bytes.
+
+### Atomic logical input publication
+
+Only a signed **write** operation may declare `write_app_input`, and invocation
+still requires the caller's write permission. It accepts sequential bounded chunks
+for one app-owned JSON input, with total byte count and SHA256 held constant.
+The runtime binds the destination to the executing app/profile (GEX keeps its
+existing compatibility input path); there is no path argument. Uploads remain
+request-owned memory until complete UTF-8/JSON/hash validation and SnapshotFile CAS
+publication. Cancellation/incomplete input publishes nothing; conflicts preserve
+the other writer and retained observations are never rolled back.
+
+Ordinary host-call requests retain 256 calls / 64 MiB aggregate framing limits.
+An authenticated input-publishing operation permits 1,024 calls, 256 MiB app→host
+and 512 MiB host→app aggregate bytes to carry the existing bounded 128 MiB source
+and normalized input formats. Individual frames remain 16 MiB, individual chunks
+1 MiB, source snapshots 128 MiB each, diagnostics 64 KiB and runtime two minutes.
+Capture's provider deadline remains 90 seconds; source receipts carry their
+individual remaining deadline. All work remains subject to the existing bounded
+job admission/concurrency and cross-process execution/write leases.
+
+The shared engine SDK's `market.mjs`/types implement verified source receipt reads
+and acknowledged input publication. App code owns capture/model semantics; later
+apps reuse byte bounds, sequences, hashes and permissions instead of copying the
+transport. The existing `engine-host.test.mjs` CI target covers this SDK too.
