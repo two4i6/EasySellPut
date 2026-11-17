@@ -21,7 +21,11 @@ def check_capture(base,node,fixtures,root,mode="aligned"):
  assert installed.returncode==0,(installed.stdout,installed.stderr)
  actual=run(command,str(profile),'capture_qqq_gex_input')['data']
  published=pathlib.Path(actual.pop('inputPath'))
- assert published==profile/'cache/qqq-gex-input.json' and published.is_file(),str(published)
+ expected_input=profile/'cache/qqq-gex-input.json'
+ # Windows can return long-form paths for a temporary directory's 8.3 alias.
+ # Compare the existing file identity, not its lexical spelling.
+ assert published.is_file() and expected_input.is_file(),{'published':str(published),'expected':str(expected_input),'publishedExists':published.is_file(),'expectedExists':expected_input.is_file()}
+ assert published.samefile(expected_input),{'published':str(published),'expected':str(expected_input)}
  expected.pop('inputPath');assert actual==expected,(actual,expected)
  assert actual['status']=='captured_input'
  if mode in('aligned','large'):assert actual['matchingRegularBars']==4 and actual['providerCoverageComplete']
