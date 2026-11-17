@@ -245,3 +245,12 @@ Native probes also verify the passive overlay's paint order and opaque status on
 
 
 Native pixel review found that the first SVG-only ordering fix was insufficient on WebKit: CI142 DOM/native key checks passed, but four Mac captures had the status under the bitmap (only77–78 opaque-card pixels). The corrected HTML/SVG/HTML planes preserve bitmap calculation and geometry. New check_gex_native_pixels.py rejects those actual old captures and checks all four new theme/width captures using the existing Pillow dependency; this complements manual review rather than claiming every visual state. Trusted keys passed on all4 native engines in CI142; trusted native pointer and corrected pixel captures require the new delivered CI. Hardware-origin input and all native journeys are not certified.
+
+
+## Owner-requested single workspace
+
+- [x] Remove both outer mode tabs and their separate latest-only panel/quote badge; keep original historical date picker/replay, current-day cached publications and revision refresh. Ignore legacy tab preference on boot without deleting archive data.
+- [x] Collapse redundant top warnings into a compact visible source/storage summary with shared Popover details; preserve partial expiry data, missing IV/unverified source times, storage reserve/error and unique-history retention. Handle retained bar arrays and unknown counts without crashing or fabricating counts.
+- [x] Cloud Chromium fixture/cache-miss/actual retained-partial details, theme/width/focus/error checks and original chart→application MCP parity pass. Canonical decision/quote/read-only MCP services remain; removed UI-only lifecycle presentation is not a new backend exception.
+- [ ] Exact delivered-commit native input/pixel/compact-header execution and image review: CI144/145 were canceled by concurrent work pushes. CI142 keys/DOM passed, but manual WebKit pixel failure prompted the newer correction. Neither a cross-build nor a canceled run certifies the fix.
+- [ ] Existing full-session/complete-real-history/qualifying-native-alert gates above remain open; removing tabs does not satisfy these data/event requirements.

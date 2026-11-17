@@ -36,7 +36,8 @@ async function openViewer(){
   if(window.AudioContext)window.AudioContext=new Proxy(window.AudioContext,{construct(Target,args){const ctx=new Target(...args),create=ctx.createOscillator.bind(ctx);ctx.createOscillator=()=>{const osc=create(),start=osc.start.bind(osc);osc.start=(...args)=>{window.__gexAcceptance.tones.push({at:Date.now(),state:ctx.state});return start(...args);};return osc;};return ctx;}});
   if(window.Notification)window.Notification=new Proxy(window.Notification,{construct(Target,args){const notification=new Target(...args);window.__gexAcceptance.notifications.push({at:Date.now(),title:args[0]});return notification;}});
  });
- page=await context.newPage();page.on('pageerror',e=>errors.push(String(e)));await page.goto(uri);await page.getByRole('button',{name:'实时观察',exact:true}).click();
+ page=await context.newPage();page.on('pageerror',e=>errors.push(String(e)));await page.goto(uri);// The date-selected historical workspace is now the only UI; decision evaluation is read separately through the canonical local API.
+
 }
 try{
  while(!stopping&&Date.now()<start){log({stage:'waiting',secondsUntilStart:Math.ceil((start-Date.now())/1000)});await sleep(Math.min(60000,start-Date.now()));}

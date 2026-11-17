@@ -56,7 +56,7 @@ jobs:
         working-directory: web/qqq-gex
       - run: npx playwright install --with-deps chromium
         working-directory: web/qqq-gex
-      - name: Test shared live quote channel
+      - name: Test historical workspace and retired quote-channel isolation
         run: node tests/live-quote.mjs
         working-directory: web/qqq-gex
       - run: node tests/offline-viewer.mjs

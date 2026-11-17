@@ -79,6 +79,7 @@ internal static partial class Program
                 }
             }
             await Check("document.querySelectorAll('section[aria-label=\"回放 GEX 快照表\"] tbody tr:not([aria-hidden])').length===8","native populated snapshot table");
+            await Check("document.querySelector('[data-testid=\"qqq-local-notice\"]')?.getBoundingClientRect().height<=36&&![...document.querySelectorAll('button')].some(b=>/^(历史回放|实时观察)$/.test(b.textContent.trim()))&&!document.querySelector('.qqq-local-decision')&&localStorage.getItem('qqq-local:mode')==='history'","native single historical workspace and compact notice");
             foreach(var mode in new[]{"GEX矩阵","Heatmap","K线"})
             {
                 await Eval("[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==="+JsonSerializer.Serialize(mode)+").click()");
