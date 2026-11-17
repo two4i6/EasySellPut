@@ -27,6 +27,10 @@ if dotnet build tests/Meili.Automation.Host/Meili.Automation.Host.csproj -c Rele
   cat "$results/cli-mcp.log"
   if ! python3 tests/automation/cache_management_smoke.py > "$results/cache-management.log" 2>&1; then failed=1; fi
   cat "$results/cache-management.log"
+  if ! python3 tests/automation/app_mcp_update_smoke.py > "$results/app-mcp-update.log" 2>&1; then failed=1; fi
+  cat "$results/app-mcp-update.log"
+  if ! python3 tests/automation/app_maintenance_smoke.py > "$results/app-maintenance.log" 2>&1; then failed=1; fi
+  cat "$results/app-maintenance.log"
 else
   cat "$results/cli-build.log"
   failed=1

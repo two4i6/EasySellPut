@@ -9,6 +9,12 @@ if(args.Length==3 && args[0]=="--module-lease")
     return 0;
 }
 
+if(args.Length==2 && args[0]=="--app-fixture-build") { AppFixture.Create(args[1]); return 0; }
+
+// Temporary-key app tests use this host only; production CLI has no equivalent switch.
+if(args.Length >= 4 && args[0]=="--app-fixture")
+    return await AppFixture.RunAsync(args[1],args[2],args[3..]);
+
 // Explicit opt-in live soak; test host only, never included in the shipped CLI.
 if(args.SequenceEqual(new[]{"--live-quote-probe"}))
 {

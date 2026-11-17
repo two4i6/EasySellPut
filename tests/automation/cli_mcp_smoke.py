@@ -32,7 +32,7 @@ class Mcp:
         threading.Thread(target=read, daemon=True).start()
         threading.Thread(target=errors, daemon=True).start()
         initialized = self.request('initialize', {'protocolVersion': '2025-06-18', 'capabilities': {}, 'clientInfo': {'name': 'EasySellPut smoke', 'version': '1.0'}})
-        assert initialized['result']['serverInfo']['name'] == 'EasySellPut', initialized
+        assert 'result' in initialized and initialized['result']['serverInfo']['name'] == 'EasySellPut', initialized
         assert 'tools' in initialized['result']['capabilities']
         self.send({'jsonrpc': '2.0', 'method': 'notifications/initialized'})
 

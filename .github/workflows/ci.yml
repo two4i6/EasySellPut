@@ -178,6 +178,10 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Cache maintenance or protected data checks failed' }
           python tests/automation/gex_compaction_recovery.py --dll src/Meili.Cli/bin/Release/net10.0/easysellput.dll
           if ($LASTEXITCODE -ne 0) { throw 'Interrupted GEX compaction recovery failed' }
+      - name: Test app updates through CLI & MCP
+        run: |
+          python tests/automation/app_mcp_update_smoke.py
+          if ($LASTEXITCODE -ne 0) { throw 'Independent app MCP update regression failed' }
       - name: Test cross-process app maintenance
         run: |
           python tests/automation/app_maintenance_smoke.py
