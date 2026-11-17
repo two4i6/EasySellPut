@@ -1,0 +1,61 @@
+name: Apps · Release
+run-name: "Apps · ${{ inputs.action }} QQQ GEX ${{ inputs.version }} · ${{ github.ref_name }}"
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: Prepare a signed draft or explicitly publish it
+        type: choice
+        options: [prepare, publish]
+        default: prepare
+        required: true
+      version:
+        description: App version from web/qqq-gex/app.json
+        type: string
+        required: true
+      ci_run_id:
+        description: Successful main push CI for the current main commit
+        type: string
+        required: true
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: official-app-release
+  cancel-in-progress: false
+jobs:
+  release:
+    name: Verify & release app
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    environment: release
+    permissions:
+      contents: write
+      actions: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RUN_ID: ${{ inputs.ci_run_id }}
+      APP_VERSION: ${{ inputs.version }}
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify main CI and native package provenance
+        run: python3 build/release/policy.py --run-id "$RUN_ID" --output "$RUNNER_TEMP/app-release-source.json"
+      - name: Download tested app artifact
+        if: inputs.action == 'prepare'
+        uses: actions/download-artifact@v4
+        with:
+          name: QQQ-GEX-test-package
+          run-id: ${{ inputs.ci_run_id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/tested-app
+      - name: Sign tested app and prepare draft
+        if: inputs.action == 'prepare'
+        env:
+          UPDATE_SIGNING_KEY: ${{ secrets.UPDATE_SIGNING_KEY }}
+        run: python3 build/release/app-release.py prepare --run-id "$RUN_ID" --version "$APP_VERSION" --artifact "$RUNNER_TEMP/tested-app/qqq-gex-test.espapp"
+      - name: Verify draft and explicitly publish app catalog
+        if: inputs.action == 'publish'
+        run: python3 build/release/app-release.py publish --run-id "$RUN_ID" --version "$APP_VERSION"

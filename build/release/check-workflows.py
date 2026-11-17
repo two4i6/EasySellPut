@@ -26,6 +26,16 @@ def check(workflows):
     require(set(publish['jobs']) == {'publish'}, 'Unexpected publication jobs')
     matrix = prepare['jobs']['packages']['strategy']['matrix']['include']
     require({m['rid'] for m in matrix} == {'linux-x64', 'win-x64', 'win-arm64', 'osx-x64', 'osx-arm64'}, 'Release platform coverage changed')
+    apps = workflows['app-release.yml']
+    require(set(apps['on']) == {'workflow_dispatch'}, 'App publication must remain explicit')
+    require(set(apps['jobs']) == {'release'}, 'Unexpected app release job')
+    app_job = apps['jobs']['release']
+    require("github.ref == 'refs/heads/main'" in app_job.get('if','') and app_job.get('environment') == 'release', 'App signing/publication must be main-only and protected')
+    app_commands = '\n'.join(step.get('run','') for step in app_job['steps'])
+    require('policy.py' in app_commands and 'app-release.py prepare' in app_commands and 'app-release.py publish' in app_commands, 'Apps must validate provenance and separate preparation/publication')
+    require('dotnet publish' not in app_commands and 'npm ' not in app_commands and 'pack-app.py' not in app_commands, 'App releases must promote tested artifacts without rebuilding')
+    app_ci = workflows['app-ci.yml']
+    require({row['rid'] for row in app_ci['jobs']['core']['strategy']['matrix']['include']} == set(RID_LABELS), 'Independent app core must retain five-platform coverage')
     for name, workflow in workflows.items():
         require(workflow.get('permissions', {}).get('contents') != 'write', 'Use job-scoped release write permissions: ' + name)
         for job_name, job in workflow.get('jobs', {}).items():

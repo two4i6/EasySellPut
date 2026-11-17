@@ -99,15 +99,21 @@ public sealed class UpdateClient(HttpClient http, string rid, Version current)
         var notes = root.TryGetProperty("body", out var body) ? body.GetString() ?? "" : "";
         return new("available", version, manifest.Version, new(manifest, package, notes[..Math.Min(notes.Length, 20000)], $"https://github.com/{SourceRepository}/releases/tag/{tag}", Url(package.FileName), Convert.ToBase64String(manifestBytes), Convert.ToBase64String(signature)));
     }
-    public async Task<string> DownloadAsync(UpdateRelease release, string folder, IProgress<double>? progress, CancellationToken ct)
+    public Task<string> DownloadAsync(UpdateRelease release, string folder, IProgress<double>? progress, CancellationToken ct) =>
+        DownloadVerifiedAsync(new Uri(release.Download),release.Asset.FileName,release.Asset.Size,release.Asset.Sha256,folder,progress,ct);
+
+    internal async Task<string> DownloadVerifiedAsync(Uri download,string fileName,long size,string sha256,string folder,IProgress<double>? progress,CancellationToken ct)
     {
+        if (Path.GetFileName(fileName) != fileName || fileName.IndexOfAny(['/', '\\', ':']) >= 0 || fileName is "." or ".." ||
+            size <= 0 || size > MaxPackageBytes || sha256.Length != 64 || sha256.Any(c => !char.IsAsciiHexDigit(c)))
+            throw new InvalidDataException("Invalid signed package identity.");
         Directory.CreateDirectory(folder);
-        var destination = Path.Combine(folder, release.Asset.FileName);
+        var destination = Path.Combine(folder, fileName);
         var temporary = destination + ".partial-" + Guid.NewGuid().ToString("N");
         try
         {
-            using var response = await GetAsync(new Uri(release.Download), ct).ConfigureAwait(false); response.EnsureSuccessStatusCode();
-            if (response.Content.Headers.ContentLength is { } length && length != release.Asset.Size) throw new InvalidDataException("Package size mismatch.");
+            using var response = await GetAsync(new Uri(download.AbsoluteUri), ct).ConfigureAwait(false); response.EnsureSuccessStatusCode();
+            if (response.Content.Headers.ContentLength is { } length && length != size) throw new InvalidDataException("Package size mismatch.");
             await using (var input = await response.Content.ReadAsStreamAsync(ct))
             await using (var output = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
             {
@@ -115,16 +121,16 @@ public sealed class UpdateClient(HttpClient http, string rid, Version current)
                 var buffer = new byte[65536]; long total = 0; var lastProgress = Environment.TickCount64; int count;
                 while ((count = await input.ReadAsync(buffer, ct)) > 0)
                 {
-                    total += count; if (total > release.Asset.Size) throw new InvalidDataException("Package exceeds signed size.");
-                    digest.AppendData(buffer, 0, count); await output.WriteAsync(buffer.AsMemory(0, count), ct); if (total == release.Asset.Size || Environment.TickCount64 - lastProgress >= 100) { progress?.Report(total * 100.0 / release.Asset.Size); lastProgress = Environment.TickCount64; }
+                    total += count; if (total > size) throw new InvalidDataException("Package exceeds signed size.");
+                    digest.AppendData(buffer, 0, count); await output.WriteAsync(buffer.AsMemory(0, count), ct); if (total == size || Environment.TickCount64 - lastProgress >= 100) { progress?.Report(total * 100.0 / size); lastProgress = Environment.TickCount64; }
                 }
-                if (total != release.Asset.Size || !Convert.ToHexString(digest.GetHashAndReset()).Equals(release.Asset.Sha256, StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("Package checksum mismatch.");
+                if (total != size || !Convert.ToHexString(digest.GetHashAndReset()).Equals(sha256, StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("Package checksum mismatch.");
             }
             File.Move(temporary, destination, true); return destination;
         }
         finally { if (File.Exists(temporary)) File.Delete(temporary); }
     }
-    private async Task<HttpResponseMessage> GetAsync(Uri uri, CancellationToken ct)
+    internal async Task<HttpResponseMessage> GetAsync(Uri uri, CancellationToken ct)
     {
         for (var redirect = 0; redirect <= 5; redirect++)
         {
@@ -140,7 +146,7 @@ public sealed class UpdateClient(HttpClient http, string rid, Version current)
         }
         throw new HttpRequestException("Too many update redirects.");
     }
-    private static async Task<byte[]> ReadBoundedAsync(HttpContent content, int limit, CancellationToken ct)
+    internal static async Task<byte[]> ReadBoundedAsync(HttpContent content, int limit, CancellationToken ct)
     {
         await using var input = await content.ReadAsStreamAsync(ct); using var output = new MemoryStream(); var buffer = new byte[8192]; int count;
         while ((count = await input.ReadAsync(buffer, ct)) > 0) { if (output.Length + count > limit) throw new InvalidDataException("Update metadata is too large."); output.Write(buffer, 0, count); }

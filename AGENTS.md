@@ -21,6 +21,14 @@ EasySellPut is a local .NET 10 app: Windows WPF, macOS Avalonia, cross-platform 
 - Preserve unrelated changes and public contracts. Do not publish releases or merge upstream without instruction.
 - Track the approved modular-app migration in [TODO.md](TODO.md). Complete, verify, record and push each numbered step to `work` separately; keep pending work and exact-commit CI status explicit. Follow its headless-first boundaries and preserve existing UI/CLI/MCP contracts.
 
+## Independent applications
+
+- Follow `TODO.md` and the [app delivery guide](docs/app-runtime-research/app-distribution.md). Keep catalog discovery asynchronous and headless. Execute only authenticated package entrypoints under real execution/job leases; metadata and public DTOs never grant execution or write permission.
+- Reuse ModuleInstaller, ModuleRegistry, AppCatalogClient, the shared engine SDK and native management controls. Default uninstall retains observations/backups and suppresses compatibility-seed fallback. Never relocate or roll back mixed GEX archives without verified backups and a tested migration.
+- Host/CLI compilation must not invoke npm. Full packaging explicitly prepares the compatibility seed; app payloads build independently. Development artifact keys are ephemeral and never accepted by production configuration.
+- App updates use the compiled repository's separate signed `apps` catalog, never host Latest. Preserve exact hashes, canonical versions, catalog generation/digest, expiry, withdrawals, protocol/data compatibility and tool permission/schema stability.
+- `Apps · Build & Test` provides five-platform core artifacts. `Apps · Release` is main-only: successful current main CI → promote tested bytes → signed draft → explicit publish. Keep app releases/catalog prereleases with `latest=false`; never rebuild payloads in release jobs or expose maintenance via MCP.
+
 ## Business contracts and data
 
 - Evaluate desktop, CLI and MCP for every capability. Shared business operations need one application service, CLI command and MCP tool. Document specific presentation/ownership exceptions in PR notes and `tests/automation/desktop_capabilities.json`.

@@ -52,6 +52,9 @@ def package(args):
             for path in folder.iterdir():
                 if path.is_file() and path.name.lower().startswith(('license', 'licence', 'copying')):
                     payload['notices/npm/' + name + '/' + path.name] = path.read_bytes()
+    payload['notices/EasySellPut-LICENSE'] = (ROOT / 'LICENSE').read_bytes()
+    for name in ['UPSTREAM-STATUS.md', 'SOURCE-TIMING.md']:
+        payload['notices/' + name] = (ROOT / 'web/qqq-gex' / name).read_bytes()
     lock = json.loads((ROOT / 'web/qqq-gex/node-runtime-lock.json').read_text())
     manifest = dict(schemaVersion=1, repository=args.repository, **metadata,
                     engine='engine/import.mjs', ui='ui/index.html' if args.ui_dir else None,
@@ -65,8 +68,14 @@ def package(args):
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='esp-app-sign-') as scratch:
         path = pathlib.Path(scratch) / 'app.json'; path.write_bytes(body)
-        signed = subprocess.run(['openssl', 'dgst', '-sha256', '-sign', str(args.key), str(path)],
-                                check=True, capture_output=True).stdout
+        if args.development:
+            # Build-only ephemeral trust. This key is never embedded in any host or accepted by product switches.
+            public = args.output.with_suffix(args.output.suffix + '.public.pem')
+            script = "import{generateKeyPairSync,sign}from'node:crypto';import{readFileSync,writeFileSync}from'node:fs';const pair=generateKeyPairSync('ec',{namedCurve:'prime256v1'});writeFileSync(process.argv[2],pair.publicKey.export({type:'spki',format:'pem'}));process.stdout.write(sign('sha256',readFileSync(process.argv[1]),pair.privateKey));"
+            signed = subprocess.run(['node', '--input-type=module', '-e', script, str(path), str(public)], check=True, capture_output=True).stdout
+        else:
+            signed = subprocess.run(['openssl', 'dgst', '-sha256', '-sign', str(args.key), str(path)],
+                                    check=True, capture_output=True).stdout
         with zipfile.ZipFile(args.output, 'w', compression=zipfile.ZIP_DEFLATED) as archive:
             for name, data in [('app.json', body), ('app.sig', signed), *sorted(payload.items())]:
                 info = zipfile.ZipInfo(name, date_time=(2026, 1, 1, 0, 0, 0))
@@ -82,7 +91,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--repository', required=True)
     parser.add_argument('--version')
-    parser.add_argument('--key', type=pathlib.Path, required=True)
+    signing = parser.add_mutually_exclusive_group(required=True)
+    signing.add_argument('--key', type=pathlib.Path)
+    signing.add_argument('--development', action='store_true', help='Ephemeral build-only signature, never trusted by production hosts')
     parser.add_argument('--engine-dir', type=pathlib.Path, default=ROOT / 'web/qqq-gex/runtime-dist')
     parser.add_argument('--ui-dir', type=pathlib.Path)
     parser.add_argument('--output', type=pathlib.Path, required=True)

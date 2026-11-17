@@ -218,3 +218,7 @@ easysellput apps recover --data-dir PATH --json
 ```
 
 Only the compiled repository/key is trusted. Unconfigured local builds reject installation; no runtime trust override is available. Discovery does not initialize storage. An app in use blocks maintenance. Update rejects downgrades and unplanned data-format changes; uninstall preserves app data and immutable backups. Recovery reconciles interrupted journal metadata and never promotes an uncommitted candidate or rewinds observations. These commands are CLI-only software maintenance and never MCP tools. Installing metadata is not yet proof of GEX runtime/UI integration; track S06 onward in TODO.md.
+
+## 独立子应用更新
+
+`apps check` 检查独立签名目录；`apps download APP-ID` 下载并验证指定子应用；再显式执行 `apps update --package PATH` 或在设置的「子应用」卡片选择安装包。宿主 Latest 更新源与 apps 目录分离。生产信任不接受开发产物的临时签名，维护操作不属于 MCP 工具。详见 [独立应用分发](app-runtime-research/app-distribution.md)。

@@ -86,6 +86,7 @@ jobs:
           openssl pkey -in "$RUNNER_TEMP/app-fixture-key.pem" -pubout -out "$RUNNER_TEMP/app-fixture-public.pem"
           python3 build/pack-app.py --repository "$GITHUB_REPOSITORY" --key "$RUNNER_TEMP/app-fixture-key.pem" --ui-dir web/qqq-gex/dist --output build/out/app-fixture/qqq-gex-test.espapp
           python3 tests/automation/app_package_smoke.py --archive build/out/app-fixture/qqq-gex-test.espapp --public-key "$RUNNER_TEMP/app-fixture-public.pem" --repository "$GITHUB_REPOSITORY"
+          python3 tests/automation/app_release_smoke.py --archive build/out/app-fixture/qqq-gex-test.espapp --key "$RUNNER_TEMP/app-fixture-key.pem" --public-key "$RUNNER_TEMP/app-fixture-public.pem" --repository "$GITHUB_REPOSITORY"
           rm "$RUNNER_TEMP/app-fixture-key.pem"
       - uses: actions/upload-artifact@v4
         with:

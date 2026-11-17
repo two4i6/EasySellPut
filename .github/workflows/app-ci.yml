@@ -1,0 +1,64 @@
+name: Apps · Build & Test
+run-name: "Apps · ${{ github.head_ref || github.ref_name }} · #${{ github.run_number }}"
+on:
+  push:
+    branches: [main, work]
+    paths: ['web/qqq-gex/**', 'web/app-sdk/**', 'build/pack-app.py', 'tests/automation/app_package_smoke.py', '.github/workflows/app-ci.yml']
+  pull_request:
+    paths: ['web/qqq-gex/**', 'web/app-sdk/**', 'build/pack-app.py', 'tests/automation/app_package_smoke.py', '.github/workflows/app-ci.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: app-ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  core:
+    name: ${{ matrix.label }} · App core
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {os: ubuntu-24.04, label: Linux x64, rid: linux-x64}
+          - {os: windows-latest, label: Windows x64, rid: win-x64}
+          - {os: windows-11-arm, label: Windows ARM64, rid: win-arm64}
+          - {os: macos-15-intel, label: Mac Intel, rid: osx-x64}
+          - {os: macos-26, label: Mac Apple Silicon, rid: osx-arm64}
+    steps:
+      - name: Checkout app source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install engine runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify pinned model source
+        run: python tools/qqq-gex/verify-source.py
+      - name: Test shared protocol
+        run: node --test web/app-sdk/engine.test.mjs
+      - name: Install app dependencies
+        working-directory: web/qqq-gex
+        run: npm ci --no-audit --no-fund
+      - name: Build app core without host or desktop
+        working-directory: web/qqq-gex
+        run: npm run build:runtime
+      - name: Test original core contracts
+        working-directory: web/qqq-gex
+        run: node test-results/pcs-contract.mjs
+      - name: Package development core
+        run: python build/pack-app.py --development --repository "${{ github.repository }}" --output "build/out/app-core/qqq-gex-${{ matrix.rid }}.espapp"
+      - name: Verify development package and retained-data operation
+        run: python tests/automation/app_package_smoke.py --archive "build/out/app-core/qqq-gex-${{ matrix.rid }}.espapp" --public-key "build/out/app-core/qqq-gex-${{ matrix.rid }}.espapp.public.pem" --repository "${{ github.repository }}"
+      - name: Upload development artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: App-core-${{ matrix.rid }}
+          path: build/out/app-core/
+          if-no-files-found: error
+          retention-days: 14

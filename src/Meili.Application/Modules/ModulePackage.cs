@@ -67,7 +67,7 @@ public static partial class ModulePackage
         var manifest = JsonSerializer.Deserialize<ModuleManifest>(bytes, Json) ?? throw new InvalidDataException("Missing module manifest.");
         if (manifest.SchemaVersion != 1 || manifest.Repository != repository || !UpdateClient.IsValidRepository(repository) ||
             !IdPattern().IsMatch(manifest.Id ?? "") || !Version.TryParse(manifest.Version, out var version) ||
-            version.Revision != -1 || version.Build < 0 || manifest.HostApi != HostApi || manifest.EngineProtocol != EngineProtocol ||
+            version.Revision != -1 || version.Build < 0 || version.ToString(3) != manifest.Version || manifest.HostApi != HostApi || manifest.EngineProtocol != EngineProtocol ||
             manifest.DataFormat < 1 || manifest.Runtime != "node24" || manifest.Platforms is null || manifest.Platforms.Length > 16 || !manifest.Platforms.Contains(rid) ||
             manifest.Files is null || manifest.Files.Length != entries.Count - 2 || manifest.ModelVersion?.Length > 160)
             throw new InvalidDataException("Incompatible module identity, source, protocol or platform.");

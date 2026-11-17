@@ -33,6 +33,13 @@ public sealed class ModulePackageTests : IDisposable
     private Task<VerifiedModule> Verify(string file, string? publicKey = null) => ModulePackage.VerifyAsync(file,
         publicKey ?? key.ExportSubjectPublicKeyInfoPem(), "test/source", "linux-x64", CancellationToken.None);
 
+    [Theory]
+    [InlineData("1.0.0 ")]
+    [InlineData("01.0.0")]
+    [InlineData("1.0.0.0")]
+    public async Task Versions_are_canonical_portable_directory_components(string version) =>
+        await Assert.ThrowsAsync<InvalidDataException>(()=>Verify(Package(version:version)));
+
     [Fact]
     public async Task Uninstall_never_reenables_compatibility_seed_and_explicit_reinstall_restores_access()
     {

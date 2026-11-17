@@ -89,7 +89,7 @@ public sealed class ModuleRegistry
         {
             if (app is null) throw new InvalidDataException("Null module registration.");
             ValidateId(app.Id);
-            if (!Version.TryParse(app.Version, out var version) || version.Build < 0 || version.Revision != -1 || app.DataFormat < 1 ||
+            if (!Version.TryParse(app.Version, out var version) || version.Build < 0 || version.Revision != -1 || version.ToString(3) != app.Version || app.DataFormat < 1 ||
                 app.PackageSha256 is null || app.PackageSha256.Length != 64 || app.PackageSha256.Any(c => !char.IsAsciiHexDigit(c)))
                 throw new InvalidDataException("Invalid module registration.");
         }

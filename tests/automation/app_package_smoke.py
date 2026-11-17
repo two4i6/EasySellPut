@@ -32,7 +32,10 @@ with tempfile.TemporaryDirectory(prefix='app-package-smoke-') as folder:
         for name in ['import.mjs', 'query.mjs', 'history.mjs']:
             original = pathlib.Path('web/qqq-gex/runtime-dist', name).read_bytes()
             assert archive.read('engine/' + name) == original
-        assert archive.read(manifest['ui']) == pathlib.Path('web/qqq-gex/dist/index.html').read_bytes()
+        if manifest['ui'] is not None:
+            assert archive.read(manifest['ui']) == pathlib.Path('web/qqq-gex/dist/index.html').read_bytes()
+        else:
+            assert not any(name.startswith('ui/') for name in names)
         operations = json.loads(archive.read('operations.json'))
         op = next(o for o in operations if o['name'] == 'get_qqq_gex_retained_summary')
         script = root / 'summary.mjs'; script.write_bytes(archive.read(op['entryPoint']))
@@ -51,5 +54,6 @@ with tempfile.TemporaryDirectory(prefix='app-package-smoke-') as folder:
         assert result['firstPublishedDate'] == '2026-01-02' and result['lastPublishedDate'] == '2026-01-05'
         assert hashlib.sha256(db.read_bytes()).hexdigest() == before
 
-    subprocess.run(['openssl', 'dgst', '-sha256', '-verify', str(args.public_key), '-signature', str(root / 'app.sig'), str(root / 'app.json')], check=True)
+    verify = "import{verify}from'node:crypto';import{readFileSync}from'node:fs';if(!verify('sha256',readFileSync(process.argv[1]),readFileSync(process.argv[2]),readFileSync(process.argv[3])))process.exit(1);"
+    subprocess.run(['node', '--input-type=module', '-e', verify, str(root / 'app.json'), str(args.public_key), str(root / 'app.sig')], check=True)
 print('PASS: independently signed GEX UI/engine artifact, exact original bundles, model/source identity and complete file hashes')
