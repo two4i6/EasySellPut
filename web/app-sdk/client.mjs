@@ -22,6 +22,16 @@ export function createAppClient(page = globalThis.location) {
       return value;
     } finally { clearTimeout(timer); signal?.removeEventListener('abort', cancel); }
   }
-  return Object.freeze({ list: options => request('catalog', undefined, options),
+  async function* presentationChanges(signal) {
+    if(!signal)throw Error('A presentation lifetime signal is required');
+    let version=-1;
+    while(!signal.aborted){
+      let snapshot;
+      try{snapshot=await request('presentation?version='+version,undefined,{signal,timeout:30000});}
+      catch(error){if(signal.aborted)return;throw error;}
+      if(snapshot.version!==version){version=snapshot.version;yield snapshot;}
+    }
+  }
+  return Object.freeze({ presentation: options=>request('presentation',undefined,options), presentationChanges, list: options => request('catalog', undefined, options),
     call: (operation, args = {}, options) => request('invoke', { operation, arguments: args }, options) });
 }

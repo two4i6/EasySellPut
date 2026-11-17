@@ -20,3 +20,17 @@ test('caller cancellation reaches the request and does not create a background t
  try{await assert.rejects(createAppClient(page).list({timeout:10}),{name:'AbortError'});assert.equal(aborted,true);}
  finally{globalThis.fetch=previous;}
 });
+test('presentation changes use a caller-owned lifetime and cancel their pending wait',async()=>{
+ const previous=globalThis.fetch;const controller=new AbortController();const urls=[];let pending;
+ globalThis.fetch=(url,options)=>{
+  urls.push(String(url));
+  if(urls.length===1)return Promise.resolve(new Response(JSON.stringify({version:3,value:{language:'en-US',theme:{dark:true,reducedMotion:true}}})));
+  return new Promise((resolve,reject)=>{pending=options.signal;options.signal.addEventListener('abort',()=>reject(new DOMException('Cancelled','AbortError')),{once:true});});
+ };
+ try{
+  const changes=createAppClient(page).presentationChanges(controller.signal);
+  const first=await changes.next();assert.equal(first.value.value.language,'en-US');assert.equal(first.value.version,3);
+  const waiting=changes.next();await new Promise(resolve=>queueMicrotask(resolve));controller.abort();
+  assert.equal((await waiting).done,true);assert.equal(pending.aborted,true);assert.match(urls[1],/host\/presentation\?version=3$/);
+ }finally{controller.abort();globalThis.fetch=previous;}
+});

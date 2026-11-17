@@ -17,3 +17,13 @@ Pending pilot acceptance, including remaining GEX facade ownership, final signed
 Enabled signed UI modules can contribute a desktop rail entry. Both platforms use `PrivateAppSession` and a native `PrivateAppView` adapter. The private loopback origin serves only declared signed files and app-owned operations, with a random token, strict origin checks, bounded clients/requests and the shared dispatcher permission/schema rules. Remote article and personal website views have no access to it. Hidden pages release their native view and cancel requests; execution leases remain held until those requests finish cancellation.
 
 `web/app-sdk/client.mjs` provides browser discovery/invocation without sockets or market polling. `tools/Meili.AppDev` is a separate source-development executable: temporary profiles, explicit development public key, read-only operation execution and private UI preview. It is never shipped in a production package and cannot select an existing data directory. See its README for the current original-GEX preview limitation.
+
+## Shared presentation
+
+`AppViewPresentation` projects the existing design tokens, language and reduced-motion setting. Signed private pages read `host/presentation` or use the browser SDK's cancellation-owned `presentationChanges(signal)` iterator. Updates wake pending requests; unchanged state does not trigger another redraw. There is no extra quote timer, remote connection or UI preference write endpoint. Hidden page disposal cancels pending waits and detaches theme/language/motion handlers.
+
+The browser SDK's `applyTheme` is now reused by the original GEX adapter. It compares actual tokens before requesting chart resize, so ordinary quote/status events cannot repeatedly resize an unchanged chart. Original kernels and palette definitions are retained.
+
+![Actual Chromium 1920×1080 GEX fixture using shared presentation](screenshots/gex-shared-presentation-1080p.png)
+
+This is a computed fixture screenshot, not live-market or native WebView evidence. Chromium empty/computed journeys verify no remote requests or script errors, preserved document/history selection, expiry switching and live theme/reduced-motion updates.

@@ -21,6 +21,20 @@ public sealed class PrivateAppSession : IPrivateAppSession, IAsyncDisposable
     private readonly Task acceptLoop;
     private readonly object shutdownLock=new();
     private Task? shutdown;
+    private readonly object presentationLock=new();
+    private JsonElement presentation=JsonSerializer.SerializeToElement<object?>(null);
+    private long presentationVersion;
+    private TaskCompletionSource presentationChanged=new(TaskCreationOptions.RunContinuationsAsynchronously);
+    public void UpdatePresentation(JsonElement value)
+    {
+        if(JsonSerializer.SerializeToUtf8Bytes(value).Length>65536)throw new ArgumentException("App presentation exceeds bound.");
+        lock(presentationLock)
+        {
+            if(JsonElement.DeepEquals(presentation,value))return;
+            presentation=value.Clone();presentationVersion++;
+            var previous=presentationChanged;presentationChanged=new(TaskCreationOptions.RunContinuationsAsynchronously);previous.TrySetResult();
+        }
+    }
     private readonly string token=Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
     private readonly string directory,id;
     private readonly bool writes;
@@ -79,6 +93,24 @@ public sealed class PrivateAppSession : IPrivateAppSession, IAsyncDisposable
                 headers.TryGetValue("Origin",out var sent)&&sent!=origin||headers.GetValueOrDefault("Sec-Fetch-Site")=="cross-site")
             {await Send(403,"text/plain",[]);return;}
             var route=request[1][(token.Length+2)..].Split('?')[0];
+            if(route=="host/presentation"&&request[0]=="GET"&&!headers.ContainsKey("Content-Length"))
+            {
+                var query=new Uri("http://local/"+request[1][(token.Length+2)..]).Query;
+                Task? changed=null;
+                if(query.Length>0)
+                {
+                    if(!query.StartsWith("?version=",StringComparison.Ordinal)||!long.TryParse(query[9..],out var version)||version< -1)
+                    {await Send(400,"application/json",[]);return;}
+                    lock(presentationLock)if(version==presentationVersion)changed=presentationChanged.Task;
+                }
+                if(changed is not null)
+                {
+                    deadline.CancelAfter(TimeSpan.FromSeconds(25));
+                    try{await changed.WaitAsync(TimeSpan.FromSeconds(20),ct).ConfigureAwait(false);}catch(TimeoutException){}
+                }
+                object snapshot;lock(presentationLock)snapshot=new{version=presentationVersion,value=presentation};
+                await Send(200,"application/json",JsonSerializer.SerializeToUtf8Bytes(snapshot,WireJson.Options));return;
+            }
             if(route=="host/catalog"&&request[0]=="GET"&&!headers.ContainsKey("Content-Length"))
             {
                 var operations=await ModuleOperations.ReadAsync(directory,installer,ct).ConfigureAwait(false);
@@ -115,7 +147,8 @@ public sealed class PrivateAppSession : IPrivateAppSession, IAsyncDisposable
             using var memory=new MemoryStream();using var data=asset!.OpenRead();await data.CopyToAsync(memory,ct).ConfigureAwait(false);
             await Send(200,PrivateHttp.AssetType(route),memory.ToArray());
         }
-        catch(Exception ex)when(ex is IOException or OperationCanceledException or SocketException or ArgumentException or JsonException or InvalidOperationException or UnauthorizedAccessException)
+        catch(OperationCanceledException){} // expected: page detach cancels active requests.
+        catch(Exception ex)when(ex is IOException or SocketException or ArgumentException or JsonException or InvalidOperationException or UnauthorizedAccessException)
         {Meili.Core.Diagnostics.AppLog.Warn("app-view","Private app request ended: "+ex.GetType().Name);}
         finally{clients.Release();}
     }

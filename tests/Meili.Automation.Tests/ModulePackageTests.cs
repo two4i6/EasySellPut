@@ -72,6 +72,16 @@ public sealed class ModulePackageTests : IDisposable
             using(var response=await Invoke(read.Name,new{})){Assert.True(response.IsSuccessStatusCode);using var doc=JsonDocument.Parse(await response.Content.ReadAsStringAsync());Assert.Equal("retained",doc.RootElement.GetProperty("data").GetProperty("source").GetString());}
             using(var denied=await Invoke("app_easysellput_test_record",new{}))Assert.Equal(System.Net.HttpStatusCode.Forbidden,denied.StatusCode);
             using(var invalid=await Invoke(read.Name,new{unexpected=true}))Assert.Equal(System.Net.HttpStatusCode.BadRequest,invalid.StatusCode);
+            session.UpdatePresentation(JsonSerializer.SerializeToElement(new{language="en-US",theme=new{dark=false,reducedMotion=true,background="#FAF9F5"}}));
+            var presentationUrl=new Uri(session.PageUri,"host/presentation");
+            using(var first=JsonDocument.Parse(await http.GetStringAsync(presentationUrl)))
+            {
+                var version=first.RootElement.GetProperty("version").GetInt64();
+                var next=http.GetStringAsync(new Uri(presentationUrl+"?version="+version));
+                session.UpdatePresentation(JsonSerializer.SerializeToElement(new{language="zh-CN",theme=new{dark=true,reducedMotion=false,background="#262624"}}));
+                using var changed=JsonDocument.Parse(await next.WaitAsync(TimeSpan.FromSeconds(3)));
+                Assert.True(changed.RootElement.GetProperty("version").GetInt64()>version);Assert.Equal("zh-CN",changed.RootElement.GetProperty("value").GetProperty("language").GetString());
+            }
             Assert.Throws<IOException>(()=>installer.Uninstall("easysellput.test"));
         }
         finally{await session.DisposeAsync();}
