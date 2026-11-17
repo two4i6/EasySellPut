@@ -68,7 +68,7 @@ Design: [architecture](docs/55-主程序与可独立更新子应用架构研究.
   - Migrate legacy GEX paths with verified SQLite backups/locks; never delete the mixed archive database as a cache.
   - Acceptance: add a real bounded GEX business operation by changing only the app package; desktop/CLI/MCP use the same handler and original financial semantics.
 
-- [ ] **S08 — Verify MCP catalog changes and compatible app updates.** Depends on S07.
+- [x] **S08 — Verify MCP catalog changes and compatible app updates.** Depends on S07.
   - Keep stable public operation contracts; pin executing requests rather than implicitly pinning the whole MCP process.
   - Support installed/enabled/compatible module discovery with coherent help, tools/resources and bounded catalog snapshots.
   - Test legacy 2025 modes and current 2026 per-request metadata; use official SDK paths for notification/subscription differences.
@@ -316,3 +316,10 @@ Legacy format-1 files are adopted **in place** through fixed compatibility alias
 Verification: Automation 179, Shared 132, Core 211, SDK 9, Python guards 57 and workflow/surface guards passed; complete Windows tests cross-compile. Actual fixed-host CLI/MCP A/core→A/UI→B/UI and all eight facades passed using only the extracted pinned Node with system PATH empty. Capture was compared with original C# ingestion for aligned/delayed/unverified/sub-tick-boundary CBOE, missing IV, partial expiries, changed raw revisions and a 20,000-contract chain; original source errors, raw bytes, normalized inputs and repeated first-observation retention matched. Source timeout/cancellation, incomplete uploads, write denial, hashes, conflicts and linked snapshot paths are covered. Fixtures do not certify live market completeness.
 
 Remote revision d4b501e passed Windows x64, Mac Apple Silicon and Mac Intel desktop jobs, and all four native browser probes (Windows ARM64's later unrelated shared-fixture subscription assertion failed). Its Windows CLI cleanup failure was a test SQLite handle left open; connections now close explicitly. The WPF quote ownership test now uses isolated production registrations while retaining the same assertions. Exact-revision CI and full final aggregate remain S09/S12 acceptance gates; no main merge or release was performed.
+
+
+### S08 complete persistent-transport acceptance
+
+At d31cc70 the full offline aggregate passed without source changes during the run: Core 211, Data 159, Analytics 209, Shared 132, Mac 145, Automation 179 (1,035 .NET); SDK 9 and Python 57; all 58 public CLI/MCP capability cases; production/cache/process/developer-host tests; four persistent official-SDK MCP protocol/subscription modes; all eight actual signed GEX facades including capture scenarios; and cross-process maintenance/jobs. Results: `build/out/tests/run-bMkzhCmI`.
+
+Installed/enabled app catalogs, permission/schema stability, request/package leases, list-change metadata/notifications, modern opt-in subscriptions, coherent rediscovery after A→B, source-error handling, stale/tampered app isolation and cleanup are verified. Idle MCP processes remain open across compatible GEX activation and subsequent requests use B without rebuilding the host. This closes S08; native UI, source-development GEX preview and exact delivered CI remain the later acceptance gates. No publication or upstream merge was performed.
