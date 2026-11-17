@@ -26,3 +26,7 @@ Bounds: compressed and expanded package at most 512 MiB, at most 8192 entries, m
 The existing five-platform CLI/Automation CI executes `ModulePackageTests`, including a real temporary-key signed core-only package, wrong key/source/API, payload tampering, unlisted files and unsafe cross-platform paths. No production fake trust switch, install hook, shell command or new MCP maintenance tool was introduced.
 
 GEX bundles are prepared explicitly with `python3 build/prepare-app-seed.py`; ordinary .NET compilation never invokes npm. `build/pack-app.py` creates an independently signed `.espapp` from existing core/UI outputs. Loaded individual assets are bounded to 64 MiB and verified again while holding an execution lease; installed scripts live outside disposable caches. Existing embedded assets remain a compatibility seed for profiles without a registered module.
+
+## Optional UI variants
+
+Immutable installed archives use `apps/packages/<id>/<version>/<package-sha256>/package.espapp`. The original version-only layout remains readable, but never masks an existing corrupt hash-addressed variant. Attaching UI to a core-only installation at the same release requires unchanged runtime/model/protocol/data/platform identity and byte-identical existing files. Only new `ui/` and `notices/` files are allowed. Once UI is attached, different same-version contents are refused. Updating code requires a new version; uninstall retains all variants and data. Operation discovery carries the exact package hash and stale calls must rediscover after activation.

@@ -19,7 +19,7 @@ public static class ModuleProcess
         using var job = await ModuleJobs.AcquireAsync(directory, operation.AppId, ct, readOnly: !operation.Definition.Writes).ConfigureAwait(false);
         // Resolve again under the lease: a queued request must not silently run a changed contract.
         var current = (await ModuleOperations.ReadAsync(directory, installer, ct).ConfigureAwait(false)).SingleOrDefault(o => o.Definition.Name == operation.Definition.Name);
-        if (current is null || current.AppId != operation.AppId || current.Version != operation.Version)
+        if (current is null || current.AppId != operation.AppId || current.Version != operation.Version || current.PackageSha256 != operation.PackageSha256)
             throw new InvalidOperationException("Application changed; repeat discovery and retry.");
         OperationCatalog.Validate(new(current.Definition.Name, current.Definition.Description, current.Definition.Writes, current.Definition.Schema), arguments);
         if (current.Definition.Writes && !allowWrites) throw new UnauthorizedAccessException();

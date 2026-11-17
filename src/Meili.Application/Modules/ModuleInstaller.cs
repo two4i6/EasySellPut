@@ -77,9 +77,11 @@ public sealed class ModuleInstaller
                 throw new InvalidDataException("Module downgrade or incompatible data migration requires a separate verified plan.");
             if (existing is not null)
             {
-                var previousPath = Path.Combine(registry.Root, "packages", existing.Id, existing.Version, "package.espapp");
+                var previousPath = InstalledArchive(existing);
                 var previous = await verify(previousPath, ct);
                 if (previous.PackageSha256 != existing.PackageSha256) throw new InvalidDataException("Active module package changed.");
+                if(existing.Version==candidate.Manifest.Version&&previous.PackageSha256!=candidate.PackageSha256)
+                    ValidateUiAttachment(previous.Manifest,candidate.Manifest);
                 foreach (var old in ModuleOperations.ReadPackage(previous, previousPath))
                 {
                     var next = candidateOperations.SingleOrDefault(o => o.Definition.Name == old.Definition.Name);
@@ -87,8 +89,8 @@ public sealed class ModuleInstaller
                         throw new InvalidDataException("Breaking operation changes require a new public operation name.");
                 }
             }
-            var targetParent = Folder("packages", candidate.Manifest.Id);
-            var target = Path.Combine(targetParent, candidate.Manifest.Version);
+            var targetParent = Folder("packages", candidate.Manifest.Id, candidate.Manifest.Version);
+            var target = Path.Combine(targetParent, candidate.PackageSha256);
             var transactions = Folder("transactions");
             var journal = new SnapshotFile(Path.Combine(transactions, Guid.NewGuid().ToString("N") + ".json"));
             void Record(string phase) => journal.Write(JsonSerializer.Serialize(new
@@ -121,7 +123,7 @@ public sealed class ModuleInstaller
             ?? throw new ArgumentException("Module is not installed.");
         if (enabled)
         {
-            var archive=Path.Combine(PathFolder(false,"packages",app.Id),app.Version,"package.espapp");RejectLink(archive);
+            var archive=InstalledArchive(app);
             var verified=await verify(archive,ct).ConfigureAwait(false);
             if(verified.Manifest.Id!=app.Id||verified.Manifest.Version!=app.Version||verified.PackageSha256!=app.PackageSha256||verified.Manifest.DataFormat!=app.DataFormat)
                 throw new InvalidDataException("Module must pass verification before enabling.");
@@ -146,13 +148,37 @@ public sealed class ModuleInstaller
         ModuleRegistry.ValidateId(id);
         var app = registry.Read().State.Apps.SingleOrDefault(a => a.Id == id && a.Enabled)
             ?? throw new ArgumentException("Module is not installed or enabled.");
-        var folder = PathFolder(false, "packages", app.Id); var version = Path.Combine(folder, app.Version); RejectLink(version);
-        var archive = Path.Combine(version, "package.espapp"); RejectLink(archive);
+        var archive = InstalledArchive(app);
         var verified = await verify(archive, ct);
         if (verified.Manifest.Id != app.Id || verified.Manifest.Version != app.Version ||
             verified.Manifest.DataFormat != app.DataFormat || verified.PackageSha256 != app.PackageSha256)
             throw new InvalidDataException("Installed module no longer matches its registry.");
         return verified;
+    }
+
+    // Content-addressed variants permit an optional UI to attach to the exact same core release.
+    // Existing installations remain readable; fallback never chooses a different package hash.
+    internal string InstalledArchive(InstalledModule app)
+    {
+        ModuleRegistry.ValidateId(app.Id);
+        if(!Version.TryParse(app.Version,out var version)||version.ToString(3)!=app.Version||
+            app.PackageSha256.Length!=64||!app.PackageSha256.All(Uri.IsHexDigit))throw new InvalidDataException("Unsafe installed package identity.");
+        var folder=PathFolder(false,"packages",app.Id,app.Version);
+        var variant=Path.Combine(folder,app.PackageSha256);RejectLink(variant);
+        var archive=Directory.Exists(variant)?Path.Combine(variant,"package.espapp"):Path.Combine(folder,"package.espapp");
+        RejectLink(archive);return archive;
+    }
+    private static void ValidateUiAttachment(ModuleManifest core,ModuleManifest full)
+    {
+        if(core.Ui is not null||full.Ui is null||core.Repository!=full.Repository||core.Id!=full.Id||core.Version!=full.Version||
+            core.HostApi!=full.HostApi||core.EngineProtocol!=full.EngineProtocol||core.DataFormat!=full.DataFormat||core.Runtime!=full.Runtime||core.Engine!=full.Engine||
+            core.ModelVersion!=full.ModelVersion||!core.Platforms.Order(StringComparer.Ordinal).SequenceEqual(full.Platforms.Order(StringComparer.Ordinal)))
+            throw new InvalidDataException("Same-version changes may only attach UI to an unchanged core.");
+        foreach(var file in core.Files)
+            if(!full.Files.Any(next=>next.Path==file.Path&&next.Size==file.Size&&next.Sha256.Equals(file.Sha256,StringComparison.OrdinalIgnoreCase)))
+                throw new InvalidDataException("UI attachment changed existing core content.");
+        if(full.Files.Any(file=>!core.Files.Any(old=>old.Path==file.Path)&&!file.Path.StartsWith("ui/",StringComparison.Ordinal)&&!file.Path.StartsWith("notices/",StringComparison.Ordinal)))
+            throw new InvalidDataException("UI attachment adds non-UI executable content.");
     }
 
     private string Folder(params string[] parts) => PathFolder(true, parts);

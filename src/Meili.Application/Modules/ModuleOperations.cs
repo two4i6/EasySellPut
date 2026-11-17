@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 namespace Meili.Automation.Modules;
 
 public sealed record ModuleOperation(string Name, string Description, bool Writes, JsonElement Schema, string EntryPoint);
-public sealed record BoundModuleOperation(string AppId, string Version, ModuleOperation Definition);
+public sealed record BoundModuleOperation(string AppId, string Version, ModuleOperation Definition, string PackageSha256);
 
 /// <summary>Authenticated discovery only; never starts an engine or grants write permission.</summary>
 public static partial class ModuleOperations
@@ -21,7 +21,7 @@ public static partial class ModuleOperations
             using var lease = new ModuleRegistry(directory).AcquireExecution(app.Id);
             var verified = await installer.VerifyInstalledAsync(app.Id, ct).ConfigureAwait(false);
             if (!verified.Manifest.Files.Any(f => f.Path == "operations.json")) continue;
-            foreach (var bound in ReadPackage(verified, Path.Combine(new ModuleRegistry(directory).Root, "packages", app.Id, app.Version, "package.espapp")))
+            foreach (var bound in ReadPackage(verified, installer.InstalledArchive(installer.Inspect().State.Apps.Single(a=>a.Id==app.Id))))
             {
                 if (result.Any(o => o.Definition.Name == bound.Definition.Name)) throw new InvalidDataException("Duplicate module operation.");
                 result.Add(bound);
@@ -71,7 +71,7 @@ public static partial class ModuleOperations
                 if (existing is null && !op.Name.StartsWith(app.Id == "easysellput.qqq-gex" ? "get_qqq_gex_" : "app_" + app.Id.Replace('.', '_').Replace('-', '_') + "_", StringComparison.Ordinal))
                     throw new InvalidDataException("Module operation is outside its namespace.");
                 if (result.Any(o => o.Definition.Name == op.Name)) throw new InvalidDataException("Duplicate module operation.");
-                result.Add(new(app.Id, app.Version, op with { Schema = op.Schema.Clone() }));
+                result.Add(new(app.Id, app.Version, op with { Schema = op.Schema.Clone() }, verified.PackageSha256));
             }
         return result.AsReadOnly();
     }

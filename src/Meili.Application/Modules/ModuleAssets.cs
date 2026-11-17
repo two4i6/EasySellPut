@@ -65,7 +65,7 @@ public static class ModuleAssets
             var file = verified.Manifest.Files.SingleOrDefault(f => f.Path == asset)
                 ?? throw new InvalidDataException("Asset is not declared by this module version.");
             if (file.Size > 64 * 1024 * 1024) throw new InvalidDataException("Module asset exceeds read bound.");
-            var archive = Path.Combine(registry.Root, "packages", id, verified.Manifest.Version, "package.espapp");
+            var archive = installer.InstalledArchive(registry.Read().State.Apps.Single(a=>a.Id==id));
             using var zip = ZipFile.OpenRead(archive);
             var entry = zip.GetEntry(asset) ?? throw new InvalidDataException("Module asset is missing.");
             using var output = new MemoryStream(); await using var input = entry.Open();

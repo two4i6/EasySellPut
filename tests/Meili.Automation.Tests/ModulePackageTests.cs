@@ -78,6 +78,46 @@ public sealed class ModulePackageTests : IDisposable
         installer.Uninstall("easysellput.test");
     }
 
+    [Fact]
+    public async Task Optional_UI_attaches_to_identical_core_without_rebuilding_or_overwriting_it()
+    {
+        var profile=Path.Combine(root,"attach");var installer=new ModuleInstaller(profile,(file,ct)=>Verify(file));
+        var schema=JsonSerializer.SerializeToElement(new{type="object",properties=new{},required=Array.Empty<string>(),additionalProperties=false});
+        var operation=new ModuleOperation("app_easysellput_test_summary","Evidence",false,schema,"engine/main.mjs");
+        const string script="process.stdout.write(JSON.stringify({source:'unchanged-core'}));";
+        await installer.InstallAsync(Package(operations:[operation],scriptText:script));
+        var original=installer.Inspect().State.Apps.Single();var originalArchive=installer.InstalledArchive(original);
+        var originalBytes=await File.ReadAllBytesAsync(originalArchive);
+        var oldOperation=(await ModuleOperations.ReadAsync(profile,installer,CancellationToken.None)).Single();
+        await Assert.ThrowsAsync<InvalidDataException>(()=>installer.InstallAsync(Package(ui:true,operations:[operation],scriptText:"process.stdout.write('{}');")));
+        Assert.Equal(original,installer.Inspect().State.Apps.Single());
+        await installer.InstallAsync(Package(ui:true,operations:[operation],scriptText:script));
+        Assert.True(installer.Inspect().State.Apps.Single().HasUi);
+        Assert.Equal(originalBytes,await File.ReadAllBytesAsync(originalArchive));
+        Assert.NotEqual(originalArchive,installer.InstalledArchive(installer.Inspect().State.Apps.Single()));
+        await Assert.ThrowsAsync<InvalidOperationException>(()=>ModuleProcess.ExecuteAsync(profile,oldOperation,JsonSerializer.SerializeToElement(new{}),false,installer,_=>Task.FromResult<string?>("node"),CancellationToken.None));
+        using var dispatcher=new ViewDispatcher(profile,installer);
+        await using(var view=await PrivateAppSession.CreateAsync(profile,original.Id,dispatcher,false,installer,CancellationToken.None))
+        {using var http=new HttpClient();Assert.Contains("Signed fixture application",await http.GetStringAsync(view.PageUri));}
+        var active=installer.Inspect().State.Apps.Single();
+        await Assert.ThrowsAsync<InvalidDataException>(()=>installer.InstallAsync(Package(ui:true,operations:[operation],scriptText:"process.stdout.write('{}');")));
+        await Assert.ThrowsAsync<InvalidDataException>(()=>installer.InstallAsync(Package(operations:[operation],scriptText:script)));
+        Assert.Equal(active,installer.Inspect().State.Apps.Single());
+    }
+
+    [Fact]
+    public async Task Existing_unhashed_layout_remains_readable_and_cannot_mask_corrupt_variant()
+    {
+        var profile=Path.Combine(root,"legacy-layout");var installer=new ModuleInstaller(profile,(file,ct)=>Verify(file));
+        await installer.InstallAsync(Package());var app=installer.Inspect().State.Apps.Single();
+        var variantArchive=installer.InstalledArchive(app);var variant=Path.GetDirectoryName(variantArchive)!;
+        var legacyArchive=Path.Combine(Path.GetDirectoryName(variant)!,"package.espapp");
+        File.Move(variantArchive,legacyArchive);Directory.Delete(variant);
+        Assert.Equal(app.PackageSha256,(await installer.VerifyInstalledAsync(app.Id)).PackageSha256);
+        Directory.CreateDirectory(variant);await File.WriteAllBytesAsync(variantArchive,[1,2,3]);
+        await Assert.ThrowsAsync<InvalidDataException>(()=>installer.VerifyInstalledAsync(app.Id));
+    }
+
     [Theory]
     [InlineData("1.0.0 ")]
     [InlineData("01.0.0")]
@@ -259,7 +299,7 @@ public sealed class ModulePackageTests : IDisposable
             Assert.Equal("export const value=1;", await read.ReadToEndAsync());
             Assert.Throws<IOException>(() => installer.Uninstall("easysellput.test"));
         }
-        var archive = Path.Combine(profile, "apps", "packages", "easysellput.test", "1.0.0", "package.espapp");
+        var archive = installer.InstalledArchive(installer.Inspect().State.Apps.Single());
         File.WriteAllBytes(archive, [1, 2, 3]);
         await Assert.ThrowsAsync<InvalidDataException>(() => ModuleAssets.TryOpenAsync(profile, "easysellput.test", "engine/main.mjs", installer, CancellationToken.None));
         Assert.Equal("uninstalled", installer.Uninstall("easysellput.test").Status);
