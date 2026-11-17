@@ -79,6 +79,7 @@ public partial class MainWindow : Window
 
     public void Navigate(AppPage page)
     {
+        if(!ModuleNavigation.IsAvailable(AppServices.Get<DataDirectoryInfo>().Path,page))page=AppPage.Settings;
         if (!_pages.TryGetValue(page, out var view))
             _pages[page] = view = CreatePage(page);
         CurrentPage = page;

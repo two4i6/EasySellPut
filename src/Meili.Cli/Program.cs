@@ -14,7 +14,7 @@ public static class Program
     public static Task<int> Main(string[] args) => RunAsync(args);
 
     /// <summary>Shared executable entry point; test hosts may supply deterministic market services.</summary>
-    public static async Task<int> RunAsync(string[] args, Func<Meili.Core.Settings.DataDirectoryInfo, IOperationDispatcher>? serviceFactory = null, Func<string?, IOperationCatalog>? catalogResolver = null)
+    public static async Task<int> RunAsync(string[] args, Func<Meili.Core.Settings.DataDirectoryInfo, IOperationDispatcher>? serviceFactory = null, Func<string?, Task<IOperationCatalog>>? catalogResolver = null)
     {
         bool json = args.Contains("--json");
         using var stop = new CancellationTokenSource();
@@ -80,7 +80,12 @@ public static class Program
                 return 0;
             }
             IOperationCatalog catalog = OperationCatalog.Snapshot;
-            var parsed = Parse(args, path => catalog = catalogResolver?.Invoke(path) ?? OperationCatalogResolver.Resolve(LocalPaths.Resolve(path, migrateLegacy: false)));
+            if (!args.Contains("--version"))
+            {
+                var profile = DiscoveryDirectory(args);
+                catalog = catalogResolver is null ? await OperationCatalogResolver.ResolveAsync(LocalPaths.Resolve(profile, migrateLegacy: false), stop.Token) : await catalogResolver(profile);
+            }
+            var parsed = Parse(args, _ => catalog);
             if (parsed.Help)
             {
                 if (json) Console.WriteLine(WireJson.Element(WireJson.Success(new
@@ -147,25 +152,27 @@ public static class Program
             new Resource{Uri="easysellput://guides/skill",Name="Companion skill",Description="Complete local research guide, safety/units and all tool usage.",MimeType="text/markdown"},
             new Resource{Uri="easysellput://capabilities",Name="Available capabilities",Description="Compiled tool catalog for this connection's permissions.",MimeType="application/json"}
         ]}))
-        .WithReadResourceHandler((request,cancel)=>
+        .WithReadResourceHandler(async (request,cancel)=>
         {
             observedClient=request.Server.ClientInfo?.Name;
+            var currentCatalog=await service.GetCatalogAsync(cancel);
             var uri=request.Params?.Uri;
             var content=uri switch
             {
                 "easysellput://guides/workflows"=>AiWorkflowGuide.Markdown,
                 "easysellput://guides/skill"=>AiSkillInstaller.Content,
-                "easysellput://capabilities"=>WireJson.Element(new{readOnly=!writes,operations=service.Catalog.All.Where(o=>writes||!o.Writes).Select(o=>new{o.Name,o.Description,o.Writes,inputSchema=o.Schema})}).GetRawText(),
+                "easysellput://capabilities"=>WireJson.Element(new{readOnly=!writes,operations=currentCatalog.All.Where(o=>writes||!o.Writes).Select(o=>new{o.Name,o.Description,o.Writes,inputSchema=o.Schema})}).GetRawText(),
                 _=>throw new ModelContextProtocol.McpProtocolException("Unknown resource URI; arbitrary file/URL reads are not supported.",ModelContextProtocol.McpErrorCode.InvalidParams)
             };
-            return ValueTask.FromResult(new ReadResourceResult{Contents=[new TextResourceContents{Uri=uri!,MimeType=uri=="easysellput://capabilities"?"application/json":"text/markdown",Text=content}]});
+            return new ReadResourceResult{Contents=[new TextResourceContents{Uri=uri!,MimeType=uri=="easysellput://capabilities"?"application/json":"text/markdown",Text=content}]};
         })
-        .WithListToolsHandler((request, cancel) =>
+        .WithListToolsHandler(async (request, cancel) =>
         {
             observedClient=request.Server.ClientInfo?.Name;
-            return ValueTask.FromResult(new ListToolsResult
+            var currentCatalog = await service.GetCatalogAsync(cancel);
+            return new ListToolsResult
         {
-            Tools = service.Catalog.All.Where(x => writes || !x.Writes).Select(x => new Tool
+            Tools = currentCatalog.All.Where(x => writes || !x.Writes).Select(x => new Tool
             {
                 Name = x.Name,
                 Title = CultureInfo.InvariantCulture.TextInfo.ToTitleCase(x.Name.Replace('_',' ')),
@@ -173,7 +180,7 @@ public static class Program
                 InputSchema = x.Schema,
                 Annotations = new ToolAnnotations { ReadOnlyHint = !x.Writes, DestructiveHint = x.Writes && (x.Name.StartsWith("delete_",StringComparison.Ordinal) || x.Name.StartsWith("clear_",StringComparison.Ordinal) || x.Name=="save_strategy"), IdempotentHint = !x.Writes, OpenWorldHint = x.Name is "search_symbols" or "get_quotes" or "get_bars" or "get_expirations" or "get_option_chain" or "get_fundamentals" or "get_financials" or "get_news" or "get_market_events" or "get_chart_analysis" or "analyze_option_chain" or "get_pricing_assumptions" or "get_volatility_insights" or "record_option_snapshot" or "probe_data_sources" }
             }).ToList()
-        });
+        };
         })
         .WithCallToolHandler(async (request, cancel) =>
         {
@@ -196,6 +203,19 @@ public static class Program
         var server=host.Services.GetService<ModelContextProtocol.Server.McpServer>();
         using var session=new McpSessionLease(service.DirectoryInfo.Path,writes,()=>server?.ClientInfo?.Name??observedClient);
         await host.RunAsync(ct);
+    }
+
+    private static string? DiscoveryDirectory(string[] args)
+    {
+        string? directory=null;
+        for(var i=0;i<args.Length;i++)
+        {
+            if(args[i] != "--data-dir" && !args[i].StartsWith("--data-dir=",StringComparison.Ordinal))continue;
+            if(directory is not null)throw new ArgumentException("Duplicate --data-dir.");
+            directory=args[i].StartsWith("--data-dir=",StringComparison.Ordinal)?args[i][11..]:++i<args.Length?args[i]:throw new ArgumentException("Missing --data-dir.");
+            if(string.IsNullOrWhiteSpace(directory)||directory.StartsWith("--",StringComparison.Ordinal))throw new ArgumentException("Missing --data-dir.");
+        }
+        return directory;
     }
 
     internal sealed record Parsed(string? Operation, JsonElement Arguments, string? DataDir, int Timeout, bool Mcp, bool AllowWrites, bool Help, bool Version);

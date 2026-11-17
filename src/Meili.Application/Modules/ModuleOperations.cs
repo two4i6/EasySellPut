@@ -14,6 +14,7 @@ public static partial class ModuleOperations
 
     internal static async Task<IReadOnlyList<BoundModuleOperation>> ReadAsync(string directory, ModuleInstaller installer, CancellationToken ct)
     {
+        ct.ThrowIfCancellationRequested();
         var result = new List<BoundModuleOperation>();
         foreach (var app in installer.Inspect().State.Apps.Where(a => a.Enabled))
         {
@@ -80,8 +81,9 @@ public static partial class ModuleOperations
         foreach (var item in contributions)
         {
             var op = item.Definition;
-            items.RemoveAll(o => o.Name == op.Name);
-            items.Add(new(op.Name, op.Description, op.Writes, op.Schema));
+            var index = items.FindIndex(o => o.Name == op.Name);
+            var replacement = new Operation(op.Name, op.Description, op.Writes, op.Schema);
+            if (index < 0) items.Add(replacement); else items[index] = replacement;
         }
         return new OperationSnapshot(items);
     }

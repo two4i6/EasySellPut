@@ -207,7 +207,7 @@ public partial class MainWindow : FluentWindow
             if (!string.IsNullOrWhiteSpace(e.Symbol) && e.Page != AppPage.Alerts)
                 AppServices.Get<SymbolContext>().Set(e.Symbol);
             ShowMarketWorkspace();
-            RootNavigation.Navigate(PageType(e.Page));
+            RootNavigation.Navigate(PageType(ModuleNavigation.IsAvailable(AppServices.Get<DataDirectoryInfo>().Path,e.Page)?e.Page:AppPage.Settings));
             if (!string.IsNullOrWhiteSpace(e.Symbol) && e.Page == AppPage.Alerts)
                 AppServices.Get<AlertsViewModel>().PrepareForSymbol(e.Symbol);
         });

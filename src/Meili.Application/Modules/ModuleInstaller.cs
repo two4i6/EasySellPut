@@ -104,8 +104,8 @@ public sealed class ModuleInstaller
             else Directory.Move(stage, target);
             Record("staged"); ct.ThrowIfCancellationRequested();
             var app = new InstalledModule(candidate.Manifest.Id, candidate.Manifest.Version, candidate.PackageSha256,
-                candidate.Manifest.DataFormat, true);
-            registry.Save(snapshot.Revision, snapshot.State.Apps.Where(a => a.Id != app.Id).Append(app).ToArray());
+                candidate.Manifest.DataFormat, true, candidate.Manifest.Ui is not null);
+            registry.Save(snapshot.Revision, snapshot.State.Apps.Where(a => a.Id != app.Id).Append(app).ToArray(), (snapshot.State.SuppressedSeeds ?? []).Where(id => id != app.Id).ToArray());
             try { Record("activated"); }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
             { Meili.Core.Diagnostics.AppLog.Warn("modules", "Module registry committed; journal completion deferred", ex); }
@@ -114,11 +114,19 @@ public sealed class ModuleInstaller
         finally { if (Directory.Exists(stage)) Directory.Delete(stage, true); }
     }
 
-    public ModuleMaintenanceResult SetEnabled(string id, bool enabled)
+    public async Task<ModuleMaintenanceResult> SetEnabledAsync(string id, bool enabled, CancellationToken ct = default)
     {
         using var lease = registry.AcquireMaintenance(id);
         var snapshot = registry.Read(); var app = snapshot.State.Apps.SingleOrDefault(a => a.Id == id)
             ?? throw new ArgumentException("Module is not installed.");
+        if (enabled)
+        {
+            var archive=Path.Combine(PathFolder(false,"packages",app.Id),app.Version,"package.espapp");RejectLink(archive);
+            var verified=await verify(archive,ct).ConfigureAwait(false);
+            if(verified.Manifest.Id!=app.Id||verified.Manifest.Version!=app.Version||verified.PackageSha256!=app.PackageSha256||verified.Manifest.DataFormat!=app.DataFormat)
+                throw new InvalidDataException("Module must pass verification before enabling.");
+            _=ModuleOperations.ReadPackage(verified,archive);
+        }
         registry.Save(snapshot.Revision, snapshot.State.Apps.Select(a => a.Id == id ? a with { Enabled = enabled } : a).ToArray());
         return new(enabled ? "enabled" : "disabled", id, app.Version);
     }
@@ -128,7 +136,7 @@ public sealed class ModuleInstaller
         using var lease = registry.AcquireMaintenance(id);
         var snapshot = registry.Read(); var app = snapshot.State.Apps.SingleOrDefault(a => a.Id == id)
             ?? throw new ArgumentException("Module is not installed.");
-        registry.Save(snapshot.Revision, snapshot.State.Apps.Where(a => a.Id != id).ToArray());
+        registry.Save(snapshot.Revision, snapshot.State.Apps.Where(a => a.Id != id).ToArray(), (snapshot.State.SuppressedSeeds ?? []).Append(id).Distinct(StringComparer.Ordinal).ToArray());
         // Keep immutable package backups and app data. Garbage collection is separate from unregistering code.
         return new("uninstalled", id, app.Version);
     }

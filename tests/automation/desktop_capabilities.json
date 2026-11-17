@@ -670,6 +670,25 @@
           "uiOnly": "Navigate to existing source health diagnostics; source health data remain available through get_source_health."
         }
       }
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/AppManagementViewModel.cs",
+      "operations": [],
+      "scope": "Explicit local signed application maintenance shared with CLI apps commands. Executable installation, disable and removal are intentionally excluded from market/business MCP tools. Selection, native file picker and confirmation are presentation.",
+      "commands": {
+        "RefreshAppsAsync": {
+          "uiOnly": "Inspect the local module registry; equivalent explicit CLI maintenance is apps list/doctor, never an MCP installation tool."
+        },
+        "InstallAppAsync": {
+          "uiOnly": "User selects a local signed app package; CLI apps install/update provides the same verification without an MCP self-modification endpoint."
+        },
+        "ToggleAppAsync": {
+          "uiOnly": "Explicitly enable/disable installed executable code under execution leases; equivalent apps enable/disable remains CLI-only maintenance."
+        },
+        "UninstallAppAsync": {
+          "uiOnly": "Confirm code removal while retaining observations, data and backups; equivalent apps uninstall remains CLI-only maintenance."
+        }
+      }
     }
   ]
 }

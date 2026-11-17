@@ -23,6 +23,10 @@ public partial class MainWindow
         { _workspace = null; Meili.Core.Diagnostics.AppLog.Warn("web-workspace", "Workspace could not be loaded", ex); AddWebsite.IsEnabled = false; ShowBanner(_loc["Web_Edit"], _loc["Web_Failed"]); }
         if (_workspace is not null) _workspace.MotionChanged += WorkspaceMotionChanged;
         Closed += (_, _) => { if (_workspace is not null) _workspace.MotionChanged -= WorkspaceMotionChanged; };
+        var apps=AppServices.Get<SettingsViewModel>().Applications;
+        EventHandler refreshApps=(_,_)=>RebuildBuiltinRail();
+        apps.Changed+=refreshApps;Activated+=refreshApps;
+        Closed+=(_,_)=>{apps.Changed-=refreshApps;Activated-=refreshApps;};
         SetupStatusIcons(); RebuildBuiltinRail(); RebuildWebsiteRail(); ApplyWorkspaceMotion();
         _loc.LanguageChanged += WorkspaceLanguageChanged; Closed += (_, _) => _loc.LanguageChanged -= WorkspaceLanguageChanged;
         Activated += (_, _) => ApplyWorkspaceMotion();
@@ -37,7 +41,7 @@ public partial class MainWindow
     private void RebuildBuiltinRail()
     {
         BuiltinRail.Children.Clear();
-        foreach(var page in PageOrder.Where(p => p is not (AppPage.Dashboard or AppPage.Settings or AppPage.DataSources)))
+        foreach(var page in PageOrder.Where(p => p is not (AppPage.Dashboard or AppPage.Settings or AppPage.DataSources) && ModuleNavigation.IsAvailable(AppServices.Get<Meili.Core.Settings.DataDirectoryInfo>().Path,p)))
         {
             var tile = new ToggleButton { Tag = page }; tile.Classes.Add("Workspace");
             tile.Content = CreateNavigationIcon(NavigationIcons.For(page),tile);

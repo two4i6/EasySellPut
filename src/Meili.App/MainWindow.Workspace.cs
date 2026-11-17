@@ -18,6 +18,10 @@ public partial class MainWindow
     private static readonly AppPage[] BuiltinPages = Enum.GetValues<AppPage>();
     private void SetupWorkspace()
     {
+        var apps=AppServices.Get<SettingsViewModel>().Applications;
+        EventHandler refreshApps=(_,_)=>RebuildBuiltinRail();
+        apps.Changed+=refreshApps;Activated+=refreshApps;
+        Closed+=(_,_)=>{apps.Changed-=refreshApps;Activated-=refreshApps;};
         SetupStatusIcons(); RebuildBuiltinRail();
         try { _workspace = AppServices.Get<WebWorkspace>(); _workspace.Reload(); }
         catch (Exception ex) when (ex is IOException or System.Text.Json.JsonException or ArgumentException)
@@ -39,7 +43,7 @@ public partial class MainWindow
     private void RebuildBuiltinRail()
     {
         BuiltinRail.Children.Clear();
-        foreach(var page in BuiltinPages.Where(p => p is not (AppPage.Dashboard or AppPage.Settings or AppPage.DataSources)))
+        foreach(var page in BuiltinPages.Where(p => p is not (AppPage.Dashboard or AppPage.Settings or AppPage.DataSources) && ModuleNavigation.IsAvailable(AppServices.Get<Meili.Core.Settings.DataDirectoryInfo>().Path,p)))
         {
             var tile = new ToggleButton { Tag=page, Style=(Style)FindResource("WorkspaceTile") };
             tile.Content=CreateNavigationIcon(NavigationIcons.For(page),tile);

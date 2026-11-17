@@ -14,11 +14,13 @@ public interface IOperationCatalog
 /// <summary>Metadata-only profile discovery; never starts providers, engines or storage migrations.</summary>
 public static class OperationCatalogResolver
 {
-    public static IOperationCatalog Resolve(DataDirectoryInfo directory)
+    public static async Task<IOperationCatalog> ResolveAsync(DataDirectoryInfo directory, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(directory);
-        var contributions = Task.Run(() => Modules.ModuleOperations.ReadAsync(directory.Path)).GetAwaiter().GetResult();
-        return contributions.Count == 0 ? OperationCatalog.Snapshot : Modules.ModuleOperations.Merge(contributions);
+        var contributions = await Modules.ModuleOperations.ReadAsync(directory.Path, ct).ConfigureAwait(false);
+        var catalog = contributions.Count == 0 ? OperationCatalog.Snapshot : Modules.ModuleOperations.Merge(contributions);
+        return Modules.ModuleAccess.IsEnabled(directory.Path, Modules.ModuleAccess.QqqGex) ? catalog :
+            new OperationSnapshot(catalog.All.Where(o => !o.Name.Contains("_qqq_gex_", StringComparison.Ordinal)));
     }
 }
 
@@ -47,6 +49,6 @@ public sealed class OperationSnapshot : IOperationCatalog
 public interface IOperationDispatcher : IDisposable
 {
     DataDirectoryInfo DirectoryInfo { get; }
-    IOperationCatalog Catalog { get; }
+    Task<IOperationCatalog> GetCatalogAsync(CancellationToken ct = default);
     Task<JsonElement> ExecuteAsync(string operation, JsonElement arguments, bool allowWrites, CancellationToken ct = default);
 }

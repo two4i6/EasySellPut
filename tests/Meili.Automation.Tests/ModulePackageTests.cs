@@ -34,6 +34,21 @@ public sealed class ModulePackageTests : IDisposable
         publicKey ?? key.ExportSubjectPublicKeyInfoPem(), "test/source", "linux-x64", CancellationToken.None);
 
     [Fact]
+    public async Task Uninstall_never_reenables_compatibility_seed_and_explicit_reinstall_restores_access()
+    {
+        var profile = Path.Combine(root,"seed-policy");
+        var installer = new ModuleInstaller(profile,(file,ct)=>Verify(file));
+        Assert.True(ModuleAccess.IsEnabled(profile,"easysellput.test"));
+        var package = Package();
+        await installer.InstallAsync(package);
+        installer.Uninstall("easysellput.test");
+        Assert.False(ModuleAccess.IsEnabled(profile,"easysellput.test"));
+        Assert.Throws<InvalidOperationException>(()=>ModuleAccess.AcquireEnabled(profile,"easysellput.test"));
+        await installer.InstallAsync(package);
+        Assert.True(ModuleAccess.IsEnabled(profile,"easysellput.test"));
+    }
+
+    [Fact]
     public async Task Fixed_host_executes_signed_A_then_B_and_rejects_stale_contracts_and_permission_escalation()
     {
         var profile = Path.Combine(root, "execution");
@@ -51,7 +66,8 @@ public sealed class ModulePackageTests : IDisposable
         Assert.Equal("B", (await ModuleProcess.ExecuteAsync(profile,b,args,false,installer,Runtime,CancellationToken.None)).GetProperty("version").GetString());
         await Assert.ThrowsAsync<InvalidDataException>(() => installer.InstallAsync(Package(version:"1.0.2",operations:[op with { Writes=true }])));
         Assert.Equal("1.0.1", Assert.Single(installer.Inspect().State.Apps).Version);
-        installer.SetEnabled("easysellput.test",false);
+        await installer.SetEnabledAsync("easysellput.test",false);
+        Assert.False(ModuleAccess.IsEnabled(profile,"easysellput.test"));
         await Assert.ThrowsAsync<InvalidOperationException>(() => ModuleProcess.ExecuteAsync(profile,b,args,false,installer,Runtime,CancellationToken.None));
     }
 
@@ -72,7 +88,7 @@ public sealed class ModulePackageTests : IDisposable
         var b = await ModuleOperations.ReadAsync(profile, installer, CancellationToken.None);
         Assert.Equal("1.0.1", Assert.Single(b).Version);
         Assert.Equal("1.0.0", Assert.Single(a).Version); // Existing immutable discovery is not mutated.
-        installer.SetEnabled("easysellput.test", false);
+        await installer.SetEnabledAsync("easysellput.test", false);
         Assert.Empty(await ModuleOperations.ReadAsync(profile, installer, CancellationToken.None));
         installer.Uninstall("easysellput.test"); // Discovery never owns a permanent execution lock.
     }
@@ -132,9 +148,9 @@ public sealed class ModulePackageTests : IDisposable
         await installer.InstallAsync(b);
         Assert.Equal("1.0.1", (await installer.VerifyInstalledAsync("easysellput.test")).Manifest.Version);
         await Assert.ThrowsAsync<InvalidDataException>(() => installer.InstallAsync(a));
-        installer.SetEnabled("easysellput.test", false);
+        await installer.SetEnabledAsync("easysellput.test", false);
         await Assert.ThrowsAsync<ArgumentException>(() => installer.VerifyInstalledAsync("easysellput.test"));
-        installer.SetEnabled("easysellput.test", true);
+        await installer.SetEnabledAsync("easysellput.test", true);
         Assert.Equal("uninstalled", installer.Uninstall("easysellput.test").Status);
         Assert.Empty(installer.Inspect().State.Apps);
         await installer.InstallAsync(b);

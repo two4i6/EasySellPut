@@ -154,12 +154,15 @@ public partial class SettingsViewModel : ObservableObject
     public bool IsFixedRate => RateModeIndex == 1;
 
     public bool IsManualProxy => ProxyModeIndex == 2;
+    public AppManagementViewModel Applications { get; }
     public string DataDirectory { get; }
     public string Version { get; } = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "0.0.0";
 
     public SettingsViewModel(SettingsStore store, LocalizationService loc, IThemeController theme, DataDirectoryInfo dataDir, IServiceProvider sp, McpConnectionSetup? connection = null, IUpdateCoordinator? updater = null)
     {
         _store = store; _loc = loc; _theme = theme;
+        Applications=new(dataDir.Path,loc);
+        _loc.LanguageChanged+=(_,_)=>Applications.RefreshLanguage();
         _cacheManager = sp.GetService(typeof(Meili.Caching.CacheManager)) as Meili.Caching.CacheManager;
         Updates = updater is not null ? new UpdateViewModel(store, loc, dataDir, updater)
             : sp.GetService(typeof(UpdateViewModel)) as UpdateViewModel ?? new UpdateViewModel(store, loc, dataDir);

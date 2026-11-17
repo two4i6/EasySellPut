@@ -43,6 +43,6 @@ internal static class AppsCommand
             ?? throw new ArgumentException("Module is not installed.");
         if (action is "install" or "update") return await installer.InstallAsync(package!, ct, updateOnly: action == "update");
         if (action == "uninstall") return installer.Uninstall(id!);
-        return installer.SetEnabled(id!, action == "enable");
+        return await installer.SetEnabledAsync(id!, action == "enable", ct);
     }
 }

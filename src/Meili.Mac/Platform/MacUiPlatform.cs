@@ -64,6 +64,14 @@ public sealed class MacUiPlatform : IUiPlatform
         Process.Start(psi)?.Dispose();
     }
 
+    public async Task<string?> PickOpenPathAsync(string title, string extension)
+    {
+        var owner=MainWindow;if(owner is null)return null;
+        var files=await owner.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {Title=title,AllowMultiple=false,FileTypeFilter=[new FilePickerFileType("EasySellPut app"){Patterns=["*."+extension]}]});
+        return files.FirstOrDefault()?.TryGetLocalPath();
+    }
+
     public async Task<string?> PickSavePathAsync(string title, string suggestedName)
     {
         var owner = MainWindow;

@@ -1018,4 +1018,17 @@
     <sys:String x:Key="QP_NoNightChart">No overnight history · waiting for updates</sys:String>
     <sys:String x:Key="QP_ObservedTail">Pushed tail · incomplete</sys:String>
     <sys:String x:Key="QP_ObservedWindow">Received segment · partial history</sys:String>
+    <sys:String x:Key="Apps_Title">Applications</sys:String>
+    <sys:String x:Key="Apps_Help">Install or update signed app packages independently. Uninstall preserves history. Close active app pages or tasks before maintenance.</sys:String>
+    <sys:String x:Key="Apps_Install">Install or update</sys:String>
+    <sys:String x:Key="Apps_Refresh">Refresh</sys:String>
+    <sys:String x:Key="Apps_Enable">Enable</sys:String>
+    <sys:String x:Key="Apps_Disable">Disable</sys:String>
+    <sys:String x:Key="Apps_Uninstall">Uninstall</sys:String>
+    <sys:String x:Key="Apps_PreserveData">Remove the app entry while preserving data and verified version backups.</sys:String>
+    <sys:String x:Key="Apps_Empty">No independent applications installed</sys:String>
+    <sys:String x:Key="Apps_Done">Application list updated</sys:String>
+    <sys:String x:Key="Apps_Error">Could not complete the operation. Close this app’s pages/tasks and use a package signed by this build’s trusted repository.</sys:String>
+    <sys:String x:Key="Apps_Enabled">Enabled</sys:String>
+    <sys:String x:Key="Apps_Disabled">Disabled</sys:String>
 </ResourceDictionary>

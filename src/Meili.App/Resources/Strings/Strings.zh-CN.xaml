@@ -1018,4 +1018,17 @@
     <sys:String x:Key="QP_NoNightChart">暂无夜盘历史 · 等待推送</sys:String>
     <sys:String x:Key="QP_ObservedTail">推送尾部 · 未完成</sys:String>
     <sys:String x:Key="QP_ObservedWindow">已接收片段 · 非完整历史</sys:String>
+    <sys:String x:Key="Apps_Title">子应用</sys:String>
+    <sys:String x:Key="Apps_Help">独立安装或更新签名子应用包。卸载保留历史数据；使用中的应用需先关闭页面或任务。</sys:String>
+    <sys:String x:Key="Apps_Install">安装或更新</sys:String>
+    <sys:String x:Key="Apps_Refresh">刷新</sys:String>
+    <sys:String x:Key="Apps_Enable">启用</sys:String>
+    <sys:String x:Key="Apps_Disable">停用</sys:String>
+    <sys:String x:Key="Apps_Uninstall">卸载</sys:String>
+    <sys:String x:Key="Apps_PreserveData">仅移除应用入口，保留数据和已验证的版本备份。</sys:String>
+    <sys:String x:Key="Apps_Empty">尚未安装独立子应用</sys:String>
+    <sys:String x:Key="Apps_Done">应用列表已更新</sys:String>
+    <sys:String x:Key="Apps_Error">操作未完成。请关闭该应用的页面和任务，并确认安装包来自此版本信任的仓库。</sys:String>
+    <sys:String x:Key="Apps_Enabled">已启用</sys:String>
+    <sys:String x:Key="Apps_Disabled">已停用</sys:String>
 </ResourceDictionary>

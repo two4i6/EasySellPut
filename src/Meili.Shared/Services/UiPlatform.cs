@@ -33,6 +33,8 @@ public interface IUiPlatform
     Task CopyTextAsync(string text) => Task.FromException(new NotSupportedException("Clipboard unavailable"));
 
     /// <summary>Native save dialog offering .xlsx and .csv. Null when the user cancels.</summary>
+    Task<string?> PickOpenPathAsync(string title, string extension) => Task.FromException<string?>(new NotSupportedException("File selection unavailable"));
+
     Task<string?> PickSavePathAsync(string title, string suggestedName);
 }
 

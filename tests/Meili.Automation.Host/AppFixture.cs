@@ -39,10 +39,10 @@ internal static class AppFixture
             try { Console.WriteLine(JsonSerializer.Serialize(await Installer(args[1]).InstallAsync(args[2]))); return 0; }
             catch(IOException e) { Console.Error.WriteLine(e.Message); return 1; }
         }
-        IOperationCatalog Catalog(string? path)
+        async Task<IOperationCatalog> Catalog(string? path)
         {
             var directory = LocalPaths.Resolve(path,migrateLegacy:false);
-            return ModuleOperations.Merge(Task.Run(()=>ModuleOperations.ReadAsync(directory.Path,Installer(directory.Path),CancellationToken.None)).GetAwaiter().GetResult());
+            return ModuleOperations.Merge(await ModuleOperations.ReadAsync(directory.Path,Installer(directory.Path),CancellationToken.None));
         }
         return await Meili.Cli.Program.RunAsync(args, directory=>new Dispatcher(directory,Installer(directory.Path),runtime),Catalog);
     }
@@ -50,10 +50,10 @@ internal static class AppFixture
     {
         private readonly AutomationService fallback = new(directory,new Meili.Automation.Tests.FakeMarket());
         public DataDirectoryInfo DirectoryInfo => directory;
-        public IOperationCatalog Catalog => ModuleOperations.Merge(Task.Run(()=>ModuleOperations.ReadAsync(directory.Path,installer,CancellationToken.None)).GetAwaiter().GetResult());
+        public async Task<IOperationCatalog> GetCatalogAsync(CancellationToken ct=default) => ModuleOperations.Merge(await ModuleOperations.ReadAsync(directory.Path,installer,ct));
         public async Task<JsonElement> ExecuteAsync(string operation, JsonElement arguments, bool allowWrites, CancellationToken ct=default)
         {
-            var op=Catalog.Find(operation);OperationCatalog.Validate(op,arguments);
+            var op=(await GetCatalogAsync(ct)).Find(operation);OperationCatalog.Validate(op,arguments);
             if(op.Writes&&!allowWrites)throw new UnauthorizedAccessException();
             var bound=(await ModuleOperations.ReadAsync(directory.Path,installer,ct)).SingleOrDefault(o=>o.Definition.Name==operation);
             return bound is null?await fallback.ExecuteAsync(operation,arguments,allowWrites,ct):

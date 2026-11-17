@@ -35,10 +35,10 @@ public sealed class OperationBoundaryTests
     {
         using var service = new AutomationService(new DataDirectoryInfo(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N")), DataDirectorySource.CommandLine));
         IOperationDispatcher dispatcher = service;
-        Assert.Equal(OperationCatalog.All.Select(o => o.Name), dispatcher.Catalog.All.Select(o => o.Name));
+        Assert.Equal(OperationCatalog.All.Select(o => o.Name), (await dispatcher.GetCatalogAsync()).All.Select(o => o.Name));
         foreach (var original in OperationCatalog.All)
         {
-            var actual = dispatcher.Catalog.Find(original.Name);
+            var actual = (await dispatcher.GetCatalogAsync()).Find(original.Name);
             Assert.Equal(original.Writes, actual.Writes);
             Assert.Equal(original.Schema.GetRawText(), actual.Schema.GetRawText());
         }

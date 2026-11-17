@@ -67,7 +67,7 @@ public sealed class QqqGexSession : IDisposable
             directory=Path.GetFileName(databaseDirectory)=="cache"?Path.GetDirectoryName(databaseDirectory)!:databaseDirectory;
             cache=new QqqGexResponseStore(databasePath);
         }
-        moduleLease=directory is null?null:new Meili.Automation.Modules.ModuleRegistry(directory).AcquireExecution("easysellput.qqq-gex");
+        moduleLease=directory is null?null:Meili.Automation.Modules.ModuleAccess.AcquireEnabled(directory,"easysellput.qqq-gex");
         preferences=directory is null?null:new QqqGexPreferences(directory);
         liveQuotesRequested=preferences is null;
         if(preferences is not null)try{liveQuotesRequested=preferences.Read().values.GetValueOrDefault("qqq-local:mode")=="latest";}catch(Exception ex)when(ex is IOException or System.Text.Json.JsonException or UnauthorizedAccessException){AppLog.Warn("qqq-gex","Quote demand preference unavailable; history mode stays passive",ex);}

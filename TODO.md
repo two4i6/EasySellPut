@@ -22,13 +22,13 @@ Design: [architecture](docs/55-主程序与可独立更新子应用架构研究.
   - Evidence: initial research at `b863eaa`; implementation starts from `aba21a1`. CI [136](https://github.com/two4i6/EasySellPut/actions/runs/44058368806) and [137](https://github.com/two4i6/EasySellPut/actions/runs/44062146982) passed. Exact baseline [138](https://github.com/two4i6/EasySellPut/actions/runs/44065150143) was queued when this plan was written.
   - Commit: `docs: record approved modular application migration plan`.
 
-- [ ] **S01 — Establish the current regression baseline.** Depends on S00.
+- [x] **S01 — Establish the current regression baseline.** Depends on S00.
   - Verify the remote navigation fix, current GEX changes and complete offline suites on the integrated source.
   - Preserve current CLI/MCP capabilities, read-only enforcement, data reload, cancellation and protocol compatibility.
   - Record exact baseline CI and distinguish any unrelated/infrastructure failure. Fix confirmed regressions without weakening assertions.
   - Acceptance: reproducible baseline, meaningful failure attribution, and local/native evidence linked before changing module ownership.
 
-- [ ] **S02 — Introduce the UI-free operation boundary.** Depends on S01.
+- [x] **S02 — Introduce the UI-free operation boundary.** Depends on S01.
   - [x] S02a: immutable catalog snapshot and transport-independent dispatcher; preserve the built-in provider, public contracts and MCP permission filtering.
   - [x] S02b: metadata-only profile resolver and two-stage CLI parsing, including non-mutating legacy discovery. Signed installed-package contributions follow S03–S07; current resolver deliberately exposes only built-ins.
   - Introduce immutable operation definitions/catalog snapshots and a small dispatcher/provider interface in the shared application boundary.
@@ -164,3 +164,11 @@ Automation: 143 passed, including signed A/B execution without rebuilding the ho
 ### S08 real transport update checkpoint
 
 Permanent test-only in-memory signed fixtures now exercise the real CLI and official SDK MCP adapters with unchanged host DLL hashes. Both initialized 2025-06-18/2025-11-25 and stateless per-request-metadata 2026-07-28 paths passed: A→B while the MCP process stays alive, newly added tool discovery/resources, CLI result parity, denied hidden writes, explicit write mode, argument rejection and EOF. The current protocol correctly refuses an initialize handshake; tests now use server/discover plus all required per-request metadata. CI runs this on every CLI target and the headless script includes it. No product fixture key or runtime trust flag exists. Proactive notifications/subscription integration and full domain/native pilot acceptance remain pending.
+
+### S09 local desktop management checkpoint
+
+Settings now composes the shared app management model with existing AppCard/AppSelect/AppHelp/button/loading resources in both native front ends. Native file selection feeds the same signed installer used by CLI; enable/disable/uninstall remain explicit local maintenance and are documented as such in the desktop capability inventory. Core-only packages omit desktop navigation. Disabled/uninstalled GEX cannot silently revert to the embedded seed; explicit reinstall restores access, while observations and package backups survive removal. Discovery and enable verification are fully asynchronous; the unchanged anti-hang guard passes.
+
+Checks: Automation 144, Shared 128, app-panel/complete form-alignment subset 3, all 58 CLI/MCP capability cases and Python guards 55 passed. Windows app/tests cross-compiled; native Windows execution is pending CI. Actual 1920×1080 Chinese/light and English/dark headless renders were inspected and saved in `docs/app-runtime-research/screenshots/`; compact layout/selection and native Windows manager tests were added to existing full suites. See application-manager.md for screenshots and scope. Optional UI attachment at the same app release, generic AppView adapters, proactive notifications and final native pilot remain tracked requirements; this is not S12 acceptance.
+
+S01 baseline acceptance is backed by passing native integrated ancestor CI 44069964453. S02 now has authenticated installed contributions, asynchronous CLI/MCP discovery and execution permission checks in addition to all existing operation parity. Latest delivery CI 44084998371 was queued at inspection; pending new native results are not claimed as passed.

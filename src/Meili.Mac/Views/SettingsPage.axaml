@@ -48,6 +48,26 @@
                 </StackPanel>
             </ds:AppCard>
 
+            <ds:AppCard x:Name="ApplicationsPanel" Classes="Card" Margin="0,16,0,0" Padding="16" DataContext="{Binding Applications}" x:DataType="vm:AppManagementViewModel">
+                <StackPanel Spacing="12">
+                    <DockPanel>
+                        <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center">
+                            <Button Content="{DynamicResource Apps_Refresh}" Command="{Binding RefreshAppsCommand}" Margin="8,0,0,0"/>
+                            <Button Classes="Primary" Content="{DynamicResource Apps_Install}" Command="{Binding InstallAppCommand}" Margin="8,0,0,0"/>
+                        </WrapPanel>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"><TextBlock Classes="CardTitle" Text="{DynamicResource Apps_Title}" VerticalAlignment="Center"/><ds:AppHelp HelpText="{DynamicResource Apps_Help}" Margin="8,0,0,0"/></StackPanel>
+                    </DockPanel>
+                    <WrapPanel>
+                        <ds:AppSelect x:Name="InstalledApplications" MinWidth="260" ItemsSource="{Binding Apps}" SelectedItem="{Binding SelectedApp}" Margin="0,0,8,8"/>
+                        <TextBlock Classes="Caption" Text="{Binding SelectedStatus}" VerticalAlignment="Center" Margin="0,0,12,8"/>
+                        <Button Content="{Binding ToggleLabel}" Command="{Binding ToggleAppCommand}" Margin="0,0,8,8"/>
+                        <Button Content="{DynamicResource Apps_Uninstall}" Command="{Binding UninstallAppCommand}" Margin="0,0,0,8"/>
+                    </WrapPanel>
+                    <ProgressBar IsVisible="{Binding IsBusy}" IsIndeterminate="True" Height="4" MinHeight="0"/>
+                    <TextBlock Classes="Caption" Text="{Binding Status}" TextWrapping="Wrap"/>
+                </StackPanel>
+            </ds:AppCard>
+
             <!-- Appearance -->
             <TextBlock Classes="SectionTitle" Text="{DynamicResource Set_Appearance}" />
             <ds:AppCard Classes="Card FormRow" Padding="16,12" Margin="0,0,0,4">

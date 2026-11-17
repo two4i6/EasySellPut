@@ -13,6 +13,7 @@ public partial class SettingsPage : UserControl
         {
             if (DataContext is SettingsViewModel model && model.RefreshCacheCommand.CanExecute(null))
                 await model.RefreshCacheCommand.ExecuteAsync(null);
+            if (DataContext is SettingsViewModel settings) await settings.Applications.RefreshAppsCommand.ExecuteAsync(null);
         };
 
     }

@@ -6,8 +6,8 @@ using Meili.Core.Settings;
 
 namespace Meili.Automation.Modules;
 
-public sealed record InstalledModule(string Id, string Version, string PackageSha256, int DataFormat, bool Enabled);
-public sealed record ModuleRegistryState(int SchemaVersion, long Generation, InstalledModule[] Apps);
+public sealed record InstalledModule(string Id, string Version, string PackageSha256, int DataFormat, bool Enabled, bool? HasUi = null);
+public sealed record ModuleRegistryState(int SchemaVersion, long Generation, InstalledModule[] Apps, string[]? SuppressedSeeds = null);
 public sealed record ModuleRegistrySnapshot(ModuleRegistryState State, string Revision);
 
 /// <summary>Profile metadata with optimistic cross-process writes. Metadata alone never authorizes code execution.</summary>
@@ -31,7 +31,7 @@ public sealed class ModuleRegistry
         return new(state, Revision(text));
     }
 
-    internal ModuleRegistrySnapshot Save(string expectedRevision, IReadOnlyList<InstalledModule> apps)
+    internal ModuleRegistrySnapshot Save(string expectedRevision, IReadOnlyList<InstalledModule> apps, IReadOnlyList<string>? suppressedSeeds = null)
     {
         CheckRoot();
         var file = new SnapshotFile(FileName); var text = file.Read();
@@ -39,7 +39,7 @@ public sealed class ModuleRegistry
         var current = text is null ? new ModuleRegistryState(1, 0, []) : JsonSerializer.Deserialize<ModuleRegistryState>(text, Json)
             ?? throw new InvalidDataException("Invalid module registry.");
         Validate(current);
-        var state = new ModuleRegistryState(1, checked(current.Generation + 1), apps.ToArray()); Validate(state);
+        var state = new ModuleRegistryState(1, checked(current.Generation + 1), apps.ToArray(), (suppressedSeeds ?? current.SuppressedSeeds ?? []).ToArray()); Validate(state);
         file.Write(JsonSerializer.Serialize(state, Json));
         return Read();
     }
@@ -81,6 +81,9 @@ public sealed class ModuleRegistry
         if (state.SchemaVersion != 1 || state.Generation < 0 || state.Apps is null || state.Apps.Length > 64 ||
             state.Apps.Select(a => a?.Id).Distinct(StringComparer.Ordinal).Count() != state.Apps.Length)
             throw new InvalidDataException("Invalid module registry state.");
+        var suppressed = state.SuppressedSeeds ?? [];
+        if (suppressed.Length > 256 || suppressed.Distinct(StringComparer.Ordinal).Count() != suppressed.Length) throw new InvalidDataException("Invalid suppressed module seeds.");
+        foreach (var id in suppressed) ValidateId(id);
         foreach (var app in state.Apps)
         {
             if (app is null) throw new InvalidDataException("Null module registration.");

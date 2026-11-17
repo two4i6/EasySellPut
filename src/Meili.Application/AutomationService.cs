@@ -22,16 +22,17 @@ public sealed partial class AutomationService(DataDirectoryInfo directory, IMark
     private Meili.Data.Routing.FailoverRouter? _probeRouter;
     private IMarketDataService? _market = market;
     public DataDirectoryInfo DirectoryInfo { get; } = directory;
-    public IOperationCatalog Catalog => OperationCatalogResolver.Resolve(DirectoryInfo);
+    public Task<IOperationCatalog> GetCatalogAsync(CancellationToken ct = default) => OperationCatalogResolver.ResolveAsync(DirectoryInfo, ct);
 
     public async Task<JsonElement> ExecuteAsync(string operation, JsonElement args, bool allowWrites, CancellationToken ct = default)
     {
-        var op = Catalog.Find(operation);
+        var op = (await GetCatalogAsync(ct)).Find(operation);
         OperationCatalog.Validate(op, args);
         if (op.Writes && !allowWrites) throw new UnauthorizedAccessException();
         var module = (await Modules.ModuleOperations.ReadAsync(DirectoryInfo.Path, ct)).SingleOrDefault(o => o.Definition.Name == operation);
         if (module is not null)
             return WireJson.Element(WireJson.Success(await Modules.ModuleProcess.ExecuteAsync(DirectoryInfo.Path, module, args, allowWrites, ct)));
+        using var legacyLease = operation.Contains("_qqq_gex_", StringComparison.Ordinal) ? Modules.ModuleAccess.AcquireEnabled(DirectoryInfo.Path, Modules.ModuleAccess.QqqGex) : null;
         await _gate.WaitAsync(ct);
         try { ct.ThrowIfCancellationRequested(); return WireJson.Element(WireJson.Success(await ExecuteCoreAsync(operation, new Input(args), ct))); }
         finally { _gate.Release(); }
