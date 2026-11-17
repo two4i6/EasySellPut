@@ -20,3 +20,6 @@ const mismatchDb=path.join(dir,'mismatch.db');writeFileSync(file,JSON.stringify(
 const corruptRows=new DatabaseSync(combinedDb);corruptRows.exec("UPDATE qqq_gex_local_rows SET body='{}'");corruptRows.close();assert.throws(()=>execFileSync(process.execPath,['runtime-dist/query.mjs',combinedDb,'/api/analysis/qqq/pcs?gexDisplay=1&gexWindow=latest'],{encoding:'utf8',stdio:['ignore','pipe','pipe']}),/corrupt/);assert.throws(()=>execFileSync(process.execPath,['runtime-dist/import.mjs',combinedFile,combinedDb],{encoding:'utf8',stdio:['ignore','pipe','pipe']}),/corrupt/);console.log('PASS: profile-row corruption blocks readonly reconstruction and receipt reuse without overwriting retained input');
 
 execFileSync(process.execPath,[new URL('./source-timing.mjs',import.meta.url).pathname],{stdio:'inherit'});
+
+// Delayed GEX and current stock-display clocks must remain separate.
+execFileSync(process.execPath,[new URL('./price-clocks.mjs',import.meta.url).pathname],{stdio:'inherit'});

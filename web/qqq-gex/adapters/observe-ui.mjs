@@ -25,5 +25,21 @@ export function observeUi(contents,file){
   if(!contents.includes(anchor))throw Error('Pinned heatmap inspector observation anchor changed');
   contents=contents.replace(anchor,'  return <g data-heatmap-inspector data-qqq-inspection={JSON.stringify({current,inputStatus,label,priceAxis,mode,scenario:Boolean(scenario),coverage:scenario?.field.coverage??null,keyboard:keyboard.current})}>');
  }
+ if(file.endsWith('/qqqExposureChartReplay.ts'))contents=contents.replace("from './qqqExposureReplay';","from '@/lib/qqqExposureReplay';");
+ if(file.endsWith('/QqqPcsGexIntradayChart.tsx')){
+  contents="import {useIndependentStockPrices,projectStockChart} from '@/lib/localStockDisplay';\n"+contents;
+  const anchor="  const data = useMemo(() => buildQqqPcsIntradayChartData(chartBars, scores, dailyScore, confirmation, stableGex, granularity), [chartBars, confirmation, dailyScore, granularity, stableGex, scores]);";
+  if(!contents.includes(anchor))throw Error('Pinned drawing/model separation anchor changed');
+  contents=contents.replace(anchor,anchor.replace('const data =','const modelData =')+"\n  const stockPrices=useIndependentStockPrices(bars);\n  const data=useMemo(()=>projectStockChart(modelData,stockPrices,granularity),[modelData,stockPrices,granularity]);");
+  contents=contents.replace('chartBars === bars ? data : buildQqqPcsIntradayChartData','chartBars === bars ? modelData : buildQqqPcsIntradayChartData');
+  contents=contents.replace('[bars, chartBars, confirmation, dailyScore, data, granularity, stableGex, scores]','[bars, chartBars, confirmation, dailyScore, modelData, granularity, stableGex, scores]');
+  contents=contents.replace('buildObservedPriceLowMarkers(data.normalizedBars), [data.normalizedBars]','buildObservedPriceLowMarkers(modelData.normalizedBars), [modelData.normalizedBars]');
+  contents=contents.replace('bars: (bars.length ? bars : liveTick ?', 'bars: (stockPrices?.bars.length ? stockPrices.bars : bars.length ? bars : liveTick ?');
+  contents=contents.replace('JSON.stringify({hover,hoverDetails,granularity,tooltipDetails})','JSON.stringify({hover,hoverDetails,granularity,tooltipDetails,displayPriceClock:stockPrices?.provenance??null})');
+ }
+ if(file.endsWith('/QqqExposureSnapshotTable.tsx')){
+  if(!contents.includes('{price(row.spot)}'))throw Error('Pinned reference-price cell changed');
+  contents=contents.replace("'参考价'","'估值参考价'").replace('<td style={cell}>{price(row.spot)}</td>',`<td style={cell} title={row.valuationReference?JSON.stringify(row.valuationReference):undefined}>{price(row.valuationReference?row.valuationReference.price:row.spot)}</td>`);
+ }
  return layerHeatmapInspection(contents,file);
 }

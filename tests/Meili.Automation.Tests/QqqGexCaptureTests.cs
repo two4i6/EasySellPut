@@ -43,6 +43,20 @@ public sealed class QqqGexCaptureTests
         Assert.Equal(1,input.GetProperty("quality").GetProperty("missingIv").GetInt32());Assert.False(input.GetProperty("providerCoverageComplete").GetBoolean());
         if(aligned){Assert.Single(input.GetProperty("bars").EnumerateArray());Assert.Equal(eventAt,DateTimeOffset.Parse(input.GetProperty("barMetadata").GetProperty("priceCutoff").GetString()!));}
     }
+    [Fact] public async Task Current_stock_display_does_not_extend_delayed_GEX_valuation_bars()
+    {
+        var eventAt=DateTimeOffset.Parse("2026-11-16T15:02:00Z");var publication=eventAt.AddMinutes(15);var expiry=new DateOnly(2027,6,18);BarRequest? requested=null;
+        var chain=new OptionChain{Underlying="QQQ",Source="cboe",AsOf=publication,UnderlyingLastTradeAt=eventAt,FetchedAt=publication.AddSeconds(1),DelayMinutes=15,UnderlyingPrice=600,Expirations=[expiry],Contracts=[new(){Underlying="QQQ",ContractSymbol="c",Right=OptionRight.Call,Strike=600,Expiration=expiry,OpenInterest=100,ImpliedVolatility=.2},new(){Underlying="QQQ",ContractSymbol="p",Right=OptionRight.Put,Strike=600,Expiration=expiry,OpenInterest=100,ImpliedVolatility=.2}]};
+        var recent=Enumerable.Range(0,18).Select(i=>new Bar(eventAt.AddMinutes(i-2),600+i,601+i,599+i,600+i,100)).ToArray();
+        var market=new FakeMarket{ChainOverride=chain,BarsOverride=(r,ct)=>{requested=r;return Task.FromResult(new BarSeries{Symbol="QQQ",Interval=r.Interval,Source="stock-fixture",AsOf=publication,Bars=recent});}};
+        var dir=Path.Combine(Path.GetTempPath(),Guid.NewGuid().ToString("N"));await new QqqGexCaptureService(market,dir).CaptureAsync(includeContext:false);
+        using var doc=JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(dir,"cache","qqq-gex-input.json")));var value=doc.RootElement;
+        Assert.True(requested!.To>publication);Assert.Single(value.GetProperty("bars").EnumerateArray());Assert.Equal(9,value.GetProperty("displayPrices").GetProperty("bars").GetArrayLength());
+        Assert.Equal(eventAt,DateTimeOffset.Parse(value.GetProperty("barMetadata").GetProperty("priceCutoff").GetString()!));Assert.Equal(eventAt,DateTimeOffset.Parse(value.GetProperty("captures")[0].GetProperty("valuationAt").GetString()!));
+        Assert.Equal(601,value.GetProperty("bars")[0].GetProperty("close").GetDouble());Assert.Equal(617,value.GetProperty("displayPrices").GetProperty("bars")[8].GetProperty("close").GetDouble());Assert.False(value.GetProperty("complete").GetBoolean());
+        // The same stock provider remains current for ordinary charts; only the model prefix is delayed.
+        var ordinary=await market.GetBarsAsync(new("QQQ",BarInterval.Minute1),default);Assert.Equal(ordinary.Bars.Last().Close,value.GetProperty("displayPrices").GetProperty("bars")[8].GetProperty("close").GetDouble());
+    }
     [Fact] public async Task Core_bootstrap_defers_daily_and_macro_context_without_claiming_full_coverage()
     {
         var at=DateTimeOffset.Parse("2026-11-16T15:02:00Z");var expiry=new DateOnly(2027,6,18);var calls=0;var chain=new OptionChain{Underlying="QQQ",Source="fixture",AsOf=at,FetchedAt=at,UnderlyingPrice=600,Expirations=[expiry],Contracts=[new(){Underlying="QQQ",ContractSymbol="c",Right=OptionRight.Call,Strike=600,Expiration=expiry,OpenInterest=100,ImpliedVolatility=.2},new(){Underlying="QQQ",ContractSymbol="p",Right=OptionRight.Put,Strike=600,Expiration=expiry,OpenInterest=100,ImpliedVolatility=.2}]};
