@@ -106,6 +106,13 @@ def main():
             assert skill.read_text(encoding='utf-8')=='user custom skill'
         check_connections(command,data)
         catalog = run(command, data, '--help')['data']
+        # Discovery uses global options regardless of position and must not create a profile.
+        discovery_dir = pathlib.Path(data) / 'discovery only'
+        before = run(command, str(discovery_dir), '--help')['data']
+        after = subprocess.run([*command, '--data-dir', str(discovery_dir), '--help', '--json'], capture_output=True, text=True, timeout=20)
+        assert after.returncode == 0, after.stderr
+        assert json.loads(after.stdout)['data'] == before == catalog
+        assert not discovery_dir.exists(), 'Help must not initialize storage or engines'
         assert 'install-skill' not in {op['name'] for op in catalog['operations']}
         operations = {op['name']: op for op in catalog['operations']}
         readonly = {name for name, op in operations.items() if not op['writes']}

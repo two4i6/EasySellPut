@@ -30,7 +30,7 @@ Design: [architecture](docs/55-主程序与可独立更新子应用架构研究.
 
 - [ ] **S02 — Introduce the UI-free operation boundary.** Depends on S01.
   - [x] S02a: immutable catalog snapshot and transport-independent dispatcher; preserve the built-in provider, public contracts and MCP permission filtering.
-  - [ ] S02b: profile-scoped resolver and two-stage CLI parsing; this remains pending, not implied by S02a.
+  - [x] S02b: metadata-only profile resolver and two-stage CLI parsing, including non-mutating legacy discovery. Signed installed-package contributions follow S03–S07; current resolver deliberately exposes only built-ins.
   - Introduce immutable operation definitions/catalog snapshots and a small dispatcher/provider interface in the shared application boundary.
   - Keep existing operations and handlers as the first provider; preserve schemas, ordering and WireJson results.
   - Make CLI help/parsing, MCP discovery/resources and invocation resolve the same catalog and permission policy.
@@ -130,3 +130,7 @@ Do not check off later steps based on this document or a scaffold alone. Add com
 - All 58 existing operations passed real CLI/MCP capability cases, schema/result/permission parity. Production CLI/MCP process smoke passed, including setup, shared data reload and EOF.
 - Existing CI CLI/MCP jobs already execute the complete Automation suite and capability/process checks; no new public operation or permission was introduced, so inventories and schemas are unchanged.
 - S01 exact-commit CI remained queued at the last check; no native green result is claimed. S02a is a verified incremental boundary commit, not completion of S02 or package installation.
+
+### S02b verification
+
+Core 207 and Automation 120 passed; all 58 CLI/MCP cases and full production process smoke passed. CLI help with global options before/after the command leaves nonexistent profiles absent; legacy discovery does not move data, while normal startup retains migration. Existing complete CI Core/Automation/process jobs cover these regressions. Actual signed app discovery remains dependent on S03–S07; no installation feature is claimed here.

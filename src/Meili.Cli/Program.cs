@@ -67,16 +67,17 @@ public static class Program
                 if (json) Console.WriteLine(WireJson.Element(WireJson.Success(installed)).GetRawText()); else PrintHuman(WireJson.Element(installed));
                 return 0;
             }
-            var parsed = Parse(args);
+            IOperationCatalog catalog = OperationCatalog.Snapshot;
+            var parsed = Parse(args, path => catalog = OperationCatalogResolver.Resolve(LocalPaths.Resolve(path, migrateLegacy: false)));
             if (parsed.Help)
             {
                 if (json) Console.WriteLine(WireJson.Element(WireJson.Success(new
                 {
                     version = typeof(Program).Assembly.GetName().Version?.ToString(3),
-                    operations = OperationCatalog.Snapshot.All.Where(o => parsed.Operation is null || o.Name == parsed.Operation)
+                    operations = catalog.All.Where(o => parsed.Operation is null || o.Name == parsed.Operation)
                         .Select(o => new { o.Name, o.Description, o.Writes, inputSchema = o.Schema })
                 })).GetRawText());
-                else PrintHelp(parsed.Operation);
+                else PrintHelp(parsed.Operation, catalog);
                 return 0;
             }
             if (parsed.Version) { Console.WriteLine(typeof(Program).Assembly.GetName().Version?.ToString(3)); return 0; }
@@ -186,7 +187,7 @@ public static class Program
     }
 
     internal sealed record Parsed(string? Operation, JsonElement Arguments, string? DataDir, int Timeout, bool Mcp, bool AllowWrites, bool Help, bool Version);
-    internal static Parsed Parse(string[] args)
+    internal static Parsed Parse(string[] args, Func<string?, IOperationCatalog>? resolveCatalog = null)
     {
         string? directory = null, input = null; int timeout = 60; bool mcp = false, writes = false, help = false, version = false;
         var words = new List<string>(); var fields = new Dictionary<string, string>();
@@ -212,6 +213,7 @@ public static class Program
             }
             else words.Add(arg);
         }
+        var catalog = version ? OperationCatalog.Snapshot : resolveCatalog?.Invoke(directory) ?? OperationCatalog.Snapshot;
         if (words.Count == 0) { if (fields.Count > 0 || input is not null) throw new ArgumentException("An operation is required."); if (!version) help = true; return new(null, WireJson.Element(new { }), directory, timeout, false, writes, help, version); }
         if (words[0] == "mcp")
         {
@@ -248,7 +250,7 @@ public static class Program
             };
         }
         else if (aliases.TryGetValue(command, out var mapped)) command = mapped;
-        var op = OperationCatalog.Snapshot.Find(command);
+        var op = catalog.Find(command);
         if (help) return new(command, WireJson.Element(new { }), directory, timeout, false, writes, true, version);
         JsonObject values = new();
         if (input is not null)
@@ -274,10 +276,10 @@ public static class Program
         return new(command, JsonSerializer.SerializeToElement(values), directory, timeout, false, writes, false, version);
     }
     private static string Kebab(string s) => string.Concat(s.Select(c => char.IsUpper(c) ? "-" + char.ToLowerInvariant(c) : c.ToString()));
-    private static void PrintHelp(string? operation)
+    private static void PrintHelp(string? operation, IOperationCatalog catalog)
     {
         Console.WriteLine("EasySellPut — local CLI + stdio MCP\nUsage: easysellput <command> [options] [--json] [--data-dir PATH] [--timeout 60]\n       easysellput mcp serve [--allow-writes] [--data-dir PATH]\nMaintenance: update check|download [--json] (signed stable desktop updates; installation is desktop-confirmed)\nSetup: connect codex|claude-code [--check] [--json] (verifies MCP, installs skill and registers the client)\n       install-skill --client codex|claude-code [--project PATH] [--json] (CLI only; preserves custom skills; known bundled upgrades are backed up)\nAliases: live-bars, live, liquidity, quote, bars, search, expirations, options, fundamentals, financials, news, events, chart, option-analysis, insights, presets, sources, price, indicators\nGroups: watchlist list/add/remove/create-group/rename-group/delete-group; strategy list/save/delete/analyze; alerts list/history/save/delete/enable; settings show\nUse any operation name below directly. --input FILE accepts an argument JSON object.\nNumbers use invariant decimal units. --help after an operation prints its JSON schema.\nExit: 0 success, 1 failure, 2 arguments, 3 permission, 4 conflict, 130 cancelled/timeout.");
-        foreach (var op in OperationCatalog.Snapshot.All.Where(o => operation is null || o.Name == operation))
+        foreach (var op in catalog.All.Where(o => operation is null || o.Name == operation))
         {
             Console.WriteLine($"\n{op.Name}{(op.Writes ? " [writes local data]" : "")}: {op.Description}");
             if (operation is not null) Console.WriteLine(JsonSerializer.Serialize(op.Schema, new JsonSerializerOptions { WriteIndented = true }));

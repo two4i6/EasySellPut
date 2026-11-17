@@ -11,6 +11,16 @@ public interface IOperationCatalog
     Operation Find(string name);
 }
 
+/// <summary>Metadata-only profile discovery; never starts providers, engines or storage migrations.</summary>
+public static class OperationCatalogResolver
+{
+    public static IOperationCatalog Resolve(DataDirectoryInfo directory)
+    {
+        ArgumentNullException.ThrowIfNull(directory);
+        return OperationCatalog.Snapshot;
+    }
+}
+
 public sealed class OperationSnapshot : IOperationCatalog
 {
     private readonly ReadOnlyCollection<Operation> operations;

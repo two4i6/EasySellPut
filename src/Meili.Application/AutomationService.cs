@@ -22,7 +22,7 @@ public sealed partial class AutomationService(DataDirectoryInfo directory, IMark
     private Meili.Data.Routing.FailoverRouter? _probeRouter;
     private IMarketDataService? _market = market;
     public DataDirectoryInfo DirectoryInfo { get; } = directory;
-    public IOperationCatalog Catalog => OperationCatalog.Snapshot;
+    public IOperationCatalog Catalog => OperationCatalogResolver.Resolve(DirectoryInfo);
 
     public async Task<JsonElement> ExecuteAsync(string operation, JsonElement args, bool allowWrites, CancellationToken ct = default)
     {
