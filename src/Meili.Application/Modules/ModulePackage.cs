@@ -9,7 +9,7 @@ namespace Meili.Automation.Modules;
 public sealed record ModuleFile(string Path, long Size, string Sha256);
 public sealed record ModuleManifest(int SchemaVersion, string Repository, string Id, string Version,
     int HostApi, int EngineProtocol, int DataFormat, string Runtime, string Engine,
-    string? Ui, string[] Platforms, ModuleFile[] Files);
+    string? Ui, string[] Platforms, ModuleFile[] Files, string? ModelVersion = null);
 public sealed record VerifiedModule(ModuleManifest Manifest, string PackageSha256);
 
 /// <summary>Validates first-party code packages without extracting, activating or modifying a profile.</summary>
@@ -69,7 +69,7 @@ public static partial class ModulePackage
             !IdPattern().IsMatch(manifest.Id ?? "") || !Version.TryParse(manifest.Version, out var version) ||
             version.Revision != -1 || version.Build < 0 || manifest.HostApi != HostApi || manifest.EngineProtocol != EngineProtocol ||
             manifest.DataFormat < 1 || manifest.Runtime != "node24" || manifest.Platforms is null || manifest.Platforms.Length > 16 || !manifest.Platforms.Contains(rid) ||
-            manifest.Files is null || manifest.Files.Length != entries.Count - 2)
+            manifest.Files is null || manifest.Files.Length != entries.Count - 2 || manifest.ModelVersion?.Length > 160)
             throw new InvalidDataException("Incompatible module identity, source, protocol or platform.");
         var declared = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var file in manifest.Files)

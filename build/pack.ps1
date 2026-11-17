@@ -42,6 +42,9 @@ function Write-Utf8([string]$Path, [string]$Content, [bool]$Bom = $true) {
     [System.IO.File]::WriteAllText($Path, $Content, $enc)
 }
 
+python (Join-Path $Root 'build/prepare-app-seed.py') --if-current
+if ($LASTEXITCODE -ne 0) { throw 'App compatibility seed build failed' }
+
 if (-not $SkipTests) {
     Write-Host "=== tests ==="
     dotnet test $Sln -c Release -nologo --verbosity minimal --filter "Category!=Live"

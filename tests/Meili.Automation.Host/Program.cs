@@ -1,6 +1,14 @@
 using Meili.Automation;
 using Meili.Automation.Tests;
 
+if(args.Length==3 && args[0]=="--module-lease")
+{
+    using var lease=new Meili.Automation.Modules.ModuleRegistry(args[1]).AcquireExecution(args[2]);
+    Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(new{ready=true}));
+    await Console.In.ReadLineAsync();
+    return 0;
+}
+
 // Explicit opt-in live soak; test host only, never included in the shipped CLI.
 if(args.SequenceEqual(new[]{"--live-quote-probe"}))
 {

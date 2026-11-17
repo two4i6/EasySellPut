@@ -116,5 +116,26 @@ public sealed class ModulePackageTests : IDisposable
         Assert.Equal(0, installer.RecoverPending());
     }
 
+    [Fact]
+    public async Task Installed_asset_holds_execution_version_until_disposed_and_never_falls_back_after_tampering()
+    {
+        var profile = Path.Combine(root, "profile");
+        var installer = new ModuleInstaller(profile, (file, ct) => Verify(file));
+        Assert.Null(await ModuleAssets.TryOpenAsync(profile, "easysellput.test", "engine/main.mjs", installer, CancellationToken.None));
+        Assert.False(Directory.Exists(profile));
+        await installer.InstallAsync(Package());
+        using (var asset = await ModuleAssets.TryOpenAsync(profile, "easysellput.test", "engine/main.mjs", installer, CancellationToken.None))
+        {
+            Assert.NotNull(asset);
+            using var read = new StreamReader(asset.OpenRead());
+            Assert.Equal("export const value=1;", await read.ReadToEndAsync());
+            Assert.Throws<IOException>(() => installer.Uninstall("easysellput.test"));
+        }
+        var archive = Path.Combine(profile, "apps", "packages", "easysellput.test", "1.0.0", "package.espapp");
+        File.WriteAllBytes(archive, [1, 2, 3]);
+        await Assert.ThrowsAsync<InvalidDataException>(() => ModuleAssets.TryOpenAsync(profile, "easysellput.test", "engine/main.mjs", installer, CancellationToken.None));
+        Assert.Equal("uninstalled", installer.Uninstall("easysellput.test").Status);
+    }
+
     public void Dispose() { key.Dispose(); if (Directory.Exists(root)) Directory.Delete(root, true); }
 }

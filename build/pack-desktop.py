@@ -19,6 +19,7 @@ import bundle
 def run(*args): subprocess.run([str(a) for a in args],cwd=ROOT,check=True)
 
 def pack(rid,output):
+    run(sys.executable,ROOT/'build/prepare-app-seed.py','--if-current')
     host=('win' if sys.platform=='win32' else 'osx' if sys.platform=='darwin' else 'linux')
     arch='arm64' if platform.machine().lower() in ('arm64','aarch64') else 'x64'
     if host=='osx':

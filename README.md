@@ -32,7 +32,9 @@ powershell -ExecutionPolicy Bypass -File build\build.ps1 -Test
 powershell -ExecutionPolicy Bypass -File build\run-dev.ps1
 ```
 
-Release packs (installers and portable zips) are produced by `build/pack.ps1` and `build/pack-mac.sh`. Those artifacts are not stored in this repository; publish them with GitHub Releases if needed.
+Ordinary `dotnet build src/Meili.Cli` does not invoke npm or rebuild optional applications. Full desktop/package scripts explicitly prepare their bundled compatibility assets with `python build/prepare-app-seed.py --if-current` (Node/npm and Python required). Independently signed app artifacts are built with `build/pack-app.py`; see `TODO.md` for migration readiness.
+
+Official releases use the main-only GitHub Actions signing/draft/publish flow in [the release guide](docs/44-GitHubActions主分支发布流程.md). Local or work-branch artifacts do not publish releases.
 
 ## CLI and MCP
 

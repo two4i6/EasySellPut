@@ -10,6 +10,7 @@ root=$(cd "$(dirname "$0")/.." && pwd)
 out=${1:-$root/artifacts/mac}
 rcodesign=${RCODESIGN:-rcodesign}
 name="EasySellPut"
+python3 "$root/build/prepare-app-seed.py" --if-current
 version=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' "$root/Directory.Build.props")
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT

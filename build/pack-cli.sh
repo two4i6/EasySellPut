@@ -27,6 +27,7 @@ name="EasySellPut-CLI-$version-$rid"
 work=$(mktemp -d "$parent/.publish-XXXXXXXX")
 trap 'rm -rf "$work"' EXIT
 payload="$work/$name"
+python3 build/prepare-app-seed.py --if-current
 dotnet publish src/Meili.Cli/Meili.Cli.csproj -c Release -r "$rid" --self-contained true -m:3 \
   -p:PublishTrimmed=false -p:PublishSingleFile=false -p:PackAsTool=false -o "$payload" -v minimal
 python3 build/bundle-qqq-runtime.py "$rid" "$payload"

@@ -20,6 +20,8 @@ if ((Test-Path $dest) -or (Test-Path "$dest.zip")) { throw "Distribution already
 New-Item -ItemType Directory -Force $OutputParent | Out-Null
 $temp = Join-Path $OutputParent ('.publish-' + [guid]::NewGuid().ToString('N'))
 try {
+    python (Join-Path $root 'build/prepare-app-seed.py') --if-current
+    if ($LASTEXITCODE -ne 0) { throw 'App compatibility seed build failed' }
     dotnet publish (Join-Path $root 'src/Meili.Cli/Meili.Cli.csproj') -c Release -r $Runtime --self-contained true -m:3 -p:PublishTrimmed=false -p:PublishSingleFile=false -p:PackAsTool=false -o $temp -v minimal
     if ($LASTEXITCODE -ne 0) { throw 'CLI publish failed' }
     python (Join-Path $root 'build/bundle-qqq-runtime.py') $Runtime $temp

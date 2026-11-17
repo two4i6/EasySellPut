@@ -41,11 +41,7 @@
     <_QqqGexBuildInput Include="../../web/qqq-gex/**/*"
       Exclude="../../web/qqq-gex/node_modules/**;../../web/qqq-gex/dist/**;../../web/qqq-gex/runtime-dist/**;../../web/qqq-gex/test-results/**;../../web/qqq-gex/tests/**;../../web/qqq-gex/evidence/**" />
   </ItemGroup>
-  <Target Name="CompileQqqGexAssets" Inputs="@(_QqqGexBuildInput)" Outputs="../../web/qqq-gex/dist/index.html">
-    <Exec Condition="!Exists('../../web/qqq-gex/node_modules/esbuild/package.json')" WorkingDirectory="../../web/qqq-gex" Command="npm ci --no-audit --no-fund" />
-    <Exec WorkingDirectory="../../web/qqq-gex" Command="npm run build" />
-  </Target>
-  <Target Name="BuildQqqGexAssets" BeforeTargets="AssignTargetPaths" DependsOnTargets="CompileQqqGexAssets">
+  <Target Name="BuildQqqGexAssets" BeforeTargets="AssignTargetPaths">
     <ItemGroup>
       <_QqqGexAsset Include="../../web/qqq-gex/dist/*" Exclude="../../web/qqq-gex/dist/build-manifest.json" />
       <EmbeddedResource Include="@(_QqqGexAsset)" LogicalName="QqqGex/%(_QqqGexAsset.Filename)%(_QqqGexAsset.Extension)" />

@@ -148,3 +148,9 @@ Profile-scoped metadata uses SnapshotFile CAS and monotonic generation, with bou
 ### S05 explicit maintenance checkpoint
 
 Implemented CLI-only list/info/doctor/install/update/enable/disable/uninstall/recover. Signed archives are staged and reverified before immutable placement and registry CAS; incompatible data changes/downgrades are refused. OS leases block maintenance during use. Crash reconciliation never activates uncommitted code or rolls data back. Uninstall retains user data and package backups. Automation 135 passed; complete production CLI/MCP smoke passed, including no-write module discovery and unchanged MCP business catalog. Engine health preflight, actual GEX execution and native final-package acceptance remain S06–S12 dependencies, not claimed by metadata installation.
+
+### S06 independent asset/build checkpoint
+
+Independent signed GEX core/UI packaging now preserves the original source revision, runtime lock and dependency notices. Installed assets are reverified under execution leases; ordinary CLI compilation no longer invokes npm or requires GEX bundles. Explicit package/full-test preparation keeps the compatibility seed. CI adds signed fixture verification, cross-process maintenance and a no-npm/no-bundle host build.
+
+Checks: Core 207, Data 159, Analytics 209, Mac 142 and Automation 136 passed in the full run; Shared initially exposed an unsafe profile inference for standalone temporary databases, corrected and rerun with all 128 passing. All 58 actual CLI/MCP capability cases passed. Temporary-key package signatures/hashes and production-CLI cross-process uninstall exclusion passed. Native delivered-package and fixed-host A/B domain acceptance remain S07–S12 dependencies. No production fixture key or trust override was added.

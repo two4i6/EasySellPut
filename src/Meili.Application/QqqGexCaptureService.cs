@@ -12,6 +12,8 @@ public sealed class QqqGexCaptureService(IMarketDataService market,string dataDi
     public async Task<object> CaptureAsync(CancellationToken ct=default,bool includeContext=true)
     {
         var captureBudget=captureTimeout??TimeSpan.FromSeconds(90);if(captureBudget<=TimeSpan.Zero||captureBudget>TimeSpan.FromSeconds(90))throw new ArgumentOutOfRangeException(nameof(captureTimeout));
+        ct.ThrowIfCancellationRequested();
+        using var execution=new Meili.Automation.Modules.ModuleRegistry(dataDirectory).AcquireExecution("easysellput.qqq-gex");
         var callerCt=ct;using var deadline=CancellationTokenSource.CreateLinkedTokenSource(ct);deadline.CancelAfter(captureBudget);ct=deadline.Token;
         var store=new Meili.Data.Cache.QqqGexResponseStore(Path.Combine(dataDirectory,"cache","qqq-gex.db"));
         var expected=(await market.GetExpirationsAsync("QQQ",ct)).Distinct().Order().ToArray();

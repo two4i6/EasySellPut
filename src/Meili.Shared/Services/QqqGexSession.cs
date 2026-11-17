@@ -42,6 +42,7 @@ public sealed class QqqGexSession : IDisposable
     }
     private readonly string? directory;
     private readonly QqqGexPreferences? preferences;
+    private readonly IDisposable? moduleLease;
     private TaskCompletionSource<bool> changed=new(TaskCreationOptions.RunContinuationsAsynchronously);
     private QqqGexCaptureState captureState=new("idle");
     public void UpdateCaptureState(QqqGexCaptureState value){Volatile.Write(ref captureState,value);NotifyDataUpdated();}
@@ -59,12 +60,20 @@ public sealed class QqqGexSession : IDisposable
     public Uri PageUri { get; }
     public QqqGexSession(string? databasePath = null, string snapshot = "local", QuoteHub? quotes = null, DesktopActivity? activity = null)
     {
-        this.snapshot=snapshot;this.quotes=quotes;this.activity=activity;if(activity is not null)activity.Changed+=QuoteActivity;if(quotes is not null)quotes.Updated+=OnQuote;directory=databasePath is null?null:Path.GetDirectoryName(Path.GetDirectoryName(Path.GetFullPath(databasePath)))!; if(databasePath is not null)cache=new QqqGexResponseStore(databasePath);
+        this.snapshot=snapshot;this.quotes=quotes;this.activity=activity;
+        if(databasePath is not null)
+        {
+            var databaseDirectory=Path.GetDirectoryName(Path.GetFullPath(databasePath))!;
+            directory=Path.GetFileName(databaseDirectory)=="cache"?Path.GetDirectoryName(databaseDirectory)!:databaseDirectory;
+            cache=new QqqGexResponseStore(databasePath);
+        }
+        moduleLease=directory is null?null:new Meili.Automation.Modules.ModuleRegistry(directory).AcquireExecution("easysellput.qqq-gex");
         preferences=directory is null?null:new QqqGexPreferences(directory);
         liveQuotesRequested=preferences is null;
         if(preferences is not null)try{liveQuotesRequested=preferences.Read().values.GetValueOrDefault("qqq-local:mode")=="latest";}catch(Exception ex)when(ex is IOException or System.Text.Json.JsonException or UnauthorizedAccessException){AppLog.Warn("qqq-gex","Quote demand preference unavailable; history mode stays passive",ex);}
-        QuoteActivity(null,EventArgs.Empty);
         listener.Start();
+        if(activity is not null)activity.Changed+=QuoteActivity;if(quotes is not null)quotes.Updated+=OnQuote;
+        QuoteActivity(null,EventArgs.Empty);
         PageUri = new Uri($"http://127.0.0.1:{((IPEndPoint)listener.LocalEndpoint).Port}/{token}/index.html");
         _ = Task.Run(Accept);
     }
@@ -147,7 +156,8 @@ public sealed class QqqGexSession : IDisposable
                 if(cached is not null){await Send(200,cached.ContentType,Encoding.UTF8.GetBytes(cached.Body),ct);return;}
                 await Send(503,"application/json",Encoding.UTF8.GetBytes("{\"error\":\"本地缓存中尚无该请求的数据\",\"code\":\"LOCAL_CACHE_MISS\",\"offline\":true}"),ct);return; }finally{dataReadGate.Release();}}
             if(route.Contains('/') || route.Contains("..")) { await Send(404,"text/plain",[],ct);return; }
-            using var asset=typeof(QqqGexSession).Assembly.GetManifestResourceStream("QqqGex/"+route);
+            using var installed=directory is null?null:await Meili.Automation.Modules.ModuleAssets.TryOpenAsync(directory,"easysellput.qqq-gex","ui/"+route,ct);
+            using var asset=installed?.OpenRead()??typeof(QqqGexSession).Assembly.GetManifestResourceStream("QqqGex/"+route);
             if(asset is null) { await Send(404,"text/plain",[],ct);return; }
             using var memory=new MemoryStream();await asset.CopyToAsync(memory,ct);
             await Send(200,AssetType(route),memory.ToArray(),ct);
@@ -175,5 +185,5 @@ public sealed class QqqGexSession : IDisposable
         var csp="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; worker-src 'self' blob:; base-uri 'none'; frame-ancestors 'none'; form-action 'none'";
         await s.WriteAsync(Encoding.ASCII.GetBytes($"HTTP/1.1 {status} Response\r\nContent-Type: {type}\r\nContent-Length: {body.Length}\r\n{encoding}Server-Timing: local;dur={elapsed}\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nReferrer-Policy: no-referrer\r\nContent-Security-Policy: {csp}\r\nConnection: close\r\n\r\n"),ct);await s.WriteAsync(body,ct);
     }
-    public void Dispose(){if(quotes is not null)quotes.Updated-=OnQuote;if(activity is not null)activity.Changed-=QuoteActivity;quotes?.Unsubscribe(quoteOwner);stop.Cancel();listener.Stop();}
+    public void Dispose(){if(quotes is not null)quotes.Updated-=OnQuote;if(activity is not null)activity.Changed-=QuoteActivity;quotes?.Unsubscribe(quoteOwner);stop.Cancel();listener.Stop();moduleLease?.Dispose();}
 }

@@ -76,6 +76,19 @@ jobs:
           python3 build/bundle-qqq-runtime.py linux-x64 tests/Meili.Qqq.CloudHost/bin/Debug/net10.0
           cd web/qqq-gex
           node tests/session-soak.mjs
+      - name: Build & verify independent app fixture
+        run: |
+          mkdir -p build/out/app-fixture
+          trap 'rm -f "$RUNNER_TEMP/app-fixture-key.pem"' EXIT
+          openssl ecparam -name prime256v1 -genkey -noout -out "$RUNNER_TEMP/app-fixture-key.pem"
+          openssl pkey -in "$RUNNER_TEMP/app-fixture-key.pem" -pubout -out "$RUNNER_TEMP/app-fixture-public.pem"
+          python3 build/pack-app.py --repository "$GITHUB_REPOSITORY" --key "$RUNNER_TEMP/app-fixture-key.pem" --ui-dir web/qqq-gex/dist --output build/out/app-fixture/qqq-gex-test.espapp
+          python3 tests/automation/app_package_smoke.py --archive build/out/app-fixture/qqq-gex-test.espapp --public-key "$RUNNER_TEMP/app-fixture-public.pem" --repository "$GITHUB_REPOSITORY"
+          rm "$RUNNER_TEMP/app-fixture-key.pem"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: QQQ-GEX-test-package
+          path: build/out/app-fixture/
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -120,6 +133,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Prepare app compatibility seed
+        run: python build/prepare-app-seed.py --if-current
       - name: Build CLI & protocol test host
         run: |
           dotnet build tests/Meili.Automation.Host/Meili.Automation.Host.csproj -c Release -m:3 -v minimal
@@ -159,7 +174,18 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Cache maintenance or protected data checks failed' }
           python tests/automation/gex_compaction_recovery.py --dll src/Meili.Cli/bin/Release/net10.0/easysellput.dll
           if ($LASTEXITCODE -ne 0) { throw 'Interrupted GEX compaction recovery failed' }
+      - name: Test cross-process app maintenance
+        run: |
+          python tests/automation/app_maintenance_smoke.py
+          if ($LASTEXITCODE -ne 0) { throw 'App execution lease or data preservation failed' }
+      - name: Test host without app toolchain
+        if: runner.os == 'Linux'
+        run: |
+          python tests/automation/host_without_app_build_smoke.py
+          if ($LASTEXITCODE -ne 0) { throw 'Host build still depends on the app toolchain' }
       - name: Build & test CLI package
+        # The Linux check proves ordinary host compilation does not invoke the app toolchain.
+        # Packaging below explicitly prepares its compatibility seed.
         run: |
           $os = if ($IsWindows) { 'win' } elseif ($IsMacOS) { 'osx' } else { 'linux' }
           $arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant()
@@ -224,6 +250,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y fontconfig fonts-dejavu-core fonts-noto-core fonts-noto-cjk
+      - name: Prepare app compatibility seed
+        run: python3 build/prepare-app-seed.py --if-current
       - name: Test layout, themes & update reminders
         env:
           FONTCONFIG_FILE: ${{ github.workspace }}/build/ci-fonts.conf
@@ -312,6 +340,8 @@ jobs:
             $process = Start-Process $installer -ArgumentList '/silent', '/install' -Wait -PassThru
             if ($process.ExitCode -ne 0) { throw "WebView2 installation failed: $($process.ExitCode)" }
           }
+      - name: Prepare app compatibility seed
+        run: python build/prepare-app-seed.py --if-current
       - name: Test native WebView
         shell: pwsh
         run: |

@@ -49,10 +49,13 @@ public static class QqqGexCalculationRunner
     }
     private static async Task<object> ExecuteAsync(string directory,string script,string? query,CancellationToken ct)
     {
-        using var asset=typeof(QqqGexCalculationRunner).Assembly.GetManifestResourceStream("QqqGexRuntime/"+script);
+        ct.ThrowIfCancellationRequested();
+        using var execution=new Meili.Automation.Modules.ModuleRegistry(directory).AcquireExecution("easysellput.qqq-gex");
+        using var installed=await Meili.Automation.Modules.ModuleAssets.TryOpenAsync(directory,"easysellput.qqq-gex","engine/"+script,ct);
+        using var asset=installed?.OpenRead()??typeof(QqqGexCalculationRunner).Assembly.GetManifestResourceStream("QqqGexRuntime/"+script);
         if(asset is null)return new {status="runtime_unavailable",complete=false,reason="Bundled GEX calculation resource is missing"};
         using var memory=new MemoryStream();await asset.CopyToAsync(memory,ct);var bytes=memory.ToArray();var hash=Convert.ToHexString(SHA256.HashData(bytes));
-        var runtime=Path.Combine(directory,"cache","qqq-runtime",hash+".mjs");Directory.CreateDirectory(Path.GetDirectoryName(runtime)!);
+        var runtime=installed is null?Path.Combine(directory,"cache","qqq-runtime",hash+".mjs"):await installed.MaterializeScriptAsync(ct);Directory.CreateDirectory(Path.GetDirectoryName(runtime)!);
         if(File.Exists(runtime)){if(!SHA256.HashData(await File.ReadAllBytesAsync(runtime,ct)).SequenceEqual(SHA256.HashData(bytes)))throw new InvalidDataException("Bundled GEX runtime integrity check failed");}
         else new SnapshotFile(runtime).Write(Encoding.UTF8.GetString(bytes));
         var executable=await ExtractNodeAsync(directory,ct);
