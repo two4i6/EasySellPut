@@ -64,14 +64,24 @@ with tempfile.TemporaryDirectory(prefix='signed apps and MCP ') as directory:
                 ack=client.messages.get(timeout=10)
                 assert ack.get('method')=='notifications/subscriptions/acknowledged',ack
                 assert ack['params']['_meta']['io.modelcontextprotocol/subscriptionId']==9000 and ack['params']['notifications']['toolsListChanged'] is True,ack
+            # Force the publication/maintenance race independently of OS event timing.
+            blocked = profile / 'catalog-read-blocked'
+            attempted = profile / 'catalog-read-attempted'
+            blocked.touch()
             install('1.0.1')  # An initialized, idle MCP connection does not pin app A.
+            deadline = time.monotonic() + 3
+            while not attempted.exists():
+                assert time.monotonic() < deadline, ('Registry change was not observed', client.errors)
+                time.sleep(.01)
+            time.sleep(.2)  # Drain duplicate publication events while discovery is unavailable.
+            blocked.unlink()  # No further registry event: the observer must retry authentication.
             if protocol != '2026-07-28' or subscribe:
                 deadline=time.monotonic()+10
                 while not any(m.get('method')=='notifications/tools/list_changed' for m in client.notifications):
                     remaining=deadline-time.monotonic()
                     assert remaining>0,('No app catalog change notification',client.notifications,client.errors)
                     try:message=client.messages.get(timeout=remaining)
-                    except queue.Empty:raise AssertionError('MCP app update notification timed out')
+                    except queue.Empty:raise AssertionError(('MCP app update notification timed out', protocol, client.process.poll(), client.notifications, client.errors))
                     assert 'id' not in message,message
                     client.notifications.append(message)
             refreshed = client.request('tools/list')['result']

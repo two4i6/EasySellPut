@@ -17,7 +17,7 @@ import {prepareWallTouchEvents,summarizeWallTouches} from '../upstream/src/lib/q
 import {DatabaseSync} from 'node:sqlite';import {createHash} from 'node:crypto';
 import {hydrateDay,hydrateRow} from './local-rows';import {displayLocalDay} from './display-day';
 import {exposureFrames,exposureSpotIndex,exposureValues,exposureStrikeMetric,exposureStrikeComparisons,exposureConcentrationLevels,exposureActivity,prepareAggregateGammaFrames,prepareExposureField} from '../upstream/src/lib/qqqExposureWorkbench';
-import {exposureReplayDisplayPayload,exposureReplayTableRows,exposureReplayDisplayDeltaDetails} from '../upstream/src/lib/qqqExposureReplay';
+import {exposureReplayDisplayPayload,exposureReplayTableRows,exposureReplayDisplayDeltaDetails} from './valuation-reference';
 import {prepareQqqAtmIvObservation,qqqAtmIvAt,qqqSnapshotAtmIv} from '../upstream/src/lib/qqqAtmIvObservation';
 import {prepareQqqMaxPain,qqqMaxPainAt} from '../upstream/src/lib/qqqMaxPain';
 import {createQqqDisplayGammaModels} from '../upstream/src/lib/qqqDisplayGammaModels';

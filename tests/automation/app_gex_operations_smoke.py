@@ -14,6 +14,7 @@ import platform
 import os
 import sqlite3
 from cli_mcp_smoke import Mcp, run
+from json_process import run_node_json
 
 parser=argparse.ArgumentParser();parser.add_argument('--archive',type=pathlib.Path,required=True);parser.add_argument('--bundle-directory',type=pathlib.Path);args=parser.parse_args()
 host=pathlib.Path('tests/Meili.Automation.Host/bin/Release/net10.0/Meili.Automation.Host.dll').resolve()
@@ -43,7 +44,7 @@ with tempfile.TemporaryDirectory(prefix='actual GEX signed app ')as directory:
  raw=json.loads(pathlib.Path('tests/fixtures/qqq-gex/app-input.json').read_text(encoding='utf-8'))
  input_file=cache/'qqq-gex-input.json';input_file.write_text(json.dumps(raw));db=cache/'qqq-gex.db';oracle=root/'oracle.db'
  def original(script,*arguments):
-  result=subprocess.run([node,str(model/script),*map(str,arguments)],capture_output=True,text=True,encoding='utf-8',check=True,timeout=120);return json.loads(result.stdout)
+  return run_node_json([node,str(model/script),*map(str,arguments)])
  expected=original('import.mjs',input_file,oracle)
  def install(name):
   result=subprocess.run([*command,'install',str(profile),str(fixtures/(name+'.espapp'))],capture_output=True,text=True,encoding='utf-8',timeout=30)
@@ -104,7 +105,7 @@ with tempfile.TemporaryDirectory(prefix='actual GEX signed app ')as directory:
   raw_args={'resource':'providerRaw','providerHash':provider_hash}
   assert client.call('get_qqq_gex_view',raw_args)['structuredContent']['data']==legacy_view(raw_args)
   retained=hashlib.sha256(db.read_bytes()).hexdigest()
-  for resource,arguments in [('dates',{}),('snapshots',{'date':'2026-01-02'}),('bars',{'date':'2026-01-02'}),('providers',{})]:
+  for resource,arguments in [('dates',{}),('snapshots',{'date':'2026-01-02'}),('bars',{'date':'2026-01-02'}),('bars',{'date':'2026-01-02','priceBasis':'display'}),('extendedBars',{'date':'2026-01-02','priceBasis':'display'}),('extendedBars',{'date':'2026-01-02','priceBasis':'valuation'}),('providers',{})]:
    from urllib.parse import urlencode
    route='/api/analysis/qqq/local-archive?'+urlencode({'resource':resource,'page':1,'pageSize':100,**arguments})
    expected_archive=original('query.mjs',db,route)
@@ -156,7 +157,7 @@ with tempfile.TemporaryDirectory(prefix='actual GEX signed app ')as directory:
  finally:writer.close()
  assert declared=={'get_qqq_gex_retained_summary','calculate_qqq_gex_local','get_qqq_gex_replay','rebuild_qqq_gex_history','get_qqq_gex_archive','get_qqq_gex_lifecycle','get_qqq_gex_live_decision','get_qqq_gex_view','capture_qqq_gex_input'},('Add a meaningful real CLI/MCP scenario for every signed app operation',declared)
  from app_gex_capture_smoke import check_capture,check_source_failure
- for mode in ['aligned','delayed-cboe','unverified-cboe','boundary-cboe','missing-iv','partial','changed-raw','large']:check_capture(base,node,fixtures,root,mode)
+ for mode in ['aligned','delayed-cboe','current-display-cboe','unverified-cboe','boundary-cboe','missing-iv','partial','changed-raw','large']:check_capture(base,node,fixtures,root,mode)
  check_source_failure(base,node,fixtures,root)
  retained=hashlib.sha256(db.read_bytes()).hexdigest()
  production=pathlib.Path('src/Meili.Cli/bin/Release/net10.0/easysellput.dll').resolve()

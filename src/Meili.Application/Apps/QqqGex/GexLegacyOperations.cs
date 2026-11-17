@@ -25,6 +25,7 @@ internal sealed partial class GexLegacyOperations(string directory,Func<Cancella
                     var query="/api/analysis/qqq/local-archive?resource="+Uri.EscapeDataString(resource)+"&page="+page+"&pageSize="+pageSize;
                     if(a.Has("archiveState")){var state=a.Text("archiveState");if(state is not ("published" or "partial")||resource=="providers")throw new ArgumentException("Invalid archive state");query+="&archiveState="+state;}
                     foreach(var key in new[]{"date","expiry"})if(a.Has(key))query+="&"+key+"="+a.Date(key)!.Value.ToString("yyyy-MM-dd");
+                    if(a.Has("priceBasis")){if(resource is not ("bars" or "extendedBars")||a.Text("priceBasis") is not ("display" or "valuation"))throw new ArgumentException("Invalid price basis");query+="&priceBasis="+a.Text("priceBasis");}
                     foreach(var key in new[]{"capturedAt","revision"})if(a.Has(key))query+="&"+key+"="+Uri.EscapeDataString(a.Text(key));
                     if(!File.Exists(Path.Combine(directory,"cache","qqq-gex.db")))return new {status="cache_miss",available=false,complete=false};
                     return await QqqGexCalculationRunner.QueryAsync(directory,query,ct);

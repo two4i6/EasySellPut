@@ -32,6 +32,7 @@ try{
    if(page>1&&args.revision===undefined)throw new InputError('Continuation requires revision');
    const parameters=new URLSearchParams({resource,page:String(page),pageSize:String(pageSize)});
    if(args.archiveState!==undefined){if(!['published','partial'].includes(args.archiveState)||resource==='providers')throw new InputError('Invalid archive state');parameters.set('archiveState',args.archiveState);}
+   if(args.priceBasis!==undefined){if(!['bars','extendedBars'].includes(resource)||!['display','valuation'].includes(args.priceBasis))throw new InputError('Invalid price basis');parameters.set('priceBasis',args.priceBasis);}
    for(const key of ['date','expiry'])if(args[key]!==undefined)parameters.set(key,day(args[key]));
    for(const key of ['capturedAt','revision'])if(args[key]!==undefined)parameters.set(key,args[key]);
    result=existsSync(db)?await query('/api/analysis/qqq/local-archive?'+parameters):{status:'cache_miss',available:false,complete:false};break;

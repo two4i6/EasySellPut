@@ -176,7 +176,7 @@ MEILI_LIVE=1 python3 tests/automation/live_cli_mcp_smoke.py --executable /path/t
 
 ### QQQ GEX 本地只读归档与页面数据
 
-`get_qqq_gex_archive` 的 `resource` 为 `dates`、`snapshots`、`profile`、`bars` 或 `providers`。`providers` 不需要 date：分页返回本地保留的原始来源响应哈希、来源、发布时间、接收时间和存储大小；使用 `get_qqq_gex_view resource=providerRaw providerHash=该哈希` 读取原始字节，不能传文件路径。除日期索引外需 `date`；完整 profile 还需快照列表原样返回的 `expiry` 和 `capturedAt`。每页最多 200 项，后续页必须带首批 `revision`；`revision_changed` 后从第一页重读。profile 不经过 compact、舍入或缺失补零。
+`get_qqq_gex_archive` 的 `resource` 为 `dates`、`snapshots`、`profile`、`bars`、`extendedBars` 或 `providers`。`providers` 不需要 date：分页返回本地保留的原始来源响应哈希、来源、发布时间、接收时间和存储大小；使用 `get_qqq_gex_view resource=providerRaw providerHash=该哈希` 读取原始字节，不能传文件路径。除日期索引外需 `date`；完整 profile 还需快照列表原样返回的 `expiry` 和 `capturedAt`。每页最多 200 项，后续页必须带首批 `revision`；`revision_changed` 后从第一页重读。profile 不经过 compact、舍入或缺失补零。
 
 `get_qqq_gex_view` 支持 `display`、`evidence`、`context`、`exposureManifest`、`exposureWindow`、`spreadQuote`、`analysis`、`workspace`、`providerRaw`。大结果用 base64 分块（默认 64 KiB，最大 256 KiB）；解码拼接后验证完整 `sha256`，再解析 JSON/NDJSON。后续块提交 `offset` 和首块 `sha256`，内容变化返回 `revision_changed`，不得拼接旧块。context 的 `at` 固定响应时间，缺少参考日期仍明确报告。manifest 只接收日期及可选 expiry；窗口需使用 manifest 的精确 from/to/source，最长一小时，读完全部窗口后重读 manifest 验证 revision。
 
@@ -191,7 +191,7 @@ analysis 复用导入的 UI 内核：exposure、replayTable、gammaModel、atmIv
 
 `easysellput live AAPL SPY QQQ --seconds 10 --max-updates 20 --json`；MCP `get_live_quotes` 使用同一有界 WebSocket 会话。不是 HTTP 快照或无限监控。完整的覆盖、缺失/断线语义与验证见 [免费 Live](53-Yahoo免费Live与全应用行情订阅.md)。
 
-QQQ GEX 部分采集：`get_qqq_gex_view resource=partial` 返回与桌面“部分采集”表相同的最新元数据，无需桌面打开；`get_qqq_gex_archive archiveState=partial` 可分别分页读取 dates/snapshots/profile/bars。默认 archiveState=published 保持原行为，两种记录绝不混作完整交易日，也不能用 partial 直接授权常规回放。
+QQQ GEX 部分采集：`get_qqq_gex_view resource=partial` 返回与桌面“部分采集”表相同的最新元数据，无需桌面打开；`get_qqq_gex_archive archiveState=partial` 可分别分页读取 dates/snapshots/profile/bars/extendedBars。`bars` 只含常规时段，`extendedBars` 单独提供盘前盘后原始桶；结果保留 source、issues、barProvenance、underlyingLastTradeAt，不把采集时间当期权报价时间。默认 archiveState=published 保持原行为，两种记录绝不混作完整交易日，也不能用 partial 直接授权常规回放。
 
 QQQ GEX 的 `workspace.analyticalSelections.interaction` 还提供私有页面最近观察到的焦点、控件值、指针、可见提示及原始 K 线悬停数据。`observedAt` 是观察时间，`documentId` 区分页面；指针为 CSS 视口像素，图表时间为 Unix 秒。500ms 合并更新，经本地偏好桥保存，不能代表瞬时屏幕或原生全局输入。密码／文本草稿不导出；隐藏页面清空交互。超长内容明确返回 `detailsOmitted`，完整序列请读 chartStudies/archive；提示文字最多4条、各1000字符。缺失字段、旧时间戳及未验证的原生输入流程不能当作实时完整覆盖。
 

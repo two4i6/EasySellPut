@@ -26,6 +26,7 @@ public sealed partial class QqqGexResponseStore
         foreach(var capture in semantic["captures"]!.AsArray())capture?["result"]?.AsObject().Remove("receivedAt");
         if(semantic["provenance"] is JsonArray provenance)foreach(var row in provenance)row?.AsObject().Remove("FetchedAt");
         if(semantic["barMetadata"] is JsonObject bars)bars.Remove("FetchedAt");
+        if(semantic["displayPrices"]?["provenance"] is JsonObject display)foreach(var key in new[]{"FetchedAt","observedAt","requestedUntil"})display.Remove(key);
         var identity=Hash(semantic.ToJsonString());using var c=Open();using var cmd=c.CreateCommand();
         cmd.CommandText="CREATE TABLE IF NOT EXISTS qqq_gex_observed_inputs(identity TEXT PRIMARY KEY,received_at INTEGER NOT NULL,body_sha256 TEXT NOT NULL,body TEXT NOT NULL)";cmd.ExecuteNonQuery();
         cmd.CommandText="INSERT OR IGNORE INTO qqq_gex_observed_inputs VALUES($id,$at,$hash,$body)";cmd.Parameters.AddWithValue("$id",identity);cmd.Parameters.AddWithValue("$at",DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());cmd.Parameters.AddWithValue("$hash",Hash(body));cmd.Parameters.AddWithValue("$body",QqqGexArchiveBody.Encode(Encoding.UTF8.GetBytes(body)));cmd.ExecuteNonQuery();return identity;

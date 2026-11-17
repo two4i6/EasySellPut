@@ -28,11 +28,21 @@ def check_capture(base,node,fixtures,root,mode="aligned"):
  assert published.samefile(expected_input),{'published':str(published),'expected':str(expected_input)}
  expected.pop('inputPath');assert actual==expected,(actual,expected)
  assert actual['status']=='captured_input'
- if mode in('aligned','large'):assert actual['matchingRegularBars']==4 and actual['providerCoverageComplete']
+ if mode=='current-display-cboe':assert actual['displayBars']>actual['bars'] and actual['bars']>0
+ if mode=='current-display-cboe':assert actual['matchingRegularBars']==1 and actual['providerCoverageComplete']
+ elif mode in('aligned','large'):assert actual['matchingRegularBars']==4 and actual['providerCoverageComplete']
  else:assert not actual['providerCoverageComplete']
  def body(directory):return json.loads((directory/'cache/qqq-gex-input.json').read_text(encoding='utf-8'))
  def without_receipt_time(value):
-  value.pop('evaluationAt');value.pop('receivedAt');return value
+  value.pop('evaluationAt');value.pop('receivedAt')
+  display=value.get('displayPrices',{}).get('provenance')
+  if display:
+   observed=display.pop('observedAt');cutoff=display.pop('requestedUntil')
+   from datetime import datetime,timezone
+   parse=lambda text:datetime.fromisoformat(text.replace('Z','+00:00'))
+   assert parse(cutoff)<=parse(observed) and abs((datetime.now(timezone.utc)-parse(observed)).total_seconds())<120
+   assert all(parse(bar['timestamp']).timestamp()+120<=parse(cutoff).timestamp() for bar in value['displayPrices']['bars'])
+  return value
  expected_body=without_receipt_time(body(original));actual_body=without_receipt_time(body(profile))
  assert actual_body==expected_body,[(key,actual_body[key],expected_body[key])for key in actual_body if actual_body[key]!=expected_body[key]]
  db=profile/'cache/qqq-gex.db'
@@ -56,6 +66,19 @@ def check_capture(base,node,fixtures,root,mode="aligned"):
   assert not result.get('isError'),result
   repeated=result['structuredContent']['data'];repeated.pop('inputPath');assert repeated==expected
  finally:writer.close()
+ if mode=='current-display-cboe':
+  calculated=run(command,str(profile),'calculate_qqq_gex_local')['data']
+  assert calculated['status']in('imported','partial'),calculated
+  state='published'if calculated['status']=='imported'else'partial'
+  reader=Mcp(command,str(profile))
+  try:
+   for basis,count in [('display',9),('valuation',1)]:
+    arguments={'resource':'bars','date':'2026-11-13','priceBasis':basis,'archiveState':state}
+    archive=reader.call('get_qqq_gex_archive',arguments)['structuredContent']['data']
+    assert archive['available'] and len(archive['items'])==count,(basis,archive)
+    flags=[part for key,value in arguments.items()for part in ['--'+key,str(value)]]
+    assert run(command,str(profile),'get_qqq_gex_archive',*flags)['data']==archive
+  finally:reader.close()
  assert (profile/'cache/qqq-gex-input.json').read_bytes()==retained,'Repeated unchanged source must retain first observed evidence'
  with closing(sqlite3.connect(db))as connection,connection:assert connection.execute('SELECT count(*) FROM qqq_gex_observed_inputs').fetchone()[0]==1
 

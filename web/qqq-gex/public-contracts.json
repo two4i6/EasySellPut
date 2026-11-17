@@ -395,7 +395,7 @@
   },
   {
     "name": "get_qqq_gex_archive",
-    "description": "Read the exact locally retained page archive: date discovery, snapshot metadata, lossless per-strike profile, 2-minute bars or original provider-body metadata (resource=providers, hash used by view providerRaw). No remote fallback or observation writes. Continuations require the first page revision; changed revisions require restarting. Missing history and incomplete IV remain explicit.",
+    "description": "Read the exact locally retained page archive: date discovery, snapshot metadata, lossless per-strike profile, 2-minute regular bars, separate extendedBars (premarket/after-hours), or original provider-body metadata (resource=providers, hash used by view providerRaw). No remote fallback or observation writes. Continuations require the first page revision; changed revisions require restarting. Missing history and incomplete IV remain explicit.",
     "writes": false,
     "schema": {
       "type": "object",
@@ -408,6 +408,7 @@
             "snapshots",
             "profile",
             "bars",
+            "extendedBars",
             "providers"
           ],
           "maxLength": 200
@@ -452,6 +453,14 @@
           "type": "string",
           "description": "First page revision; required for page > 1",
           "maxLength": 200
+        },
+        "priceBasis": {
+          "type": "string",
+          "enum": [
+            "valuation",
+            "display"
+          ],
+          "description": "bars/extendedBars only. Default valuation retains aligned model inputs; display reads separately retained observed stock prices, never used for GEX/PCS decisions."
         }
       },
       "required": [

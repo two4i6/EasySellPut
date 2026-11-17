@@ -40,7 +40,7 @@ try{for(const scope of ['selected','0dte','all'] as const){const expiries=all.fi
   const response=await call('replayTable',{scope,at:new Date(cursor).toISOString()});
   if(!frames.length){assert.equal(response.status,'causal_frame_missing');continue;}
   const rows=exposureReplayTableRows(frames,bars);
-  equal(response.result,rows.map((row,i)=>({...row,displayValues:[...row.displayValues],delta:exposureReplayDisplayDeltaDetails(row,rows[i-1])})));
+  equal(response.result.map(({valuationReference,...row}:any)=>row),rows.map((row,i)=>({...row,displayValues:[...row.displayValues],delta:exposureReplayDisplayDeltaDetails(row,rows[i-1])})));
   assert.ok(response.result.every((row:any)=>row.time<=cursor),'no future table snapshot');
  }
  // Match useQqqIntradayStudy, not merely the transport adapter: IV is only

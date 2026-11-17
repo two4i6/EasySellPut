@@ -20,7 +20,12 @@ for name in ['ai','@ai-sdk/openai']:
 # Shared calculations and bounded read tools remain part of the product.
 for name in ['qqqGexCalculation.ts','qqqExposureWorkbench.ts','qqqIntradayDirectionalSummary.ts','engines/analysis/QqqGexResearch.ts']:
  if not(web/'upstream/src/lib'/name).is_file():raise SystemExit('Shared calculation removed: '+name)
+# The catalog embeds app-owned facade metadata through GexContracts.All.
 contracts=json.loads((web/'public-contracts.json').read_text())
+packaged={operation['name']:operation for operation in json.loads((web/'operations.json').read_text())}
+for contract in contracts:
+ operation=packaged.get(contract['name'])
+ if operation is None or operation['schema']!=contract['schema'] or operation['writes']!=contract['writes']:raise SystemExit('Packaged facade contract differs: '+contract['name'])
 read_tools={operation['name'] for operation in contracts if operation.get('writes') is False}
 for name in ['get_qqq_gex_archive','get_qqq_gex_view','get_qqq_gex_replay']:
  if name not in read_tools:raise SystemExit('Read tool removed or made writable: '+name)

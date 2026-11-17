@@ -8,6 +8,22 @@ public sealed class QqqGexCompressionTests
 {
     static byte[] ReadShared(string path){using var file=new FileStream(path,FileMode.Open,FileAccess.Read,FileShare.ReadWrite|FileShare.Delete);using var bytes=new MemoryStream();file.CopyTo(bytes);return bytes.ToArray();}
     static string Hash(string text)=>Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(text)));
+    [Fact] public void Display_poll_clocks_do_not_duplicate_unchanged_evidence_but_prices_and_model_time_do()
+    {
+        var directory=Path.Combine(Path.GetTempPath(),"gex-display-identity-"+Guid.NewGuid());
+        var store=new QqqGexResponseStore(Path.Combine(directory,"archive.db"));
+        static string Body(double price,string observed,string cutoff="2026-01-02T15:00:00Z",string source="fixture")=>JsonSerializer.Serialize(new{captures=Array.Empty<object>(),displayPrices=new{bars=new[]{new{timestamp="2026-01-02T15:00:00Z",close=price}},provenance=new{Source=source,AsOf="2026-01-02T15:02:00Z",FetchedAt=observed,observedAt=observed,requestedUntil=observed,valuationCutoff=cutoff}}});
+        try
+        {
+            var first=Body(600,"2026-01-02T15:03:00Z");var identity=store.RecordObservedInput(first);
+            Assert.Equal(identity,store.RecordObservedInput(Body(600,"2026-01-02T15:04:00Z")));
+            Assert.Equal(first,store.ReadObservedInput(identity));
+            Assert.NotEqual(identity,store.RecordObservedInput(Body(601,"2026-01-02T15:04:00Z")));
+            Assert.NotEqual(identity,store.RecordObservedInput(Body(600,"2026-01-02T15:04:00Z","2026-01-02T15:02:00Z")));
+            Assert.NotEqual(identity,store.RecordObservedInput(Body(600,"2026-01-02T15:04:00Z",source:"another-source")));
+        }
+        finally{store.ReleaseIdleConnections();if(Directory.Exists(directory))Directory.Delete(directory,true);}
+    }
     [Fact] public void Binary_provider_and_normalized_inputs_are_lossless_compressed_and_deduplicated()
     {
         var path=Path.Combine(Path.GetTempPath(),Guid.NewGuid()+".db");var store=new QqqGexResponseStore(path);var bytes=Enumerable.Range(0,100000).Select(i=>(byte)(i%256)).ToArray();var at=DateTimeOffset.UtcNow;var hash=store.RecordProviderBody("fixture",bytes,at,at);Assert.Equal(bytes,store.ReadProviderBody(hash));Assert.Equal(hash,store.RecordProviderBody("fixture",bytes,at,at));

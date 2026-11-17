@@ -63,6 +63,11 @@ jobs:
         working-directory: web/qqq-gex
       - run: npm run build:runtime && node test-results/pcs-contract.mjs && node tests/live-display.mjs && node tests/storage-faults.mjs && node tests/wire-capacity.mjs && node tests/mcp-archive.mjs && node tests/provider-index.mjs && node tests/mcp-partial.mjs && node tests/recovery.mjs && node tests/preferences-recovery.mjs && node tests/interaction-observer.mjs && node tests/ui-observation-portability.mjs && npm run test:pipeline && node tests/mcp-analysis-fixture.mjs && node test-results/mcp-kernel-parity.mjs && node tests/pulse-replay-cohort.mjs && node test-results/wall-view-parity.mjs && node test-results/spread-study-parity.mjs && node test-results/chart-positive-parity.mjs && node test-results/chart-real-parity.mjs
         working-directory: web/qqq-gex
+      - name: Test partial workspace and independent price clocks
+        run: |
+          node tests/partial-workspace.mjs
+          QQQ_TEST_PRICE_CLOCK=1 QQQ_TEST_DB="$(node -p "JSON.parse(require('fs').readFileSync('test-results/price-clocks-location.json')).dbPath")" node tests/offline-viewer.mjs
+        working-directory: web/qqq-gex
       - run: QQQ_TEST_DB="$(node -p "JSON.parse(require('fs').readFileSync('test-results/pipeline-location.json')).dbPath")" QQQ_TEST_DECISION=test-results/pcs-positive.json node tests/offline-viewer.mjs
         working-directory: web/qqq-gex
       - run: bun tests/wire-benchmark.ts
