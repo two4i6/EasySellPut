@@ -40,6 +40,13 @@ public sealed class OvernightLiveTests
             {
                 Directory.CreateDirectory(output);var graph=row.Graph;var report=new{live=true,source="yahoo",began,ended=DateTimeOffset.UtcNow,received,errors,symbol=row.Symbol,regularPrice=row.Quote?.Price,price=row.Display?.Snapshot.Price,sourceTime=row.Display?.Snapshot.AsOf,session=row.Display?.Session.ToString(),graph.Day,chartSource=graph.Source,graph.AsOf,graph.WindowStart,graph.WindowEnd,points=graph.Points.Count,hasPriceBaseline=graph.Baseline is not null,coverage="Actually received overnight segment, not certified complete 20:00–04:00 history."};
                 await File.WriteAllTextAsync(Path.Combine(output,"live-overnight.json"),System.Text.Json.JsonSerializer.Serialize(report));MacHost.Save(panel,"glance-night-live");
+                var body=(Control)panel.Content!;panel.Content=null;
+                var scene=new Window{Width=1920,Height=1080,Background=(Avalonia.Media.IBrush)Ui.Platform.Resource("ApplicationBackgroundBrush")!};
+                var canvas=new Grid();scene.Content=canvas;
+                canvas.Children.Add(new TextBlock{Text="真实 Yahoo 夜盘推送 · 控件验收场景（非操作系统截图）",FontSize=18,Margin=new Avalonia.Thickness(32),Foreground=(Avalonia.Media.IBrush)Ui.Platform.Resource("TextFillColorPrimaryBrush")!});
+                body.Width=panel.Width;body.Height=panel.Height;body.HorizontalAlignment=Avalonia.Layout.HorizontalAlignment.Right;body.VerticalAlignment=Avalonia.Layout.VerticalAlignment.Top;body.Margin=new Avalonia.Thickness(0,24,24,0);canvas.Children.Add(body);
+                try{scene.Show();MacHost.Pump();MacHost.Save(scene,"night-live-1080p");}
+                finally{canvas.Children.Remove(body);scene.Close();panel.Content=body;}
             }
             Assert.True(received>0);Assert.Equal(MarketSession.Overnight,row.Display!.Session);Assert.True(row.Graph.Points.Count>=2);Assert.Equal("yahoo",row.Graph.Source);Assert.True(row.ChartObserved);
             panel.HidePanel();Assert.Empty(hub.SubscribedSymbols);

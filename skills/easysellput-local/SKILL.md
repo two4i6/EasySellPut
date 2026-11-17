@@ -1,7 +1,7 @@
 ---
 name: easysellput-local
 metadata:
-  version: "2.3"
+  version: "2.4"
   mcp-server: easysellput
 description: Use the local EasySellPut MCP server for US equity quotes, OHLCV and chart indicators, company financials/news/events, US funding/liquidity indicators and sector ETF activity proxies, option chains and IV/Greeks, volatility history, strategy presets/payoffs/what-if analysis, and explicitly requested local watchlist/strategy/alert/preferences changes. Use when the user asks to research or analyze these through EasySellPut; not for placing orders or controlling desktop windows.
 ---
@@ -9,6 +9,8 @@ description: Use the local EasySellPut MCP server for US equity quotes, OHLCV an
 # EasySellPut local research
 
 ## Liquidity research
+
+Yahoo overnight frames are returned as `session=Overnight`. `get_live_bars` may report `status="observed_partial"`: actual received prices remain visible with original source times, while unavailable overnight history stays missing. This is not complete overnight OHLC or a trade tape. Never replace it with regular/postmarket data or invent volume.
 
 Use `get_live_bars` for historical/live candle handoff and inspect its join status, missing interval and incomplete observed tail. Never conceal unavailable source buckets by forward-filling prices.
 
@@ -139,7 +141,7 @@ Discover the live schema before calling any tool; this guide does not replace ar
 | `clear_cache` | write | Clear only an explicitly requested registered category. Inspect first; requires write-enabled MCP. Symbol filtering is bars-only, expired mode keeps TTL-free bars, and clearing bars removes offline availability. Never delete the database or browser profile. Explicit mode=compact with category=qqq_gex_wire atomically reclaims pages without deleting history; it needs temporary free space and may refuse busy/corrupt storage. |
 | `get_qqq_gex_live_decision` | read | Evaluate original PCS gates/timing and real-chain references using retained local inputs only. Preserve expiry/delay/missing input meaning; no network, synthetic trade substitute, account permission or order path. |
 | `get_live_bars` | read | Join source historical candles with a bounded observed close-only tail. Inspect joined/repairing/waiting_history, missingFrom/To, source adjustment and observed provenance. Refreshes overlapping history; never fills missing time buckets or invents OHLC/volume. Observed points are incomplete; canonical closed provider bars replace overlaps. Quote gaps are not a complete trade tape. |
-| `get_live_quotes` | read | Bounded Yahoo WebSocket sample: 1..50 symbols, 1..20 seconds, 1..500 updates. Inspect received/no_updates/unavailable, source timestamps, pre/regular/post sessions, errors and missing symbols. Indicative last prices are not guaranteed zero-delay consolidated exchange quotes, NBBO or a complete trade tape. No ticks is never price zero. No persistent monitor or writes. Use get_quotes/get_bars separately for snapshots/history. |
+| `get_live_quotes` | read | Bounded Yahoo WebSocket sample: 1..50 symbols, 1..20 seconds, 1..500 updates. Inspect received/no_updates/unavailable, source timestamps, pre/regular/post/overnight sessions, errors and missing symbols. Indicative last prices are not guaranteed zero-delay consolidated exchange quotes, NBBO or a complete trade tape. No ticks is never price zero. No persistent monitor or writes. Use get_quotes/get_bars separately for snapshots/history. |
 | `get_market_liquidity` | read | Experimental 0–100 funding-pressure-v1 gauge (not VIX/official/calibrated); inspect formula, component weights/dates and missing/stale-input rejection. Six dated US macro indicators and eleven sector ETF daily activity proxies. Preserve exact observation dates, FRED source units, common-date spread joins, missing/offline flags and each sector date. SOFR-IORB/EFFR-IORB are basis points; balance levels are USD billions. Heat is close×volume / prior 20 observations; Amihud is absolute percent return per USD million, not intraday depth or net flows. Never infer complete sector liquidity or systemic risk from this proxy alone. |
 | `get_qqq_gex_lifecycle` | read | Read retained PCS lifecycle for an explicit date; never synthesize missing observations or treat available points as complete history. |
 <!-- mcp-tool-guide:end -->

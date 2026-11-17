@@ -82,3 +82,7 @@ QQQ Web CI 增加真实 Chromium 的 live-quote 测试：价格变化、旧响�
 - [新闻](yahoo-live/news-dark-1080p.png)
 - [图表最新价线](yahoo-live/chart-live-price-1080p.png)
 - [QQQ GEX 当前价格通道](yahoo-live/qqq-gex-live-1080p.png)（测试归档为空，重点验证独立当前价通道）
+
+## 夜盘补充
+
+已识别真实 Yahoo `market_hours=4` 为 Overnight。夜盘历史缺失时，`get_live_bars` 返回 `observed_partial`，保留实际收到的时间/价格，缺失范围保持明确；不会把盘后收盘或最新价补成历史蜡烛。详见 [速览全部时段与夜盘验证](54-速览全部时段与夜盘推送.md)。
