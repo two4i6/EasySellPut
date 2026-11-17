@@ -21,6 +21,18 @@ public static class Program
         Console.CancelKeyPress += (_, e) => { e.Cancel = true; stop.Cancel(); };
         try
         {
+            if (args.FirstOrDefault() == "apps")
+            {
+                if (args.Skip(1).SequenceEqual(new[] { "--help" }))
+                {
+                    Console.WriteLine("apps list|doctor|recover [--data-dir PATH] [--json]\napps info|enable|disable|uninstall APP-ID [--data-dir PATH] [--json]\napps install|update --package PATH [--data-dir PATH] [--json]\nLocal first-party signed packages only. Uninstall preserves data. Maintenance is never an MCP tool.");
+                    return 0;
+                }
+                var maintained = await AppsCommand.RunAsync(args, stop.Token);
+                if (json) Console.WriteLine(WireJson.Element(WireJson.Success(maintained)).GetRawText());
+                else PrintHuman(WireJson.Element(maintained));
+                return 0;
+            }
             if(args.FirstOrDefault()=="update")
             {
                 if(args.Skip(1).SequenceEqual(new[]{"--help"})){Console.WriteLine("update source [--json] | update check|download [--data-dir PATH] [--json]\nReads signed stable GitHub Releases. Download verifies signature/size/SHA-256; installation requires desktop confirmation. update apply --plan PATH is the internal desktop handoff, never an MCP tool.");return 0;}

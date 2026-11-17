@@ -113,8 +113,15 @@ def main():
         assert after.returncode == 0, after.stderr
         assert json.loads(after.stdout)['data'] == before == catalog
         assert not discovery_dir.exists(), 'Help must not initialize storage or engines'
+        installed = run(command, str(discovery_dir), 'apps', 'list')['data']
+        assert installed['state']['apps'] == [] and installed['state']['generation'] == 0
+        doctor = run(command, str(discovery_dir), 'apps', 'doctor')['data']
+        assert doctor['registry'] == installed
+        assert not discovery_dir.exists(), 'Module metadata discovery must not initialize a profile'
+        assert run(command, str(discovery_dir), 'apps', 'info', 'easysellput.missing', code=2)['error']['code'] == 'invalid_arguments'
         assert 'install-skill' not in {op['name'] for op in catalog['operations']}
         operations = {op['name']: op for op in catalog['operations']}
+        assert not any(name.startswith(('install_app', 'update_app', 'uninstall_app')) for name in operations)
         readonly = {name for name, op in operations.items() if not op['writes']}
         sources = run(command, data, 'sources')['data']
         assert sources['scope'] == 'current_process' and sources['sources']

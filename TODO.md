@@ -144,3 +144,7 @@ Baseline reconciliation: CI [44069964453](https://github.com/two4i6/EasySellPut/
 ### S04 registry/lease primitive checkpoint
 
 Profile-scoped metadata uses SnapshotFile CAS and monotonic generation, with bounded/validated reads. OS file handles distinguish actual shared execution from exclusive maintenance; idle MCP transports own no app execution lease. Read-only discovery does not create a profile, stale writers are rejected, corrupt metadata is retained, and unsafe IDs do not create paths. Automation: 132 passed. Activation journaling, cross-process CLI integration and execution generation checks remain coupled to S05–S08 and are not claimed complete by these primitives. Existing platform Automation CI runs these tests.
+
+### S05 explicit maintenance checkpoint
+
+Implemented CLI-only list/info/doctor/install/update/enable/disable/uninstall/recover. Signed archives are staged and reverified before immutable placement and registry CAS; incompatible data changes/downgrades are refused. OS leases block maintenance during use. Crash reconciliation never activates uncommitted code or rolls data back. Uninstall retains user data and package backups. Automation 135 passed; complete production CLI/MCP smoke passed, including no-write module discovery and unchanged MCP business catalog. Engine health preflight, actual GEX execution and native final-package acceptance remain S06–S12 dependencies, not claimed by metadata installation.

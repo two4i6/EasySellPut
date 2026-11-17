@@ -202,3 +202,19 @@ Exposure observations distinguish mode (retained original selection), scenarioMo
 Exposure also retains original scenarioInputAt/scenarioDisplayedAt (Unix milliseconds), scenarioLoading/scenarioRetained/scenarioError. While recalculation is pending, the displayed scenario may be older than the requested input; respect these fields instead of attributing a retained field to the new cursor.
 
 Exposure active identifies visible heatmap state; allExpiries identifies matrix aggregate context. displayedMode is the effective heatmap model, not proof of an on-screen heatmap while active=false.
+# Local application package maintenance
+
+The modular migration currently provides explicit local maintenance primitives:
+
+```sh
+easysellput apps list --json
+easysellput apps doctor --data-dir PATH --json
+easysellput apps install --package signed.espapp --data-dir PATH --json
+easysellput apps update --package signed.espapp --data-dir PATH --json
+easysellput apps disable easysellput.example --data-dir PATH --json
+easysellput apps enable easysellput.example --data-dir PATH --json
+easysellput apps uninstall easysellput.example --data-dir PATH --json
+easysellput apps recover --data-dir PATH --json
+```
+
+Only the compiled repository/key is trusted. Unconfigured local builds reject installation; no runtime trust override is available. Discovery does not initialize storage. An app in use blocks maintenance. Update rejects downgrades and unplanned data-format changes; uninstall preserves app data and immutable backups. Recovery reconciles interrupted journal metadata and never promotes an uncommitted candidate or rewinds observations. These commands are CLI-only software maintenance and never MCP tools. Installing metadata is not yet proof of GEX runtime/UI integration; track S06 onward in TODO.md.

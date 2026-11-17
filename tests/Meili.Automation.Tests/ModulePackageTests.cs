@@ -10,12 +10,12 @@ public sealed class ModulePackageTests : IDisposable
 {
     private readonly string root = Path.Combine(Path.GetTempPath(), "esp-modules-" + Guid.NewGuid().ToString("N"));
     private readonly ECDsa key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
-    private string Package(string path = "engine/main.mjs", bool tamper = false, string repository = "test/source", int api = 1, bool extra = false)
+    private string Package(string path = "engine/main.mjs", bool tamper = false, string repository = "test/source", int api = 1, bool extra = false, string version = "1.0.0")
     {
         Directory.CreateDirectory(root);
         var filename = Path.Combine(root, Guid.NewGuid().ToString("N") + ".espapp");
         var script = Encoding.UTF8.GetBytes("export const value=1;");
-        var manifest = new ModuleManifest(1, repository, "easysellput.test", "1.0.0", api, 1, 1, "node24", path, null,
+        var manifest = new ModuleManifest(1, repository, "easysellput.test", version, api, 1, 1, "node24", path, null,
             ["linux-x64"], [new(path, script.Length, Convert.ToHexString(SHA256.HashData(script)))]);
         var bytes = JsonSerializer.SerializeToUtf8Bytes(manifest, new JsonSerializerOptions(JsonSerializerDefaults.Web));
         using var zip = ZipFile.Open(filename, ZipArchiveMode.Create);
@@ -59,6 +59,62 @@ public sealed class ModulePackageTests : IDisposable
     [InlineData("engine/main.mjs.")]
     public async Task Unsafe_cross_platform_paths_are_rejected(string path) =>
         await Assert.ThrowsAsync<InvalidDataException>(() => Verify(Package(path)));
+
+    [Fact]
+    public async Task Explicit_install_update_disable_uninstall_and_reinstall_preserve_app_data()
+    {
+        var profile = Path.Combine(root, "profile");
+        var installer = new ModuleInstaller(profile, (file, ct) => Verify(file));
+        var a = Package(); var b = Package(version: "1.0.1");
+        await installer.InstallAsync(a);
+        var data = Path.Combine(profile, "apps", "data", "easysellput.test"); Directory.CreateDirectory(data);
+        File.WriteAllText(Path.Combine(data, "history"), "original observations");
+        await installer.InstallAsync(b);
+        Assert.Equal("1.0.1", (await installer.VerifyInstalledAsync("easysellput.test")).Manifest.Version);
+        await Assert.ThrowsAsync<InvalidDataException>(() => installer.InstallAsync(a));
+        installer.SetEnabled("easysellput.test", false);
+        await Assert.ThrowsAsync<ArgumentException>(() => installer.VerifyInstalledAsync("easysellput.test"));
+        installer.SetEnabled("easysellput.test", true);
+        Assert.Equal("uninstalled", installer.Uninstall("easysellput.test").Status);
+        Assert.Empty(installer.Inspect().State.Apps);
+        await installer.InstallAsync(b);
+        Assert.Equal("original observations", File.ReadAllText(Path.Combine(data, "history")));
+    }
+
+    [Fact]
+    public async Task Active_execution_and_invalid_code_cannot_replace_registration()
+    {
+        var profile = Path.Combine(root, "profile");
+        var installer = new ModuleInstaller(profile, (file, ct) => Verify(file));
+        await installer.InstallAsync(Package());
+        var before = installer.Inspect();
+        using (new ModuleRegistry(profile).AcquireExecution("easysellput.test"))
+            await Assert.ThrowsAsync<IOException>(() => installer.InstallAsync(Package(version: "1.0.1")));
+        await Assert.ThrowsAsync<InvalidDataException>(() => installer.InstallAsync(Package(tamper: true, version: "1.0.2")));
+        Assert.Equal(before.Revision, installer.Inspect().Revision);
+        Assert.Equal("1.0.0", Assert.Single(installer.Inspect().State.Apps).Version);
+    }
+
+    [Fact]
+    public async Task Recovery_reconciles_committed_pointer_but_never_activates_an_uncommitted_candidate()
+    {
+        var profile = Path.Combine(root, "profile");
+        var installer = new ModuleInstaller(profile, (file, ct) => Verify(file));
+        await installer.InstallAsync(Package());
+        var folder = Path.Combine(profile, "apps", "transactions");
+        var journal = Directory.GetFiles(folder, "*.json").Single();
+        File.WriteAllText(journal, File.ReadAllText(journal).Replace("activated", "staged"));
+        var before = installer.Inspect();
+        Assert.Equal(1, installer.RecoverPending());
+        Assert.Contains("reconciled_active", File.ReadAllText(journal));
+        var abandoned = Path.Combine(folder, "uncommitted.json");
+        File.WriteAllText(abandoned, JsonSerializer.Serialize(new { schemaVersion = 1, id = "easysellput.test",
+            version = "2.0.0", packageSha256 = new string('B', 64), phase = "verified" }));
+        Assert.Equal(1, installer.RecoverPending());
+        Assert.Contains("abandoned", File.ReadAllText(abandoned));
+        Assert.Equal(before.Revision, installer.Inspect().Revision);
+        Assert.Equal(0, installer.RecoverPending());
+    }
 
     public void Dispose() { key.Dispose(); if (Directory.Exists(root)) Directory.Delete(root, true); }
 }
