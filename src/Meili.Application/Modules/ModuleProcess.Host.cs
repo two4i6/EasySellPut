@@ -29,9 +29,7 @@ public static partial class ModuleProcess
         {
             var bytes=JsonSerializer.SerializeToUtf8Bytes(frame,WireJson.Options);
             if(bytes.Length>16*1024*1024||(sent+=bytes.Length)>(publishing?512L*1024*1024:64L*1024*1024))throw new InvalidDataException("Host result exceeds bound.");
-            await process.StandardInput.BaseStream.WriteAsync(bytes,token).ConfigureAwait(false);
-            await process.StandardInput.BaseStream.WriteAsync(new byte[]{10},token).ConfigureAwait(false);
-            await process.StandardInput.BaseStream.FlushAsync(token).ConfigureAwait(false);
+            await WriteProtocolInputAsync(process,bytes,newline:true,token).ConfigureAwait(false);
         }
         try
         {
@@ -68,6 +66,20 @@ public static partial class ModuleProcess
             deadline.Cancel();
             try{await errors.ConfigureAwait(false);}catch(Exception ex)when(ex is IOException or OperationCanceledException or InvalidDataException)
             {if(ex is not OperationCanceledException)AppLog.Warn("apps","Host-call diagnostics ended",ex);}
+        }
+    }
+    private static async Task WriteProtocolInputAsync(Process process,byte[] bytes,bool newline,CancellationToken ct)
+    {
+        try
+        {
+            await process.StandardInput.BaseStream.WriteAsync(bytes,ct).ConfigureAwait(false);
+            if(newline)await process.StandardInput.BaseStream.WriteAsync(new byte[]{10},ct).ConfigureAwait(false);
+            await process.StandardInput.BaseStream.FlushAsync(ct).ConfigureAwait(false);
+        }
+        catch(IOException ex)
+        {
+            ct.ThrowIfCancellationRequested();
+            throw new InvalidDataException("Application engine closed its protocol input prematurely.",ex);
         }
     }
     private sealed class Frames(Stream stream,long maximum)

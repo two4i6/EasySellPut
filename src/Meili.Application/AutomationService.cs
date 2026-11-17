@@ -129,10 +129,10 @@ public sealed partial class AutomationService(DataDirectoryInfo directory, IMark
     private void CheckJson(string name)
     {
         var path = Path.Combine(DirectoryInfo.Path, name);
-        if (!File.Exists(path)) return;
+        var text=new SnapshotFile(path).Read();
+        if(text is null)return;
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web) { AllowTrailingCommas = true, ReadCommentHandling = JsonCommentHandling.Skip };
         options.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
-        var text = File.ReadAllText(path);
         object? parsed = name switch { "settings.json" => JsonSerializer.Deserialize<AppSettings>(text, options), "alerts.json" => JsonSerializer.Deserialize<AlertDocument>(text, options), _ => JsonSerializer.Deserialize<List<SavedStrategy>>(text, options) };
         if (parsed is null) throw new JsonException($"{name} must not be null.");
     }

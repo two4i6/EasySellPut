@@ -89,7 +89,7 @@ public static partial class ModuleProcess
         var stderr = Read(process.StandardError.BaseStream, 65536);
         try
         {
-            await process.StandardInput.BaseStream.WriteAsync(input, deadline.Token).ConfigureAwait(false); process.StandardInput.Close();
+            await WriteProtocolInputAsync(process,input,newline:false,deadline.Token).ConfigureAwait(false); process.StandardInput.Close();
             await process.WaitForExitAsync(deadline.Token).ConfigureAwait(false);
             var output = await stdout.ConfigureAwait(false); await stderr.ConfigureAwait(false);
             if (process.ExitCode != 0) throw new InvalidDataException("Application engine failed; retained input/data were not rolled back.");

@@ -79,7 +79,11 @@ public sealed partial class AutomationService
             case "clear_chart_drawings":
                 {
                     var symbol = Symbol(a.Text("symbol")); var path = Path.Combine(DirectoryInfo.Path, "drawings.json");
-                    if (File.Exists(path)) WireJson.Read<Dictionary<string, List<ChartDrawing>>>(JsonDocument.Parse(File.ReadAllText(path)).RootElement);
+                    if(new SnapshotFile(path).Read() is {} drawingJson)
+                    {
+                        using var document=JsonDocument.Parse(drawingJson);
+                        WireJson.Read<Dictionary<string,List<ChartDrawing>>>(document.RootElement);
+                    }
                     var store = new ChartDrawingStore(DirectoryInfo.Path);
                     if (operation == "clear_chart_drawings") store.Clear(symbol);
                     if (operation == "add_chart_drawing")

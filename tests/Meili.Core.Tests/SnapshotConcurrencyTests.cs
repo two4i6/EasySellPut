@@ -67,6 +67,70 @@ public sealed class SnapshotConcurrencyTests
     }
 
     [Fact]
+    public async Task Publication_survives_a_short_legacy_reader_without_delete_sharing()
+    {
+        var directory=Path.Combine(Path.GetTempPath(),"snapshot-legacy-reader-"+Guid.NewGuid());
+        Directory.CreateDirectory(directory);var path=Path.Combine(directory,"settings.json");
+        Task? pending=null;
+        try
+        {
+            var snapshot=new SnapshotFile(path);snapshot.Write("original");
+            using(var reader=new FileStream(path,FileMode.Open,FileAccess.Read,FileShare.Read))
+            {
+                var entered=new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+                pending=Task.Run(()=>{entered.SetResult();snapshot.Write("updated");});
+                await entered.Task;await Task.Delay(100);
+                if(OperatingSystem.IsWindows())Assert.False(pending.IsCompleted,"Windows publication must wait for the legacy reader instead of failing.");
+                using var text=new StreamReader(reader,leaveOpen:true);Assert.Equal("original",await text.ReadToEndAsync());
+            }
+            await pending.WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.Equal("updated",new SnapshotFile(path).Read());
+            Assert.Empty(Directory.GetFiles(directory,"*.tmp"));
+        }
+        finally{if(pending is not null)try{await pending;}catch(IOException){ }Directory.Delete(directory,true);}
+    }
+
+    [WindowsFact]
+    public async Task Persistent_nonsharing_reader_times_out_without_partial_publication()
+    {
+        var directory=Path.Combine(Path.GetTempPath(),"snapshot-locked-"+Guid.NewGuid());Directory.CreateDirectory(directory);
+        var path=Path.Combine(directory,"settings.json");
+        try
+        {
+            var snapshot=new SnapshotFile(path);snapshot.Write("original");
+            using(var reader=new FileStream(path,FileMode.Open,FileAccess.Read,FileShare.Read))
+            {
+                var failure=await Record.ExceptionAsync(()=>Task.Run(()=>snapshot.Write("updated")).WaitAsync(TimeSpan.FromSeconds(6)));
+                Assert.IsType<IOException>(failure);
+                using var text=new StreamReader(reader,leaveOpen:true);Assert.Equal("original",await text.ReadToEndAsync());
+            }
+            Assert.Equal("original",new SnapshotFile(path).Read());Assert.Empty(Directory.GetFiles(directory,"*.tmp"));
+        }
+        finally{Directory.Delete(directory,true);}
+    }
+
+    [WindowsFact]
+    public async Task Replacement_retry_rechecks_external_changes_instead_of_overwriting_them()
+    {
+        var directory=Path.Combine(Path.GetTempPath(),"snapshot-retry-conflict-"+Guid.NewGuid());Directory.CreateDirectory(directory);
+        var path=Path.Combine(directory,"settings.json");Task? pending=null;
+        try
+        {
+            var snapshot=new SnapshotFile(path);snapshot.Write("original");
+            using(var reader=new FileStream(path,FileMode.Open,FileAccess.Read,FileShare.ReadWrite))
+            {
+                var entered=new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+                pending=Task.Run(()=>{entered.SetResult();snapshot.Write("updated");});
+                await entered.Task;await Task.Delay(100);Assert.False(pending.IsCompleted);
+                await File.WriteAllTextAsync(path,"external");
+            }
+            await Assert.ThrowsAsync<DataConflictException>(()=>pending);
+            Assert.Equal("external",new SnapshotFile(path).Read());Assert.Empty(Directory.GetFiles(directory,"*.tmp"));
+        }
+        finally{if(pending is not null)try{await pending;}catch(IOException){}Directory.Delete(directory,true);}
+    }
+
+    [Fact]
     public async Task Readers_observe_complete_snapshots_while_another_writer_replaces_them()
     {
         var directory = Path.Combine(Path.GetTempPath(), "snapshot-sharing-" + Guid.NewGuid());
@@ -107,4 +171,9 @@ public sealed class SnapshotConcurrencyTests
         }
         finally { Directory.Delete(directory, recursive: true); }
     }
+}
+
+internal sealed class WindowsFactAttribute:FactAttribute
+{
+    public WindowsFactAttribute(){if(!OperatingSystem.IsWindows())Skip="Requires Windows delete-sharing semantics; exercised by both Windows CI targets.";}
 }

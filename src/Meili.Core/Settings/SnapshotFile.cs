@@ -41,8 +41,21 @@ public sealed class SnapshotFile
             var bytes = new UTF8Encoding(false).GetBytes(text);
             if (bytes.Length > _maxBytes) throw new InvalidDataException("Snapshot exceeds configured byte limit");
             File.WriteAllBytes(temp, bytes);
-            if (File.Exists(_path)) File.Replace(temp, _path, null);
-            else File.Move(temp, _path);
+            var until=Environment.TickCount64+3000;var recheck=false;
+            while(true)
+            {
+                // Keep the coordinator and CAS check across transient Windows readers
+                // (including older processes without delete sharing).
+                if(recheck&&Fingerprint(writeLeaseHeld:true)!=_expected)throw new DataConflictException(_path);
+                try
+                {
+                    if(File.Exists(_path))File.Replace(temp,_path,null);
+                    else File.Move(temp,_path);
+                    break;
+                }
+                catch(IOException ex)when(OperatingSystem.IsWindows()&&((ex.HResult&0xffff)is 32 or 33)&&Environment.TickCount64<until)
+                {recheck=true;Thread.Sleep(5);} // expected: bounded sharing/lock contention; no permission or corruption retry.
+            }
             _expected = Convert.ToHexString(SHA256.HashData(bytes));
         }
         finally { if (File.Exists(temp)) File.Delete(temp); }

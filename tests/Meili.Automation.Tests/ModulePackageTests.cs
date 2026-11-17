@@ -298,6 +298,18 @@ public sealed class ModulePackageTests : IDisposable
         Assert.Equal(fault=="duplicate"?1:0,calls);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Engine_that_closes_stdin_before_the_request_is_a_protocol_failure(bool duplex)
+    {
+        Directory.CreateDirectory(root);var script=Path.Combine(root,"closed-input.mjs");
+        await File.WriteAllTextAsync(script,"process.stdin.destroy();process.exit(0);");
+        var request=new{payload=new string('x',512*1024)};
+        if(duplex)await Assert.ThrowsAsync<InvalidDataException>(()=>ModuleProcess.RunHostAsync("node",script,request,[],(_,_,_)=>throw new InvalidOperationException("Unexpected host call"),CancellationToken.None));
+        else await Assert.ThrowsAsync<InvalidDataException>(()=>ModuleProcess.RunAsync("node",script,request,CancellationToken.None));
+    }
+
     [Fact]
     public async Task Companion_engines_are_explicit_signed_assets_not_caller_selected_paths()
     {
