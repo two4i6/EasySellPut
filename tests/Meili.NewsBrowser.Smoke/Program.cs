@@ -163,12 +163,18 @@ internal static partial class Program
         {
             anchored.Update(MenuBarQuote.Create("QQQ", null, false, loc, DateTimeOffset.UtcNow), [], UpDownColorMode.RedUp);
             await Task.Delay(150);
-            var probe = new Window();
-            var anchor = anchored.Anchor;
-            var screen = probe.Screens.All.Single(s => s.TryGetPlatformHandle() is { HandleDescriptor: "CGDirectDisplayID" } h && h.Handle.ToInt64() == anchor.DisplayId);
-            if (!double.IsFinite(anchor.X) || !double.IsFinite(anchor.Y) || anchor.X < 0 || anchor.X > screen.Bounds.Width / screen.Scaling || anchor.Y < 0 || anchor.Y > screen.Bounds.Height / screen.Scaling)
-                throw new Exception("Status item anchor is outside its actual display");
-            probe.Close();
+            var probe = new Window { Width=320, Height=200 };
+            StatusItemAnchor anchor;
+            probe.Show();
+            try{
+                // Screen handles and the AppKit status-button window are native
+                // resources: a new, unshown Avalonia Window need not have them.
+                await Until(()=>anchored.Anchor.DisplayId!=0&&probe.Screens.All.Any(s=>s.TryGetPlatformHandle() is {HandleDescriptor:"CGDirectDisplayID"} h&&h.Handle.ToInt64()==anchored.Anchor.DisplayId),"native status item display registration");
+                anchor=anchored.Anchor;
+                var screen=probe.Screens.All.Single(s=>s.TryGetPlatformHandle() is {HandleDescriptor:"CGDirectDisplayID"} h&&h.Handle.ToInt64()==anchor.DisplayId);
+                if(!double.IsFinite(anchor.X)||!double.IsFinite(anchor.Y)||anchor.X<0||anchor.X>screen.Bounds.Width/screen.Scaling||anchor.Y<0||anchor.Y>screen.Bounds.Height/screen.Scaling)
+                    throw new Exception("Status item anchor is outside its actual display");
+            }finally{probe.Close();}
             anchored.InvokePanel();
             if (clicks != 1) throw new Exception("Status item panel target/action failed");
             Console.WriteLine($"PASS: native status item anchor on display {anchor.DisplayId}, local points {anchor.X:0.##},{anchor.Y:0.##} and panel click.");
