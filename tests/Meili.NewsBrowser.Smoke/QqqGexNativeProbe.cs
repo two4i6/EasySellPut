@@ -63,6 +63,9 @@ internal static partial class Program
                 await Task.CompletedTask;
 #endif
             }
+            // A WKWebView may still be on its initial empty document immediately
+            // after Navigate. DOM polling injected there is destroyed by commit.
+            await Until(()=>Title()=="QQQ GEX · 本地数据","native populated document committed");
             var serial=0;
             async Task Check(string condition,string label)
             {
@@ -84,7 +87,7 @@ internal static partial class Program
                 await Check("[...document.querySelectorAll('[role=tab]')].some(b=>b.textContent.trim()==="+name+"&&b.getAttribute('aria-selected')==='true')","native tab "+tab);
             }
             await Eval("document.title='gex-reload-pending'");await Until(()=>Title()=="gex-reload-pending","native reload sentinel");
-            browser.Reload();await Until(()=>Title()!="gex-reload-pending","native reload new document");
+            browser.Reload();await Until(()=>Title()=="QQQ GEX · 本地数据","native reload new document");
             await Check("document.querySelectorAll('section[aria-label=\"回放 GEX 快照表\"] tbody tr:not([aria-hidden])').length===8","native reload retains snapshots");
             Console.WriteLine("PASS: synthetic populated native QQQ GEX: 3 chart modes, 10 analysis tabs, canvas and reload; no live-history/alert claim.");
         }

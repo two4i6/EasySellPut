@@ -33,7 +33,15 @@ public sealed partial class QqqGexResponseStore
     private void EnsureArchiveSpace(long incoming){var path=new Microsoft.Data.Sqlite.SqliteConnectionStringBuilder(connectionString).DataSource;QqqGexStoragePolicy.EnsureAvailable(new DriveInfo(Path.GetPathRoot(Path.GetFullPath(path))!).AvailableFreeSpace,incoming);}
     public byte[] ReadProviderBody(string hash)
     {
-        using var connection=Open();using var command=connection.CreateCommand();command.CommandText="PRAGMA table_info(qqq_gex_provider_raw)";var hasEncoding=false;using(var fields=command.ExecuteReader()){while(fields.Read())hasEncoding|=fields.GetString(1)=="encoding";}command.CommandText="SELECT body,"+(hasEncoding?"encoding":"'identity'")+" FROM qqq_gex_provider_raw WHERE sha256=$hash";command.Parameters.AddWithValue("$hash",hash);using var reader=command.ExecuteReader();if(!reader.Read())throw new InvalidDataException("Original provider body is missing");var bytes=(byte[])reader.GetValue(0);var decoded=reader.GetString(1) switch{"identity"=>bytes,"gzip-v1"=>QqqGexArchiveBody.DecodeBytes(bytes,128*1024*1024),_=>throw new InvalidDataException("Unsupported provider archive encoding")};if(!Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(decoded)).Equals(hash,StringComparison.OrdinalIgnoreCase))throw new InvalidDataException("Original provider body integrity failed");return decoded;
+        using var connection=Open();return ReadProviderBodyCore(connection,hash);
+    }
+    public static byte[] ReadProviderBodyReadOnly(string path,string hash)
+    {
+        using var connection=new Microsoft.Data.Sqlite.SqliteConnection(new Microsoft.Data.Sqlite.SqliteConnectionStringBuilder{DataSource=path,Mode=Microsoft.Data.Sqlite.SqliteOpenMode.ReadOnly}.ToString());connection.Open();return ReadProviderBodyCore(connection,hash);
+    }
+    private static byte[] ReadProviderBodyCore(Microsoft.Data.Sqlite.SqliteConnection connection,string hash)
+    {
+        using var command=connection.CreateCommand();command.CommandText="PRAGMA table_info(qqq_gex_provider_raw)";var hasEncoding=false;using(var fields=command.ExecuteReader()){while(fields.Read())hasEncoding|=fields.GetString(1)=="encoding";}command.CommandText="SELECT body,"+(hasEncoding?"encoding":"'identity'")+" FROM qqq_gex_provider_raw WHERE sha256=$hash";command.Parameters.AddWithValue("$hash",hash);using var reader=command.ExecuteReader();if(!reader.Read())throw new InvalidDataException("Original provider body is missing");var bytes=(byte[])reader.GetValue(0);var decoded=reader.GetString(1) switch{"identity"=>bytes,"gzip-v1"=>QqqGexArchiveBody.DecodeBytes(bytes,128*1024*1024),_=>throw new InvalidDataException("Unsupported provider archive encoding")};if(!Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(decoded)).Equals(hash,StringComparison.OrdinalIgnoreCase))throw new InvalidDataException("Original provider body integrity failed");return decoded;
     }
 
 }

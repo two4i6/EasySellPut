@@ -41,6 +41,16 @@ try {
   // renderer explicitly before asserting its canvas, without clearing preferences.
   await page.getByRole('button',{name:'K线',exact:true}).click();await page.locator('canvas:visible').first().waitFor({timeout:60000});
   await page.waitForFunction(()=>document.querySelectorAll('section[aria-label="回放 GEX 快照表"] tbody tr:not([aria-hidden])').length>1,{},{timeout:60000});
+  await page.waitForFunction(()=>{try{return JSON.parse(localStorage.getItem('qqq-local:observed-exposure:v1')??'null')?.effectiveAt!==null;}catch{return false;}},{},{timeout:30000});
+  // Wait for the existing bounded preference bridge, then read it through the actual application operation.
+  let browserSelection;
+  for(let attempt=0;attempt<100;attempt++){const current=await page.evaluate(()=>localStorage.getItem('qqq-local:observed-exposure:v1'));const saved=await(await context.request.get(new URL('preferences',base).href)).json();if(current&&saved.values['qqq-local:observed-exposure:v1']===current){browserSelection=current;break;}await new Promise(r=>setTimeout(r,100));}
+  assert.ok(browserSelection,'current browser selection must reach native preference storage');
+  await context.request.get(new URL('api/analysis/qqq/local-state',base).href);
+  const operation=JSON.parse(execFileSync('dotnet',[host,'--operation',dir,'get_qqq_gex_view',JSON.stringify({resource:'workspace'})],{encoding:'utf8',maxBuffer:1048576}));
+  assert.equal(operation.success,true);const workspace=JSON.parse(Buffer.from(operation.data.bodyBase64,'base64').toString('utf8'));
+  const selection=JSON.parse(workspace.preferences.values['qqq-local:observed-exposure:v1']);assert.equal(selection.date,'2026-01-02');assert.deepEqual(selection,JSON.parse(browserSelection));assert.deepEqual(workspace.analyticalSelections.exposure,selection);assert.ok(selection.effectiveAt>0);assert.ok(selection.selectedStrikes.length>0);
+  assert.equal(workspace.desktop.fresh,true);assert.equal(workspace.desktop.lastObserved.state.capture.phase,'idle');assert.equal(workspace.desktop.lastObserved.state.ready,true);
   const api=new URL('api/analysis/qqq/gex/day?date=2026-01-02&from=2026-01-02T05%3A00%3A00Z&to=2026-01-03T05%3A00%3A00Z&expiryDate=2026-01-02',base);
   const before=await (await context.request.get(new URL('api/analysis/qqq/local-state',base).href)).json();assert.equal(before.ready,true);assert.equal(before.capture.phase,'idle','test host must not claim live capture');
   for(let i=0;i<cycles;i++){

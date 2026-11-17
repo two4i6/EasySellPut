@@ -1,0 +1,15 @@
+{
+  "kind": "actual-retained-partial-MCP-read",
+  "date": "2026-11-16",
+  "expiries": 28,
+  "partialArchiveDates": [
+    "2026-11-16"
+  ],
+  "sourceTimeAligned": false,
+  "firstExpiryProfileStrikes": 174,
+  "providerBodies": 1,
+  "providerBodyHash": "FE915C0C5E908D7D1E1EF446E9860AEBCDB93E40B733E26E876C8C32C6F79A2E",
+  "firstChunkHashMatches": true,
+  "complete": false,
+  "coverage": "Retained real partial CBOE observation. No new source fetch, full session, signal or notification claimed."
+}

@@ -176,13 +176,19 @@ MEILI_LIVE=1 python3 tests/automation/live_cli_mcp_smoke.py --executable /path/t
 
 ### QQQ GEX 本地只读归档与页面数据
 
-`get_qqq_gex_archive` 的 `resource` 为 `dates`、`snapshots`、`profile` 或 `bars`。除日期索引外需 `date`；完整 profile 还需快照列表原样返回的 `expiry` 和 `capturedAt`。每页最多 200 项，后续页必须带首批 `revision`；`revision_changed` 后从第一页重读。profile 不经过 compact、舍入或缺失补零。
+`get_qqq_gex_archive` 的 `resource` 为 `dates`、`snapshots`、`profile`、`bars` 或 `providers`。`providers` 不需要 date：分页返回本地保留的原始来源响应哈希、来源、发布时间、接收时间和存储大小；使用 `get_qqq_gex_view resource=providerRaw providerHash=该哈希` 读取原始字节，不能传文件路径。除日期索引外需 `date`；完整 profile 还需快照列表原样返回的 `expiry` 和 `capturedAt`。每页最多 200 项，后续页必须带首批 `revision`；`revision_changed` 后从第一页重读。profile 不经过 compact、舍入或缺失补零。
 
-`get_qqq_gex_view` 支持 `display`、`evidence`、`context`、`exposureManifest`、`exposureWindow`、`spreadQuote`、`analysis`。大结果用 base64 分块（默认 64 KiB，最大 256 KiB）；解码拼接后验证完整 `sha256`，再解析 JSON/NDJSON。后续块提交 `offset` 和首块 `sha256`，内容变化返回 `revision_changed`，不得拼接旧块。context 的 `at` 固定响应时间，缺少参考日期仍明确报告。manifest 只接收日期及可选 expiry；窗口需使用 manifest 的精确 from/to/source，最长一小时，读完全部窗口后重读 manifest 验证 revision。
+`get_qqq_gex_view` 支持 `display`、`evidence`、`context`、`exposureManifest`、`exposureWindow`、`spreadQuote`、`analysis`、`workspace`、`providerRaw`。大结果用 base64 分块（默认 64 KiB，最大 256 KiB）；解码拼接后验证完整 `sha256`，再解析 JSON/NDJSON。后续块提交 `offset` 和首块 `sha256`，内容变化返回 `revision_changed`，不得拼接旧块。context 的 `at` 固定响应时间，缺少参考日期仍明确报告。manifest 只接收日期及可选 expiry；窗口需使用 manifest 的精确 from/to/source，最长一小时，读完全部窗口后重读 manifest 验证 revision。
 
 analysis 复用导入的 UI 内核：exposure、replayTable、gammaModel、atmIv、maxPain、pulse、optionOverview、dayScenario、wallTouches、spreadStudy、structureEvents、activityResponse、overlays、chart、heatmapField。需 date、at 游标，selected scope 还需 expiry；mode 支持 gamma/gamma-call/gamma-put/delta/charm，metric 支持 gex/oi/volume。工具的 complete=false 不等于传输丢失：它明确不认证缺失历史或全日覆盖。每个快照仍保留自己的输入质量、来源、源时间、延迟和计算版本。不能把这些工具的新增视为所有 UI 分析已完成逐项验收，详见 web/qqq-gex/MIGRATION-MATRIX.md。
+
+`workspace` 无需市场数据库或 Node：只读返回允许保存的界面偏好、已解码的 analyticalSelections、最近观察到的回放游标／作用域／模式／执行价筛选，以及桌面采集阶段、部分数据、存储状态、原生行情和配色的带时间戳观察。`desktop.fresh` 仅表示 30 秒内观察过，不能证明窗口仍运行或行情实时；关闭／休眠后旧观察明确标记 stale。偏好中的 `qqq-local:observed-*` 同样带 observedAt，不冒充瞬时屏幕状态。此工具不改变界面，也不启动监控。读取更新会使分块 hash 失效，应从头重读。
+
+`wallTouches` 新增 `wallHorizon=10|30`（默认 30）、`wallGamma=all|positive|negative|zero`、`wallPeriod=all|open|middle|late`、`wallSide=all|put|call`。`presentation` 采用原界面筛选和直方图表达式：历史参考未认证时 `statsKnown=false`、summary/histogram=null、事件／表格为空；完整筛选事件不截断，表格单独给最后 8 项。旧顶层 events/summary 明确为未筛选保留样本，不当作界面已就绪统计。ATM IV/Max Pain 的跨到期日曲线查询使用 scope=all；单到期日查询是有意缩小范围。
 
 这些读取工具无需 --allow-writes，不采集远程行情或生成观察记录。capture_qqq_gex_input、calculate_qqq_gex_local、rebuild_qqq_gex_history、clear_cache 仍是独立写操作。
 ## Yahoo 免费推送
 
 `easysellput live AAPL SPY QQQ --seconds 10 --max-updates 20 --json`；MCP `get_live_quotes` 使用同一有界 WebSocket 会话。不是 HTTP 快照或无限监控。完整的覆盖、缺失/断线语义与验证见 [免费 Live](53-Yahoo免费Live与全应用行情订阅.md)。
+
+QQQ GEX 部分采集：`get_qqq_gex_view resource=partial` 返回与桌面“部分采集”表相同的最新元数据，无需桌面打开；`get_qqq_gex_archive archiveState=partial` 可分别分页读取 dates/snapshots/profile/bars。默认 archiveState=published 保持原行为，两种记录绝不混作完整交易日，也不能用 partial 直接授权常规回放。

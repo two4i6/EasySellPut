@@ -25,21 +25,19 @@
     {
       "operation": "get_qqq_gex_view",
       "arguments": {
-        "resource": "spreadQuote",
-        "date": "2026-01-02",
-        "expiry": "2026-01-02",
-        "at": "2026-01-02T15:00:00Z",
-        "shortStrike": 500,
-        "longStrike": 495
+        "resource": "workspace"
       },
       "expect": {
-        "/data/status": {
-          "equals": "cache_miss"
-        },
         "/data/available": {
-          "equals": false
+          "equals": true
         },
-        "/data/complete": {
+        "/data/resource": {
+          "equals": "workspace"
+        },
+        "/data/encoding": {
+          "equals": "base64"
+        },
+        "/data/hasMore": {
           "equals": false
         }
       },

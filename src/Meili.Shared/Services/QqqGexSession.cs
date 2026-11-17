@@ -48,6 +48,12 @@ public sealed class QqqGexSession : IDisposable
     private object CaptureSnapshot(){var value=Volatile.Read(ref captureState);return new {phase=value.Phase,startedAt=value.StartedAt,updatedAt=value.UpdatedAt,sourceMarketAt=value.SourceMarketAt,delayMinutes=value.DelayMinutes,missingIv=value.MissingIv,capturedExpiries=value.CapturedExpiries,inputComplete=value.InputComplete,visible=activity?.AnyVisible??true};}
     // Bound expensive hydration/serialization across concurrent chart requests; event heartbeats use separate permits.
     private readonly SemaphoreSlim dataReadGate=new(1);
+    private readonly string workspaceObserverId=Guid.NewGuid().ToString("N");
+    private object ObserveWorkspace(object state)
+    {
+        if(directory is not null)try{new QqqGexWorkspace(directory).Observe(state,workspaceObserverId);}catch(Exception e)when(e is IOException or UnauthorizedAccessException){AppLog.Warn("qqq-gex","Could not persist desktop observation",e);}
+        return state;
+    }
     private bool Ready()=>cache?.IsUnavailable!=true&&cache?.LatestLocalDate(DateTimeOffset.UtcNow) is not null;
     public void NotifyDataUpdated(){var old=Interlocked.Exchange(ref changed,new(TaskCreationOptions.RunContinuationsAsynchronously));old.TrySetResult(true);}
     public Uri PageUri { get; }
@@ -122,11 +128,11 @@ public sealed class QqqGexSession : IDisposable
             if(route=="events"){
                 var url=new Uri(PageUri,request[1]);var after=url.Query.StartsWith("?after=",StringComparison.Ordinal)?Uri.UnescapeDataString(url.Query[7..]):"";var notification=Volatile.Read(ref changed);var storage=cache?.StorageHealth();var readable=cache?.IsUnavailable!=true;var version=readable?cache?.RevisionToken()??"":"storage-unavailable";
                 if(version==after){try{await notification.Task.WaitAsync(TimeSpan.FromSeconds(5),ct);}catch(TimeoutException){}storage=cache?.StorageHealth();readable=cache?.IsUnavailable!=true;version=readable?cache?.RevisionToken()??"":"storage-unavailable";}
-                await Send(200,"application/json",JsonSerializer.SerializeToUtf8Bytes(new {version,storage,ready=readable&&Ready(),capture=CaptureSnapshot(),presentation=Volatile.Read(ref presentation),partial=readable?cache?.LatestPartial():null,quote=LocalQuote(),latestDate=!readable||version==after?null:cache?.LatestLocalDate(DateTimeOffset.UtcNow)}),ct);return;
+                await Send(200,"application/json",JsonSerializer.SerializeToUtf8Bytes(ObserveWorkspace(new {version,storage,ready=readable&&Ready(),capture=CaptureSnapshot(),presentation=Volatile.Read(ref presentation),partial=readable?cache?.LatestPartial():null,quote=LocalQuote(),latestDate=readable?cache?.LatestLocalDate(DateTimeOffset.UtcNow):null})),ct);return;
             }
             if(route=="api/analysis/qqq/cache-status"){var storage=cache?.StorageHealth();var ready=cache?.IsUnavailable!=true&&Ready();var value=Volatile.Read(ref captureState);var pending=value.Phase is "capturing" or "calculating" or "captured_input" or "enriching";await Send(200,"application/json",JsonSerializer.SerializeToUtf8Bytes(new {localOnly=true,status=cache?.IsUnavailable==true?"UNAVAILABLE":ready?"AVAILABLE":pending?"WARMING":"EMPTY",ready,pending,capture=CaptureSnapshot(),storage}),ct);return;}
             if(route=="api/analysis/qqq/local-quote"){await Send(200,"application/json",JsonSerializer.SerializeToUtf8Bytes(new {quote=LocalQuote()}),ct);return;}
-            if(route=="api/analysis/qqq/local-state"){var storage=cache?.StorageHealth();var readable=cache?.IsUnavailable!=true;await Send(200,"application/json",JsonSerializer.SerializeToUtf8Bytes(new {storage,ready=readable&&Ready(),capture=CaptureSnapshot(),partial=readable?cache?.LatestPartial():null,latestDate=readable?cache?.LatestLocalDate(DateTimeOffset.UtcNow):null,localOnly=true,revision=readable?cache?.RevisionToken()??"":"storage-unavailable"}),ct);return;}
+            if(route=="api/analysis/qqq/local-state"){var storage=cache?.StorageHealth();var readable=cache?.IsUnavailable!=true;await Send(200,"application/json",JsonSerializer.SerializeToUtf8Bytes(ObserveWorkspace(new {storage,ready=readable&&Ready(),capture=CaptureSnapshot(),quote=LocalQuote(),presentation=Volatile.Read(ref presentation),partial=readable?cache?.LatestPartial():null,latestDate=readable?cache?.LatestLocalDate(DateTimeOffset.UtcNow):null,localOnly=true,revision=readable?cache?.RevisionToken()??"":"storage-unavailable"})),ct);return;}
             if(route.StartsWith("api/",StringComparison.Ordinal)) {
                 if(!new[]{"api/analysis/qqq/pcs","api/analysis/qqq/pcs/backtest","api/analysis/qqq/pcs/local-decision","api/analysis/qqq/gex/day","api/analysis/qqq/gex/exposure","api/analysis/qqq/gex/intraday-context","api/analysis/qqq/gex/spread-quote","api/proxy/yahoo/history"}.Contains(route,StringComparer.Ordinal)){await Send(404,"application/json",Encoding.UTF8.GetBytes("{\"code\":\"LOCAL_ROUTE_NOT_FOUND\"}"),ct);return;}
                 await dataReadGate.WaitAsync(ct);try{

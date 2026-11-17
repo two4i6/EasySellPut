@@ -31,10 +31,11 @@ public sealed partial class AutomationService
             case "get_qqq_gex_archive":
                 {
                     var resource=a.Text("resource");var page=a.Int("page",1,1,100000);var pageSize=a.Int("pageSize",100,1,200);
-                    if(resource!="dates"&&!a.Has("date"))throw new ArgumentException("Trading date is required");
+                    if(resource is not ("dates" or "providers")&&!a.Has("date"))throw new ArgumentException("Trading date is required");
                     if(resource=="profile"&&(!a.Has("expiry")||!a.Has("capturedAt")))throw new ArgumentException("Profile requires expiry and capturedAt from snapshots");
                     if(page>1&&!a.Has("revision"))throw new ArgumentException("Continuation requires revision");
                     var query="/api/analysis/qqq/local-archive?resource="+Uri.EscapeDataString(resource)+"&page="+page+"&pageSize="+pageSize;
+                    if(a.Has("archiveState")){var state=a.Text("archiveState");if(state is not ("published" or "partial")||resource=="providers")throw new ArgumentException("Invalid archive state");query+="&archiveState="+state;}
                     foreach(var key in new[]{"date","expiry"})if(a.Has(key))query+="&"+key+"="+a.Date(key)!.Value.ToString("yyyy-MM-dd");
                     foreach(var key in new[]{"capturedAt","revision"})if(a.Has(key))query+="&"+key+"="+Uri.EscapeDataString(a.Text(key));
                     if(!File.Exists(Path.Combine(DirectoryInfo.Path,"cache","qqq-gex.db")))return new {status="cache_miss",available=false,complete=false};
