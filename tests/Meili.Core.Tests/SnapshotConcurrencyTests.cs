@@ -6,6 +6,45 @@ namespace Meili.Core.Tests;
 public sealed class SnapshotConcurrencyTests
 {
     [Fact]
+    public void Byte_limits_reject_oversized_snapshots_without_replacing_valid_content()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), "snapshot-bound-" + Guid.NewGuid());
+        Directory.CreateDirectory(directory);
+        var path = Path.Combine(directory, "snapshot.json");
+        try
+        {
+            File.WriteAllText(path, "abc");
+            var bounded = new SnapshotFile(path, maxBytes: 3);
+            Assert.Equal("abc", bounded.Read());
+            Assert.Throws<InvalidDataException>(() => bounded.Write("abcd"));
+            Assert.Equal("abc", new SnapshotFile(path).Read());
+            bounded.Write("xyz");
+            Assert.Equal("xyz", bounded.Read());
+            File.WriteAllText(path, "oversized");
+            Assert.Throws<InvalidDataException>(() => new SnapshotFile(path, maxBytes: 3));
+            Assert.Equal("oversized", new SnapshotFile(path).Read());
+        }
+        finally { Directory.Delete(directory, recursive: true); }
+    }
+
+    [Fact]
+    public void Read_only_snapshots_do_not_create_directories_or_writer_metadata()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), "snapshot-read-only-" + Guid.NewGuid());
+        var path = Path.Combine(directory, "snapshot.json");
+        Assert.Null(new SnapshotFile(path).Read());
+        Assert.False(Directory.Exists(directory));
+        Directory.CreateDirectory(directory);
+        try
+        {
+            File.WriteAllText(path, "legacy");
+            Assert.Equal("legacy", new SnapshotFile(path).Read());
+            Assert.Equal(new[] { path }, Directory.GetFiles(directory));
+        }
+        finally { Directory.Delete(directory, recursive: true); }
+    }
+
+    [Fact]
     public void An_open_reader_keeps_its_bytes_across_multiple_replacements()
     {
         var directory = Path.Combine(Path.GetTempPath(), "snapshot-retained-reader-" + Guid.NewGuid());

@@ -12,8 +12,7 @@ public sealed class QqqGexPreferences(string directory)
     private static bool Allowed(string key)=>key.Length<=200&&new[]{"qqq-gex:","qqq-pcs:","qqq-terminal:","qqq-local:"}.Any(prefix=>key.StartsWith(prefix,StringComparison.Ordinal))&&!new[]{"token","password","secret","api-key","api_key","credential","auth"}.Any(word=>key.Contains(word,StringComparison.OrdinalIgnoreCase));
     private (SnapshotFile File,string? Body,Dictionary<string,string> Values) Open()
     {
-        if(File.Exists(path)&&new FileInfo(path).Length>65536)throw new InvalidDataException("GEX preferences exceed the local view limit");
-        var file=new SnapshotFile(path);var body=file.Read();var values=body is null?new Dictionary<string,string>():JsonSerializer.Deserialize<Dictionary<string,string>>(body)??throw new InvalidDataException("Invalid GEX preferences");return(file,body,values);
+        var file=new SnapshotFile(path,65536);var body=file.Read();var values=body is null?new Dictionary<string,string>():JsonSerializer.Deserialize<Dictionary<string,string>>(body)??throw new InvalidDataException("Invalid GEX preferences");return(file,body,values);
     }
     public State Read(){var value=Open();return new(Hash(value.Body??""),value.Values.Where(p=>Allowed(p.Key)).ToDictionary(p=>p.Key,p=>p.Value));}
     public State Patch(string revision,Dictionary<string,string?> changes)
