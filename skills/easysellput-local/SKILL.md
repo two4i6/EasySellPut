@@ -155,3 +155,9 @@ For a comprehensive QQQ GEX read, inspect view workspace and partial first, then
 Workspace analyticalSelections.interaction is a timestamped, 500ms-coalesced private-document observation: focus/control state, CSS viewport pointer, visible tooltips and original K-line hover (Unix seconds). Respect documentId, visibility, observedAt, textTruncated/detailsOmitted and null. Text/password drafts are redacted; no global/native input capture or instantaneous-screen guarantee. For bounded omitted details read chartStudies/archive. Native physical-input coverage remains separately unverified.
 
 Heatmap inspection is in workspace analyticalSelections.interaction.heatmapInspection: original current tile/value/null/inputStatus, mode, keyboard, scenario/price-axis/coverage. Heatmap times are Unix milliseconds; K-line hover uses Unix seconds. Preserve hypothetical scenario versus historical provenance. Respect tooltipsOmitted/detailsOmitted/observationLimits; bounded omission is not absence. Full fields remain in heatmapField/dayScenario/archive.
+
+Exposure observations distinguish mode (retained original selection), scenarioMode (original scenario kernel mode) and displayedMode (actual UI select/model). Delta/Charm retained history selection can display Gamma in scenario view; never infer effective scenario mode from heatmapInspection.mode, which is the original inspector input. Read exposure.displayedMode and preserve scenario provenance.
+
+Exposure also retains original scenarioInputAt/scenarioDisplayedAt (Unix milliseconds), scenarioLoading/scenarioRetained/scenarioError. While recalculation is pending, the displayed scenario may be older than the requested input; respect these fields instead of attributing a retained field to the new cursor.
+
+Exposure active identifies visible heatmap state; allExpiries identifies matrix aggregate context. displayedMode is the effective heatmap model, not proof of an on-screen heatmap while active=false.
