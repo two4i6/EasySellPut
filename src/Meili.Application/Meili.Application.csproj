@@ -5,6 +5,7 @@
     <ProjectReference Include="../Meili.Data/Meili.Data.csproj" />
     <ProjectReference Include="../Meili.Analytics/Meili.Analytics.csproj" />
   </ItemGroup>
+  <ItemGroup><EmbeddedResource Include="../../web/qqq-gex/public-contracts.json" LogicalName="QqqGexRuntime/public-contracts.json" /></ItemGroup>
   <ItemGroup><EmbeddedResource Include="../../web/qqq-gex/node-runtime-lock.json" LogicalName="QqqGexRuntime/node-lock.json" /></ItemGroup>
   <ItemGroup><EmbeddedResource Include="../../skills/easysellput-local/SKILL.md" LogicalName="EasySellPut.Skill" /></ItemGroup>
   <ItemGroup><EmbeddedResource Include="Updates/update-public-key.pem" LogicalName="EasySellPut.UpdatePublicKey" /></ItemGroup>

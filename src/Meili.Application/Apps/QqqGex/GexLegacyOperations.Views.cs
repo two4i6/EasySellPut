@@ -3,8 +3,8 @@ using System.Text;
 using System.Text.Json;
 using Meili.Data.Cache;
 
-namespace Meili.Automation;
-public sealed partial class AutomationService
+namespace Meili.Automation.Apps.QqqGex;
+internal sealed partial class GexLegacyOperations
 {
     private async Task<object> ReadQqqViewAsync(Input a,CancellationToken ct)
     {
@@ -14,18 +14,18 @@ public sealed partial class AutomationService
         string Instant(string key){if(a.Instant(key) is null)throw new ArgumentException(key+" is required");return a.Text(key);}
         if(resource=="workspace"){
             if(a.Value.EnumerateObject().Any(p=>p.Name is not ("resource" or "offset" or "length" or "sha256")))throw new ArgumentException("Workspace accepts only chunk parameters");
-            return ChunkQqqView(a,resource,JsonSerializer.Serialize(new Meili.Shared.Services.QqqGexWorkspace(DirectoryInfo.Path).Read()),"application/json");
+            return ChunkQqqView(a,resource,JsonSerializer.Serialize(new Meili.Shared.Services.QqqGexWorkspace(directory).Read()),"application/json");
         }
         if(resource=="partial"){
             if(a.Value.EnumerateObject().Any(p=>p.Name is not ("resource" or "offset" or "length" or "sha256")))throw new ArgumentException("Partial view accepts only chunk parameters");
-            var partialDb=Path.Combine(DirectoryInfo.Path,"cache","qqq-gex.db");if(!File.Exists(partialDb))return new{available=false,status="cache_miss",complete=false};
+            var partialDb=Path.Combine(directory,"cache","qqq-gex.db");if(!File.Exists(partialDb))return new{available=false,status="cache_miss",complete=false};
             var partial=QqqGexResponseStore.ReadLatestPartialReadOnly(partialDb);
             return ChunkQqqView(a,resource,JsonSerializer.Serialize(new{available=partial is not null,complete=false,partial}),"application/json");
         }
         if(resource=="providerRaw"){
             if(a.Value.EnumerateObject().Any(p=>p.Name is not ("resource" or "providerHash" or "offset" or "length" or "sha256")))throw new ArgumentException("Provider raw accepts only an indexed hash and chunk parameters");
             var hash=a.Text("providerHash");if(!System.Text.RegularExpressions.Regex.IsMatch(hash,"^[0-9a-fA-F]{64}$"))throw new ArgumentException("providerHash must be a hash from archive resource=providers");
-            var sourceDb=Path.Combine(DirectoryInfo.Path,"cache","qqq-gex.db");if(!File.Exists(sourceDb))return new{available=false,status="cache_miss",complete=false};
+            var sourceDb=Path.Combine(directory,"cache","qqq-gex.db");if(!File.Exists(sourceDb))return new{available=false,status="cache_miss",complete=false};
             return ChunkQqqBytes(a,resource,QqqGexResponseStore.ReadProviderBodyReadOnly(sourceDb,hash.ToUpperInvariant()),"application/octet-stream");
         }
         var allowed=new HashSet<string>{"resource","offset","length","sha256"};string route;
@@ -58,12 +58,12 @@ public sealed partial class AutomationService
         }
         if(a.Value.EnumerateObject().Any(p=>!allowed.Contains(p.Name)))throw new ArgumentException("Parameter is not applicable to this resource");
         var offset=a.Int("offset",0,0,128*1024*1024);var length=a.Int("length",65536,1,262144);if(offset>0&&!a.Has("sha256"))throw new ArgumentException("Continuation requires first chunk sha256");
-        var db=Path.Combine(DirectoryInfo.Path,"cache","qqq-gex.db");if(!File.Exists(db))return new{status="cache_miss",available=false,complete=false};
+        var db=Path.Combine(directory,"cache","qqq-gex.db");if(!File.Exists(db))return new{status="cache_miss",available=false,complete=false};
         var path=route+"?"+string.Join("&",query.Select(p=>Uri.EscapeDataString(p.Key)+"="+Uri.EscapeDataString(p.Value)));string body,contentType;
         if(resource=="spreadQuote"){
             var response=new QqqGexResponseStore(db).ReadSpreadQuote(path,DateTimeOffset.UtcNow);if(response is null)return new{status="cache_miss",available=false,complete=false};body=response.Body;contentType=response.ContentType;
         }else{
-            var result=await QqqGexCalculationRunner.QueryAsync(DirectoryInfo.Path,path,ct);var json=JsonSerializer.SerializeToElement(result);
+            var result=await QqqGexCalculationRunner.QueryAsync(directory,path,ct);var json=JsonSerializer.SerializeToElement(result);
             if(json.TryGetProperty("status",out _))return json;
             if(json.TryGetProperty("body",out var wire)){body=wire.GetString()!;contentType=json.GetProperty("contentType").GetString()!;}
             else{body=json.GetRawText();contentType="application/json";}

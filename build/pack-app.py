@@ -33,7 +33,7 @@ def package(args):
                 payload['ui/' + path.relative_to(args.ui_dir).as_posix()] = path.read_bytes()
         if 'ui/index.html' not in payload:
             raise ValueError('Missing UI entrypoint')
-    for name in ['source-manifest.json', 'node-runtime-lock.json']:
+    for name in ['source-manifest.json', 'node-runtime-lock.json', 'public-contracts.json']:
         payload['notices/' + name] = (ROOT / 'web/qqq-gex' / name).read_bytes()
     # Carry the licenses of dependencies actually used by the existing esbuild output.
     build_manifest = args.ui_dir / 'build-manifest.json' if args.ui_dir else None

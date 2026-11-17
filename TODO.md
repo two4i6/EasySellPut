@@ -249,3 +249,9 @@ Package verification, profile registry/leases and explicit local maintenance are
 ### S04 immutable runtime concurrency acceptance
 
 First-use extraction now creates the shared executable without overwriting an existing destination. Concurrent owners authenticate and reuse the winner's exact bytes, preventing replacement of a running Windows executable. The actual packaged runtime smoke now starts calculation and archive reading concurrently against a new shared profile with no runtime directory and no system Node, before the existing checksum-tampering rejection. Fresh Linux self-contained package passed the expanded smoke; Windows/macOS CI runs the same script in its extracted-package checks.
+
+### S07 app-owned facade contracts and compatibility boundary
+
+The eight established GEX contracts now live in `web/qqq-gex/public-contracts.json`, embedded as metadata by ordinary host compilation and carried in signed app notices. GEX-specific legacy routing, chunking and UI-kernel projections moved into `Apps/QqqGex/GexLegacyOperations`; the generic coverage dispatcher delegates to that explicit compatibility adapter. No model algorithm, source timing, archive path or existing handler behavior changed. This isolates the remaining migration target; compiled capture compatibility still exists and is not described as independent app execution.
+
+Verification: exact before/after equality of all 58 operation names/order/descriptions/permissions/schemas; Automation 164 and all 58 real CLI/MCP capability cases passed. Independently built signed core artifact retained exact original engine bundles/model identity and passed retained-data/hash checks. Python guards passed. Public names and ordinary host builds remain unchanged; no npm invocation was added to compilation.

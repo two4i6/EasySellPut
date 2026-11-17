@@ -1,0 +1,584 @@
+[
+  {
+    "name": "get_qqq_gex_view",
+    "description": "Read local QQQ GEX charts, indicators, analysis and source/state data in bounded base64 chunks, including workspace persisted filters/preferences, private-document pointer/focus/hover observations and last desktop capture/quote observation (freshness explicit): display/evidence (latest or 90-minute window), context (20 prior trading days), exposure manifest/one-hour profile window, or historical two-leg quote. No remote capture. Continuations require SHA256; changes restart. Decode and concatenate chunks before JSON/NDJSON parsing. Missing data stays explicit.",
+    "writes": false,
+    "schema": {
+      "type": "object",
+      "properties": {
+        "resource": {
+          "type": "string",
+          "description": "Fixed local resource",
+          "enum": [
+            "display",
+            "evidence",
+            "context",
+            "exposureManifest",
+            "exposureWindow",
+            "spreadQuote",
+            "analysis",
+            "workspace",
+            "providerRaw",
+            "partial"
+          ],
+          "maxLength": 200
+        },
+        "analysis": {
+          "type": "string",
+          "description": "Original UI kernel; wallTouches.presentation is the qualified filtered UI result (legacy summary is raw/unfiltered); ATM IV/MaxPain cross-expiry curves use scope=all",
+          "enum": [
+            "exposure",
+            "replayTable",
+            "gammaModel",
+            "atmIv",
+            "maxPain",
+            "pulse",
+            "optionOverview",
+            "dayScenario",
+            "wallTouches",
+            "spreadStudy",
+            "structureEvents",
+            "activityResponse",
+            "overlays",
+            "chart",
+            "heatmapField",
+            "priceReactions",
+            "chartStudies",
+            "directionalMarkers"
+          ],
+          "maxLength": 200
+        },
+        "side": {
+          "type": "string",
+          "description": "Spread option side",
+          "enum": [
+            "put",
+            "call"
+          ],
+          "maxLength": 200
+        },
+        "basis": {
+          "type": "string",
+          "description": "Spread credit basis",
+          "enum": [
+            "bidAsk",
+            "mid"
+          ],
+          "maxLength": 200
+        },
+        "preset": {
+          "type": "string",
+          "description": "Original chart preset",
+          "enum": [
+            "simple",
+            "structure",
+            "all"
+          ],
+          "maxLength": 200
+        },
+        "hiddenLegends": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "Hidden chart legend",
+            "enum": [
+              "kc",
+              "directional_markers",
+              "price",
+              "live",
+              "vwap",
+              "rsi",
+              "score",
+              "confirmation",
+              "gex_table",
+              "gex_positive",
+              "gex_negative",
+              "wall_history",
+              "markers",
+              "session_shade",
+              "king",
+              "call_wall",
+              "put_wall",
+              "gamma_flip",
+              "gamma_position",
+              "net_gex",
+              "trade_low",
+              "trade_high"
+            ],
+            "maxLength": 200
+          },
+          "maxItems": 22,
+          "uniqueItems": true,
+          "description": "hiddenLegends argument for get_qqq_gex_view; observe this field's schema type, bounds and operation semantics."
+        },
+        "discovery": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "Enabled discovery layer",
+            "enum": [
+              "changes",
+              "tracks",
+              "events",
+              "skew",
+              "bands"
+            ],
+            "maxLength": 200
+          },
+          "maxItems": 5,
+          "uniqueItems": true,
+          "description": "discovery argument for get_qqq_gex_view; observe this field's schema type, bounds and operation semantics."
+        },
+        "policy": {
+          "type": "string",
+          "description": "Day scenario contribution policy; default partial matches UI and reports excluded/missing contributions",
+          "enum": [
+            "partial",
+            "complete"
+          ],
+          "maxLength": 200
+        },
+        "viewportFrom": {
+          "type": "string",
+          "description": "Price-reaction viewport start ISO-8601; requires viewportTo and plotWidth",
+          "maxLength": 200
+        },
+        "viewportTo": {
+          "type": "string",
+          "description": "Price-reaction viewport end ISO-8601, at most 25 hours after start",
+          "maxLength": 200
+        },
+        "plotWidth": {
+          "type": "number",
+          "description": "plotWidth argument for get_qqq_gex_view; observe this field's schema type, bounds and operation semantics.",
+          "minimum": 1,
+          "maximum": 10000
+        },
+        "reactions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "Price reaction layer",
+            "enum": [
+              "markers",
+              "low",
+              "high"
+            ],
+            "maxLength": 200
+          },
+          "maxItems": 3,
+          "uniqueItems": true,
+          "description": "reactions argument for get_qqq_gex_view; observe this field's schema type, bounds and operation semantics."
+        },
+        "overlays": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "Enabled overlay",
+            "enum": [
+              "vwap",
+              "delta",
+              "iv",
+              "putCall"
+            ],
+            "maxLength": 200
+          },
+          "maxItems": 4,
+          "uniqueItems": true,
+          "description": "overlays argument for get_qqq_gex_view; observe this field's schema type, bounds and operation semantics."
+        },
+        "strikes": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "description": "",
+            "minimum": 1e-06,
+            "maximum": 1000000000
+          },
+          "maxItems": 2000,
+          "uniqueItems": true,
+          "description": "strikes argument for get_qqq_gex_view; observe this field's schema type, bounds and operation semantics."
+        },
+        "minutes": {
+          "type": "integer",
+          "enum": [
+            2,
+            10,
+            30
+          ],
+          "description": "Activity/discovery observation window only"
+        },
+        "ivShockPp": {
+          "type": "number",
+          "description": "ivShockPp argument for get_qqq_gex_view; observe this field's schema type, bounds and operation semantics.",
+          "minimum": -100,
+          "maximum": 100
+        },
+        "fees": {
+          "type": "number",
+          "description": "fees argument for get_qqq_gex_view; observe this field's schema type, bounds and operation semantics.",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "manualCredit": {
+          "type": "number",
+          "description": "manualCredit argument for get_qqq_gex_view; observe this field's schema type, bounds and operation semantics.",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "scope": {
+          "type": "string",
+          "description": "Expiry scope; use all for UI ATM IV/MaxPain cross-expiry curves, selected for one-expiry history",
+          "enum": [
+            "selected",
+            "0dte",
+            "all"
+          ],
+          "maxLength": 200
+        },
+        "mode": {
+          "type": "string",
+          "description": "Exposure mode",
+          "enum": [
+            "gamma",
+            "gamma-call",
+            "gamma-put",
+            "delta",
+            "charm"
+          ],
+          "maxLength": 200
+        },
+        "metric": {
+          "type": "string",
+          "description": "Strike comparison metric",
+          "enum": [
+            "gex",
+            "oi",
+            "volume"
+          ],
+          "maxLength": 200
+        },
+        "wallHorizon": {
+          "type": "integer",
+          "enum": [
+            10,
+            30
+          ],
+          "description": "wallTouches observation minutes; UI default30"
+        },
+        "wallGamma": {
+          "type": "string",
+          "description": "wallTouches Gamma filter",
+          "enum": [
+            "all",
+            "positive",
+            "negative",
+            "zero"
+          ],
+          "maxLength": 200
+        },
+        "wallPeriod": {
+          "type": "string",
+          "description": "wallTouches Eastern first-touch period",
+          "enum": [
+            "all",
+            "open",
+            "middle",
+            "late"
+          ],
+          "maxLength": 200
+        },
+        "wallSide": {
+          "type": "string",
+          "description": "wallTouches wall side",
+          "enum": [
+            "all",
+            "put",
+            "call"
+          ],
+          "maxLength": 200
+        },
+        "date": {
+          "type": "string",
+          "description": "Trading date YYYY-MM-DD",
+          "maxLength": 200
+        },
+        "expiry": {
+          "type": "string",
+          "description": "Expiry YYYY-MM-DD",
+          "maxLength": 200
+        },
+        "from": {
+          "type": "string",
+          "description": "ISO-8601 start; use exact manifest window for exposure",
+          "maxLength": 200
+        },
+        "to": {
+          "type": "string",
+          "description": "ISO-8601 exclusive end",
+          "maxLength": 200
+        },
+        "source": {
+          "type": "string",
+          "description": "Exact exposure window version from manifest",
+          "maxLength": 200
+        },
+        "at": {
+          "type": "string",
+          "description": "Historical quote cutoff, analysis cursor, or fixed context response timestamp ISO-8601",
+          "maxLength": 200
+        },
+        "shortStrike": {
+          "type": "number",
+          "description": "shortStrike argument for get_qqq_gex_view; observe this field's schema type, bounds and operation semantics.",
+          "minimum": 1e-06,
+          "maximum": 1000000000
+        },
+        "longStrike": {
+          "type": "number",
+          "description": "longStrike argument for get_qqq_gex_view; observe this field's schema type, bounds and operation semantics.",
+          "minimum": 1e-06,
+          "maximum": 1000000000
+        },
+        "dte": {
+          "type": "integer",
+          "description": "dte argument for get_qqq_gex_view; observe this field's schema type, bounds and operation semantics.",
+          "minimum": 0,
+          "maximum": 60
+        },
+        "include": {
+          "type": "string",
+          "description": "Context scope",
+          "enum": [
+            "all",
+            "volume"
+          ],
+          "maxLength": 200
+        },
+        "regimeMode": {
+          "type": "string",
+          "description": "Source regime",
+          "enum": [
+            "unified",
+            "overlay"
+          ],
+          "maxLength": 200
+        },
+        "offset": {
+          "type": "integer",
+          "description": "offset argument for get_qqq_gex_view; observe this field's schema type, bounds and operation semantics.",
+          "minimum": 0,
+          "maximum": 134217728
+        },
+        "length": {
+          "type": "integer",
+          "description": "length argument for get_qqq_gex_view; observe this field's schema type, bounds and operation semantics.",
+          "minimum": 1,
+          "maximum": 262144
+        },
+        "providerHash": {
+          "type": "string",
+          "description": "Exact retained provider body hash from get_qqq_gex_archive resource=providers; providerRaw only, never a file path",
+          "maxLength": 200
+        },
+        "sha256": {
+          "type": "string",
+          "description": "First chunk hash; required for continuation",
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "resource"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_qqq_gex_archive",
+    "description": "Read the exact locally retained page archive: date discovery, snapshot metadata, lossless per-strike profile, 2-minute bars or original provider-body metadata (resource=providers, hash used by view providerRaw). No remote fallback or observation writes. Continuations require the first page revision; changed revisions require restarting. Missing history and incomplete IV remain explicit.",
+    "writes": false,
+    "schema": {
+      "type": "object",
+      "properties": {
+        "resource": {
+          "type": "string",
+          "description": "Bounded archive view",
+          "enum": [
+            "dates",
+            "snapshots",
+            "profile",
+            "bars",
+            "providers"
+          ],
+          "maxLength": 200
+        },
+        "archiveState": {
+          "type": "string",
+          "description": "published (default) or partial; partial raw observations never certify regular replay or complete history",
+          "enum": [
+            "published",
+            "partial"
+          ],
+          "maxLength": 200
+        },
+        "date": {
+          "type": "string",
+          "description": "Trading date YYYY-MM-DD; required except dates",
+          "maxLength": 200
+        },
+        "expiry": {
+          "type": "string",
+          "description": "Expiry YYYY-MM-DD; required for profile",
+          "maxLength": 200
+        },
+        "capturedAt": {
+          "type": "string",
+          "description": "Exact capturedAt from snapshot listing; required for profile",
+          "maxLength": 200
+        },
+        "page": {
+          "type": "integer",
+          "description": "page argument for get_qqq_gex_archive; observe this field's schema type, bounds and operation semantics.",
+          "minimum": 1,
+          "maximum": 100000
+        },
+        "pageSize": {
+          "type": "integer",
+          "description": "pageSize argument for get_qqq_gex_archive; observe this field's schema type, bounds and operation semantics.",
+          "minimum": 1,
+          "maximum": 200
+        },
+        "revision": {
+          "type": "string",
+          "description": "First page revision; required for page > 1",
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "resource"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_qqq_gex_lifecycle",
+    "description": "Read hash-verified locally recorded source PCS lifecycle observations for one trading date. Never computes or invents historical points; missing coverage stays explicit.",
+    "writes": false,
+    "schema": {
+      "type": "object",
+      "properties": {
+        "date": {
+          "type": "string",
+          "description": "ISO calendar date YYYY-MM-DD",
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "date"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_qqq_gex_live_decision",
+    "description": "Evaluate the pinned source PCS daily/previous-close gate, timing and real-chain candidate from retained local routed inputs. Read-only, no remote fallback. Source delays, date alignment and stale/missing inputs remain explicit; never grants account/order permission.",
+    "writes": false,
+    "schema": {
+      "type": "object",
+      "properties": {
+        "regimeMode": {
+          "type": "string",
+          "description": "Source regime engine",
+          "enum": [
+            "unified",
+            "overlay"
+          ],
+          "maxLength": 200
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "rebuild_qqq_gex_history",
+    "description": "Resume bounded imports of locally retained normalized observations through the original algorithm. Each input commits independently; failures persist and are retried only when requested. Never fills unavailable history.",
+    "writes": true,
+    "schema": {
+      "type": "object",
+      "properties": {
+        "limit": {
+          "type": "integer",
+          "description": "limit argument for rebuild_qqq_gex_history; observe this field's schema type, bounds and operation semantics.",
+          "minimum": 1,
+          "maximum": 500
+        },
+        "retryFailed": {
+          "type": "boolean",
+          "description": "retryFailed argument for rebuild_qqq_gex_history; observe this field's schema type, bounds and operation semantics."
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_qqq_gex_replay",
+    "description": "Compute original causal directional replay from local imported history only. Range is bounded to 366 days; ranges above 32 days use original daily summaries; missing data/runtime is explicit and no remote source is consulted.",
+    "writes": false,
+    "schema": {
+      "type": "object",
+      "properties": {
+        "from": {
+          "type": "string",
+          "description": "ISO-8601 range start",
+          "maxLength": 200
+        },
+        "to": {
+          "type": "string",
+          "description": "ISO-8601 exclusive range end",
+          "maxLength": 200
+        },
+        "page": {
+          "type": "integer",
+          "description": "page argument for get_qqq_gex_replay; observe this field's schema type, bounds and operation semantics.",
+          "minimum": 1,
+          "maximum": 100000
+        },
+        "pageSize": {
+          "type": "integer",
+          "description": "pageSize argument for get_qqq_gex_replay; observe this field's schema type, bounds and operation semantics.",
+          "minimum": 1,
+          "maximum": 200
+        }
+      },
+      "required": [
+        "from",
+        "to"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "calculate_qqq_gex_local",
+    "description": "Run the bundled original GEX algorithm on the previously captured local normalized input and atomically publish its local display resources. Uses the bundled pinned Node runtime; reports unavailable or invalid input rather than installing a runtime or inventing data.",
+    "writes": true,
+    "schema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "capture_qqq_gex_input",
+    "description": "Capture one coherent QQQ option snapshot from existing routed providers and complete 2-minute price buckets to local normalized input. Explicit network/write; preserves delay, gaps and provider snapshot times. Does not calculate or claim historical completeness.",
+    "writes": true,
+    "schema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  }
+]
