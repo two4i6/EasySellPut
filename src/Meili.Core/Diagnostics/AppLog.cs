@@ -26,21 +26,29 @@ public static class AppLog
     {
         try
         {
-            var dir = Path.Combine(dataDirectory, "logs");
-            System.IO.Directory.CreateDirectory(dir);
-            lock (Gate) _dir = dir;
-            var cutoff = Now().AddDays(-KeepDays).DateTime;
-            foreach (var f in System.IO.Directory.EnumerateFiles(dir, "app-*.log"))
-                if (File.GetLastWriteTime(f) < cutoff) File.Delete(f);
+            var dir=PrepareDirectory(dataDirectory);
+            lock(Gate)_dir=dir;
         }
         catch { } // expected: logging must never take the app down
     }
+
+    private static string PrepareDirectory(string dataDirectory)
+    {
+        var dir=Path.Combine(dataDirectory,"logs");System.IO.Directory.CreateDirectory(dir);
+        var cutoff=Now().AddDays(-KeepDays).DateTime;
+        foreach(var file in System.IO.Directory.EnumerateFiles(dir,"app-*.log"))
+            if(File.GetLastWriteTime(file)<cutoff)File.Delete(file);
+        return dir;
+    }
+    /// <summary>Scoped diagnostics without redirecting another profile's primary log.</summary>
+    public static void ErrorInDirectory(string dataDirectory,string area,string message,Exception ex)=>WriteCore(LogLevel.Error,area,message,ex,dataDirectory);
 
     public static void Info(string area, string message) => Write(LogLevel.Info, area, message, null);
     public static void Warn(string area, string message, Exception? ex = null) => Write(LogLevel.Warn, area, message, ex);
     public static void Error(string area, string message, Exception? ex = null) => Write(LogLevel.Error, area, message, ex);
 
-    public static void Write(LogLevel level, string area, string message, Exception? ex)
+    public static void Write(LogLevel level,string area,string message,Exception? ex)=>WriteCore(level,area,message,ex,null);
+    private static void WriteCore(LogLevel level,string area,string message,Exception? ex,string? dataDirectory)
     {
         try
         {
@@ -63,8 +71,9 @@ public static class AppLog
             line.AppendLine();
             lock (Gate)
             {
-                if (_dir is null) return;
-                var file = Path.Combine(_dir, $"app-{now:yyyyMMdd}.log");
+                var dir=dataDirectory is null?_dir:PrepareDirectory(dataDirectory);
+                if(dir is null)return;
+                var file = Path.Combine(dir, $"app-{now:yyyyMMdd}.log");
                 var info = new FileInfo(file);
                 if (info.Exists && info.Length > MaxBytesPerDay) return;
                 File.AppendAllText(file, line.ToString(), Encoding.UTF8);

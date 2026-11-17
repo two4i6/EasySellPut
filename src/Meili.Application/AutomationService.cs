@@ -27,6 +27,16 @@ public sealed partial class AutomationService(DataDirectoryInfo directory, IMark
 
     public async Task<JsonElement> ExecuteAsync(string operation, JsonElement args, bool allowWrites, CancellationToken ct = default)
     {
+        try{return await ExecuteDispatchAsync(operation,args,allowWrites,ct).ConfigureAwait(false);}
+        catch(IOException ex)when(ex is not DataConflictException)
+        {
+            // No arguments, source bodies or credentials: retain only the local failure and stack.
+            Meili.Core.Diagnostics.AppLog.ErrorInDirectory(DirectoryInfo.Path,"automation-io",$"Local operation {operation} failed (0x{ex.HResult:X8})",ex);
+            throw;
+        }
+    }
+    private async Task<JsonElement> ExecuteDispatchAsync(string operation,JsonElement args,bool allowWrites,CancellationToken ct)
+    {
         var op = (await GetCatalogAsync(ct)).Find(operation);
         OperationCatalog.Validate(op, args);
         if (op.Writes && !allowWrites) throw new UnauthorizedAccessException();

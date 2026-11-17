@@ -4,9 +4,15 @@ import argparse, json, os, pathlib, queue, subprocess, tempfile, threading, time
 from connection_smoke import check_connections
 
 
+def local_diagnostics(data):
+    # Test profiles only; keep an actionable bounded stack before TemporaryDirectory cleanup.
+    files=sorted((pathlib.Path(data)/'logs').glob('app-*.log'))[-2:]
+    return '\n'.join(path.read_text(encoding='utf-8',errors='replace')[-16000:]for path in files)
+
+
 def run(command, data, *args, code=0):
     result = subprocess.run([*command, *args, '--data-dir', data, '--json'], capture_output=True, text=True, timeout=20)
-    assert result.returncode == code, (args, result.returncode, result.stderr, result.stdout)
+    assert result.returncode == code, (args, result.returncode, result.stderr, result.stdout,local_diagnostics(data))
     body = json.loads(result.stdout)
     assert body['schemaVersion'] == 1 and body['success'] == (code == 0), body
     return body
@@ -205,8 +211,10 @@ def main():
             write_tools = writer.request('tools/list')['result']['tools']
             writer.check_live_status(True)
             assert {tool['name'] for tool in write_tools} == set(operations)
-            renamed=writer.call('rename_watchlist_group', {'groupId': group, 'name': 'MCP'})
-            assert not renamed.get('isError', False), renamed
+            for revision in range(5):
+                name='MCP'if revision==4 else 'MCP '+str(revision)
+                renamed=writer.call('rename_watchlist_group', {'groupId': group, 'name': name})
+                assert not renamed.get('isError', False),(renamed,local_diagnostics(data),''.join(writer.errors)[-4000:])
             # A second process writes, then the long-running MCP host must read the new snapshot.
             run(command, data, 'watchlist', 'add', 'MSFT', '--group-id', group)
             groups = writer.call('get_watchlists', {})['structuredContent']['data']
