@@ -32,3 +32,7 @@ App releases and the catalog are GitHub prereleases with `latest=false`, so they
 ## Scope and remaining acceptance
 
 The current artifact can supply authenticated operations and update its GEX engine/UI without recompiling the host. Existing C# GEX routes/capture remain compatibility facades; complete domain ownership, generic AppView/Web SDK/development host, optional UI attachment to the same app version, proactive catalog notifications and full native pilot evidence remain tracked in `TODO.md`. Do not describe those as completed based on these delivery scripts alone.
+
+## Running MCP clients
+
+Compatible app activation does not require restarting an idle MCP process. Requests rediscover and authenticate the current catalog and execute under a package-bound lease. Legacy clients receive `notifications/tools/list_changed` on effective tool changes. July 2026 clients can opt into `subscriptions/listen` with `notifications.toolsListChanged=true`; acknowledgements/events carry the subscription request ID and cancellation releases the listener. Without a subscription, use per-request tools discovery (`ttlMs=0`, private scope). Other notification filters are not granted. Installation remains an explicit local desktop/CLI action, never an MCP tool.

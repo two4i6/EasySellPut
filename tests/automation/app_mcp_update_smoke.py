@@ -6,6 +6,8 @@ import pathlib
 import shutil
 import subprocess
 import tempfile
+import queue
+import time
 from cli_mcp_smoke import Mcp, run
 
 host = pathlib.Path('tests/Meili.Automation.Host/bin/Release/net10.0/Meili.Automation.Host.dll').resolve()
@@ -17,8 +19,8 @@ with tempfile.TemporaryDirectory(prefix='signed apps and MCP ') as directory:
     root = pathlib.Path(directory); fixtures = root / 'fixtures'
     subprocess.run([*base, '--app-fixture-build', str(fixtures)], check=True, timeout=20)
     command = [*base, '--app-fixture', str(fixtures / 'public.pem'), node]
-    for protocol in ['2025-06-18', '2025-11-25', '2026-07-28']:
-        profile = root / protocol
+    for protocol,subscribe in [('2025-06-18',False),('2025-11-25',False),('2026-07-28',False),('2026-07-28',True)]:
+        profile = root / (protocol + ("-subscribed" if subscribe else ""))
         def install(version):
             completed = subprocess.run([*command, 'install', str(profile), str(fixtures / (version + '.espapp'))], capture_output=True, text=True, timeout=20)
             assert completed.returncode == 0, (completed.stdout, completed.stderr)
@@ -53,11 +55,29 @@ with tempfile.TemporaryDirectory(prefix='signed apps and MCP ') as directory:
             denied = client.call('app_easysellput_test_record', {})
             assert denied['isError'] and not denied['structuredContent']['success']
             pid = client.process.pid
+            if subscribe:
+                client.send({'jsonrpc':'2.0','id':9000,'method':'subscriptions/listen','params':{'notifications':{'toolsListChanged':True}}})
+                ack=client.messages.get(timeout=10)
+                assert ack.get('method')=='notifications/subscriptions/acknowledged',ack
+                assert ack['params']['_meta']['io.modelcontextprotocol/subscriptionId']==9000 and ack['params']['notifications']['toolsListChanged'] is True,ack
             install('1.0.1')  # An initialized, idle MCP connection does not pin app A.
+            if protocol != '2026-07-28' or subscribe:
+                deadline=time.monotonic()+10
+                while not any(m.get('method')=='notifications/tools/list_changed' for m in client.notifications):
+                    remaining=deadline-time.monotonic()
+                    assert remaining>0,('No app catalog change notification',client.notifications,client.errors)
+                    try:message=client.messages.get(timeout=remaining)
+                    except queue.Empty:raise AssertionError('MCP app update notification timed out')
+                    assert 'id' not in message,message
+                    client.notifications.append(message)
             refreshed = client.request('tools/list')['result']
             assert 'app_easysellput_test_added' in {t['name'] for t in refreshed['tools']}
             if protocol == '2026-07-28':
                 assert refreshed['ttlMs'] == 0 and refreshed['cacheScope'] == 'private'
+                if not subscribe:assert not client.notifications,client.notifications
+                else:
+                    event=next(m for m in client.notifications if m.get('method')=='notifications/tools/list_changed')
+                    assert event['params']['_meta']['io.modelcontextprotocol/subscriptionId']==9000,event
             resource = client.request('resources/read', {'uri':'easysellput://capabilities'})
             capabilities = json.loads(resource['result']['contents'][0]['text'])
             assert 'app_easysellput_test_added' in {o['name'] for o in capabilities['operations']}
@@ -67,6 +87,9 @@ with tempfile.TemporaryDirectory(prefix='signed apps and MCP ') as directory:
             assert result['data'] == b['structuredContent']['data']
             invalid = client.call('app_easysellput_test_summary', {'unexpected': True})
             assert invalid['isError']
+            if subscribe:
+                client.send({'jsonrpc':'2.0','method':'notifications/cancelled','params':{'requestId':9000,'reason':'fixture complete'}})
+                assert 'result' in client.request('tools/list')
         finally:
             client.close()
         writer = Client(command, str(profile), writes=True)

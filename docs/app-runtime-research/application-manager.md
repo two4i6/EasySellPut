@@ -10,7 +10,7 @@ The screenshots below are actual 1920×1080 Avalonia/Skia **headless renders**, 
 
 ![English, dark theme](screenshots/mac-applications-1080p-en-US-True.png)
 
-Pending pilot acceptance, including remaining GEX facade ownership, optional UI attachment, proactive MCP catalog notifications and final signed/native packages, is tracked explicitly in ../../TODO.md. This page describes current local maintenance behavior, not completion of S01–S12.
+Pending pilot acceptance, including remaining GEX facade ownership, final signed/native packages, is tracked explicitly in ../../TODO.md. This page describes current local maintenance behavior, not completion of S01–S12.
 
 ## Reusable application pages
 

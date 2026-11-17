@@ -20,6 +20,7 @@ class Mcp:
         self.messages = queue.Queue()
         self.errors = []
         self.next_id = 0
+        self.notifications = []
         def read():
             try:
                 for line in self.process.stdout:
@@ -53,6 +54,8 @@ class Mcp:
                 raise message
             if message.get('id') == ident:
                 return message
+            if 'id' not in message:
+                self.notifications.append(message)
 
     def call(self, name, arguments):
         response = self.request('tools/call', {'name': name, 'arguments': arguments})

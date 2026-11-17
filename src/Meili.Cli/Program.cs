@@ -119,15 +119,18 @@ public static class Program
     private static async Task ServeMcp(IOperationDispatcher service, bool writes, int timeout, CancellationToken ct)
     {
         string? observedClient=null;
+        AppCatalogNotifications? catalogNotifications=null;
         var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { Args = [], DisableDefaults = true });
         builder.Logging.ClearProviders();
         builder.Logging.AddConsole(o => o.LogToStandardErrorThreshold = LogLevel.Trace);
         builder.Logging.SetMinimumLevel(LogLevel.Warning);
         builder.Services.AddMcpServer(o =>
         {
+            o.Capabilities=new ServerCapabilities{Tools=new ToolsCapability{ListChanged=true}};
             o.ServerInfo = new Implementation { Name = "EasySellPut", Version = typeof(Program).Assembly.GetName().Version?.ToString(3) ?? "0.6.0" };
             o.ServerInstructions = AiWorkflowGuide.Instructions + (writes ? " Explicit write mode is enabled; still require a user-requested change." : " This connection is read-only.");
         }).WithStdioServerTransport()
+        .WithSubscriptionsListenHandler((request,cancel)=>catalogNotifications is not null?catalogNotifications.ListenAsync(request,cancel):throw new InvalidOperationException("Catalog observer is not ready."))
         .WithListPromptsHandler((request,cancel)=>ValueTask.FromResult(new ListPromptsResult
         {
             Prompts=AiWorkflowGuide.All.Select(w=>new Prompt{Name=w.Name,Title=w.Title,Description=w.Description,
@@ -202,6 +205,7 @@ public static class Program
         using var host = builder.Build();
         var server=host.Services.GetService<ModelContextProtocol.Server.McpServer>();
         using var session=new McpSessionLease(service.DirectoryInfo.Path,writes,()=>server?.ClientInfo?.Name??observedClient);
+        await using var notifications=catalogNotifications=server is null?null:AppCatalogNotifications.Start(service,server,writes,ct);
         await host.RunAsync(ct);
     }
 
