@@ -266,3 +266,14 @@ CI149 Web passed the CI148 focus fix, and Mac Intel desktop passed fully; actual
 CI150 Windows x64/ARM64 stress tests showed delete sharing alone was insufficient: overwrite Move still failed while readers held snapshots. Follow-up switches existing-file publication to Replace, retains non-overwriting first publication/CAS, adds held-reader replacement coverage and bounds only Windows read sharing retries. All209 Core/135 Automation tests pass locally; the exact Windows rerun remains unchecked. This supersedes any inference that the first shared-read change fully fixed concurrency.
 
 CI151 Apple Silicon desktop and Windows x64 desktop passed fully, but both Windows stress jobs still exposed a replacement-gap read. Existing coordinator shared read leases now cover existence/opening; writer fingerprinting retains its existing exclusive lease. Read-only metadata non-mutation and size-bound preservation are tested (211 Core/135 Automation local passes). GEX preferences use the bounded coordinated read instead of a separate FileInfo probe. Current coordination changes require exact Windows rerun; do not infer completion from earlier native passes.
+
+
+## Current real-data/native acceptance TODO
+
+- [x] Actual isolated CBOE sample → partial projection/workspace through official read-only SDK MCP; chunk lengths/SHA and protected raw/partial rows verified unchanged.29 expiries retained, missing IV174,0 matching regular bars,0 complete days and0 alerts; DELAYED/INSUFFICIENT_DATA is preserved.
+- [x] Integrated local Core211/Shared128/Automation146 and real CLI/MCP/persistent signed A→B update checks pass. Upstream async discovery fix retained; unexpected cleanup faults are logged without replacing the original cancellation/error. CI155 guards were not weakened.
+- [ ] Exact delivered-commit complete native CI, particularly Mac jobs repeatedly superseded/queued. Earlier Mac image/input passes do not certify subsequent host/package changes.
+- [ ] Full-session cloud observation with distinct real source cutoffs and no collection gaps; current evidence is one premarket partial cohort. Existing14:28Z–21:18Z bounded plan remains unexecuted here.
+- [ ] Actual source-market timestamp alignment, same-day regular bars, missing IV/context resolution and complete historical corpus from genuine retained inputs. No inversion, backfill fabrication or timestamp shifting.
+- [ ] Genuine qualifying canonical market signal followed by exactly-once native notification/audio; zero alerts and test tones cannot satisfy this gate.
+- [ ] Long-term archive growth/stability. Single-sample data SQLite~4.3MiB versus~121MiB fixed Node runtime is recorded separately; unique history is retained.
