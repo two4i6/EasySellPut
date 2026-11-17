@@ -1,3 +1,4 @@
+using Meili.Core.Diagnostics;
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
@@ -67,7 +68,12 @@ public static class ModuleProcess
         {
             if (!process.HasExited) try { process.Kill(entireProcessTree: true); } catch (InvalidOperationException) { }
             // Observe read faults even when input, timeout or process startup fails.
-            try { await Task.WhenAll(stdout, stderr).ConfigureAwait(false); } catch (Exception e) when (e is IOException or OperationCanceledException or InvalidDataException) { }
+            try { await Task.WhenAll(stdout, stderr).ConfigureAwait(false); } catch (Exception e) when (e is IOException or OperationCanceledException or InvalidDataException)
+            {
+                // expected: cancellation is already propagated by the primary await.
+                // Preserve that original failure while recording unexpected cleanup I/O.
+                if (e is not OperationCanceledException) AppLog.Warn("apps", "Engine stream cleanup failed", e);
+            }
         }
     }
 }
