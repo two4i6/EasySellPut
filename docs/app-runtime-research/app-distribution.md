@@ -38,3 +38,10 @@ Final pilot acceptance is recorded separately in `TODO.md`: exact-revision offli
 ## Running MCP clients
 
 Compatible app activation does not require restarting an idle MCP process. Requests rediscover and authenticate the current catalog and execute under a package-bound lease. Legacy clients receive `notifications/tools/list_changed` on effective tool changes. July 2026 clients can opt into `subscriptions/listen` with `notifications.toolsListChanged=true`; acknowledgements/events carry the subscription request ID and cancellation releases the listener. Without a subscription, use per-request tools discovery (`ttlMs=0`, private scope). Other notification filters are not granted. Installation remains an explicit local desktop/CLI action, never an MCP tool.
+
+
+## Verified pilot delivery path
+
+The app-only [five-platform CI run 44140353533](https://github.com/two4i6/EasySellPut/actions/runs/44140353533) passed core-only and optional UI artifacts on all supported native targets. Its payload source remains unchanged through the later host runtime fixes. The full integration gate is still required for the pilot's release policy; app-only development feedback does not require waiting for a host build, and Apps release itself only promotes tested payload bytes.
+
+The initial installed host must contain this runtime and the publisher's compiled repository/key. An older pre-runtime installation needs that one host upgrade first. Afterwards compatible app versions install/update externally through the shared registry without changing the host binary. Development-key CI downloads remain test artifacts, not production installers. See `TODO.md` for final integration acceptance rather than treating an app-only green run as complete desktop acceptance.

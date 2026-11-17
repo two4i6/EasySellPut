@@ -89,7 +89,7 @@ Design: [architecture](docs/55-主程序与可独立更新子应用架构研究.
   - Preserve one desktop QuoteHub and truthful headless bounded sampling; measure before introducing a broker or persistent engine.
   - Acceptance: unrelated pure calculation is not blocked by a slow app read; no unbounded process/memory growth or duplicate desktop market timers.
 
-- [ ] **S11 — Implement independent app CI and main-only release preparation.** Depends on S10 and package/rollback acceptance.
+- [x] **S11 — Implement independent app CI and main-only release preparation.** Depends on S10 and package/rollback acceptance.
   - Test/package app core independently from host UI; reuse tested artifacts for signing and drafts.
   - Merge host/app capability cases and inventories without weakening exact operation coverage or Required checks.
   - Preserve four desktop/five CLI targets, native extracted-package execution, source/runtime/hash checks and downloadable evidence.
@@ -365,3 +365,10 @@ The Windows Shared failure was immediate scratch-directory deletion after nonblo
 S10 is accepted. The complete cc9a576 offline aggregate passed at `build/out/tests/run-RVgYfM2l`: 1,042 .NET tests passed and two Windows-specific sharing cases were explicitly skipped on Linux (both actually passed in Windows x64 Core 214/214 CI). SDK 9, Python 57, all 58 real CLI/MCP cases, signed original GEX/capture/persistent MCP and cross-process maintenance/scheduling passed. Unrelated pure pricing progresses while provider/live work waits; per-app admission precedes bounded CPU work, writers serialize across processes while committed archive readers progress, cancellation/owner EOF releases leases, and outputs/diagnostics/source receipts/input uploads are bounded.
 
 The shared engine/market/browser/presentation SDK and complete original GEX AppDev preview are documented in `web/app-sdk/README.md` and `tools/Meili.AppDev/README.md`. Actual generic and original-page Chromium journeys passed at unchanged presentation code d9ffa13 with source isolation, seeded original model, write denial, 1920/1280×1080 rendering and awaited scratch cleanup. Generated defaults and native adapters use the existing design tokens; no second quote timer/socket, provider implementation or permanent broker was added. Later fixture-only awaited cleanup does not change these production behaviors. Remaining final integrated gate is tracked in S12.
+
+
+### S11 acceptance — independent five-platform delivery
+
+S11 is accepted. App payload source is unchanged from [five-platform run 44140353533](https://github.com/two4i6/EasySellPut/actions/runs/44140353533): Linux x64, Windows x64/ARM64 and Mac Intel/Apple Silicon all built, packaged and verified both core-only and UI-capable GEX without .NET/host/desktop compilation. The required integration pipeline retains four desktop/five CLI targets, real extracted package/updater tests, exact inventories and all 58 CLI/MCP capabilities; its final current gate belongs to S12.
+
+Offline package verification and actual ECDSA re-signing/signed catalog/provenance/draft→explicit non-Latest promotion/stale-generation rejection passed at d9ffa13, with every GitHub mutation intercepted and private-key cleanup checked. Release scripts/policy are unchanged by later runtime/test fixes; policy guards and Python 57 passed in the cc9a576 aggregate. Main-only Apps release promotes tested bytes, never rebuilds the payload, binds the compiled repository/pinned key and stays outside host Latest. Protected secret-backed prepare/publish was not dispatched and is not implied by acceptance. No release or main merge was performed.
