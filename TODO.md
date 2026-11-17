@@ -96,7 +96,7 @@ Design: [architecture](docs/55-主程序与可独立更新子应用架构研究.
   - Keep app releases out of host Latest; signed app catalog binds exact version/source/hash/compatibility and rejects stale/withdrawn entries.
   - Acceptance: app-only change produces an independently installable app artifact, host updater still reads host releases, and work/PR runs cannot publish.
 
-- [ ] **S12 — Accept the complete GEX pilot.** Depends on S11.
+- [x] **S12 — Accept the complete GEX pilot.** Depends on S11.
   - Hold host/CLI files and paths fixed; test core-only CLI/MCP, then optional UI, update/uninstall/reinstall, offline recovery and concurrent consumers.
   - Verify all original financial invariants and retained data hashes; distinguish fixture, partial live and complete real-data coverage.
   - Review exact delivered CI and native screenshots. Update engineering/maintenance instructions to describe only implemented behavior.
@@ -388,3 +388,14 @@ The same mandatory process harness now also creates three separate fresh data di
 ### S12 confirmed Windows atomic replacement failure
 
 Cold writable profiles on revision 372f918 captured native Windows `File.Replace` HRESULT `0x80070497` (Win32 1175), in both source CLI and extracted desktop CLI. Microsoft documents ERROR_UNABLE_TO_REMOVE_REPLACED as preserving both file names. Publication now retries that exact failure within the existing three-second coordinator lease, only after rechecking the original destination revision and staged content hash. Errors 1176/1177 and other unsafe failures still surface; business operations are never replayed. Four injected real-file cases verify recovery, external-writer conflict, staged tampering and non-retriable partial-replacement error. Core passed 217 with two explicitly Windows-only skips locally; native/current full acceptance remains pending.
+
+
+### S12 acceptance — complete independent GEX pilot
+
+S01–S12 are complete. Implementation revision `3b476cc` passed [integrated run 44154390154](https://github.com/two4i6/EasySellPut/actions/runs/44154390154), including **CI · Required checks**, all four native desktop targets and all five CLI/MCP targets, Web, UI and main-only release guards. Windows x64/ARM64 each executed all 219 Core cases; both source and extracted CLI passed the three cold writable MCP profiles. Original eight signed GEX operations, capture parity/source failure, fixed-host A/B/new-operation, persistent MCP modes, cancellation, uninstall/reinstall and history/provenance preservation passed. Four native desktop jobs exercised real installed signed test payloads, original charts/tabs/trusted input/theme/layout and retained host/history hashes, then packaged application/updater journeys.
+
+GitHub cancelled default macOS 26 ARM64 jobs before runner acquisition due to documented capacity constraints. The existing supported macOS 15 fallback and infrastructure-only retries eventually executed both Apple Silicon jobs successfully. No skipped/cancelled job is counted as a pass; no architecture, assertion or release policy was weakened. Earlier implementation failures remain documented above and were resolved before acceptance.
+
+Full offline aggregate `build/out/tests/run-BOmYIlNo` passed: 1,047 .NET tests (Core 217 plus two explicit Windows-only skips, Data 159, Analytics 209, Shared 134, Avalonia 145, Automation 183), SDK nine, Python 57, all 58 real CLI/MCP capabilities and all signed application/process/cache/development-host journeys. Both actual Chromium AppDev journeys passed at the same implementation revision. Independent app-only five-platform core/UI CI remains green at [44140353533](https://github.com/two4i6/EasySellPut/actions/runs/44140353533); its payload/SDK and app build/release scripts have not changed since that run.
+
+See the [complete acceptance report](docs/app-runtime-research/pilot-acceptance.md), [management/native screenshot gallery](docs/app-runtime-research/application-manager.md), [development host](tools/Meili.AppDev/README.md) and [independent delivery guide](docs/app-runtime-research/app-distribution.md). Screenshots explicitly identify synthetic/headless/native evidence and actual dimensions. No live-provider completeness, trusted production installer, main merge or public release is implied. This final acceptance commit changes documentation only and cites unchanged-code CI; its newly triggered CI must not be called passed before completion. S13 onward remains future work.

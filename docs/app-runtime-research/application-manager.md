@@ -10,7 +10,7 @@ The screenshots below are actual 1920×1080 Avalonia/Skia **headless renders**, 
 
 ![English, dark theme](screenshots/mac-applications-1080p-en-US-True.png)
 
-Pending pilot acceptance, including remaining GEX facade ownership, final signed/native packages, is tracked explicitly in ../../TODO.md. This page describes current local maintenance behavior, not completion of S01–S12.
+The [pilot acceptance report](pilot-acceptance.md) records GEX ownership, exact-revision CI, screenshots and delivery limits. The chronological [migration checklist](../../TODO.md) preserves intermediate failures separately from accepted results.
 
 ## Reusable application pages
 
@@ -28,7 +28,7 @@ The browser SDK's `applyTheme` is now reused by the original GEX adapter. It com
 
 This is a computed fixture screenshot, not live-market or native WebView evidence. Chromium empty/computed journeys verify no remote requests or script errors, preserved document/history selection, expiry switching and live theme/reduced-motion updates.
 
-The existing GEX page also exposes the same scoped `host/catalog`, `host/invoke` and read-only presentation contract when the desktop explicitly injects its shared dispatcher. Only authenticated operations belonging to GEX appear; it cannot proxy unrelated host tools. Its legacy chart endpoints and QuoteHub channels remain compatible while domain handlers move into the app package. Native app/profile mismatch and core-only UI startup are rejected before opening financial storage.
+The existing GEX page also exposes the same scoped `host/catalog`, `host/invoke` and read-only presentation contract when the desktop explicitly injects its shared dispatcher. Only authenticated operations belonging to GEX appear; it cannot proxy unrelated host tools. Its legacy chart endpoints and QuoteHub channels remain compatibility adapters; the eight public GEX operation handlers and contracts are owned by the signed app package. Native app/profile mismatch and core-only UI startup are rejected before opening financial storage.
 
 ## Shared original GEX document host
 
@@ -40,7 +40,7 @@ Actual Chromium/AppDev captures below use an explicit **synthetic single histori
 
 ![Original GEX source preview, 1280×1080, synthetic historical input](screenshots/app-dev-gex-1280x1080.png)
 
-The native populated probe now signs the real GEX UI/runtime/contracts with an ephemeral test-only key, installs it, imports through its signed calculation handler and reads workspace observations through its signed view handler. It retains all keyboard/pointer/theme/layout/hide/reload checks, adds 1920×1080, and upgrades A→B in the same host process to discover/call a new operation before uninstall/reinstall and host/database hash checks. This source change cross-builds for WPF and Avalonia; native execution must be confirmed by the revision's four platform CI jobs before final pilot acceptance.
+The native populated probe now signs the real GEX UI/runtime/contracts with an ephemeral test-only key, installs it, imports through its signed calculation handler and reads workspace observations through its signed view handler. It retains all keyboard/pointer/theme/layout/hide/reload checks, adds 1920×1080, and upgrades A→B in the same host process to discover/call a new operation before uninstall/reinstall and host/database hash checks. This journey passed on Windows x64/ARM64 and Mac Intel/Apple Silicon at `3b476cc`, including the [macOS 15 fallback run](https://github.com/two4i6/EasySellPut/actions/runs/44154390154); see the pilot report for the complete CLI/integration gate.
 
 
 ## Native signed-payload evidence

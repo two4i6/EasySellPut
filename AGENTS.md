@@ -23,7 +23,7 @@ EasySellPut is a local .NET 10 app: Windows WPF, macOS Avalonia, cross-platform 
 
 ## Independent applications
 
-- Follow `TODO.md` and the [app delivery guide](docs/app-runtime-research/app-distribution.md). Keep catalog discovery asynchronous and headless. Execute only authenticated package entrypoints under real execution/job leases; metadata and public DTOs never grant execution or write permission.
+- Follow `TODO.md`, the [app delivery guide](docs/app-runtime-research/app-distribution.md) and [pilot acceptance](docs/app-runtime-research/pilot-acceptance.md). Keep catalog discovery asynchronous and headless. Execute only authenticated package entrypoints under real execution/job leases; metadata and public DTOs never grant execution or write permission.
 - Reuse ModuleInstaller, ModuleRegistry, AppCatalogClient, the shared engine SDK and native management controls. Default uninstall retains observations/backups and suppresses compatibility-seed fallback. Never relocate or roll back mixed GEX archives without verified backups and a tested migration.
 - Host/CLI compilation must not invoke npm. Full packaging explicitly prepares the compatibility seed; app payloads build independently. Development artifact keys are ephemeral and never accepted by production configuration.
 - Develop app payloads with the shared SDK and source-only `tools/Meili.AppDev` temporary-profile host. Reuse `QqqGexAppSession`/private AppView infrastructure, generated theme defaults, request draining and the shared pinned runtime. Never add a production development key/profile switch, app-local market socket or copied installer. Keep prior public operations when adding a versioned replacement; installation must reject removals or permission/schema changes.
