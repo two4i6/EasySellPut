@@ -12,6 +12,7 @@ import tarfile
 import platform
 import os
 from cli_mcp_smoke import Mcp, run
+from json_process import run_node_json
 
 parser=argparse.ArgumentParser();parser.add_argument('--archive',type=pathlib.Path,required=True);parser.add_argument('--bundle-directory',type=pathlib.Path);args=parser.parse_args()
 host=pathlib.Path('tests/Meili.Automation.Host/bin/Release/net10.0/Meili.Automation.Host.dll').resolve()
@@ -41,7 +42,7 @@ with tempfile.TemporaryDirectory(prefix='actual GEX signed app ')as directory:
  raw={'symbol':'QQQ','source':'synthetic package fixture','bars':[{'timestamp':'2026-01-02T14:30:00Z','open':600,'high':601,'low':599,'close':600,'volume':100}], 'captures':[{'valuationAt':'2026-01-02T14:32:00Z','expiry':1767571200,'spot':600,'result':{'receivedAt':'2026-01-02T14:32:01Z','options':[{'calls':[{'strike':600,'impliedVolatility':.2,'openInterest':100}],'puts':[{'strike':600,'impliedVolatility':.2,'openInterest':50}]}]}}]}
  input_file=cache/'qqq-gex-input.json';input_file.write_text(json.dumps(raw));db=cache/'qqq-gex.db';oracle=root/'oracle.db'
  def original(script,*arguments):
-  result=subprocess.run([node,str(model/script),*map(str,arguments)],capture_output=True,text=True,check=True,timeout=120);return json.loads(result.stdout)
+  return run_node_json([node,str(model/script),*map(str,arguments)])
  expected=original('import.mjs',input_file,oracle)
  def install(name):
   result=subprocess.run([*command,'install',str(profile),str(fixtures/(name+'.espapp'))],capture_output=True,text=True,timeout=30)
