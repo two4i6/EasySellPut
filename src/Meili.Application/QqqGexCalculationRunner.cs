@@ -51,6 +51,7 @@ public static class QqqGexCalculationRunner
     {
         ct.ThrowIfCancellationRequested();
         using var execution=Meili.Automation.Modules.ModuleAccess.AcquireEnabled(directory,"easysellput.qqq-gex");
+        using var job=await Meili.Automation.Modules.ModuleJobs.AcquireAsync(directory,"easysellput.qqq-gex",ct).ConfigureAwait(false);
         using var installed=await Meili.Automation.Modules.ModuleAssets.TryOpenAsync(directory,"easysellput.qqq-gex","engine/"+script,ct);
         using var asset=installed?.OpenRead()??typeof(QqqGexCalculationRunner).Assembly.GetManifestResourceStream("QqqGexRuntime/"+script);
         if(asset is null)return new {status="runtime_unavailable",complete=false,reason="Bundled GEX calculation resource is missing"};

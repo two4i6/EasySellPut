@@ -23,7 +23,7 @@ def package(args):
     payload = {}
     for name in ['import.mjs', 'query.mjs', 'history.mjs']:
         payload['engine/' + name] = (args.engine_dir / name).read_bytes()
-    payload['engine/retained-summary.mjs'] = (ROOT / 'web/qqq-gex/runtime/retained-summary.mjs').read_bytes()
+    payload['engine/retained-summary.mjs'] = (args.engine_dir / 'retained-summary.mjs').read_bytes()
     payload['operations.json'] = (ROOT / 'web/qqq-gex/operations.json').read_bytes()
     if args.ui_dir:
         for path in sorted(args.ui_dir.rglob('*')):

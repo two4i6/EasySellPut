@@ -13,10 +13,11 @@ using Right = Meili.Analytics.OptionRight;
 
 namespace Meili.Automation;
 
-/// <summary>UI-free application boundary shared by CLI and MCP. Serializes requests within one host.</summary>
+/// <summary>UI-free application boundary shared by CLI and MCP. Serializes state/provider requests; bounded pure calculations and module jobs have independent resource gates.</summary>
 public sealed partial class AutomationService(DataDirectoryInfo directory, IMarketDataService? market = null, IReadOnlyList<IDataProvider>? diagnosticProviders = null, ILiquiditySeriesSource? liquiditySource = null, TimeProvider? liquidityClock = null, IQuoteStreamSource? quoteStream = null, IMarketDataService? liveBarMarket = null, TimeProvider? liveClock = null) : IDisposable, IOperationDispatcher
 {
     private readonly SemaphoreSlim _gate = new(1);
+    private static readonly SemaphoreSlim PureCalculationGate = new(Math.Clamp(Environment.ProcessorCount,1,4));
     private readonly bool _injectedMarket = market is not null;
     private DataServices? _sources;
     private Meili.Data.Routing.FailoverRouter? _probeRouter;
@@ -29,6 +30,12 @@ public sealed partial class AutomationService(DataDirectoryInfo directory, IMark
         var op = (await GetCatalogAsync(ct)).Find(operation);
         OperationCatalog.Validate(op, args);
         if (op.Writes && !allowWrites) throw new UnauthorizedAccessException();
+        if(operation is "calculate_option" or "calculate_indicators" or "analyze_strategy")
+        {
+            await PureCalculationGate.WaitAsync(ct);
+            try { return await Task.Run(async () => WireJson.Element(WireJson.Success(await ExecuteCoreAsync(operation,new Input(args),ct))),ct); }
+            finally { PureCalculationGate.Release(); }
+        }
         var module = (await Modules.ModuleOperations.ReadAsync(DirectoryInfo.Path, ct)).SingleOrDefault(o => o.Definition.Name == operation);
         if (module is not null)
             return WireJson.Element(WireJson.Success(await Modules.ModuleProcess.ExecuteAsync(DirectoryInfo.Path, module, args, allowWrites, ct)));

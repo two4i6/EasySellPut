@@ -1,6 +1,19 @@
 using Meili.Automation;
 using Meili.Automation.Tests;
 
+if(args.Length==3 && args[0] is "--module-job" or "--module-job-probe")
+{
+    using var deadline=new CancellationTokenSource(args[0]=="--module-job-probe"?TimeSpan.FromMilliseconds(300):TimeSpan.FromSeconds(20));
+    try
+    {
+        using var job=await Meili.Automation.Modules.ModuleJobs.AcquireAsync(args[1],args[2],deadline.Token);
+        Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(new{acquired=true}));
+        if(args[0]=="--module-job")await Console.In.ReadLineAsync();
+    }
+    catch(OperationCanceledException){Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(new{acquired=false}));}
+    return 0;
+}
+
 if(args.Length==3 && args[0]=="--module-lease")
 {
     using var lease=new Meili.Automation.Modules.ModuleRegistry(args[1]).AcquireExecution(args[2]);

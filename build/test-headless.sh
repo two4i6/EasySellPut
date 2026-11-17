@@ -5,6 +5,7 @@ root=$(cd "$(dirname "$0")/.." && pwd)
 source "$root/tools/env.sh"
 cd "$root"
 python3 build/prepare-app-seed.py --if-current
+node --test web/app-sdk/engine.test.mjs
 mkdir -p build/out/tests
 results=$(mktemp -d "$root/build/out/tests/run-XXXXXXXX")
 export MEILI_RENDER_DIR="$results/render"

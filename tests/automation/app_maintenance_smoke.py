@@ -36,3 +36,19 @@ with tempfile.TemporaryDirectory(prefix='app maintenance with spaces ') as direc
     assert json.loads(registry.read_text())['apps'] == []
     assert (data / 'history').read_text() == 'retained user observations'
 print('PASS: real cross-process execution lease blocks CLI uninstall; release permits unregister and preserves data (metadata fixture, no code trust override)')
+
+with tempfile.TemporaryDirectory(prefix='cross process app work ') as directory:
+    base = ['dotnet', str(pathlib.Path(args.host).resolve())]
+    owner = subprocess.Popen([*base, '--module-job', directory, 'easysellput.worker'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    try:
+        assert json.loads(owner.stdout.readline())['acquired'] is True
+        def probe(app):
+            result = subprocess.run([*base, '--module-job-probe', directory, app], capture_output=True, text=True, timeout=10)
+            assert result.returncode == 0, result.stderr
+            return json.loads(result.stdout)['acquired']
+        assert probe('easysellput.worker') is False
+        assert probe('easysellput.other') is True
+    finally:
+        owner.stdin.close(); assert owner.wait(timeout=10) == 0, owner.stderr.read()
+    assert probe('easysellput.worker') is True
+print('PASS: heavy app jobs exclude other processes, preserve independent app progress and recover automatically on owner EOF')

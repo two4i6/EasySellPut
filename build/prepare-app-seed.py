@@ -13,7 +13,7 @@ APP = ROOT / 'web/qqq-gex'
 
 
 def prepare(if_current=False):
-    tracked = subprocess.check_output(['git', 'ls-files', '-z', 'web/qqq-gex'], cwd=ROOT).split(b'\0')
+    tracked = subprocess.check_output(['git', 'ls-files', '-z', 'web/qqq-gex', 'web/app-sdk'], cwd=ROOT).split(b'\0')
     digest = hashlib.sha256()
     for entry in sorted(filter(None, tracked)):
         path = ROOT / entry.decode('utf-8')
@@ -24,7 +24,7 @@ def prepare(if_current=False):
     if if_current and stamp.exists():
         try:
             previous = json.loads(stamp.read_text())
-            required = {'runtime-dist/import.mjs', 'runtime-dist/query.mjs', 'runtime-dist/history.mjs', 'dist/index.html'}
+            required = {'runtime-dist/import.mjs', 'runtime-dist/query.mjs', 'runtime-dist/history.mjs', 'runtime-dist/retained-summary.mjs', 'dist/index.html'}
             ui_files = {str(p.relative_to(APP)).replace('\\', '/') for p in (APP / 'dist').glob('*') if p.is_file()}
             if previous['source'] == fingerprint and required.issubset(previous['files']) and ui_files == {
                 name for name in previous['files'] if name.startswith('dist/')} and all(

@@ -19,3 +19,6 @@ await build({absWorkingDir:root,entryPoints:['tests/chart-positive-parity.ts'],p
 await build({absWorkingDir:root,entryPoints:['tests/chart-real-parity.ts'],plugins:[summaryAdapter],bundle:true,platform:'node',format:'esm',outfile:'test-results/chart-real-parity.mjs',target:'node24',alias:{'@':path.join(root,'upstream/src')}});
 await build({absWorkingDir:root,entryPoints:['tests/wall-view-parity.ts'],plugins:[summaryAdapter],bundle:true,platform:'node',format:'esm',outfile:'test-results/wall-view-parity.mjs',target:'node24',alias:{'@':path.join(root,'upstream/src')}});
 await build({absWorkingDir:root,entryPoints:['tests/spread-study-parity.ts'],plugins:[summaryAdapter],bundle:true,platform:'node',format:'esm',outfile:'test-results/spread-study-parity.mjs',target:'node24',alias:{'@':path.join(root,'upstream/src')}});
+
+// App-owned operation bundles share the headless engine SDK; no host build is involved.
+await build({absWorkingDir:root,entryPoints:['runtime/retained-summary.mjs'],bundle:true,platform:'node',format:'esm',outfile:'runtime-dist/retained-summary.mjs',target:'node24'});

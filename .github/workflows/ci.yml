@@ -76,6 +76,8 @@ jobs:
           python3 build/bundle-qqq-runtime.py linux-x64 tests/Meili.Qqq.CloudHost/bin/Debug/net10.0
           cd web/qqq-gex
           node tests/session-soak.mjs
+      - name: Test shared app engine SDK
+        run: node --test web/app-sdk/engine.test.mjs
       - name: Build & verify independent app fixture
         run: |
           mkdir -p build/out/app-fixture

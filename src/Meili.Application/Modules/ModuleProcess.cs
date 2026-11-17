@@ -15,6 +15,7 @@ public static class ModuleProcess
     {
         if (operation.Definition.Writes && !allowWrites) throw new UnauthorizedAccessException();
         using var lease = new ModuleRegistry(directory).AcquireExecution(operation.AppId);
+        using var job = await ModuleJobs.AcquireAsync(directory, operation.AppId, ct).ConfigureAwait(false);
         // Resolve again under the lease: a queued request must not silently run a changed contract.
         var current = (await ModuleOperations.ReadAsync(directory, installer, ct).ConfigureAwait(false)).SingleOrDefault(o => o.Definition.Name == operation.Definition.Name);
         if (current is null || current.AppId != operation.AppId || current.Version != operation.Version)

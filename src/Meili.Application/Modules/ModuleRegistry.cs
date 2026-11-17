@@ -47,10 +47,11 @@ public sealed class ModuleRegistry
     /// <summary>Held for actual app use only, never for an idle MCP transport.</summary>
     public IDisposable AcquireExecution(string appId) => Acquire(appId, exclusive: false);
     internal IDisposable AcquireMaintenance(string appId) => Acquire(appId, exclusive: true);
-    private IDisposable Acquire(string appId, bool exclusive)
+    internal IDisposable AcquireJob(string appId) => Acquire(appId, exclusive: true, folderName: "jobs");
+    private IDisposable Acquire(string appId, bool exclusive, string folderName = "leases")
     {
         ValidateId(appId); CheckRoot();
-        var folder = Path.Combine(Root, "leases");
+        var folder = Path.Combine(Root, folderName);
         if (Directory.Exists(folder) && (File.GetAttributes(folder) & FileAttributes.ReparsePoint) != 0)
             throw new InvalidDataException("Linked module lease folder.");
         Directory.CreateDirectory(folder);

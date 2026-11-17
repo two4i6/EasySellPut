@@ -2,9 +2,8 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
-let input='';
-for await (const chunk of process.stdin) { input+=chunk; if(Buffer.byteLength(input)>1048576)throw Error('Request exceeds bound'); }
-const request=JSON.parse(input);
+import { readRequest, writeResult } from '../../app-sdk/engine.mjs';
+const request=await readRequest();
 if(request.protocol!==1||request.operation!=='get_qqq_gex_retained_summary'||Object.keys(request.arguments).length)throw Error('Unsupported operation');
 const path=join(request.context.dataDirectory,'cache','qqq-gex.db');
 const result={status:'empty',appVersion:request.context.appVersion,storageAvailable:existsSync(path),publishedDays:0,partialDays:0,observedInputs:0,firstPublishedDate:null,lastPublishedDate:null,coverage:'Locally retained evidence only; counts do not certify complete market coverage or validate payload integrity.'};
@@ -19,4 +18,4 @@ if(result.storageAvailable){
   result.status='available';
  }finally{db.close();}
 }
-process.stdout.write(JSON.stringify(result));
+writeResult(result);
