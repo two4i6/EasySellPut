@@ -40,12 +40,12 @@ Catalog validity is 30 days. Weekly main-only renewal re-signs existing entries 
 
 ## One-time GitHub setup
 
-A repository administrator needs GitHub CLI access that can manage the `release` Environment, its secrets and repository variables. For this public repository an owner-authorized GitHub CLI login with `public_repo` is suitable. The connected GitHub App token may not include these administration capabilities even when it can push code.
+A repository administrator needs GitHub CLI access that can manage the `release` Environment, its secrets and repository variables. GitHub's Environment secrets REST API requires the classic OAuth `repo` scope even for a public repository; `public_repo` alone is insufficient. A fine-grained token can instead restrict administration to this repository. The connected GitHub App token may not include these administration capabilities even when it can push code.
 
 Before the **first published release**, keep an owner-only private backup outside the checkout:
 
 ```sh
-gh auth login --web --scopes public_repo
+gh auth login --web --scopes repo
 python3 build/configure-app-distribution.py --repo two4i6/EasySellPut \
   --key "$HOME/.config/EasySellPut-signing/update-signing.pem" --initialize
 ```
