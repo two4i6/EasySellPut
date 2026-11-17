@@ -6,6 +6,28 @@ namespace Meili.Core.Tests;
 public sealed class SnapshotConcurrencyTests
 {
     [Fact]
+    public void An_open_reader_keeps_its_bytes_across_multiple_replacements()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), "snapshot-retained-reader-" + Guid.NewGuid());
+        Directory.CreateDirectory(directory);
+        var path = Path.Combine(directory, "snapshot.json");
+        try
+        {
+            var writer = new SnapshotFile(path);
+            writer.Write("original");
+            using (var original = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete))
+            {
+                writer.Write("second");
+                writer.Write("third");
+                Assert.Equal("third", new SnapshotFile(path).Read());
+                using var reader = new StreamReader(original);
+                Assert.Equal("original", reader.ReadToEnd());
+            }
+        }
+        finally { Directory.Delete(directory, recursive: true); }
+    }
+
+    [Fact]
     public async Task Readers_observe_complete_snapshots_while_another_writer_replaces_them()
     {
         var directory = Path.Combine(Path.GetTempPath(), "snapshot-sharing-" + Guid.NewGuid());
