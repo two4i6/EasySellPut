@@ -16,7 +16,7 @@ public enum DataCapability
     MacroLiquidity = 256,
 }
 
-public enum MarketState { Unknown, PreMarket, Regular, AfterHours, Closed }
+public enum MarketState { Unknown, PreMarket, Regular, AfterHours, Closed, Overnight }
 
 public enum BarInterval { Minute1, Minute5, Minute15, Minute30, Hour1, Day1, Week1, Month1 }
 

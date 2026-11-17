@@ -155,6 +155,24 @@ class RendererTests(unittest.TestCase):
         self.assertLessEqual(bounds['width'],32)
         self.assertLessEqual(p.locator('#toolbar').evaluate('(e)=>e.scrollWidth'),480)
         p.set_viewport_size(dict(width=1280,height=800));p.evaluate('(s)=>meiliChart.render(s)',fixture())
+    def test_received_overnight_segment_does_not_bridge_missing_provider_history(self):
+        cls=type(self);page=cls.browser.new_page(viewport=dict(width=1920,height=1080))
+        try:
+            page.goto(cls.origin+'/index.html')
+            page.wait_for_function('()=>window.meiliChart?.inspect().state?.rows.length===120')
+            last=cls.state['rows'][-1]['time'];gap=last+300;observed=last+3600
+            cls.quote=dict(symbol='FIXTURE',price=112,joinStatus='observed_partial',tail=[dict(time=observed,close=112,gapFrom=gap)],time=datetime.datetime.now(datetime.timezone.utc).isoformat(),delivery='websocket');cls.quote_version+=1
+            page.wait_for_function('()=>window.meiliChart.inspect().liveQuote?.price===112')
+            data=page.evaluate('()=>window.meiliChart.inspect().series.liveSegment0.data()')
+            self.assertEqual([dict(time=observed,value=112)],data)
+            cls.quote['tail'].append(dict(time=observed+600,close=113,gapFrom=observed+60));cls.quote_version+=1
+            page.wait_for_function('()=>!!window.meiliChart.inspect().series.liveSegment1')
+            second=page.evaluate('()=>window.meiliChart.inspect().series.liveSegment1.data()')
+            self.assertEqual([dict(time=observed+600,value=113)],second)
+            self.assertEqual(120,page.evaluate('()=>window.meiliChart.inspect().state.rows.length'))
+        finally:
+            cls.quote=None;cls.quote_version+=1;page.close()
+
     def test_vendor_integrity(self):
         provenance=json.loads((ASSETS/'vendor/provenance.json').read_text())
         self.assertEqual(hashlib.sha256((ASSETS/'vendor/lightweight-charts.js').read_bytes()).hexdigest(),provenance['sha256'])

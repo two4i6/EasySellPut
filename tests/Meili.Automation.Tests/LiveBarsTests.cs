@@ -6,6 +6,22 @@ namespace Meili.Automation.Tests;
 public sealed class LiveBarsTests
 {
     private static DateTimeOffset At(int minute)=>new(2026,11,16,15,minute,0,TimeSpan.Zero);
+    [Fact]public void Overnight_observations_remain_visible_without_inventing_unavailable_history_or_shifting_source_times()
+    {
+        var close=Meili.Core.Time.MarketClock.FromEastern(new DateTime(2026,11,16,19,59,0));
+        var first=close.AddHours(3).AddMinutes(1).AddSeconds(10);var next=first.AddMinutes(1).AddSeconds(5);
+        var join=new LiveBarStitcher();join.SetHistory(new(){Symbol="QQQ",Interval=BarInterval.Minute1,Source="yahoo",Bars=[new(close,100,101,99,100,10)]});
+        join.Observe(new("QQQ",101,first,MarketState.Overnight,Source:"yahoo"));join.Observe(new("QQQ",102,next,MarketState.Overnight,Source:"yahoo"));
+        var view=join.View(next);Assert.Equal("observed_partial",view.Status);Assert.Equal(close.AddMinutes(1),view.MissingFrom);Assert.Single(view.History.Bars);Assert.Equal(2,view.ObservedTail.Count);
+        Assert.Equal(first,view.ObservedTail[0].Time);Assert.Equal(next,view.ObservedTail[1].Time);Assert.All(view.ObservedTail,b=>{Assert.True(b.Incomplete);Assert.True(double.IsNaN(b.Volume));Assert.True(double.IsNaN(b.Open));});
+    }
+    [Fact]public void Observed_overnight_ticks_do_not_skip_missing_night_buckets_as_scheduled_closed_time()
+    {
+        var close=Meili.Core.Time.MarketClock.FromEastern(new DateTime(2026,11,16,19,59,0));
+        var join=new LiveBarStitcher();join.SetHistory(new(){Symbol="QQQ",Interval=BarInterval.Minute1,Source="yahoo",Bars=[new(close,100,101,99,100,10)]});
+        join.Observe(new("QQQ",101,close.AddMinutes(4),MarketState.AfterHours,Source:"yahoo"));
+        var view=join.View(close.AddMinutes(4));Assert.Equal("observed_partial",view.Status);Assert.Equal(close.AddMinutes(1),view.MissingFrom);Assert.Equal(close.AddMinutes(4),Assert.Single(view.ObservedTail).Time);
+    }
     [Fact]public void Scheduled_weekend_closure_is_not_a_missing_live_minute()
     {
         var friday=new DateTimeOffset(2026,11,14,0,59,0,TimeSpan.Zero); // Friday 19:59 Eastern.

@@ -1011,4 +1011,11 @@
     <sys:String x:Key="Quote_SnapshotFields">Other fields remain HTTP snapshots</sys:String>
     <sys:String x:Key="Quote_Reconnecting">Reconnecting</sys:String>
     <sys:String x:Key="Ch_Backfilling">Backfilling</sys:String>
+    <sys:String x:Key="Quote_Overnight">Overnight</sys:String>
+    <sys:String x:Key="QP_ChartAuto">Chart · Auto</sys:String>
+    <sys:String x:Key="QP_ChartSession">Chart session</sys:String>
+    <sys:String x:Key="QP_ChartSessionHelp">Choose the chart session; the price above remains the latest quote. Overnight spans 20:00–04:00 ET. Missing history is not filled; received segments use their actual time range.</sys:String>
+    <sys:String x:Key="QP_NoNightChart">No overnight history · waiting for updates</sys:String>
+    <sys:String x:Key="QP_ObservedTail">Pushed tail · incomplete</sys:String>
+    <sys:String x:Key="QP_ObservedWindow">Received segment · partial history</sys:String>
 </ResourceDictionary>

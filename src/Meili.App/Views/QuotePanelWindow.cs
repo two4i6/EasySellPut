@@ -18,6 +18,7 @@ public sealed class QuotePanelWindow : Window
     private readonly TextBlock _title=new(),_name=new(),_price=new(),_change=new(),_source=new(),_asof=new(),_extended=new(),_date=new(),_status=new(),_page=new(),_empty=new();
     private readonly QuoteSparkline _chart=new(){Height=DesignTokens.QuotePanelHeroSparkHeight};private readonly TextBlock[] _metrics=[new(),new(),new(),new()];
     private readonly Border _chartSurface = new() { CornerRadius = new(DesignTokens.ControlRadius), Padding = new(DesignTokens.SpaceXS) };
+    private readonly AppSelect _sessions = new() { MinHeight = 32, FontSize = 12, HorizontalAlignment = HorizontalAlignment.Stretch };
     private readonly TextBlock[] _ticks = [new(), new(), new()];
     private readonly UniformGrid _metricGrid = new() { Columns = 4 };
     private readonly Button _refresh,_previous,_next,_chartButton;private readonly ToggleButton _pin;
@@ -35,7 +36,12 @@ public sealed class QuotePanelWindow : Window
         header.MouseLeftButtonDown+=(_,e)=>{if(_pin.IsChecked==true && e.Source==_title)DragMove();};
         var hero=new StackPanel{Margin=new Thickness(0,12,0,12)};_name.FontSize=14;_name.TextTrimming=TextTrimming.CharacterEllipsis;hero.Children.Add(_name);
         var prices=new StackPanel{Orientation=Orientation.Horizontal};_price.FontSize=32;_price.FontWeight=FontWeights.SemiBold;_change.Margin=new Thickness(12,0,0,0);_change.FontSize=18;_change.VerticalAlignment=VerticalAlignment.Center;prices.Children.Add(_price);prices.Children.Add(_change);hero.Children.Add(prices);
-        Caption(_source);Caption(_asof);Caption(_extended);Caption(_date);Caption(_empty);_source.TextWrapping=_asof.TextWrapping=_date.TextWrapping=_extended.TextWrapping=TextWrapping.Wrap;hero.Children.Add(_source);hero.Children.Add(_asof);hero.Children.Add(_extended);_chartSurface.Child=_chart;hero.Children.Add(_chartSurface);var times=new UniformGrid{Columns=3};for(var i=0;i<3;i++){var tick=_ticks[i];tick.HorizontalAlignment=i==0?HorizontalAlignment.Left:i==1?HorizontalAlignment.Center:HorizontalAlignment.Right;Caption(tick);times.Children.Add(tick);}hero.Children.Add(times);hero.Children.Add(_empty);hero.Children.Add(_date);
+        Caption(_source);Caption(_asof);Caption(_extended);Caption(_date);Caption(_empty);_source.TextWrapping=_asof.TextWrapping=_date.TextWrapping=_extended.TextWrapping=TextWrapping.Wrap;hero.Children.Add(_source);hero.Children.Add(_asof);hero.Children.Add(_extended);
+        foreach(var key in QuoteGlanceText.SessionKeys) _sessions.Items.Add(new ComboBoxItem { Content = _loc[key] });
+        _sessions.SelectedIndex = _model.ChartSessionIndex;
+        _sessions.SelectionChanged += (_,_) => _model.SelectChartSession(_sessions.SelectedIndex);
+        hero.Children.Add(_sessions);
+        _chartSurface.Child=_chart;hero.Children.Add(_chartSurface);var times=new UniformGrid{Columns=3};for(var i=0;i<3;i++){var tick=_ticks[i];tick.HorizontalAlignment=i==0?HorizontalAlignment.Left:i==1?HorizontalAlignment.Center:HorizontalAlignment.Right;Caption(tick);times.Children.Add(tick);}hero.Children.Add(times);hero.Children.Add(_empty);hero.Children.Add(_date);
         var metrics=_metricGrid;metrics.Margin=new Thickness(0,4,0,0);foreach(var t in _metrics){Caption(t);metrics.Children.Add(t);}hero.Children.Add(metrics);
         var list=new ScrollViewer{Content=_rows,HorizontalScrollBarVisibility=ScrollBarVisibility.Disabled};
         var footer=new DockPanel{LastChildFill=true,Margin=new Thickness(0,10,0,0)};var actions=new StackPanel{Orientation=Orientation.Horizontal};DockPanel.SetDock(actions,Dock.Right);footer.Children.Add(actions);
@@ -49,7 +55,7 @@ public sealed class QuotePanelWindow : Window
         foreach(FrameworkElement child in actions.Children)child.Margin=new Thickness(5,0,0,0);
         foreach(FrameworkElement child in paging.Children)child.Margin=new Thickness(0,0,4,0);
         Content=new AppCard{Padding=new Thickness(16),Content=content};
-        KeyDown+=(_,e)=>{if(e.Key==Key.Escape){HidePanel();e.Handled=true;}};Deactivated+=(_,_)=>{if(_pin.IsChecked!=true && !more.ContextMenu.IsOpen)HidePanel();};
+        KeyDown+=(_,e)=>{if(e.Key==Key.Escape){if(_sessions.IsDropDownOpen)_sessions.IsDropDownOpen=false;else HidePanel();e.Handled=true;}};Deactivated+=(_,_)=>{if(_pin.IsChecked!=true && !more.ContextMenu.IsOpen && !_sessions.IsDropDownOpen)HidePanel();};
         Closed+=(_,_)=>{_activity.SetVisible(_activityOwner,false);_model.Changed-=OnChanged;_model.Dispose();};_model.Changed+=OnChanged;UpdateView();
     }
     private static Grid RowsGrid(){var g=new Grid();foreach(var value in new[]{"Auto","Auto","*","Auto","Auto"})g.RowDefinitions.Add(new RowDefinition{Height=value=="*"?new GridLength(1,GridUnitType.Star):GridLength.Auto});return g;}
@@ -70,6 +76,10 @@ public sealed class QuotePanelWindow : Window
     {
         Title=_title.Text=_loc["QP_Title"];_refresh.IsEnabled=!_model.IsBusy;_status.Text=_model.IsBusy?_loc["QP_Refresh"]+"…":_model.Status;_page.Text=$"{_model.Page+1}/{_model.Pages}";_previous.IsEnabled=_model.Page>0;_next.IsEnabled=_model.Page+1<_model.Pages;
         _pin.Content=_loc["QP_Pin"];_chartButton.Content=_loc["QP_Open"];
+        for(var i=0;i<QuoteGlanceText.SessionKeys.Length;i++) ((ComboBoxItem)_sessions.Items[i]!).Content = _loc[QuoteGlanceText.SessionKeys[i]];
+        _sessions.SelectedIndex = _model.ChartSessionIndex;
+        _sessions.ToolTip = _loc["QP_ChartSessionHelp"];
+        System.Windows.Automation.AutomationProperties.SetName(_sessions, _loc["QP_ChartSession"]);
         if(!_views.Keys.SequenceEqual(_model.Rows.Select(r=>r.Symbol))){_rows.Children.Clear();_views.Clear();foreach(var row in _model.Rows){var view=new RowView(this,row);_views.Add(row.Symbol,view);_rows.Children.Add(view.Button);}}
         foreach(var row in _model.Rows)_views[row.Symbol].Update(row,_model.Selected==row);
         var selected=_model.Selected;_chartButton.IsEnabled=selected is not null;if(selected is null)return;
@@ -78,11 +88,11 @@ public sealed class QuotePanelWindow : Window
         _source.Text=display is null?_loc["Mb_Unavailable"]:_loc[display.SessionKey]+" · "+display.Snapshot.Currency+" · "+FreshnessText.SourceAndTiming(display.Snapshot,_loc,_model.Now())+(display.Stale(_model.Now(),selected.Failed)?" · "+_loc["Mb_Stale"]:"");
         _asof.Text=FreshnessText.AsOf(display?.Snapshot.AsOf,_loc);
         _extended.Text=q is null||display is null?"":display.Reference(q,_loc);
-        _extended.Visibility=_extended.Text.Length>0?Visibility.Visible:Visibility.Collapsed;_metricGrid.Visibility=display?.IsExtended==true?Visibility.Collapsed:Visibility.Visible;
-        _chartSurface.Background=display?.IsExtended==true?Brush(display.Session==Meili.Core.Time.MarketSession.PreMarket?"PreMarketBackgroundBrush":"AfterHoursBackgroundBrush"):Brushes.Transparent;
+        _extended.Visibility=_extended.Text.Length>0?Visibility.Visible:Visibility.Collapsed;_metricGrid.Visibility=display?.IsExtended==true || selected.Graph.Session!=Meili.Core.Time.MarketSession.Regular?Visibility.Collapsed:Visibility.Visible;
+        _chartSurface.Background=selected.Graph.Session is Meili.Core.Time.MarketSession.PreMarket or Meili.Core.Time.MarketSession.AfterHours or Meili.Core.Time.MarketSession.Overnight?Brush(selected.Graph.Session==Meili.Core.Time.MarketSession.PreMarket?"PreMarketBackgroundBrush":"AfterHoursBackgroundBrush"):Brushes.Transparent;
         _ticks[0].Text=selected.Graph.StartLabel;_ticks[1].Text=selected.Graph.MiddleLabel;_ticks[2].Text=selected.Graph.EndLabel;
-        _chart.Data=selected.Graph;_chart.LineBrush=Brush(selected.BrushKey);_chart.InvalidateVisual();_empty.Text=_loc["QP_NoChart"];_empty.Visibility=selected.Graph.Points.Count<2?Visibility.Visible:Visibility.Collapsed;_chart.Visibility=selected.Graph.Points.Count<2?Visibility.Collapsed:Visibility.Visible;_chartSurface.Visibility=_chart.Visibility;
-        _date.Text=GraphLabel(selected);_metrics[0].Text=_loc["QP_OpenPrice"]+"  "+Value(q?.Open);_metrics[1].Text=_loc["QP_High"]+"  "+Value(q?.High);_metrics[2].Text=_loc["QP_Low"]+"  "+Value(q?.Low);_metrics[3].Text=_loc["QP_Volume"]+"  "+NumberDisplay.Compact(q?.Volume);
+        _chart.Data=selected.Graph;_chart.LineBrush=Brush(selected.GraphBrushKey);_chart.InvalidateVisual();_empty.Text=QuoteGlanceText.EmptyLabel(selected,_loc);_empty.Visibility=selected.Graph.Points.Count<1?Visibility.Visible:Visibility.Collapsed;_chart.Visibility=selected.Graph.Points.Count<1?Visibility.Collapsed:Visibility.Visible;_chartSurface.Visibility=_chart.Visibility;
+        _date.Text=GraphLabel(selected);_date.Visibility=selected.Graph.Day is not null?Visibility.Visible:Visibility.Collapsed;_metrics[0].Text=_loc["QP_OpenPrice"]+"  "+Value(q?.Open);_metrics[1].Text=_loc["QP_High"]+"  "+Value(q?.High);_metrics[2].Text=_loc["QP_Low"]+"  "+Value(q?.Low);_metrics[3].Text=_loc["QP_Volume"]+"  "+NumberDisplay.Compact(q?.Volume);
     }
     private string GraphLabel(PanelQuoteRow row)=>QuoteGlanceText.GraphLabel(row,_loc,_model.Now());
     private sealed class RowView
@@ -94,6 +104,6 @@ public sealed class QuotePanelWindow : Window
             var grid=ColumnsGrid();var symbol=new TextBlock{Text=row.Symbol,FontSize=15,FontWeight=FontWeights.SemiBold};owner.Caption(_name);_name.TextTrimming=TextTrimming.CharacterEllipsis;var identity=new StackPanel{Children={symbol,_name}};grid.Children.Add(identity);
             owner.Caption(_date);var mini=new StackPanel{Children={_spark,_date}};Grid.SetColumn(mini,1);grid.Children.Add(mini);_price.FontSize=16;_price.FontWeight=FontWeights.SemiBold;_price.VerticalAlignment=VerticalAlignment.Center;_price.HorizontalAlignment=HorizontalAlignment.Right;_change.FontSize=12;_change.VerticalAlignment=VerticalAlignment.Center;_change.HorizontalAlignment=HorizontalAlignment.Right;var values=new StackPanel{VerticalAlignment=VerticalAlignment.Center};values.Children.Add(_price);values.Children.Add(_change);Grid.SetColumn(values,2);grid.Children.Add(values);Button.Content=grid;Button.Click+=(_,_)=>owner._model.Select(row.Symbol);Button.MouseDoubleClick+=(_,_)=>{owner._model.Select(row.Symbol);owner.OpenSelected();};
         }
-        public void Update(PanelQuoteRow row,bool selected){_name.Text=row.Name;_price.Text=row.Price;_price.FontSize=row.Price.Length>10?13:16;_change.Text=row.Change;_price.Foreground=_change.Foreground=_owner.Brush(row.BrushKey);_spark.Data=row.Graph;_spark.LineBrush=_owner.Brush(row.BrushKey);_spark.InvalidateVisual();_date.Text=QuoteGlanceText.MiniLabel(row,_owner._loc)+(row.Failed||row.GraphFailed?" · !":"");Button.Background=selected?_owner.Brush("RowHighlightBrush"):Brushes.Transparent;Button.BorderBrush=selected?_owner.Brush("ControlStrokeColorDefaultBrush"):Brushes.Transparent;Button.ToolTip=row.Name+"\n"+(row.Quote is { } q?_owner._loc[row.Display!.SessionKey]+" · "+FreshnessText.SourceAndTiming(row.Display.Snapshot,_owner._loc,_owner._model.Now())+" · "+FreshnessText.AsOf(row.Display.Snapshot.AsOf,_owner._loc):_owner._loc["Mb_Unavailable"])+"\n"+_owner.GraphLabel(row);}
+        public void Update(PanelQuoteRow row,bool selected){_name.Text=row.Name;_price.Text=row.Price;_price.FontSize=row.Price.Length>10?13:16;_change.Text=row.Change;_price.Foreground=_change.Foreground=_owner.Brush(row.BrushKey);_spark.Data=row.Graph;_spark.LineBrush=_owner.Brush(row.GraphBrushKey);_spark.InvalidateVisual();_date.Text=QuoteGlanceText.MiniLabel(row,_owner._loc)+(row.Failed||row.GraphFailed?" · !":"");Button.Background=selected?_owner.Brush("RowHighlightBrush"):Brushes.Transparent;Button.BorderBrush=selected?_owner.Brush("ControlStrokeColorDefaultBrush"):Brushes.Transparent;Button.ToolTip=row.Name+"\n"+(row.Quote is { } q?_owner._loc[row.Display!.SessionKey]+" · "+FreshnessText.SourceAndTiming(row.Display.Snapshot,_owner._loc,_owner._model.Now())+" · "+FreshnessText.AsOf(row.Display.Snapshot.AsOf,_owner._loc):_owner._loc["Mb_Unavailable"])+"\n"+_owner.GraphLabel(row);}
     }
 }

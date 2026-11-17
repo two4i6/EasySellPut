@@ -456,6 +456,7 @@
       document.getElementById('error').style.display = 'none';
       chart.applyOptions({layout: {background: {type: 'solid', color: t.background}, textColor: t.text,panes:{separatorColor:t.border,separatorHoverColor:t.accent}}, crosshair:{vertLine:{color:t.muted,labelBackgroundColor:t.accent},horzLine:{color:t.muted,labelBackgroundColor:t.accent}}, grid: {vertLines: {color: t.grid}, horzLines: {color: t.grid}}, localization: {locale: state.language}, timeScale: {timeVisible: state.intraday}});
       series.candles.applyOptions({upColor: t.up, downColor: t.down, wickUpColor: t.up, wickDownColor: t.down, borderUpColor: t.up, borderDownColor: t.down});
+      clearObservedSegments();
       series.candles.setData(state.rows.map(r => !r.incomplete && [r.open,r.high,r.low,r.close].every(finite) ? {time:r.time,open:r.open,high:r.high,low:r.low,close:r.close} : {time:r.time}));
       series.incomplete.applyOptions({color:t.muted,lineVisible:state.rows.length > 0 && state.rows.every(r=>r.incomplete),pointMarkersVisible:!state.rows.every(r=>r.incomplete)});
       series.incomplete.setData(state.rows.map(r => r.incomplete ? point(r, 'close') : {time: r.time}));
@@ -518,20 +519,43 @@
     const body = pendingHover;pendingHover = null;posting = true;
     post(body).catch(()=>{}).finally(()=>posting = false);
   },100);
+  function clearObservedSegments() {
+    for(const name of Object.keys(series).filter(name=>name.startsWith('liveSegment'))){chart.removeSeries(series[name]);delete series[name];}
+  }
   function updateLiveQuote(value) {
     if(livePriceOwner!==series.candles){livePriceLine=null;livePriceOwner=series.candles;}
     if(!state||!series.candles)return;
     if(!value||value.symbol!==state.symbol||!finite(value.price)||value.price<=0){
       if(livePriceLine)series.candles.removePriceLine(livePriceLine);
-      livePriceLine=null;liveQuote=null;series.candles.applyOptions({lastValueVisible:true,priceLineVisible:true});return;
+      clearObservedSegments();livePriceLine=null;liveQuote=null;series.candles.applyOptions({lastValueVisible:true,priceLineVisible:true});return;
     }
+    // Overnight observations are separate from unavailable historical candles. Never draw across a gap.
+    if(value.joinStatus==='observed_partial'&&Array.isArray(value.tail)){
+      const range=chart.timeScale().getVisibleLogicalRange();let runs=[],run=[];
+      for(const point of value.tail.filter(p=>finite(p.time)&&finite(p.close))){
+        if(finite(point.gapFrom)&&run.length){runs.push(run);run=[];}run.push({time:point.time,value:point.close});
+      }
+      if(run.length)runs.push(run);
+      // Highly fragmented source data stays visible as points, with bounded native series overhead.
+      const connect=runs.length<=16;if(!connect)runs=[runs.flat()];
+      for(const name of Object.keys(series).filter(name=>name.startsWith('liveSegment')&&Number(name.slice(11))>=runs.length)){chart.removeSeries(series[name]);delete series[name];}
+      runs.forEach((points,index)=>{const name='liveSegment'+index;
+        if(!series[name])series[name]=chart.addSeries(LightweightCharts.LineSeries,{priceLineVisible:false,lastValueVisible:false,crosshairMarkerVisible:false,pointMarkersVisible:true,pointMarkersRadius:2,lineWidth:1});
+        series[name].applyOptions({color:value.streamState==='reconnecting'?state.theme.muted:state.theme.accent,lineVisible:connect});series[name].setData(points);
+      });
+      if(range)chart.timeScale().setVisibleLogicalRange(range);
+    }else{
+      clearObservedSegments();
     // Append only the backend-verified, close-only observed tail. Never fabricate OHLC or volume.
     if(Array.isArray(value.tail)&&value.tail.length&&state.rows.length){
       const last=state.rows[state.rows.length-1];
       let latest=series.incomplete.data().at(-1)?.time??last.time;
       const update=point=>{series.incomplete.update(point,point.time<latest);latest=Math.max(latest,point.time);};
       if(finite(last.close))update({time:last.time,value:last.close});
-      for(const point of value.tail)if(finite(point.time)&&finite(point.close)&&point.time>=last.time)update({time:point.time,value:point.close});
+      for(const point of value.tail)if(finite(point.time)&&finite(point.close)&&point.time>=last.time){
+        update({time:point.time,value:point.close});
+      }
+    }
     }
     liveQuote=value;
     const age=Date.now()-Date.parse(value.time),fresh=finite(age)&&age>=-60000&&age<60000;

@@ -39,4 +39,16 @@ public sealed class QuotePanelTests
             finally{panel.Close();}
         });
     }
+    [Fact] public void Session_selector_keeps_overnight_missing_until_source_data_exists_and_live_postmarket_updates_both_graphs()
+    {
+        WpfHost.Run(async()=>
+        {
+            var now=Meili.Core.Time.MarketClock.FromEastern(new DateTime(2026,11,16,18,0,0));
+            var data=new QuotePanelMarketData{Phase=Meili.Core.Models.MarketState.AfterHours,Clock=now};var hub=new QuoteHub(data){Now=()=>now};var context=new SymbolContext();context.Set("QQQ");
+            using var model=new QuotePanelViewModel(hub,data,new WatchlistStore(new(Path.Combine(Path.GetTempPath(),"session-picker-"+Guid.NewGuid()))),context,LocalizationService.Current){Now=()=>now};var panel=new QuotePanelWindow(model,_=>{},()=>{},()=>{});
+            try{await panel.ShowPanelAsync();await WpfHost.Settle();var row=model.Selected!;var count=row.Graph.Points.Count;now=now.AddSeconds(10);hub.ApplyTicks([new("QQQ",row.Quote!.Price*1.02,now,Meili.Core.Models.MarketState.AfterHours,Source:"yahoo")]);await WpfHost.Settle();Assert.True(row.Graph.Points.Count>count);Assert.True(row.ChartObserved);
+                var picker=UiAudit.Descendants<Meili.App.Views.Controls.AppSelect>(panel).Single();picker.SelectedIndex=4;await WpfHost.Settle();Assert.Empty(row.Graph.Points);Assert.Equal(Meili.Core.Time.MarketSession.Overnight,row.Graph.Session);Assert.Contains(UiAudit.Descendants<System.Windows.Controls.TextBlock>(panel),t=>t.IsVisible&&t.Text==LocalizationService.Current["QP_NoNightChart"]);picker.SelectedIndex=0;Assert.NotEmpty(row.Graph.Points);panel.HidePanel();Assert.Empty(hub.SubscribedSymbols);}
+            finally{panel.Close();}
+        });
+    }
 }

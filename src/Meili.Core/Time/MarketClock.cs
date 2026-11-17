@@ -1,6 +1,6 @@
 namespace Meili.Core.Time;
 
-public enum MarketSession { Closed, PreMarket, Regular, AfterHours }
+public enum MarketSession { Closed, PreMarket, Regular, AfterHours, Overnight }
 
 /// <summary>US equity market calendar in America/New_York (NYSE/Nasdaq full-day holidays; early closes not modelled).</summary>
 public static class MarketClock

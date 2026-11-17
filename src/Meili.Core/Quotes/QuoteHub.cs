@@ -38,11 +38,17 @@ public sealed class QuoteHub : IManagedCache
     private readonly Dictionary<string,DateTimeOffset> _lastSnapshots=new(StringComparer.OrdinalIgnoreCase);
     private (HashSet<string> Symbols, Task<QuoteBatch> Task)? _inflight;
 
+    private readonly OvernightObservationBuffer _overnight = new();
+    public IReadOnlyList<QuoteTick> GetOvernightObservations(string symbol) => _overnight.Snapshot(symbol,Now());
     private long _generation;
     public CacheStatus Inspect()
     {
-        lock (_gate) return new("quotes", "memory", "process", _cache.Count, _cache.Values.LongCount(e => Now() - e.At >= Ttl), null, null, null,
-            "TTL 2.5 seconds. Clear invalidates reuse while retaining last-known quotes for display and subscribers.");
+        lock (_gate)
+        {
+            var night=_overnight.Inspect(Now());
+            return new("quotes", "memory", "process", _cache.Count+night.Count, _cache.Values.LongCount(e => Now() - e.At >= Ttl)+night.Expired, null, null, null,
+                "Quote TTL 2.5 seconds. Overnight observations: 10 hours, at most 50 symbols/1024 source points each, recent second detail and older minute samples. Clear removes observations and invalidates quote reuse, retaining displayed quotes and subscribers.");
+        }
     }
     public CacheClearResult Clear(bool expiredOnly, string? symbol = null)
     {
@@ -50,10 +56,11 @@ public sealed class QuoteHub : IManagedCache
         lock (_gate)
         {
             var keys = _cache.Where(e => !expiredOnly || Now() - e.Value.At >= Ttl).Select(e => e.Key).ToArray();
-            if (expiredOnly && keys.Length == 0) return new("quotes", 0);
+            var removed=_overnight.Clear(expiredOnly,Now());
+            if (expiredOnly && keys.Length == 0 && removed==0) return new("quotes", 0);
             _generation++; _inflight = null; _lastSnapshots.Clear();
             foreach (var key in keys) _cache[key] = (_cache[key].Quote, DateTimeOffset.MinValue);
-            return new("quotes", 0, keys.Length);
+            return new("quotes", removed, keys.Length);
         }
     }
 
@@ -127,10 +134,13 @@ public sealed class QuoteHub : IManagedCache
                     };
                     _cache[tick.Symbol]=(quote,now);updated[tick.Symbol]=quote;
                 }
-                else if(tick.Session is MarketState.PreMarket or MarketState.AfterHours&&previous is {Price:>0}&&double.IsFinite(previous.Price))
+                else if(tick.Session==MarketState.Overnight || tick.Session is MarketState.PreMarket or MarketState.AfterHours && previous is {Price:>0}&&double.IsFinite(previous.Price))
                 {
+                    previous ??= new Quote{Symbol=tick.Symbol,Price=double.NaN,Source=tick.Source,Name=tick.Name,Currency=tick.Currency??"USD",Exchange=tick.Exchange};
                     var latest=previous.AsOf;if(previous.ExtendedTime is { } extended&&(latest is null||extended>latest))latest=extended;if(latest is { } old&&old>=tick.Time)continue;
-                    var quote=previous with{ExtendedPrice=tick.Price,ExtendedTime=tick.Time,ExtendedChange=tick.Price-previous.Price,ExtendedChangePercent=(tick.Price/previous.Price-1)*100,MarketState=tick.Session,FetchedAt=now,ExtendedDelivery="websocket",ExtendedSource=tick.Source,StreamState="active",StreamStateAt=now};
+                    if(tick.Session==MarketState.Overnight)_overnight.Add(tick,now);
+                    var hasClose=previous.Price>0&&double.IsFinite(previous.Price);
+                    var quote=previous with{ExtendedPrice=tick.Price,ExtendedTime=tick.Time,ExtendedChange=hasClose?tick.Price-previous.Price:tick.Change is { } change&&double.IsFinite(change)?change:null,ExtendedChangePercent=hasClose?(tick.Price/previous.Price-1)*100:tick.ChangePercent is { } pct&&double.IsFinite(pct)?pct:null,MarketState=tick.Session,FetchedAt=now,ExtendedDelivery="websocket",ExtendedSource=tick.Source,StreamState="active",StreamStateAt=now};
                     _cache[tick.Symbol]=(quote,now);updated[tick.Symbol]=quote;
                 }
             }
@@ -232,7 +242,7 @@ public sealed class QuoteHub : IManagedCache
                             if(live.AsOf is { } time&&(q.AsOf is null||time>=q.AsOf))
                                 value=value with{Source=live.Source,Name=q.Name??live.Name,Price=live.Price,AsOf=live.AsOf,Change=live.Change,ChangePercent=live.ChangePercent,Volume=live.Volume,MarketState=live.MarketState,Delivery=live.Delivery,StreamState=live.StreamState,StreamStateAt=live.StreamStateAt,IsRealtime=live.IsRealtime,DelayMinutes=live.DelayMinutes,FetchedAt=live.FetchedAt,Bid=null,Ask=null,BidSize=null,AskSize=null};
                             if(live.ExtendedTime is { } ext&&(q.AsOf is null||ext>q.AsOf)&&(q.ExtendedTime is null||ext>=q.ExtendedTime))
-                                value=value with{ExtendedPrice=live.ExtendedPrice,ExtendedTime=ext,ExtendedChange=live.ExtendedChange,ExtendedChangePercent=live.ExtendedChangePercent,MarketState=live.MarketState,ExtendedDelivery=live.ExtendedDelivery,ExtendedSource=live.ExtendedSource,StreamState=live.StreamState,StreamStateAt=live.StreamStateAt};
+                                value=value with{ExtendedPrice=live.ExtendedPrice,ExtendedTime=ext,ExtendedChange=live.ExtendedChange,ExtendedChangePercent=live.ExtendedChangePercent,MarketState=live.MarketState,ExtendedDelivery=live.ExtendedDelivery,ExtendedSource=live.ExtendedSource,FetchedAt=live.FetchedAt,StreamState=live.StreamState,StreamStateAt=live.StreamStateAt};
                         }
                         _cache[q.Symbol] = (value, generation == _generation ? at : DateTimeOffset.MinValue);
                     }

@@ -88,7 +88,7 @@ public static class FreshnessText
         var f = Fetched(d.FetchedAt, loc);
         if (f.Length > 0) lines.Add(f);
         if(d is Quote{SnapshotFetchedAt: { } snapshot} snapshotQuote)lines.Add(loc["Quote_SnapshotFields"]+" · "+SourceNames.Display(snapshotQuote.SnapshotSource??snapshotQuote.Source,loc)+" · "+Fetched(snapshot,loc));
-        if(d is Quote quote&&quote.ExtendedTime is { } ext)lines.Add(loc[quote.MarketState==MarketState.PreMarket?"Quote_Pre":"Quote_Post"]+" · "+AsOf(ext,loc));
+        if(d is Quote quote&&quote.ExtendedTime is { } ext)lines.Add(loc[quote.MarketState==MarketState.PreMarket?"Quote_Pre":quote.MarketState==MarketState.Overnight?"Quote_Overnight":"Quote_Post"]+" · "+AsOf(ext,loc));
         if(d is Quote{Delivery:"websocket"} or Quote{ExtendedDelivery:"websocket"})lines.Add(loc["Quote_StreamCoverage"]);
         return string.Join(Environment.NewLine, lines);
     }

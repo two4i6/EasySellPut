@@ -215,14 +215,24 @@ public class QuoteHubTests
         hub.ApplyTicks([tick with{Time=clock().AddMilliseconds(1)}]);Assert.True(hub.TryGetCached("AAPL",out cached));Assert.Equal("active",cached.StreamState);
         hub.Unsubscribe("view");hub.ApplyTicks([tick with{Price=103,Time=clock().AddSeconds(1)}]);Assert.True(hub.TryGetCached("AAPL",out cached));Assert.Equal(102,cached.Price);
     }
-    [Fact]public async Task Extended_push_retains_regular_close_and_source_then_new_regular_session_clears_extended_fields()
+    [Theory][InlineData(MarketState.PreMarket)][InlineData(MarketState.AfterHours)][InlineData(MarketState.Overnight)]public async Task Extended_push_retains_regular_close_and_source_then_new_regular_session_clears_extended_fields(MarketState session)
     {
         var(hub,_,clock,_)=Make();hub.Subscribe("view",["AAPL"]);await hub.PollAsync();
-        var ext=new QuoteTick("AAPL",105,clock(),MarketState.PreMarket,Source:"yahoo");hub.ApplyTicks([ext]);
+        var ext=new QuoteTick("AAPL",105,clock(),session,Source:"yahoo");hub.ApplyTicks([ext]);
         Assert.True(hub.TryGetCached("AAPL",out var cached));Assert.Equal(100,cached.Price);Assert.Equal(105,cached.ExtendedPrice);Assert.Equal("x",cached.Source);Assert.Equal("yahoo",cached.ExtendedSource);Assert.Equal("websocket",cached.ExtendedDelivery);
         hub.ApplyTicks([ext with{Price=1,Time=clock().AddSeconds(-1)}]);Assert.True(hub.TryGetCached("AAPL",out cached));Assert.Equal(105,cached.ExtendedPrice);
         hub.ApplyTicks([ext with{Session=MarketState.Regular,Time=clock().AddSeconds(-1),Price=1}]);Assert.True(hub.TryGetCached("AAPL",out cached));Assert.Equal(100,cached.Price);
         hub.ApplyTicks([ext with{Session=MarketState.Regular,Time=clock().AddSeconds(1),Price=106}]);Assert.True(hub.TryGetCached("AAPL",out cached));Assert.Equal(106,cached.Price);Assert.Null(cached.ExtendedPrice);Assert.Null(cached.ExtendedDelivery);
     }
 
+    [Fact]public async Task Overnight_can_arrive_before_regular_reference_and_cache_reopen_does_not_lose_received_points()
+    {
+        var(hub,_,clock,advance)=Make();hub.Subscribe("menu",["AAPL"]);
+        var tick=new QuoteTick("AAPL",105,clock().AddSeconds(1),MarketState.Overnight,1,1,Source:"yahoo");hub.ApplyTicks([tick]);
+        Assert.True(hub.TryGetCached("AAPL",out var partial));Assert.True(double.IsNaN(partial.Price));Assert.Null(partial.AsOf);Assert.Equal(105,partial.ExtendedPrice);
+        var received=partial.FetchedAt;advance(1);await hub.PollAsync();Assert.True(hub.TryGetCached("AAPL",out var combined));Assert.Equal(100,combined.Price);Assert.Equal(105,combined.ExtendedPrice);Assert.Equal(received,combined.FetchedAt);Assert.Equal(MarketState.Overnight,combined.MarketState);
+        Assert.Single(hub.GetOvernightObservations("AAPL"));hub.Subscribe("panel",["AAPL"]);hub.Unsubscribe("panel");
+        advance(1);hub.ApplyTicks([tick with{Time=clock(),Price=106}]);Assert.Equal(2,hub.GetOvernightObservations("AAPL").Count);
+        Assert.Equal(2,hub.Clear(false).Removed);Assert.Empty(hub.GetOvernightObservations("AAPL"));Assert.True(hub.TryGetCached("AAPL",out _));Assert.Single(hub.SubscribedSymbols);
+    }
 }

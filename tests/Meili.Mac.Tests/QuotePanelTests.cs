@@ -54,7 +54,7 @@ public sealed class QuotePanelTests
             Assert.Equal(((Avalonia.Media.ISolidColorBrush)Ui.Platform.Resource(model.Selected!.BrushKey)!).Color,((Avalonia.Media.ISolidColorBrush)heroPrice.Foreground!).Color);
             MacHost.Save(window,$"quote-panel-extended-{pre}-{language}-{dark}");
             // Same real controls in a Full HD app-owned test scene for honest size comparison, not an OS screenshot.
-            var pin=window.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ToggleButton>().Single();pin.IsChecked=true;
+            var pin=window.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ToggleButton>().Single(t=>t.Content?.ToString()==loc["QP_Pin"]);pin.IsChecked=true;
             var desktop=new MainWindow{Width=1920,Height=1080};desktop.Show();desktop.Navigate(AppPage.Dashboard);pin.IsChecked=false;
             var body=(Control)window.Content!;window.Content=null;
             try
@@ -74,5 +74,49 @@ public sealed class QuotePanelTests
         var data=new QuotePanelMarketData{Phase=MarketState.PreMarket,Clock=now,RegularBarsOnly=true};var hub=new QuoteHub(data);var context=new SymbolContext();context.Set("AAPL");
         using var model=new QuotePanelViewModel(hub,data,new WatchlistStore(new(Path.Combine(MacHost.DataDir,"panel-no-extended"))),context,LocalizationService.Current){Now=()=>now};
         await model.ActivateAsync();Assert.True(model.Selected!.Display!.IsExtended);Assert.Empty(model.Selected.Graph.Points);Assert.Equal(MarketSession.PreMarket,model.Selected.Graph.Session);model.Deactivate();
+    }
+    [AvaloniaTheory]
+    [InlineData(false,"zh-CN",true)] [InlineData(true,"zh-CN",true)] [InlineData(true,"en-US",false)]
+    public async Task Session_picker_updates_both_graphs_live_and_keeps_missing_night_explicit(bool overnight,string language,bool dark)
+    {
+        MacHost.EnsureComposed();var loc=LocalizationService.Current;loc.Apply(language);var theme=AppServices.Get<MacTheme>();theme.Apply(dark?AppThemeMode.Dark:AppThemeMode.Light);
+        var now=MarketClock.FromEastern(new DateTime(2026,11,overnight?17:16,overnight?2:18,0,0));
+        var data=new QuotePanelMarketData{Phase=MarketState.AfterHours,Clock=now,Overnight=overnight};var hub=new QuoteHub(data){Now=()=>now};var context=new SymbolContext();context.Set("QQQ");
+        using var model=new QuotePanelViewModel(hub,data,new WatchlistStore(new(Path.Combine(MacHost.DataDir,"panel-sessions-"+Guid.NewGuid()))),context,loc){Now=()=>now};
+        var panel=new QuotePanelWindow(model,_=>{},()=>{},()=>{});
+        try
+        {
+            await panel.ShowPanelAsync();MacHost.Pump();var row=model.Selected!;var phase=overnight?MarketSession.Overnight:MarketSession.AfterHours;
+            Assert.Equal(phase,row.Graph.Session);Assert.NotEmpty(row.Graph.Points);var count=row.Graph.Points.Count;
+            now=now.AddSeconds(10);hub.ApplyTicks([new("QQQ",row.Quote!.Price*1.02,now,overnight?MarketState.Overnight:MarketState.AfterHours,Source:"yahoo")]);MacHost.Pump();
+            Assert.True(row.ChartObserved);Assert.False(row.ChartRepairing);Assert.True(row.Graph.Points.Count>count);Assert.Equal(overnight?now:now.AddSeconds(-10),row.Graph.AsOf);
+            var picker=panel.GetVisualDescendants().OfType<Meili.Mac.Views.Controls.AppSelect>().Single();picker.IsDropDownOpen=true;MacHost.Pump();Assert.True(panel.IsVisible);
+            panel.RaiseEvent(new Avalonia.Input.KeyEventArgs{Key=Avalonia.Input.Key.Escape,RoutedEvent=Avalonia.Input.InputElement.KeyDownEvent});MacHost.Pump();Assert.True(panel.IsVisible);Assert.False(picker.IsDropDownOpen);
+            picker.SelectedIndex=4;MacHost.Pump();
+            Assert.Equal(MarketSession.Overnight,row.Graph.Session);
+            if(overnight){Assert.NotEmpty(row.Graph.Points);Assert.Equal(new DateOnly(2026,11,16),row.Graph.Day);Assert.Equal("00:00",row.Graph.MiddleLabel);}
+            else{Assert.Empty(row.Graph.Points);Assert.Contains(panel.GetVisualDescendants().OfType<TextBlock>(),t=>t.IsEffectivelyVisible&&t.Text==loc["QP_NoNightChart"]);}
+            MacHost.Save(panel,$"glance-night-{overnight}-{language}-{dark}");
+            picker.SelectedIndex=0;MacHost.Pump();Assert.Equal(phase,row.Graph.Session);Assert.NotEmpty(row.Graph.Points);
+            picker.SelectedIndex=4;MacHost.Pump();
+            // Capture the real compact panel in a 1920x1080 app-owned scene, using offline fixture prices.
+            var pin=panel.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ToggleButton>().Single(t=>t.Content?.ToString()==loc["QP_Pin"]);pin.IsChecked=true;
+            var desktop=new MainWindow{Width=1920,Height=1080};desktop.Show();desktop.Navigate(AppPage.Dashboard);
+            var body=(Control)panel.Content!;panel.Content=null;
+            try{body.Width=panel.Width;body.Height=panel.Height;body.HorizontalAlignment=Avalonia.Layout.HorizontalAlignment.Right;body.VerticalAlignment=Avalonia.Layout.VerticalAlignment.Top;body.Margin=new Avalonia.Thickness(0,24,24,0);var root=((DockPanel)desktop.Content!).Children.OfType<Grid>().Single();root.Children.Add(body);Grid.SetRowSpan(body,100);Grid.SetColumnSpan(body,100);MacHost.Pump();MacHost.Save(desktop,$"glance-session-1080p-{overnight}-{language}-{dark}");root.Children.Remove(body);}
+            finally{panel.Content=body;desktop.Close();}
+            panel.HidePanel();Assert.Empty(hub.SubscribedSymbols);
+        }
+        finally{panel.Close();loc.Apply("zh-CN");theme.Apply(AppThemeMode.System);}
+    }
+    [AvaloniaFact] public async Task Hidden_panel_reuses_night_points_received_by_the_existing_menu_subscription()
+    {
+        MacHost.EnsureComposed();var now=MarketClock.FromEastern(new DateTime(2026,11,16,18,0,0));
+        var data=new QuotePanelMarketData{Phase=MarketState.AfterHours,Clock=now};var hub=new QuoteHub(data){Now=()=>now};hub.Subscribe("menu",["QQQ"]);
+        var context=new SymbolContext();context.Set("QQQ");using var model=new QuotePanelViewModel(hub,data,new WatchlistStore(new(Path.Combine(MacHost.DataDir,"hidden-night-"+Guid.NewGuid()))),context,LocalizationService.Current){Now=()=>now};
+        await model.ActivateAsync();model.Deactivate();var calls=data.Bars;var previous=model.Selected!.Graph;
+        now=MarketClock.FromEastern(new DateTime(2026,11,17,2,0,10));hub.ApplyTicks([new("QQQ",625,now,MarketState.Overnight,Source:"yahoo")]);now=now.AddMinutes(1);hub.ApplyTicks([new("QQQ",626,now,MarketState.Overnight,Source:"yahoo")]);
+        Assert.Same(previous,model.Selected.Graph);Assert.Equal(calls,data.Bars);Assert.Equal(2,hub.GetOvernightObservations("QQQ").Count);
+        await model.ActivateAsync();Assert.Equal(MarketSession.Overnight,model.Selected.Graph.Session);Assert.Equal(2,model.Selected.Graph.Points.Count);Assert.NotNull(model.Selected.Graph.WindowStart);model.Deactivate();Assert.Equal(new[]{"QQQ"},hub.SubscribedSymbols);
     }
 }

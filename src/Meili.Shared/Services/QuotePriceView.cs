@@ -5,8 +5,8 @@ namespace Meili.Shared.Services;
 /// <summary>Glance-only projection. Never changes the original regular quote used by analytics and alerts.</summary>
 public sealed record QuotePriceView(Quote Snapshot, bool IsExtended, MarketSession Session)
 {
-    public string SessionKey => !IsExtended ? "Mb_Regular" : Session == MarketSession.PreMarket ? "Quote_Pre" : Session == MarketSession.AfterHours ? "Quote_Post" : "QP_Extended";
-    public string ShortKey => !IsExtended ? "QP_RegularShort" : Session == MarketSession.PreMarket ? "QP_PreShort" : Session == MarketSession.AfterHours ? "QP_PostShort" : "QP_ExtendedShort";
+    public string SessionKey => !IsExtended ? "Mb_Regular" : Session == MarketSession.PreMarket ? "Quote_Pre" : Session == MarketSession.AfterHours ? "Quote_Post" : Session == MarketSession.Overnight ? "Quote_Overnight" : "QP_Extended";
+    public string ShortKey => !IsExtended ? "QP_RegularShort" : Session == MarketSession.PreMarket ? "QP_PreShort" : Session == MarketSession.AfterHours ? "QP_PostShort" : Session == MarketSession.Overnight ? "Quote_Overnight" : "QP_ExtendedShort";
     public static QuotePriceView Select(Quote quote, DateTimeOffset now)
     {
         if (quote.MarketState == MarketState.Regular || quote.ExtendedPrice is not > 0 || !double.IsFinite(quote.ExtendedPrice.Value)
@@ -18,8 +18,9 @@ public sealed record QuotePriceView(Quote Snapshot, bool IsExtended, MarketSessi
         var percent = Finite(quote.ExtendedChangePercent) ?? (quote.Price > 0 && double.IsFinite(quote.Price) && change is { } c ? Finite(c / quote.Price * 100) : null);
         var time = MarketClock.ToEastern(at).TimeOfDay;
         var session = time >= TimeSpan.FromHours(4) && time < TimeSpan.FromHours(9.5) ? MarketSession.PreMarket
-            : time >= TimeSpan.FromHours(16) ? MarketSession.AfterHours : MarketSession.Closed;
-        return new(quote with { Price = price, Change = change, ChangePercent = percent, Delivery=quote.ExtendedDelivery??quote.Delivery,Source=quote.ExtendedSource??quote.Source,IsRealtime=quote.ExtendedDelivery=="websocket"?false:quote.IsRealtime,DelayMinutes=quote.ExtendedDelivery=="websocket"?null:quote.DelayMinutes, PreviousClose = double.IsFinite(quote.Price) && quote.Price > 0 ? quote.Price : null, AsOf = at }, true, session);
+            : time >= TimeSpan.FromHours(16) && time < TimeSpan.FromHours(20) ? MarketSession.AfterHours
+            : time >= TimeSpan.FromHours(20) || time < TimeSpan.FromHours(4) ? MarketSession.Overnight : MarketSession.Closed;
+        return new(quote with { MarketState = session==MarketSession.Overnight?MarketState.Overnight:quote.MarketState, Price = price, Change = change, ChangePercent = percent, Delivery=quote.ExtendedDelivery??quote.Delivery,Source=quote.ExtendedSource??quote.Source,IsRealtime=quote.ExtendedDelivery=="websocket"?false:quote.IsRealtime,DelayMinutes=quote.ExtendedDelivery=="websocket"?null:quote.DelayMinutes, PreviousClose = double.IsFinite(quote.Price) && quote.Price > 0 ? quote.Price : null, AsOf = at }, true, session);
     }
     public bool Stale(DateTimeOffset now, bool failed = false)
     {

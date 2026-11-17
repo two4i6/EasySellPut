@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Meili.Core.Diagnostics;
+using Meili.Core.Models;
 using Meili.Shared.ViewModels;
 
 namespace Meili.Shared.Services;
@@ -26,8 +27,22 @@ public sealed class WebChartSession : IDisposable
     private void OnLiveQuote(object? sender,EventArgs e)
     {
         var quote=_vm?.LiveQuote.Quote;
-        var json=JsonSerializer.Serialize(quote is null?null:new{symbol=quote.Symbol,price=quote.Price,time=quote.AsOf,delivery=quote.Delivery,streamState=quote.StreamState,tail=_vm!.LiveBars?.ObservedTail.Select(b=>new{time=b.Time.ToUnixTimeSeconds(),close=b.Close}),joinStatus=_vm!.LiveBars?.Status},WebChartSnapshot.Json);
+        var json=JsonSerializer.Serialize(quote is null?null:new{symbol=quote.Symbol,price=quote.Price,time=quote.AsOf,delivery=quote.Delivery,streamState=quote.StreamState,tail=LiveTail(_vm!.LiveBars),joinStatus=_vm!.LiveBars?.Status},WebChartSnapshot.Json);
         Volatile.Write(ref _liveQuote,new(Interlocked.Increment(ref _quoteRevision),json));
+    }
+    private static object[] LiveTail(LiveBarView? view)
+    {
+        if(view is null)return [];
+        var previous=view.History.Bars.LastOrDefault()?.Time.ToUnixTimeSeconds();
+        var step=(long)view.History.Interval.Duration().TotalSeconds;
+        var night=view.Status=="observed_partial";var result=new List<object>();
+        foreach(var bar in view.ObservedTail)
+        {
+            var time=bar.Time.ToUnixTimeSeconds();var key=night?time/60*60:time;
+            long? gapFrom=previous is { } old && key>old+step ? old+step : null;
+            result.Add(new{time,close=bar.Close,gapFrom});previous=key;if(night)step=60;
+        }
+        return result.ToArray();
     }
     private long _revision;
     private bool _disposed;

@@ -38,7 +38,7 @@ public static class YahooStreamDecoder
         }
         if(string.IsNullOrWhiteSpace(symbol)||symbol.Length>32||price is not >0||!double.IsFinite(price.Value)||time is null||time<=0)return null;
         DateTimeOffset at;try{at=DateTimeOffset.FromUnixTimeMilliseconds(time.Value);}catch(ArgumentOutOfRangeException){return null;}
-        return new(symbol,price.Value,at,hours switch{0=>MarketState.PreMarket,1=>MarketState.Regular,2=>MarketState.AfterHours,_=>MarketState.Unknown},Finite(change),Finite(percent),volume is >=0?volume:null,currency,exchange,name,"yahoo");
+        return new(symbol,price.Value,at,hours switch{0=>MarketState.PreMarket,1=>MarketState.Regular,2=>MarketState.AfterHours,4=>MarketState.Overnight,_=>MarketState.Unknown},Finite(change),Finite(percent),volume is >=0?volume:null,currency,exchange,name,"yahoo");
     }
     private static double? Finite(double? n)=>n is { } value&&double.IsFinite(value)?value:null;
     private static long Zigzag(ulong value)=>unchecked((long)(value>>1)^-((long)value&1));

@@ -1011,4 +1011,11 @@
     <sys:String x:Key="Quote_SnapshotFields">其他字段仍为 HTTP 快照</sys:String>
     <sys:String x:Key="Quote_Reconnecting">重连中</sys:String>
     <sys:String x:Key="Ch_Backfilling">补齐中</sys:String>
+    <sys:String x:Key="Quote_Overnight">夜盘</sys:String>
+    <sys:String x:Key="QP_ChartAuto">走势 · 自动</sys:String>
+    <sys:String x:Key="QP_ChartSession">走势图时段</sys:String>
+    <sys:String x:Key="QP_ChartSessionHelp">切换走势图时段；上方仍是最新报价。夜盘为美东 20:00–次日 04:00，历史缺失时仅显示已接收片段，并按实际接收范围缩放。</sys:String>
+    <sys:String x:Key="QP_NoNightChart">暂无夜盘历史 · 等待推送</sys:String>
+    <sys:String x:Key="QP_ObservedTail">推送尾部 · 未完成</sys:String>
+    <sys:String x:Key="QP_ObservedWindow">已接收片段 · 非完整历史</sys:String>
 </ResourceDictionary>

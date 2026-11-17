@@ -616,7 +616,7 @@
         "get_watchlists",
         "get_live_quotes"
       ],
-      "scope": "Native macOS menu bar / Windows tray and pinned window are desktop-only presentation. Quotes, intraday bars and watchlist remain available through existing CLI/MCP operations; timestamped extended-price selection and matching-session sparklines are UI projections only; get_quotes retains separate regular/extended fields. They add no indicator or new business mutation. Visibility, selection, paging and pinning do not launch competing market loops.",
+      "scope": "Native macOS menu bar / Windows tray and pinned window are desktop-only presentation. Quotes, intraday bars and watchlist remain available through existing CLI/MCP operations; timestamped extended-price selection, Auto/Pre/Regular/Post/Overnight chart switching and matching-session sparklines are UI projections only; live tails reuse LiveBarStitcher (get_live_bars); absent overnight data is never inferred from postmarket; get_quotes retains separate regular/extended fields. They add no indicator or new business mutation. Visibility, selection, paging and pinning do not launch competing market loops.",
       "commands": {}
     },
     {

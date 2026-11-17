@@ -1,18 +1,20 @@
 using System.Globalization;
 using Meili.Core.Models;
 using Meili.Core.Time;
+using Meili.Core.Quotes;
 namespace Meili.Shared.Services;
 
 /// <summary>In-memory source-time join. Does not write observed prices into the historical bar cache.</summary>
 public sealed class LiveBarStitcher
 {
     private BarSeries? _history;
+    private readonly OvernightObservationBuffer _night = new();
     private QuoteTick? _unbucketed;
     private Dictionary<DateTimeOffset,Bar> _authoritative=[];
     private readonly SortedDictionary<DateTimeOffset,QuoteTick> _ticks=[];
     public void SetHistory(BarSeries history)
     {
-        if(_history is { } old&&(old.Symbol!=history.Symbol||old.Interval!=history.Interval||old.Adjustment!=history.Adjustment||old.Source!=history.Source)){_ticks.Clear();_unbucketed=null;}
+        if(_history is { } old&&(old.Symbol!=history.Symbol||old.Interval!=history.Interval||old.Adjustment!=history.Adjustment||old.Source!=history.Source)){_ticks.Clear();_night.Clear(false,DateTimeOffset.UtcNow);_unbucketed=null;}
         _history=history with{Bars=history.Bars.Where(b=>history.Source!="yahoo"||!history.Interval.IsIntraday()||b.Time.ToUnixTimeSeconds()%60==0).GroupBy(b=>b.Time).Select(g=>g.Last()).OrderBy(b=>b.Time).ToArray()};
         _authoritative=_history.Bars.ToDictionary(b=>b.Time);
         // Rebucket against the actual provider grid (including hourly :30 anchors).
@@ -21,6 +23,10 @@ public sealed class LiveBarStitcher
     public void Observe(QuoteTick tick)
     {
         if(_history is not { } h||tick.Symbol!=h.Symbol||!double.IsFinite(tick.Price)||tick.Price<=0||tick.Time>DateTimeOffset.UtcNow.AddMinutes(1))return;
+        var eastern=MarketClock.ToEastern(tick.Time);
+        if(tick.Session is MarketState.PreMarket or MarketState.AfterHours && (eastern.Hour>=20||eastern.Hour<4))
+            tick=tick with{Session=MarketState.Overnight};
+        if(tick.Session==MarketState.Overnight){_night.Add(tick,tick.Time);return;}
         var time=Bucket(h,tick);if(time is null){if(_unbucketed is null||tick.Time>_unbucketed.Time)_unbucketed=tick;return;}
         if(_ticks.TryGetValue(time.Value,out var prior)&&prior.Time>tick.Time)return;
         _ticks[time.Value]=tick;while(_ticks.Count>128)_ticks.Remove(_ticks.Keys.First());
@@ -30,19 +36,28 @@ public sealed class LiveBarStitcher
         var h=_history??throw new InvalidOperationException("Historical bars are required.");
         if(h.Adjustment==PriceAdjustment.SplitDividend)return new(h,[],"adjustment_unverified",null,null,null);
         var last=h.Bars.LastOrDefault();if(last is null)return new(h,[],"waiting_history",null,null,null);
-        var authoritative=_authoritative;List<Bar> tail=[];var cursor=last.Time;string? source=null;
-        foreach(var (time,tick) in _ticks.ToArray())
+        var authoritative=_authoritative;List<Bar> tail=[];var cursor=last.Time;string? source=null;DateTimeOffset? missingFrom=null,missingTo=null;var nightSeen=false;var previousNight=false;
+        foreach(var (time,tick) in _ticks.Select(p=>(p.Key,p.Value)).Concat(_night.Snapshot(h.Symbol,now).Select(t=>(t.Time,t))).OrderBy(p=>p.Item1))
         {
             if(time<last.Time||authoritative.TryGetValue(time,out var bar)&&bar.IsConsistent()&&Closed(h.Interval,time,now)&&Closed(h.Interval,time,h.FetchedAt??h.AsOf??DateTimeOffset.MinValue))continue;
             if(time>cursor)
             {
-                var expected=Next(h.Interval,cursor);
-                if(expected<time)return new(h,tail,"repairing",expected,time,source??tick.Source);
+                var observedNight=tick.Session==MarketState.Overnight;
+                var expected=observedNight ? previousNight ? DateTimeOffset.FromUnixTimeSeconds(cursor.ToUnixTimeSeconds()/60*60).AddMinutes(1) : cursor+h.Interval.Duration() : Next(h.Interval,cursor);
+                if(expected<(observedNight?DateTimeOffset.FromUnixTimeSeconds(time.ToUnixTimeSeconds()/60*60):time))
+                {
+                    if(tick.Session!=MarketState.Overnight)return new(h,tail,"repairing",expected,time,source??tick.Source);
+                    missingFrom ??= expected; missingTo ??= tick.Time;
+                }
             }
-            tail.Add(Bar.CloseOnly(time,tick.Price,double.NaN));cursor=time;source=tick.Source;
+            // Overnight is an actually observed price path, not fabricated provider OHLC candles.
+            // Keep source times and at most one latest observation per minute; missing history remains explicit.
+            var night=tick.Session==MarketState.Overnight;
+            tail.Add(Bar.CloseOnly(night?tick.Time:time,tick.Price,double.NaN));cursor=time;source=tick.Source;
+            nightSeen |= night;previousNight=night;
         }
         if(_unbucketed is { } pending&&pending.Session==MarketState.Regular)return new(h,tail,"waiting_history",last.Time,pending.Time,pending.Source);
-        return new(h,tail,tail.Count>0?"joined":"waiting_price",null,null,source);
+        return new(h,tail,nightSeen?"observed_partial":tail.Count>0?"joined":"waiting_price",missingFrom,missingTo,source);
     }
     private static bool Closed(BarInterval interval,DateTimeOffset time,DateTimeOffset now)
     {
