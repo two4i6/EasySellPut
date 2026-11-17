@@ -220,7 +220,7 @@ Cloud acceptance: real Chromium pointer on the actual populated K-line, exact so
 
 The cloud browser compares the full original inspector payload with the application MCP operation after real Home/End/ArrowLeft/ArrowUp/Escape and pointer actions, including scenario/history changes and missing-data clearing. Native tests add DOM-dispatched End/ArrowLeft/Escape and read the same application workspace; this is not physical OS input. CI137 at a297e4b passed this native extension on all4 desktops. Truncation is explicit through tooltipsOmitted/detailsOmitted/observationLimits; a failed storage write is not counted as published.
 
-- [ ] **Known renderer issue:** scenario inspection text can overlap later overlay labels (cloud synthetic screenshot qqq-scenario-inspection-0.png). Review visual layering while preserving marker interactions; the original numeric/MCP parity does not certify this layout.
+- [x] **Scenario inspection layering fixed in cloud Chromium:** passive status/highlight are portaled into the last SVG overlay, with an opaque background and original highlight clipping. The original pointer/focus hit target stays in place; hit-testing verifies the overlay does not intercept inputs. Native theme/width screenshot and trusted-key checks are added but require their own CI execution and image review. This does not certify all renderer states.
 
 ## Real acquisition and alert acceptance plan
 
@@ -235,3 +235,10 @@ Exposure observations distinguish mode (retained original selection), scenarioMo
 Exposure also retains original scenarioInputAt/scenarioDisplayedAt (Unix milliseconds), scenarioLoading/scenarioRetained/scenarioError. While recalculation is pending, the displayed scenario may be older than the requested input; respect these fields instead of attributing a retained field to the new cursor.
 
 The exposure active flag identifies whether the heatmap itself is visible; allExpiries identifies matrix aggregate context. displayedMode is the heatmap model mode, not an assertion that the heatmap is the currently visible chart when active=false. Retained observations remain timestamped.
+
+
+## Native input and visual follow-up
+
+Test-only input now attempts WebView2's engine input channel on Windows and same-app NSWindow/NSEvent keyboard dispatch on macOS. End/ArrowLeft/Escape must arrive as isTrusted=true and still update original selection plus read-only application MCP. No DOM-key fallback, global input tap, permissions bypass or production/MCP input control is added. This is controlled native-engine/window automation, not physical hardware certification.
+
+Native probes also verify the passive overlay's paint order and opaque status on light/dark ×1000/1440 widths and save own-window/native-WebView PNGs under desktop-smoke-gex-scenario*. Mac capture is bounded15s; missing capture/input remains a failure/unverified gate. Actual native execution and pixel review are pending the delivered commit's CI; cross-builds are not accepted as those passes. Full real-history/session/alert TODOs remain unchanged.

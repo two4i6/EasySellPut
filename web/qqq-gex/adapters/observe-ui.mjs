@@ -1,3 +1,4 @@
+import { layerHeatmapInspection } from './heatmap-inspection-layer.mjs';
 // Local build adapter observes presentation state without changing pinned source kernels.
 export function observeUi(contents,file){
  // esbuild receives native Windows paths and checkout line endings.
@@ -24,5 +25,5 @@ export function observeUi(contents,file){
   if(!contents.includes(anchor))throw Error('Pinned heatmap inspector observation anchor changed');
   contents=contents.replace(anchor,'  return <g data-heatmap-inspector data-qqq-inspection={JSON.stringify({current,inputStatus,label,priceAxis,mode,scenario:Boolean(scenario),coverage:scenario?.field.coverage??null,keyboard:keyboard.current})}>');
  }
- return contents;
+ return layerHeatmapInspection(contents,file);
 }

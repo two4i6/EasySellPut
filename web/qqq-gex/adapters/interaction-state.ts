@@ -17,7 +17,7 @@ export function observeInteractions(){
   clearTimeout(timer);timer=undefined;
   const visible=!inactive&&!document.hidden,focus=visible?describe(document.activeElement):null;
   const shown=(e:Element)=>e.getClientRects().length&&getComputedStyle(e).visibility!=='hidden'&&getComputedStyle(e).opacity!=='0'&&!e.closest('[aria-hidden="true"]');
-  const visibleTips=visible?[...document.querySelectorAll('[role="tooltip"],[aria-label="K 线简洁信息"],[data-heatmap-inspector] [role="status"]')].filter(shown):[];
+  const visibleTips=visible?[...document.querySelectorAll('[role="tooltip"],[aria-label="K 线简洁信息"],[data-heatmap-inspector] [role="status"],[data-qqq-inspection-status] [role="status"]')].filter(shown):[];
   const tooltips=visibleTips.slice(0,4).map(e=>{const text=(e.textContent??'').trim();return {text:text.slice(0,1000),textTruncated:text.length>1000};});
   function originalState(attribute:string){
    const raw=visible?[...document.querySelectorAll('['+attribute+']')].find(e=>shown(e)&&e.parentElement?.getClientRects().length)?.getAttribute(attribute):null;
