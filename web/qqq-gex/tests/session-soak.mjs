@@ -61,10 +61,14 @@ try {
   const canvas=page.locator('canvas:visible').first(),bounds=await canvas.boundingBox();assert.ok(bounds);
   for(const fraction of [.3,.5,.7]){await page.mouse.move(bounds.x+bounds.width*fraction,bounds.y+bounds.height*.3);await new Promise(r=>setTimeout(r,150));if(await page.locator('[data-qqq-hover]').count())break;}
   await page.locator('[data-qqq-hover]').waitFor({state:'attached',timeout:30000});const hovered=JSON.parse(await page.locator('[data-qqq-hover]').first().getAttribute('data-qqq-hover'));
-  await page.waitForFunction(time=>JSON.parse(localStorage.getItem('qqq-local:observed-interaction:v1')??'null')?.chartHover?.hover?.time===time,hovered.hover.time);
+  // One cursor time can render first without GEX, then with asynchronously loaded walls.
+  // Wait for the entire source payload, not just its unchanged time.
+  await page.waitForFunction(expected=>JSON.stringify(JSON.parse(localStorage.getItem('qqq-local:observed-interaction:v1')??'null')?.chartHover)===expected,JSON.stringify(hovered));
   const hoverRead=await interactionRead();assert.deepEqual(hoverRead.chartHover,hovered);assert.ok(hoverRead.pointer);assert.equal(hoverRead.chartTimeUnits,'Unix seconds');await page.screenshot({path:`test-results/qqq-hover-${generation}.png`});
   const speed=page.getByLabel('播放速度',{exact:true});await speed.focus();await page.waitForFunction(()=>JSON.parse(localStorage.getItem('qqq-local:observed-interaction:v1')??'null')?.focus?.label==='播放速度');const focusRead=await interactionRead();assert.equal(focusRead.focus.value,await speed.inputValue());await page.screenshot({path:`test-results/qqq-focus-${generation}.png`});
   await page.mouse.move(1,1);await page.waitForFunction(()=>JSON.parse(localStorage.getItem('qqq-local:observed-interaction:v1')??'null')?.chartHover===null);assert.equal((await interactionRead()).chartHover,null);
+  await page.getByRole('button',{name:'Heatmap',exact:true}).click();
+  for(const scope of ['all','selected']){await page.getByLabel('到期日范围',{exact:true}).selectOption(scope);await page.waitForFunction(scope=>JSON.parse(localStorage.getItem('qqq-local:observed-exposure:v1')??'null')?.scope===scope,scope);}
   const api=new URL('api/analysis/qqq/gex/day?date=2026-01-02&from=2026-01-02T05%3A00%3A00Z&to=2026-01-03T05%3A00%3A00Z&expiryDate=2026-01-02',base);
   const before=await (await context.request.get(new URL('api/analysis/qqq/local-state',base).href)).json();assert.equal(before.ready,true);assert.equal(before.capture.phase,'idle','test host must not claim live capture');
   for(let i=0;i<cycles;i++){

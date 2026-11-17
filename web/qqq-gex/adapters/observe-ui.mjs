@@ -9,7 +9,7 @@ export function observeUi(contents,file){
   if(!file.endsWith('/'+name))continue;
   if(!contents.includes(anchor))throw Error('Pinned UI observation anchor changed: '+name);
   const values=Object.entries(fields).map(([k,v])=>k+':'+v).join(','),dependencies=[...new Set(Object.values(fields).map(v=>v==='[...selectedStrikes]'?'selectedStrikes':v))].join(',');
-  const hook=`\n  useEffect(()=>{const timer=setTimeout(()=>{try{localStorage.setItem('qqq-local:observed-${key}:v1',JSON.stringify({observedAt:new Date().toISOString(),${values}}));}catch{}},300);return()=>clearTimeout(timer);},[${dependencies}]);\n`;
+  const hook=`\n  useEffect(()=>{try{const key='qqq-local:observed-${key}:v1',value={${values}};let previous;try{previous=JSON.parse(localStorage.getItem(key)??'null');}catch{}if(previous&&typeof previous==='object'&&!Array.isArray(previous)){delete previous.observedAt;if(JSON.stringify(previous)===JSON.stringify(value))return;}localStorage.setItem(key,JSON.stringify({observedAt:new Date().toISOString(),...value}));}catch{}},[${dependencies}]);\n`;
   contents=key==='spreadStudy'?contents.replace(anchor,hook+anchor):contents.replace(anchor,anchor+hook);
  }
  if(file.endsWith('/QqqPcsGexIntradayChart.tsx')){
