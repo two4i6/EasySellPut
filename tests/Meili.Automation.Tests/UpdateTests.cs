@@ -80,6 +80,16 @@ public sealed class UpdateTests : IDisposable
         Assert.Throws<InvalidDataException>(() => UpdateClient.VerifyManifest(bytes, signature, _key.ExportSubjectPublicKeyInfoPem()));
     }
     [Theory]
+    [InlineData("win-arm64")]
+    [InlineData("linux-x64")]
+    public async Task Unsupported_desktop_architecture_is_rejected_before_network(string rid)
+    {
+        var handler=new Handler(_=>throw new InvalidOperationException("Unsupported platform must not contact the feed"));
+        var client=new UpdateClient(new HttpClient(handler),rid,new(0,6,0)){SourceRepository="owner/repo"};
+        await Assert.ThrowsAsync<PlatformNotSupportedException>(()=>client.CheckAsync(default));
+        Assert.Empty(handler.Requests);
+    }
+    [Theory]
     [InlineData("win-x64")]
     [InlineData("linux-x64")]
     public async Task Unconfigured_build_never_contacts_a_release_server(string rid)

@@ -7,7 +7,7 @@ internal static class UpdateFixture
     public static async Task RunAsync(string archive, string target, string data, string stage)
     {
         var name = Path.GetFileNameWithoutExtension(archive);
-        var rid = name.EndsWith("arm64") ? (OperatingSystem.IsWindows() ? "win-arm64" : "osx-arm64") : (OperatingSystem.IsWindows() ? "win-x64" : "osx-x64");
+        var rid = OperatingSystem.IsWindows() ? "win-x64" : name.EndsWith("arm64") ? "osx-arm64" : "osx-x64";
         var bytes = await File.ReadAllBytesAsync(archive);
         await UpdateInstaller.VerifyArchiveAsync(archive, new(rid, Path.GetFileName(archive), Convert.ToHexString(SHA256.HashData(bytes)), bytes.Length), default);
         await UpdateInstaller.ExtractAsync(archive, stage, name, default);

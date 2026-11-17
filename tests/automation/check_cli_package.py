@@ -14,12 +14,13 @@ def binary_architecture(executable, rid):
     with executable.open('rb') as stream:
         header = stream.read(64)
         if rid.startswith('win-'):
+            assert rid == 'win-x64', 'Only x64 Windows distributions are supported'
             assert header[:2] == b'MZ', 'Expected a Windows executable'
             stream.seek(struct.unpack_from('<I', header, 60)[0])
             pe = stream.read(6)
             assert pe[:4] == b'PE\0\0'
             machine = struct.unpack_from('<H', pe, 4)[0]
-            assert machine == (0xAA64 if rid.endswith('arm64') else 0x8664), 'Wrong Windows architecture'
+            assert machine == 0x8664, 'Wrong Windows architecture'
         elif rid.startswith('osx-'):
             assert header[:4] == b'\xcf\xfa\xed\xfe', 'Expected a 64-bit Mach-O executable'
             machine = struct.unpack_from('<I', header, 4)[0]
@@ -81,7 +82,7 @@ def check(archive, rid, destination):
 def main():
     p = argparse.ArgumentParser()
     p.add_argument('--archive', required=True, type=pathlib.Path)
-    p.add_argument('--rid', required=True, choices=['win-x64', 'win-arm64', 'osx-x64', 'osx-arm64', 'linux-x64', 'linux-arm64'])
+    p.add_argument('--rid', required=True, choices=['win-x64', 'osx-x64', 'osx-arm64', 'linux-x64', 'linux-arm64'])
     p.add_argument('--extract-to', required=True, type=pathlib.Path)
     args = p.parse_args()
     check(args.archive.resolve(), args.rid, args.extract_to.resolve())

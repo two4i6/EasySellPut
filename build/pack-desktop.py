@@ -34,7 +34,7 @@ def pack(rid,output):
         process_machine=ctypes.c_ushort();native_machine=ctypes.c_ushort()
         if not kernel.IsWow64Process2(kernel.GetCurrentProcess(),ctypes.byref(process_machine),ctypes.byref(native_machine)):
             raise ctypes.WinError(ctypes.get_last_error())
-        arch='arm64' if native_machine.value==0xAA64 else 'x64' if native_machine.value==0x8664 else 'unsupported'
+        arch='x64' if native_machine.value==0x8664 else 'unsupported'
 
     if rid!=f'{host}-{arch}' or host not in ('win','osx'):raise ValueError('Build and test on the native Windows/macOS architecture')
     version=ET.parse(ROOT/'Directory.Build.props').find('.//Version').text
@@ -80,5 +80,5 @@ def pack(rid,output):
     return archive
 
 if __name__=='__main__':
-    parser=argparse.ArgumentParser();parser.add_argument('--rid',required=True,choices=['win-x64','win-arm64','osx-x64','osx-arm64']);parser.add_argument('--output',type=pathlib.Path,default=ROOT/'build/out/desktop')
+    parser=argparse.ArgumentParser();parser.add_argument('--rid',required=True,choices=['win-x64','osx-x64','osx-arm64']);parser.add_argument('--output',type=pathlib.Path,default=ROOT/'build/out/desktop')
     args=parser.parse_args();pack(args.rid,args.output)

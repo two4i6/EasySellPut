@@ -10,7 +10,7 @@ import re
 import subprocess
 import tempfile
 import zipfile
-from policy import require, select
+from policy import require, select, current_main
 
 ROOT=pathlib.Path(__file__).resolve().parents[2]
 PUBLIC=ROOT/'src/Meili.Application/Updates/update-public-key.pem'
@@ -146,9 +146,48 @@ def publish(args,plan,folder):
     gh('release','upload','apps',folder/CATALOG,folder/(CATALOG+'.sig'),'--repo',repository,'--clobber')
 
 
+
+def renew_catalog(previous, repository, sequence, now):
+    require(previous.get('schemaVersion') == 1 and previous.get('repository') == repository, 'Invalid catalog source')
+    require(type(previous.get('sequence')) is int and 0 < previous['sequence'] < sequence, 'Stale catalog renewal')
+    issued = dt.datetime.fromisoformat(previous['issuedAt'])
+    expires = dt.datetime.fromisoformat(previous['expiresAt'])
+    require(issued.tzinfo is not None and expires.tzinfo is not None and dt.timedelta(0) < expires-issued <= dt.timedelta(days=30) and issued <= now+dt.timedelta(minutes=5), 'Invalid original catalog clocks')
+    apps = previous.get('apps')
+    require(isinstance(apps, list) and len(apps) <= 64 and all(isinstance(a, dict) and isinstance(a.get('id'), str) for a in apps), 'Invalid catalog entries')
+    require(len({a['id'] for a in apps}) == len(apps), 'Duplicate app identity')
+    return dict(schemaVersion=1, repository=repository, sequence=sequence, issuedAt=now.isoformat(), expiresAt=(now+dt.timedelta(days=30)).isoformat(), apps=apps)
+
+
+def refresh(repository, folder):
+    # Renew authenticated metadata only. Never create a release or modify app packages.
+    require(current_main(repository) == os.environ['GITHUB_SHA'], 'Main advanced before renewal')
+    old = folder/'previous'; old.mkdir()
+    previous = previous_catalog(repository, old)
+    if previous is None:
+        print('No published app catalog yet; nothing to renew.')
+        return
+    catalog = renew_catalog(previous, repository, int(os.environ['GITHUB_RUN_ID']), dt.datetime.now(dt.timezone.utc))
+    raw = os.environ.get('UPDATE_SIGNING_KEY', '')
+    require(bool(raw), 'Configure UPDATE_SIGNING_KEY matching pinned host trust')
+    key = folder/'private.pem'; key.write_text(raw); key.chmod(0o600)
+    try:
+        body = folder/CATALOG; body.write_text(json.dumps(catalog, separators=(',', ':')))
+        sign(body, key)
+        check = folder/'current'; check.mkdir()
+        require(previous_catalog(repository, check) == previous, 'Catalog changed before renewal')
+        require(current_main(repository) == os.environ['GITHUB_SHA'], 'Main advanced before renewal upload')
+        gh('release', 'upload', 'apps', body, str(body)+'.sig', '--repo', repository, '--clobber')
+    finally:
+        key.unlink(missing_ok=True)
+
 if __name__=='__main__':
-    parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('action',choices=['prepare','publish']);parser.add_argument('--run-id',required=True);parser.add_argument('--version',required=True);parser.add_argument('--artifact',type=pathlib.Path)
-    args=parser.parse_args();require(os.environ.get('GITHUB_REF')=='refs/heads/main','App releases require main');require(re.fullmatch(r'\d+\.\d+\.\d+',args.version),'Stable app version required')
+    parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('action',choices=['prepare','publish','refresh']);parser.add_argument('--run-id');parser.add_argument('--version');parser.add_argument('--artifact',type=pathlib.Path)
+    args=parser.parse_args();require(os.environ.get('GITHUB_REF')=='refs/heads/main','App releases require main');require(args.action=='refresh' or args.version is not None and re.fullmatch(r'\d+\.\d+\.\d+',args.version),'Stable app version required')
+    if args.action=='refresh':
+        with tempfile.TemporaryDirectory(prefix='app-catalog-renew-') as scratch:refresh(os.environ['GITHUB_REPOSITORY'],pathlib.Path(scratch))
+        raise SystemExit(0)
+    require(args.run_id is not None,'Tested main CI run required')
     plan=select(os.environ['GITHUB_REPOSITORY'],args.run_id)
     with tempfile.TemporaryDirectory(prefix='app-release-') as scratch:
         if args.action=='prepare':require(args.artifact is not None,'Tested app artifact required');prepare(args,plan,pathlib.Path(scratch))

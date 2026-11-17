@@ -158,7 +158,7 @@ def sign_windows(roots, scratch):
     if not re.fullmatch('[A-Fa-f0-9]{40}', thumb):
         raise ValueError('Invalid signing certificate thumbprint')
     sdk = pathlib.Path(os.environ['ProgramFiles(x86)']) / 'Windows Kits/10/bin'
-    architecture = 'arm64' if os.environ.get('PROCESSOR_ARCHITECTURE', '').upper() == 'ARM64' else 'x64'
+    architecture = 'x64'
     tools = sorted(sdk.glob('*/' + architecture + '/signtool.exe'))
     if not tools:
         raise ValueError('Windows SDK signtool is required')
@@ -180,7 +180,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--packages', type=pathlib.Path, required=True)
     parser.add_argument('--output', type=pathlib.Path, required=True)
-    parser.add_argument('--rid', required=True, choices=('linux-x64', 'win-x64', 'win-arm64', 'osx-x64', 'osx-arm64'))
+    parser.add_argument('--rid', required=True, choices=('linux-x64', 'win-x64', 'osx-x64', 'osx-arm64'))
     parser.add_argument('--version', required=True)
     args = parser.parse_args()
     if os.environ.get('GITHUB_REF') != 'refs/heads/main':

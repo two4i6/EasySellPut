@@ -4,12 +4,11 @@ $ErrorActionPreference = 'Stop'
 if (-not $Runtime) {
     $machineArch = if ($env:PROCESSOR_ARCHITEW6432) { $env:PROCESSOR_ARCHITEW6432 } else { $env:PROCESSOR_ARCHITECTURE }
     $Runtime = switch ($machineArch) {
-        'ARM64' { 'win-arm64' }
         'AMD64' { 'win-x64' }
-        default { throw 'Cannot detect Windows architecture; pass -Runtime explicitly.' }
+        default { throw 'Windows packages require x64; pass -Runtime win-x64 explicitly.' }
     }
 }
-if ($Runtime -notin @('win-x64','win-arm64','linux-x64','linux-arm64','osx-x64','osx-arm64')) { throw 'Unsupported runtime identifier' }
+if ($Runtime -notin @('win-x64','linux-x64','linux-arm64','osx-x64','osx-arm64')) { throw 'Unsupported runtime identifier' }
 $root = Split-Path -Parent $PSScriptRoot
 . (Join-Path $root 'tools/env.ps1')
 if (-not $OutputParent) { $OutputParent = Join-Path $root 'build/out/cli' }

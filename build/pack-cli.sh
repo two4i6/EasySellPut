@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Publish one self-contained CLI/MCP distribution. No trimming; preserve SDK reflection metadata.
-# Usage: build/pack-cli.sh [linux-x64|linux-arm64|win-x64|win-arm64|osx-x64|osx-arm64] [output-parent]
+# Usage: build/pack-cli.sh [linux-x64|linux-arm64|win-x64|osx-x64|osx-arm64] [output-parent]
 set -euo pipefail
 root=$(cd "$(dirname "$0")/.." && pwd)
 source "$root/tools/env.sh"
@@ -18,7 +18,7 @@ else
   esac
   rid="$target_os-$target_arch"
 fi
-case "$rid" in linux-x64|linux-arm64|win-x64|win-arm64|osx-x64|osx-arm64) ;; *) echo 'Unsupported runtime identifier' >&2; exit 2 ;; esac
+case "$rid" in linux-x64|linux-arm64|win-x64|osx-x64|osx-arm64) ;; *) echo 'Unsupported runtime identifier' >&2; exit 2 ;; esac
 version=$(python3 -c 'import xml.etree.ElementTree as E; print(E.parse("Directory.Build.props").find(".//Version").text)')
 parent=${2:-$root/build/out/cli}
 mkdir -p "$parent"

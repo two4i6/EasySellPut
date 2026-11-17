@@ -7,11 +7,6 @@
       "archiveSha256": "d2046d28c2c3dcd211ac5145c0bf30e2047ef9dfb306693c8c6e2eccd8b95fa5",
       "executableSha256": "d702daa815eabbff763c7d3808e235cf031cf2ca70211b56847bc72f51e240e5"
     },
-    "win-arm64": {
-      "archive": "node-v24.22.1-win-arm64.zip",
-      "archiveSha256": "a0c807319fede24c4a0d8f84564c82a619bd313b16b10c007c383c2609e99171",
-      "executableSha256": "8bea91dc437fe01e7d92ef0efc6c9eaf654369aaba9b2d3e9841552ea7b95a00"
-    },
     "osx-x64": {
       "archive": "node-v24.22.1-darwin-x64.tar.gz",
       "archiveSha256": "d132557e7ee2b85af08b0c8c34338e65c6430f2238d01f727728ef42dc83b035",

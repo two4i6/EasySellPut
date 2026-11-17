@@ -40,7 +40,7 @@ Actual Chromium/AppDev captures below use an explicit **synthetic single histori
 
 ![Original GEX source preview, 1280×1080, synthetic historical input](screenshots/app-dev-gex-1280x1080.png)
 
-The native populated probe now signs the real GEX UI/runtime/contracts with an ephemeral test-only key, installs it, imports through its signed calculation handler and reads workspace observations through its signed view handler. It retains all keyboard/pointer/theme/layout/hide/reload checks, adds 1920×1080, and upgrades A→B in the same host process to discover/call a new operation before uninstall/reinstall and host/database hash checks. This journey passed on Windows x64/ARM64 and Mac Intel/Apple Silicon at `3b476cc`, including the [macOS 15 fallback run](https://github.com/two4i6/EasySellPut/actions/runs/44154390154); see the pilot report for the complete CLI/integration gate.
+The native populated probe now signs the real GEX UI/runtime/contracts with an ephemeral test-only key, installs it, imports through its signed calculation handler and reads workspace observations through its signed view handler. It retains all keyboard/pointer/theme/layout/hide/reload checks, adds 1920×1080, and upgrades A→B in the same host process to discover/call a new operation before uninstall/reinstall and host/database hash checks. This journey passed on Windows x64 and Mac Intel/Apple Silicon at `3b476cc`, including the [macOS 15 fallback run](https://github.com/two4i6/EasySellPut/actions/runs/44154390154); see the pilot report for the complete CLI/integration gate.
 
 
 ## Native signed-payload evidence

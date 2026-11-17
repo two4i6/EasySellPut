@@ -475,7 +475,7 @@ CI 使用当前 `GITHUB_REPOSITORY` 编译更新源，不再固定 fork URL；�
 | 层 | 执行内容 |
 | --- | --- |
 | UI · Layout & Charts | 组件/布局、离线回归、真实 Chromium 交互和生成资源检查 |
-| Windows x64 / ARM64 · Desktop | 完整离线 WPF suite、实际 WebView2、包结构/架构、解压带空格路径执行、更新替换与重启 |
+| Windows x64 · Desktop | 完整离线 WPF suite、实际 WebView2、包结构/架构、解压带空格路径执行、更新替换与重启 |
 | Mac Apple Silicon / Intel · Desktop | 原生 WKWebView、窗口/状态栏生命周期、实际包执行与更新检查 |
 | 五平台 CLI/MCP | Linux x64、Win x64/ARM64、Mac Intel/Apple Silicon 原生真实进程验证 |
 | Release · main guard | main-only 发布政策、来源与工作流边界 |
@@ -540,7 +540,7 @@ main push CI success
 
 [CI 43754610782：全部 12 项成功](https://github.com/two4i6/EasySellPut/actions/runs/43754610782)，包括 `CI · Required checks`。后续提交仅更新评审文档、原图和安装文件清单，不再改动产品代码。PR head 的文档 CI 若仍在运行，不能与已通过的功能 SHA 混淆。
 
-当前测试合计 914 项 .NET：Core 193、Data 129、Analytics 206、Shared 82、Mac 101、Automation 57、Windows 146；另有 53 项 Python 守卫、15 项 Chromium，45 项操作的真实 CLI/MCP 双进程 parity。Windows x64/ARM64 的 TRX 均记录 146 通过、0 失败，UI TRX 记录 101 通过、0 失败。所有四个桌面包及五个 CLI 包的原生执行/校验和更新重启任务均成功。
+当前测试合计 914 项 .NET：Core 193、Data 129、Analytics 206、Shared 82、Mac 101、Automation 57、Windows 146；另有 53 项 Python 守卫、15 项 Chromium，45 项操作的真实 CLI/MCP 双进程 parity。Windows x64 的 TRX 均记录 146 通过、0 失败，UI TRX 记录 101 通过、0 失败。所有四个桌面包及五个 CLI 包的原生执行/校验和更新重启任务均成功。
 
 更新提醒、单行状态栏和重新生成的 1920×1080 原图均已纳入。所有 54 张图片（52 张 Full HD + 2 张自然尺寸弹窗）的 PNG 尺寸和 SHA-256 已重新逐一校验。基线后的完整提交清单见 [followup-commits.txt](https://github.com/two4i6/EasySellPut/blob/d6d3b0ba3cfdaea32d7d59589bf581575c872d0f/docs/pr-review/followup-commits.txt)。
 
@@ -555,7 +555,6 @@ main push CI success
 | `osx-arm64` | `EasySellPut-Desktop-0.6.0-osx-arm64.zip` | 79.1 | [下载 artifact](https://github.com/two4i6/EasySellPut/actions/runs/43754610782/artifacts/14178175704) |
 | `osx-x64` | `EasySellPut-Desktop-0.6.0-osx-x64.zip` | 83.9 | [下载 artifact](https://github.com/two4i6/EasySellPut/actions/runs/43754610782/artifacts/14177349917) |
 | `win-x64` | `EasySellPut-Desktop-0.6.0-win-x64.zip` | 118.8 | [下载 artifact](https://github.com/two4i6/EasySellPut/actions/runs/43754610782/artifacts/14177863583) |
-| `win-arm64` | `EasySellPut-Desktop-0.6.0-win-arm64.zip` | 111.9 | [下载 artifact](https://github.com/two4i6/EasySellPut/actions/runs/43754610782/artifacts/14177304882) |
 
 ### 11.1 SHA-256
 
@@ -563,7 +562,6 @@ main push CI success
 486c07f4b70e1cb26412b4b9e2d7658b32cd2dcf0c11ef433c9d83b09bd0ac55  EasySellPut-Desktop-0.6.0-osx-arm64.zip
 73767fe0d803fcbd1bbe1bbda33f5c8e48271fc1c92a3f14ec2845e45826d2bd  EasySellPut-Desktop-0.6.0-win-x64.zip
 4386c290d143833ceb47d90070b15ba11c78598d4e42b859b65ca83b4a064b71  EasySellPut-Desktop-0.6.0-osx-x64.zip
-1c0f4a75026526479ca3d8b71e14aaccbf3e1d38959baddf40a4fc8f664980e1  EasySellPut-Desktop-0.6.0-win-arm64.zip
 ```
 
 ### 11.2 安装、来源与有效期

@@ -10,7 +10,7 @@ import shutil
 import xml.etree.ElementTree as ET
 
 ROOT=pathlib.Path(__file__).resolve().parents[1]
-RIDS=('win-x64','win-arm64','osx-x64','osx-arm64')
+RIDS=('win-x64','osx-x64','osx-arm64')
 
 def prepare(packages, output, version, repository=None):
     repository=os.environ.get("GITHUB_REPOSITORY", "") if repository is None else repository

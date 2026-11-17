@@ -63,7 +63,7 @@ public sealed class UpdateClient(HttpClient http, string rid, Version current)
         var version = new Version(current.Major, current.Minor, Math.Max(0, current.Build)).ToString();
         if (string.IsNullOrEmpty(SourceRepository)) return new("disabled", version);
         if (!IsValidRepository(SourceRepository)) throw new InvalidDataException("Invalid compiled update repository.");
-        if (rid is not ("win-x64" or "win-arm64" or "osx-x64" or "osx-arm64")) throw new PlatformNotSupportedException("No desktop updates for this platform.");
+        if (rid is not ("win-x64" or "osx-x64" or "osx-arm64")) throw new PlatformNotSupportedException("No desktop updates for this platform.");
         using var response = await GetAsync(new Uri($"https://api.github.com/repos/{SourceRepository}/releases/latest"), ct);
         if (response.StatusCode == HttpStatusCode.NotFound) return new("no_release", version);
         response.EnsureSuccessStatusCode();

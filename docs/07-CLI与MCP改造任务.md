@@ -36,7 +36,7 @@
 - 完整回归目录：`build/out/tests/run-q5QAsXfz`。Core 173、Data 94、Analytics 206、Shared 18、Mac 58、Automation 9，合计 **558 项通过、0 失败、选中的离线测试 0 跳过**。Category=Live 已明确排除，不计入通过数。
 - 开发版 CLI/MCP 真实进程检查通过；Linux x64 自包含发行可执行程序再次通过（包括原生 SQLite 初始化、八个行情源注册、版本号、17/27 工具数量、协议、权限和并发）。
 - Windows WPF 应用及测试项目交叉编译通过（0 警告、0 错误），未运行 Windows 原生测试。
-- 六套自包含发行包：linux-x64、linux-arm64、win-x64、win-arm64、osx-x64、osx-arm64，位于 `build/out/cli`，每包附 SHA-256 校验文件。除 Linux x64 外仅完成交叉发布，尚未在对应系统/架构运行。
+- 五套自包含发行包：linux-x64、linux-arm64、win-x64、osx-x64、osx-arm64，位于 `build/out/cli`，每包附 SHA-256 校验文件。除 Linux x64 外仅完成交叉发布，尚未在对应系统/架构运行。
 - 根 `AGENTS.md` 已加入三入口功能评估、共享业务服务、CLI/MCP 契约、权限、并发存储与真实进程测试要求。
 - 既有的 macOS 设置页语言标签滞后不属于本次改造；没有为通过测试而修改原有断言。
 - 未执行真实行情联网验收、Windows/macOS 原生 UI 验收或 PowerShell 发布脚本执行；不据此声称这些行为已验证。MCP 的网络访问仍受本地代理和第三方行情源限制。

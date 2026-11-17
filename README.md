@@ -17,9 +17,11 @@ Current version: **0.6.0**
 
 Open **Strategy → Linked workbench** to add contracts, edit quantities and inspect payoff/Greeks without switching pages. Existing inputs and per-leg analysis remain under **Detailed analysis**. [使用与改造说明](docs/15-期权链与策略联动工作台.md)
 
+[Independent apps: install, update and GitHub delivery](docs/app-runtime-research/app-distribution.md) · [独立子应用与 GitHub 配置](docs/57-独立子应用安装与GitHub分发.md)
+
 ## Build from source
 
-Requirements: Windows 10+ (for the Windows app) or macOS 26+ (for the Mac app), and the repo-local .NET 10 SDK installed by the setup script (no admin rights required).
+Requirements: Windows 10+ x64 (for the Windows app) or macOS 26+ (for the Mac app), and the repo-local .NET 10 SDK installed by the setup script (no admin rights required).
 
 ```powershell
 # Windows: install the local toolchain, then build and test
@@ -38,7 +40,7 @@ Official releases use the main-only GitHub Actions signing/draft/publish flow in
 
 ## CLI and MCP
 
-Version 0.6.0 adds a local CLI and stdio MCP server for **Windows x64/ARM64 and macOS Intel/Apple Silicon**, with Linux support as well. They share the desktop market-data adapters and analytics; no GUI, Web server or separate .NET installation is required for self-contained packages.
+Version 0.6.0 adds a local CLI and stdio MCP server for **Windows x64 and macOS Intel/Apple Silicon**, with Linux support as well. They share the desktop market-data adapters and analytics; no GUI, Web server or separate .NET installation is required for self-contained packages.
 
 ```bash
 easysellput quote AAPL MSFT --json

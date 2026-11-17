@@ -25,17 +25,27 @@ def check(workflows):
     require(set(publish['on']) == {'workflow_dispatch'}, 'Publication must be explicitly dispatched')
     require(set(publish['jobs']) == {'publish'}, 'Unexpected publication jobs')
     matrix = prepare['jobs']['packages']['strategy']['matrix']['include']
-    require({m['rid'] for m in matrix} == {'linux-x64', 'win-x64', 'win-arm64', 'osx-x64', 'osx-arm64'}, 'Release platform coverage changed')
+    require({m['rid'] for m in matrix} == {'linux-x64', 'win-x64', 'osx-x64', 'osx-arm64'}, 'Release platform coverage changed')
     apps = workflows['app-release.yml']
-    require(set(apps['on']) == {'workflow_dispatch'}, 'App publication must remain explicit')
+    require(set(apps['on']) == {'workflow_dispatch','workflow_run'}, 'Apps may prepare after main CI; publication must remain explicit')
+    require(apps['on']['workflow_run']['branches'] == ['main'] and apps['on']['workflow_run']['workflows'] == [ci['name']], 'Automatic app drafts require main CI')
     require(set(apps['jobs']) == {'release'}, 'Unexpected app release job')
     app_job = apps['jobs']['release']
     require("github.ref == 'refs/heads/main'" in app_job.get('if','') and app_job.get('environment') == 'release', 'App signing/publication must be main-only and protected')
     app_commands = '\n'.join(step.get('run','') for step in app_job['steps'])
-    require('policy.py' in app_commands and 'app-release.py prepare' in app_commands and 'app-release.py publish' in app_commands, 'Apps must validate provenance and separate preparation/publication')
+    require('app-source.py' in app_commands and 'app-release.py prepare' in app_commands and 'app-release.py publish' in app_commands, 'Apps must validate provenance and separate preparation/publication')
+    publish_step = next(step for step in app_job['steps'] if 'app-release.py publish' in step.get('run',''))
+    require("github.event_name == 'workflow_dispatch'" in publish_step.get('if',''), 'Automatic app publication is forbidden')
+    require("vars.APPS_AUTO_PREPARE == 'true'" in app_job['if'], 'Automatic drafts require explicit configuration')
+    renew = workflows['app-catalog.yml']
+    require(set(renew['on']) == {'workflow_dispatch','schedule'}, 'Catalog renewal must not react to arbitrary branch pushes')
+    renew_job = renew['jobs']['renew']
+    require("github.ref == 'refs/heads/main'" in renew_job.get('if','') and renew_job.get('environment') == 'release', 'Catalog signing must be main-only and protected')
+    require(renew['concurrency']['group'] == apps['concurrency']['group'] and renew['concurrency']['cancel-in-progress'] == 'false', 'App catalog writes must be serialized')
+    require(any('app-release.py refresh' in step.get('run','') for step in renew_job['steps']), 'Use the shared authenticated catalog renewal')
     require('dotnet publish' not in app_commands and 'npm ' not in app_commands and 'pack-app.py' not in app_commands, 'App releases must promote tested artifacts without rebuilding')
     app_ci = workflows['app-ci.yml']
-    require({row['rid'] for row in app_ci['jobs']['core']['strategy']['matrix']['include']} == set(RID_LABELS), 'Independent app core must retain five-platform coverage')
+    require({row['rid'] for row in app_ci['jobs']['core']['strategy']['matrix']['include']} == set(RID_LABELS), 'Independent app core must retain four-platform coverage')
     for name, workflow in workflows.items():
         require(workflow.get('permissions', {}).get('contents') != 'write', 'Use job-scoped release write permissions: ' + name)
         for job_name, job in workflow.get('jobs', {}).items():

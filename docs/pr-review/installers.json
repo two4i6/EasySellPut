@@ -28,15 +28,5 @@
     "source": "045f680",
     "architectureVerified": true,
     "expiresAt": "2026-11-29T19:55:38Z"
-  },
-  {
-    "rid": "win-arm64",
-    "file": "EasySellPut-Desktop-0.6.0-win-arm64.zip",
-    "sha256": "1c0f4a75026526479ca3d8b71e14aaccbf3e1d38959baddf40a4fc8f664980e1",
-    "bytes": 117370690,
-    "artifactUrl": "https://github.com/two4i6/EasySellPut/actions/runs/43754610782/artifacts/14177304882",
-    "source": "045f680",
-    "architectureVerified": true,
-    "expiresAt": "2026-11-29T19:55:47Z"
   }
 ]

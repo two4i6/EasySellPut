@@ -77,7 +77,7 @@ Unknown dynamic variants are unavailable; they do not trigger remote requests.
 
 ## Runtime and checks
 
-Pinned official Node 24.22.1 archives/executable hashes cover Windows/macOS x64/ARM64
+Pinned official Node 24.22.1 archives/executable hashes cover Windows x64 / macOS Intel/Apple Silicon
 and Linux x64/ARM64. Packagers download at build time, verify pinned SHA and ship
 license/provenance. The app extracts only the executable, verifies it on every run
 and invokes its absolute path with NODE_OPTIONS/NODE_PATH/NODE_ICU_DATA cleared.

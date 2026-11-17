@@ -6,7 +6,7 @@ Windows / macOS 用户请先看 [平台快速开始与 MCP 配置](12-Windows与
 
 ## 安装与启动
 
-使用 `build/pack-cli.sh <rid>` 生成的自包含发行包，解压整个目录后运行 `easysellput`（Windows 为 `easysellput.exe`），不需要另装 .NET。不要只复制可执行文件；同目录包含运行时和 SQLite 等依赖。支持发布 `win-x64`、`win-arm64`、`osx-x64`、`osx-arm64`、`linux-x64`、`linux-arm64`；交叉发布不等于已在目标系统运行验证。macOS 包是命令行发行包，无 Developer ID 签名/公证。
+使用 `build/pack-cli.sh <rid>` 生成的自包含发行包，解压整个目录后运行 `easysellput`（Windows 为 `easysellput.exe`），不需要另装 .NET。不要只复制可执行文件；同目录包含运行时和 SQLite 等依赖。支持发布 `win-x64`、`osx-x64`、`osx-arm64`、`linux-x64`、`linux-arm64`；交叉发布不等于已在目标系统运行验证。macOS 包是命令行发行包，无 Developer ID 签名/公证。
 
 源码运行需要 global.json 指定的 .NET 10 SDK：
 

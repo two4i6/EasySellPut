@@ -2,6 +2,8 @@
 
 ## Architecture
 
+Supported releases: Windows x64, macOS Intel/Apple Silicon and Linux x64 CLI/MCP. Windows releases are x64 only; retain macOS Apple Silicon support. Do not add other Windows CPU targets without an explicit product decision.
+
 EasySellPut is a local .NET 10 app: Windows WPF, macOS Avalonia, cross-platform CLI and stdio MCP. Keep user data local. Reuse this checkout; create another worktree only when requested.
 
 | Project | Responsibility | Dependency boundary |
@@ -28,7 +30,7 @@ EasySellPut is a local .NET 10 app: Windows WPF, macOS Avalonia, cross-platform 
 - Host/CLI compilation must not invoke npm. Full packaging explicitly prepares the compatibility seed; app payloads build independently. Development artifact keys are ephemeral and never accepted by production configuration.
 - Develop app payloads with the shared SDK and source-only `tools/Meili.AppDev` temporary-profile host. Reuse `QqqGexAppSession`/private AppView infrastructure, generated theme defaults, request draining and the shared pinned runtime. Never add a production development key/profile switch, app-local market socket or copied installer. Keep prior public operations when adding a versioned replacement; installation must reject removals or permission/schema changes.
 - App updates use the compiled repository's separate signed `apps` catalog, never host Latest. Preserve exact hashes, canonical versions, catalog generation/digest, expiry, withdrawals, protocol/data compatibility and tool permission/schema stability.
-- `Apps · Build & Test` provides five-platform core artifacts. `Apps · Release` is main-only: successful current main CI → promote tested bytes → signed draft → explicit publish. Keep app releases/catalog prereleases with `latest=false`; never rebuild payloads in release jobs or expose maintenance via MCP.
+- `Apps · Build & Test` provides four-platform core artifacts. `Apps · Release` is main-only: successful current main CI → promote tested bytes → signed draft → explicit publish. Automatic drafts require `APPS_AUTO_PREPARE=true`; weekly catalog renewal preserves package identities and never publishes new app versions. Use `build/configure-app-distribution.py` for owner-authorized setup; preserve signing backups and existing Environment protection. Never silently rotate an existing publisher key. Keep app releases/catalog prereleases with `latest=false`; never rebuild payloads in release jobs or expose maintenance via MCP.
 
 ## Business contracts and data
 
@@ -75,8 +77,8 @@ EasySellPut is a local .NET 10 app: Windows WPF, macOS Avalonia, cross-platform 
 - Review `.github/workflows/ci.yml` and affected scripts/inventories for every change. Extend CI when behavior, schemas, dependencies, platforms or components change; otherwise name the existing coverage. Never weaken checks, skip relevant tests or remove architectures to obtain green CI.
 - Each catalog operation needs exactly one meaningful case in `tests/automation/capability_cases.json`, exercised through real CLI and MCP processes with schema/permission/result parity. Update desktop and companion-skill inventories too. Do not replace executable coverage with fixed tool counts or help-only checks.
 - Keep fixtures in test hosts, never production fake-data switches or production references to test projects. Use temporary data directories. Live validation requires deliberate `MEILI_LIVE=1`; fixtures are not live evidence.
-- UI changes require affected component/journey coverage and screenshots. Renderer changes require real Chromium interactions; native browser/package changes require Windows/macOS x64/ARM64 execution. Run the full offline WPF suite, not a class allowlist.
-- CI must build real packages, verify runtime/architecture/checksums, extract into paths with spaces and run the extracted GUI/CLI/MCP plus updater swap/relaunch on native runners. Preserve all four desktop and five CLI targets and downloadable evidence. Cross-compilation is not native execution; ad-hoc/unsigned packages are not trusted distribution signatures.
+- UI changes require affected component/journey coverage and screenshots. Renderer changes require real Chromium interactions; native browser/package changes require Windows x64 and macOS Intel/Apple Silicon execution. Run the full offline WPF suite, not a class allowlist.
+- CI must build real packages, verify runtime/architecture/checksums, extract into paths with spaces and run the extracted GUI/CLI/MCP plus updater swap/relaunch on native runners. Preserve all three desktop and four CLI targets and downloadable evidence. Cross-compilation is not native execution; ad-hoc/unsigned packages are not trusted distribution signatures.
 - Release only from `main`: successful main push CI → reuse artifacts → platform signing/notarization → native final-package checks → signed draft → explicit publish workflow. `work`/PR builds never release. Keep release secrets in a main-only `release` Environment; never rebuild application packages, bypass signing or publish locally. See [release flow](docs/44-GitHubActions主分支发布流程.md).
 - Keep `CI · Required checks` as the aggregate check; branch rules must require it. Keep names short and platform-first; update workflow triggers, release validation and branch rules together when renaming. Rerun affected checks after fixes and inspect the delivered code revision's CI. Later documentation-only commits may cite unchanged code results explicitly, without claiming pending CI passed.
 - Report checks/commands, outcomes, screenshots and CI links. Distinguish passed/failed/skipped/unrun, fixture/live, headless/native and build/package execution. Resolve relevant failures and state remaining gaps; compilation or zero tests does not prove readiness.

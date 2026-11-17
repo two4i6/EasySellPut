@@ -30,3 +30,12 @@ class AppReleasePolicyTests(unittest.TestCase):
         with self.assertRaises(ValueError):guard.check(changed)
         changed=copy.deepcopy(workflows);changed['app-ci.yml']['jobs']['core']['strategy']['matrix']['include'].pop()
         with self.assertRaises(ValueError):guard.check(changed)
+
+    def test_workflow_guard_refuses_automatic_publication_and_unsigned_renewal_path(self):
+        workflows={p.name:yaml.load(p.read_text(encoding='utf-8-sig'),Loader=yaml.BaseLoader)for p in (ROOT/'.github/workflows').glob('*.yml')}
+        changed=copy.deepcopy(workflows)
+        step=next(s for s in changed['app-release.yml']['jobs']['release']['steps']if 'app-release.py publish' in s.get('run',''))
+        step['if']='true'
+        with self.assertRaises(ValueError):guard.check(changed)
+        changed=copy.deepcopy(workflows);changed['app-catalog.yml']['jobs']['renew']['if']='true'
+        with self.assertRaises(ValueError):guard.check(changed)

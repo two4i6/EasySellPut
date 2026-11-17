@@ -22,7 +22,6 @@ jobs:
         include:
           - {os: ubuntu-24.04, label: Linux x64, rid: linux-x64}
           - {os: windows-latest, label: Windows x64, rid: win-x64}
-          - {os: windows-11-arm, label: Windows ARM64, rid: win-arm64}
           - {os: macos-15-intel, label: Mac Intel, rid: osx-x64}
           - {os: macos-26, label: Mac Apple Silicon, rid: osx-arm64}
     steps:
