@@ -5,6 +5,7 @@ import hashlib
 import json
 import pathlib
 import subprocess
+import sqlite3
 import tempfile
 import zipfile
 
@@ -32,5 +33,23 @@ with tempfile.TemporaryDirectory(prefix='app-package-smoke-') as folder:
             original = pathlib.Path('web/qqq-gex/runtime-dist', name).read_bytes()
             assert archive.read('engine/' + name) == original
         assert archive.read(manifest['ui']) == pathlib.Path('web/qqq-gex/dist/index.html').read_bytes()
+        operations = json.loads(archive.read('operations.json'))
+        op = next(o for o in operations if o['name'] == 'get_qqq_gex_retained_summary')
+        script = root / 'summary.mjs'; script.write_bytes(archive.read(op['entryPoint']))
+        profile = root / 'profile'
+        request = dict(protocol=1, operation=op['name'], arguments={}, context=dict(dataDirectory=str(profile),appVersion=manifest['version']))
+        def run_summary():
+            completed = subprocess.run(['node', str(script)], input=json.dumps(request), text=True, capture_output=True, check=True, timeout=15)
+            return json.loads(completed.stdout)
+        assert run_summary()['storageAvailable'] is False and not profile.exists()
+        cache = profile / 'cache'; cache.mkdir(parents=True); db = cache / 'qqq-gex.db'
+        with sqlite3.connect(db) as connection:
+            connection.executescript("CREATE TABLE qqq_gex_local_days(day TEXT); INSERT INTO qqq_gex_local_days VALUES('2026-01-02'),('2026-01-05'); CREATE TABLE qqq_gex_partial_days(day TEXT); INSERT INTO qqq_gex_partial_days VALUES('2026-01-06'); CREATE TABLE qqq_gex_observed_inputs(identity TEXT); INSERT INTO qqq_gex_observed_inputs VALUES('fixture');")
+        before = hashlib.sha256(db.read_bytes()).hexdigest()
+        result = run_summary()
+        assert result['publishedDays'] == 2 and result['partialDays'] == result['observedInputs'] == 1
+        assert result['firstPublishedDate'] == '2026-01-02' and result['lastPublishedDate'] == '2026-01-05'
+        assert hashlib.sha256(db.read_bytes()).hexdigest() == before
+
     subprocess.run(['openssl', 'dgst', '-sha256', '-verify', str(args.public_key), '-signature', str(root / 'app.sig'), str(root / 'app.json')], check=True)
 print('PASS: independently signed GEX UI/engine artifact, exact original bundles, model/source identity and complete file hashes')

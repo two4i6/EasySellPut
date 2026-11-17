@@ -1,0 +1,9 @@
+[
+  {
+    "name": "get_qqq_gex_retained_summary",
+    "description": "Count locally retained GEX published/partial dates and observed inputs without reading full profiles. Counts are evidence inventory, not complete market coverage or payload-integrity certification.",
+    "writes": false,
+    "schema": { "type": "object", "properties": {}, "required": [], "additionalProperties": false },
+    "entryPoint": "engine/retained-summary.mjs"
+  }
+]

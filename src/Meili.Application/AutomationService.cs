@@ -29,6 +29,9 @@ public sealed partial class AutomationService(DataDirectoryInfo directory, IMark
         var op = Catalog.Find(operation);
         OperationCatalog.Validate(op, args);
         if (op.Writes && !allowWrites) throw new UnauthorizedAccessException();
+        var module = (await Modules.ModuleOperations.ReadAsync(DirectoryInfo.Path, ct)).SingleOrDefault(o => o.Definition.Name == operation);
+        if (module is not null)
+            return WireJson.Element(WireJson.Success(await Modules.ModuleProcess.ExecuteAsync(DirectoryInfo.Path, module, args, allowWrites, ct)));
         await _gate.WaitAsync(ct);
         try { ct.ThrowIfCancellationRequested(); return WireJson.Element(WireJson.Success(await ExecuteCoreAsync(operation, new Input(args), ct))); }
         finally { _gate.Release(); }

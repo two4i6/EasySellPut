@@ -103,7 +103,7 @@ public static partial class ModulePackage
         return new(manifest, packageHash);
     }
 
-    private static void RejectDuplicates(JsonElement value)
+    internal static void RejectDuplicates(JsonElement value)
     {
         if (value.ValueKind == JsonValueKind.Object)
         {

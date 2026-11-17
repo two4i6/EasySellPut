@@ -17,7 +17,8 @@ public static class OperationCatalogResolver
     public static IOperationCatalog Resolve(DataDirectoryInfo directory)
     {
         ArgumentNullException.ThrowIfNull(directory);
-        return OperationCatalog.Snapshot;
+        var contributions = Task.Run(() => Modules.ModuleOperations.ReadAsync(directory.Path)).GetAwaiter().GetResult();
+        return contributions.Count == 0 ? OperationCatalog.Snapshot : Modules.ModuleOperations.Merge(contributions);
     }
 }
 
@@ -43,7 +44,7 @@ public sealed class OperationSnapshot : IOperationCatalog
 }
 
 /// <summary>Transport-independent application entry point; discovery and execution share one catalog.</summary>
-public interface IOperationDispatcher
+public interface IOperationDispatcher : IDisposable
 {
     DataDirectoryInfo DirectoryInfo { get; }
     IOperationCatalog Catalog { get; }

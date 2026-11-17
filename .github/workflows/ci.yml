@@ -133,6 +133,10 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Install app build runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
       - name: Prepare app compatibility seed
         run: python build/prepare-app-seed.py --if-current
       - name: Build CLI & protocol test host
@@ -250,6 +254,10 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y fontconfig fonts-dejavu-core fonts-noto-core fonts-noto-cjk
+      - name: Install app build runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
       - name: Prepare app compatibility seed
         run: python3 build/prepare-app-seed.py --if-current
       - name: Test layout, themes & update reminders
@@ -340,6 +348,10 @@ jobs:
             $process = Start-Process $installer -ArgumentList '/silent', '/install' -Wait -PassThru
             if ($process.ExitCode -ne 0) { throw "WebView2 installation failed: $($process.ExitCode)" }
           }
+      - name: Install app build runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
       - name: Prepare app compatibility seed
         run: python build/prepare-app-seed.py --if-current
       - name: Test native WebView

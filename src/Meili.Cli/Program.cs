@@ -14,7 +14,7 @@ public static class Program
     public static Task<int> Main(string[] args) => RunAsync(args);
 
     /// <summary>Shared executable entry point; test hosts may supply deterministic market services.</summary>
-    public static async Task<int> RunAsync(string[] args, Func<Meili.Core.Settings.DataDirectoryInfo, AutomationService>? serviceFactory = null)
+    public static async Task<int> RunAsync(string[] args, Func<Meili.Core.Settings.DataDirectoryInfo, IOperationDispatcher>? serviceFactory = null, Func<string?, IOperationCatalog>? catalogResolver = null)
     {
         bool json = args.Contains("--json");
         using var stop = new CancellationTokenSource();
@@ -80,7 +80,7 @@ public static class Program
                 return 0;
             }
             IOperationCatalog catalog = OperationCatalog.Snapshot;
-            var parsed = Parse(args, path => catalog = OperationCatalogResolver.Resolve(LocalPaths.Resolve(path, migrateLegacy: false)));
+            var parsed = Parse(args, path => catalog = catalogResolver?.Invoke(path) ?? OperationCatalogResolver.Resolve(LocalPaths.Resolve(path, migrateLegacy: false)));
             if (parsed.Help)
             {
                 if (json) Console.WriteLine(WireJson.Element(WireJson.Success(new

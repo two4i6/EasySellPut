@@ -66,6 +66,7 @@ public sealed class ModuleInstaller
                 await input.CopyToAsync(output, ct);
             var candidate = await verify(copied, ct);
             if (candidate.PackageSha256 != source.PackageSha256) throw new InvalidDataException("Module changed while staging.");
+            var candidateOperations = ModuleOperations.ReadPackage(candidate, copied);
             RecoverPending();
             using var maintenance = registry.AcquireMaintenance(candidate.Manifest.Id);
             var snapshot = registry.Read();
@@ -74,6 +75,18 @@ public sealed class ModuleInstaller
             if (existing is not null && (Version.Parse(existing.Version) > Version.Parse(candidate.Manifest.Version) ||
                 existing.DataFormat != candidate.Manifest.DataFormat))
                 throw new InvalidDataException("Module downgrade or incompatible data migration requires a separate verified plan.");
+            if (existing is not null)
+            {
+                var previousPath = Path.Combine(registry.Root, "packages", existing.Id, existing.Version, "package.espapp");
+                var previous = await verify(previousPath, ct);
+                if (previous.PackageSha256 != existing.PackageSha256) throw new InvalidDataException("Active module package changed.");
+                foreach (var old in ModuleOperations.ReadPackage(previous, previousPath))
+                {
+                    var next = candidateOperations.SingleOrDefault(o => o.Definition.Name == old.Definition.Name);
+                    if (next is null || next.Definition.Writes != old.Definition.Writes || !JsonElement.DeepEquals(next.Definition.Schema, old.Definition.Schema))
+                        throw new InvalidDataException("Breaking operation changes require a new public operation name.");
+                }
+            }
             var targetParent = Folder("packages", candidate.Manifest.Id);
             var target = Path.Combine(targetParent, candidate.Manifest.Version);
             var transactions = Folder("transactions");

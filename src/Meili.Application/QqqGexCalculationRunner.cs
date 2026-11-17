@@ -15,7 +15,7 @@ public static class QqqGexCalculationRunner
     {
         var root=Path.TrimEndingDirectorySeparator(baseDirectory);return Path.GetFileName(root)=="MacOS"&&Path.GetFileName(Path.GetDirectoryName(root))=="Contents"?Path.GetFullPath(Path.Combine(root,"..","Resources","runtime",archiveName)):Path.Combine(root,"runtime",archiveName);
     }
-    private static async Task<string?> ExtractNodeAsync(string directory,CancellationToken ct)
+    internal static async Task<string?> ExtractNodeAsync(string directory,CancellationToken ct)
     {
         using var manifest=typeof(QqqGexCalculationRunner).Assembly.GetManifestResourceStream("QqqGexRuntime/node-lock.json")!;
         using var doc=await JsonDocument.ParseAsync(manifest,cancellationToken:ct);

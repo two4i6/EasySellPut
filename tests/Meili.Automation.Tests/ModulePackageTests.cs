@@ -10,16 +10,20 @@ public sealed class ModulePackageTests : IDisposable
 {
     private readonly string root = Path.Combine(Path.GetTempPath(), "esp-modules-" + Guid.NewGuid().ToString("N"));
     private readonly ECDsa key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
-    private string Package(string path = "engine/main.mjs", bool tamper = false, string repository = "test/source", int api = 1, bool extra = false, string version = "1.0.0")
+    private string Package(string path = "engine/main.mjs", bool tamper = false, string repository = "test/source", int api = 1, bool extra = false, string version = "1.0.0", ModuleOperation[]? operations = null, string scriptText = "export const value=1;")
     {
         Directory.CreateDirectory(root);
         var filename = Path.Combine(root, Guid.NewGuid().ToString("N") + ".espapp");
-        var script = Encoding.UTF8.GetBytes("export const value=1;");
+        var script = Encoding.UTF8.GetBytes(scriptText);
+        var metadata = operations is null ? null : JsonSerializer.SerializeToUtf8Bytes(operations, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+        var files = new List<ModuleFile> { new(path, script.Length, Convert.ToHexString(SHA256.HashData(script))) };
+        if (metadata is not null) files.Add(new("operations.json", metadata.Length, Convert.ToHexString(SHA256.HashData(metadata))));
         var manifest = new ModuleManifest(1, repository, "easysellput.test", version, api, 1, 1, "node24", path, null,
-            ["linux-x64"], [new(path, script.Length, Convert.ToHexString(SHA256.HashData(script)))]);
+            ["linux-x64"], files.ToArray());
         var bytes = JsonSerializer.SerializeToUtf8Bytes(manifest, new JsonSerializerOptions(JsonSerializerDefaults.Web));
         using var zip = ZipFile.Open(filename, ZipArchiveMode.Create);
         void Add(string name, byte[] data) { using var stream = zip.CreateEntry(name).Open(); stream.Write(data); }
+        if (metadata is not null) Add("operations.json", metadata);
         Add("app.json", bytes);
         Add("app.sig", key.SignData(bytes, HashAlgorithmName.SHA256, DSASignatureFormat.Rfc3279DerSequence));
         Add(path, tamper ? Encoding.UTF8.GetBytes("export const value=2;") : script);
@@ -28,6 +32,62 @@ public sealed class ModulePackageTests : IDisposable
     }
     private Task<VerifiedModule> Verify(string file, string? publicKey = null) => ModulePackage.VerifyAsync(file,
         publicKey ?? key.ExportSubjectPublicKeyInfoPem(), "test/source", "linux-x64", CancellationToken.None);
+
+    [Fact]
+    public async Task Fixed_host_executes_signed_A_then_B_and_rejects_stale_contracts_and_permission_escalation()
+    {
+        var profile = Path.Combine(root, "execution");
+        var installer = new ModuleInstaller(profile, (file, ct) => Verify(file));
+        var schema = JsonSerializer.SerializeToElement(new { type = "object", properties = new { }, required = Array.Empty<string>(), additionalProperties = false });
+        var op = new ModuleOperation("app_easysellput_test_summary", "Evidence inventory", false, schema, "engine/main.mjs");
+        var args = JsonSerializer.SerializeToElement(new { });
+        Task<string?> Runtime(CancellationToken _) => Task.FromResult<string?>("node");
+        await installer.InstallAsync(Package(operations: [op], scriptText: "process.stdout.write(JSON.stringify({version:'A',price:123.4567}));"));
+        var a = Assert.Single(await ModuleOperations.ReadAsync(profile, installer, CancellationToken.None));
+        Assert.Equal("A", (await ModuleProcess.ExecuteAsync(profile,a,args,false,installer,Runtime,CancellationToken.None)).GetProperty("version").GetString());
+        await installer.InstallAsync(Package(version:"1.0.1",operations:[op],scriptText:"process.stdout.write(JSON.stringify({version:'B',price:123.4567}));"));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => ModuleProcess.ExecuteAsync(profile,a,args,false,installer,Runtime,CancellationToken.None));
+        var b = Assert.Single(await ModuleOperations.ReadAsync(profile, installer, CancellationToken.None));
+        Assert.Equal("B", (await ModuleProcess.ExecuteAsync(profile,b,args,false,installer,Runtime,CancellationToken.None)).GetProperty("version").GetString());
+        await Assert.ThrowsAsync<InvalidDataException>(() => installer.InstallAsync(Package(version:"1.0.2",operations:[op with { Writes=true }])));
+        Assert.Equal("1.0.1", Assert.Single(installer.Inspect().State.Apps).Version);
+        installer.SetEnabled("easysellput.test",false);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => ModuleProcess.ExecuteAsync(profile,b,args,false,installer,Runtime,CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task Signed_module_discovery_tracks_updates_and_disable_without_pinning_idle_clients()
+    {
+        var profile = Path.Combine(root, "catalog");
+        var installer = new ModuleInstaller(profile, (file, ct) => Verify(file));
+        var schema = JsonSerializer.SerializeToElement(new { type = "object", properties = new { }, required = Array.Empty<string>(), additionalProperties = false });
+        var op = new ModuleOperation("app_easysellput_test_summary", "Retained evidence inventory", false, schema, "engine/main.mjs");
+        await installer.InstallAsync(Package(operations: [op]));
+        var a = await ModuleOperations.ReadAsync(profile, installer, CancellationToken.None);
+        Assert.Equal("1.0.0", Assert.Single(a).Version);
+        Assert.False(ModuleOperations.Merge(a).Find(op.Name).Writes);
+        OperationCatalog.Validate(ModuleOperations.Merge(a).Find(op.Name), JsonSerializer.SerializeToElement(new { }));
+        Assert.Throws<ArgumentException>(() => OperationCatalog.Validate(ModuleOperations.Merge(a).Find(op.Name), JsonSerializer.SerializeToElement(new { unexpected = true })));
+        await installer.InstallAsync(Package(version: "1.0.1", operations: [op with { Description = "Updated evidence inventory" }]));
+        var b = await ModuleOperations.ReadAsync(profile, installer, CancellationToken.None);
+        Assert.Equal("1.0.1", Assert.Single(b).Version);
+        Assert.Equal("1.0.0", Assert.Single(a).Version); // Existing immutable discovery is not mutated.
+        installer.SetEnabled("easysellput.test", false);
+        Assert.Empty(await ModuleOperations.ReadAsync(profile, installer, CancellationToken.None));
+        installer.Uninstall("easysellput.test"); // Discovery never owns a permanent execution lock.
+    }
+
+    [Theory]
+    [InlineData("calculate_option")]
+    [InlineData("get_qqq_gex_foreign")]
+    public async Task Signed_packages_cannot_steal_host_or_other_app_operations(string name)
+    {
+        var profile = Path.Combine(root, "foreign");
+        var installer = new ModuleInstaller(profile, (file, ct) => Verify(file));
+        var schema = JsonSerializer.SerializeToElement(new { type = "object", properties = new { }, required = Array.Empty<string>(), additionalProperties = false });
+        await Assert.ThrowsAsync<InvalidDataException>(() => installer.InstallAsync(Package(operations: [new(name, "Foreign operation", false, schema, "engine/main.mjs")])));
+        Assert.Empty(installer.Inspect().State.Apps);
+    }
 
     [Fact]
     public async Task Signed_core_only_package_is_validated_without_extraction_or_activation()
