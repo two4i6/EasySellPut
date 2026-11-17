@@ -57,6 +57,24 @@ This section supersedes older incremental pending notes below; it does not turn 
 
 MCP metadata separates input/source time, evaluation time, calculation version, delay and partial coverage. get_live_quotes is separately bounded (<=50 symbols,1..20 seconds,<=500 updates); it may read the network and is not an offline GEX archive query. Neither UI latest mode nor get_qqq_gex_live_decision grants trading/order authority. Both toolbar entrances remain. A latest-date history follow view still reads retained historical display; live mode additionally evaluates source PCS/directional inputs and requests the native quote channel.
 
+## Completion TODO list (2026-11-17)
+
+These are acceptance tasks, not release/deployment status. Keep unchecked until evidence for the exact behavior exists. Source omissions are blockers, not permission to manufacture observations.
+
+- [x] CI126 at81f2b4d: all13 jobs passed, including private-session recovery and native package/startup targets.
+- [x] Independent CBOE/Yahoo/Nasdaq audit; distinguish publication, underlying trade and receipt timestamps. Yahoo receipt omission fixed and regression tested; no blended provider snapshot.
+- [ ] **Populated native GEX interaction:** new WKWebView/WebView2 probe covers3 modes,10 tabs,canvas and reload; await exact-commit execution on all4 native targets. Expand to remaining date/expiry/scope/filter/keyboard/split/resume journeys; Linux compile or Chromium is insufficient.
+- [ ] **Full trading-session acquisition:** explicit cloud harness exists and short real run passed. Run across regular open through delayed closing publication, preserve every actual source observation, inspect source cutoff gaps and SQLite integrity/size. Requires persistent cloud lifetime; no full session has completed. Do not count duplicate publication cutoffs as new observations.
+- [ ] **Provider completeness/freshness:** CBOE has raw zero IV and closed-market publication/trade mismatch; Yahoo earliest expiry has a smaller independent universe, not every-expiry proof; Nasdaq lacks required times/IV/OI. Reassess all expiries during open hours using existing sources. Do not invert IV, shift time or silently mix providers. Full source coverage may remain unavailable.
+- [ ] **Real actionable alert and delivery:** observe a genuine unexpired canonical source signal, matching UI/MCP status and exactly-once notification/sound after explicit enable. Cloud harness records constructors/oscillator calls; enable test tone, replay markers, closed-session rejection or lack of an event cannot pass audible/native OS delivery. No qualifying event has occurred in the inspected data.
+- [ ] **Complete historical/reference corpus:** obtain actual retained chain observations, IV/OI and daily/macro baselines covering advertised horizons. Current29-expiry/two-cutoff and28-expiry/one-cutoff cohorts are partial; price bars alone are not historical option-chain coverage. Re-run wall-touch, RVOL, day-scenario, replay/event/reference missingness and scope parity on this cohort.
+- [ ] **Positive executable spread:** a genuinely available same-time two-leg bid/ask dataset, fees/manual-credit/IV-shock parity and provenance; existing empty/stale/missing-leg rejection is not positive quote acceptance.
+- [ ] **Renderer parity and usability:** heatmap cell/history geometry, labels/collisions, chart legend/filter states, compact/wide, light/dark and Chinese/English on native engines; screenshots/DOM checks do not yet cover every state. Preserve original UI kernels.
+- [ ] **Full-session stability/performance:** measure bounded cache/storage growth, process and container peak memory, response p95 and recovery over the full session with actual data.64 synthetic switch cycles/88s and sampled RSS do not prove long-term stability; native hardware sleep and notification permission lifecycle remain separate.
+- [ ] **Large-query repeated chunk cost:** analysis continuations may recompute the same derived result per chunk. Profile realistic full-scope queries and introduce bounded reusable derived caching only if warranted, preserving revision/SHA consistency and CacheManager ownership; selected-query improvements do not establish full-scope improvement.
+
+Read-only MCP deliberately does not control desktop window state, expose arbitrary raw files, write preferences or replay another process's exact live quote stream. These documented presentation/permission boundaries are not missing analytics tools. No deployment or merge has been performed.
+
 ## Transport and permission contract
 
 `get_qqq_gex_archive`: dates/snapshots/profile/bars, max 200 items per page. Page >1 requires first revision; revision_changed means restart at page 1. Full profile points preserve absent/null/zero and source row SHA, never compact backtest rows.

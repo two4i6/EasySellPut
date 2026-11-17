@@ -1,0 +1,100 @@
+using System.Text.Json;
+using System.Runtime.InteropServices;
+using System.Reflection;
+using Meili.Shared.Services;
+using Meili.Automation;
+#if WINDOWS_READER
+using System.Windows;
+using Microsoft.Web.WebView2.Wpf;
+#else
+using Avalonia.Controls;
+using Meili.Mac.Platform;
+#endif
+
+internal static partial class Program
+{
+    // Test-only DOM evaluation of our tokenized local document. No production
+    // browser API or remote-page bridge is enabled by this probe.
+    private static async Task ProbeQqqPopulated(string directory)
+    {
+        var data=System.IO.Path.Combine(directory,"gex-fixture");
+        System.IO.Directory.CreateDirectory(System.IO.Path.Combine(data,"cache"));
+        var start=DateTimeOffset.Parse("2026-01-02T14:30:00Z");
+        var input=new {symbol="QQQ",source="synthetic-native-engine-test",captures=Enumerable.Range(0,8).SelectMany(i=>new[]{2,5}.Select(d=>new{valuationAt=start.AddMinutes(2*i),expiry=DateTimeOffset.Parse($"2026-01-0{d}T00:00:00Z").ToUnixTimeSeconds(),spot=600+i*.1,result=new{receivedAt=start.AddMinutes(2*i).AddSeconds(1),options=new[]{new{calls=Enumerable.Range(0,41).Select(j=>new{strike=580+j,impliedVolatility=.2,openInterest=100+j+i}),puts=Enumerable.Range(0,41).Select(j=>new{strike=580+j,impliedVolatility=.22,openInterest=90+j+i})}}}})),bars=Enumerable.Range(0,8).Select(i=>new{timestamp=start.AddMinutes(2*i),open=600+i*.1,high=601+i*.1,low=599+i*.1,close=600+i*.1,volume=100+i})};
+        await System.IO.File.WriteAllTextAsync(System.IO.Path.Combine(data,"cache","qqq-gex-input.json"),JsonSerializer.Serialize(input));
+        var imported=JsonSerializer.SerializeToElement(await QqqGexCalculationRunner.RunAsync(data));
+        if(!imported.TryGetProperty("rows",out var count)||count.GetInt32()!=16)throw new Exception("Native fixture import failed: "+imported);
+        using var session=new QqqGexSession(System.IO.Path.Combine(data,"cache","qqq-gex.db"));
+#if WINDOWS_READER
+        using var browser=new WebView2();
+#else
+        var browser=new NewsWebView();
+#endif
+        var window=new Window{Width=1440,Height=1000,Content=browser};
+        try
+        {
+            window.Show();
+#if WINDOWS_READER
+            var environment=await Microsoft.Web.WebView2.Core.CoreWebView2Environment.CreateAsync(null,System.IO.Path.Combine(directory,"gex-populated-browser"));
+            await browser.EnsureCoreWebView2Async(environment);
+            browser.CoreWebView2.Settings.AreHostObjectsAllowed=false;browser.CoreWebView2.Settings.IsWebMessageEnabled=false;
+            browser.CoreWebView2.Navigate(session.PageUri.AbsoluteUri);
+#else
+            browser.Navigate(session.PageUri.AbsoluteUri);
+#endif
+            string Title(){
+#if WINDOWS_READER
+                return browser.CoreWebView2.DocumentTitle;
+#else
+                return browser.DocumentTitle;
+#endif
+            }
+            async Task Eval(string script){
+#if WINDOWS_READER
+                await browser.CoreWebView2.ExecuteScriptAsync(script);
+#else
+                var field=typeof(NewsWebView).GetField("_view",BindingFlags.Instance|BindingFlags.NonPublic)!;
+                var view=(IntPtr)field.GetValue(browser)!;
+                if(view==IntPtr.Zero)throw new Exception("WKWebView unavailable");
+                var text=MacMessage(MacClass("NSString"),MacSelector("alloc"));
+                var utf8=Marshal.StringToCoTaskMemUTF8(script);
+                try{text=MacMessageArg(text,MacSelector("initWithUTF8String:"),utf8);MacEvaluate(view,MacSelector("evaluateJavaScript:completionHandler:"),text,IntPtr.Zero);}
+                finally{Marshal.FreeCoTaskMem(utf8);MacMessage(text,MacSelector("release"));}
+                await Task.CompletedTask;
+#endif
+            }
+            var serial=0;
+            async Task Check(string condition,string label)
+            {
+                var marker="gex-native-"+(++serial);
+                await Eval("(()=>{const end=Date.now()+25000;const poll=()=>{try{if("+condition+"){document.title="+JsonSerializer.Serialize(marker)+";return;}}catch(e){}if(Date.now()<end)setTimeout(poll,100);};poll();})()");
+                await Until(()=>Title()==marker,label);
+            }
+            await Check("document.querySelectorAll('section[aria-label=\"回放 GEX 快照表\"] tbody tr:not([aria-hidden])').length===8","native populated snapshot table");
+            foreach(var mode in new[]{"GEX矩阵","Heatmap","K线"})
+            {
+                await Eval("[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==="+JsonSerializer.Serialize(mode)+").click()");
+                await Check("document.querySelectorAll('section[aria-label=\"回放 GEX 快照表\"] tbody tr:not([aria-hidden])').length===8&&!document.body.textContent.includes('QQQ GEX 视图暂时无法显示')","native "+mode);
+            }
+            await Check("[...document.querySelectorAll('canvas')].some(c=>c.width>0&&c.height>0)","native Kline canvas");
+            foreach(var tab in new[]{"Gamma 地图","行权价分布","成交持仓","结构事件","活动响应","日内节奏","组合分析","触位统计","Max Pain / Time","ATM IV"})
+            {
+                var name=JsonSerializer.Serialize(tab);
+                await Eval("[...document.querySelectorAll('[role=tab]')].find(b=>b.textContent.trim()==="+name+").click()");
+                await Check("[...document.querySelectorAll('[role=tab]')].some(b=>b.textContent.trim()==="+name+"&&b.getAttribute('aria-selected')==='true')","native tab "+tab);
+            }
+            await Eval("document.title='gex-reload-pending'");await Until(()=>Title()=="gex-reload-pending","native reload sentinel");
+            browser.Reload();await Until(()=>Title()!="gex-reload-pending","native reload new document");
+            await Check("document.querySelectorAll('section[aria-label=\"回放 GEX 快照表\"] tbody tr:not([aria-hidden])').length===8","native reload retains snapshots");
+            Console.WriteLine("PASS: synthetic populated native QQQ GEX: 3 chart modes, 10 analysis tabs, canvas and reload; no live-history/alert claim.");
+        }
+        finally{window.Content=null;window.Close();}
+    }
+#if !WINDOWS_READER
+    [DllImport("/usr/lib/libobjc.A.dylib",EntryPoint="objc_getClass")] private static extern IntPtr MacClass(string name);
+    [DllImport("/usr/lib/libobjc.A.dylib",EntryPoint="sel_registerName")] private static extern IntPtr MacSelector(string name);
+    [DllImport("/usr/lib/libobjc.A.dylib",EntryPoint="objc_msgSend")] private static extern IntPtr MacMessage(IntPtr obj,IntPtr selector);
+    [DllImport("/usr/lib/libobjc.A.dylib",EntryPoint="objc_msgSend")] private static extern IntPtr MacMessageArg(IntPtr obj,IntPtr selector,IntPtr argument);
+    [DllImport("/usr/lib/libobjc.A.dylib",EntryPoint="objc_msgSend")] private static extern void MacEvaluate(IntPtr obj,IntPtr selector,IntPtr script,IntPtr completion);
+#endif
+}

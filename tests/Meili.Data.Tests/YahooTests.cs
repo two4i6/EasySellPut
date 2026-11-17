@@ -153,4 +153,26 @@ public class YahooTests
         Assert.Contains("crumb=crumbB", h.Requests[^1].RequestUri!.Query);
         Assert.Contains("symbols=AAPL%2CBRK-B", h.Requests[^1].RequestUri!.Query);
     }
+
+    [Fact]
+    public async Task Option_receipt_is_retained_across_cache_reads_without_relabeling_market_time()
+    {
+        var h = new FakeHandler().Enqueue(HttpStatusCode.NotFound, "")
+            .Enqueue(HttpStatusCode.OK, "crumb")
+            .Enqueue(_ => FakeHandler.Resp(HttpStatusCode.OK, Fx.Bytes("yahoo_options.json")));
+        using var gateway = TestHttp.Gateway(h);
+        var provider = new YahooProvider(gateway, new ResponseCache());
+        var before = DateTimeOffset.UtcNow;
+        var first = await provider.GetChainAsync("AAPL");
+        var second = await provider.GetChainAsync("AAPL");
+        Assert.NotNull(first.FetchedAt);
+        Assert.InRange(first.FetchedAt.Value, before, DateTimeOffset.UtcNow);
+        Assert.Equal(first.FetchedAt, second.FetchedAt);
+        using var source = Fx.Json("yahoo_options.json");
+        Assert.Equal(YahooProvider.ParseOptions(source.RootElement, "AAPL").AsOf, first.AsOf);
+        Assert.NotEqual(first.AsOf, first.FetchedAt);
+        Assert.Equal(3, h.Requests.Count);
+        Assert.False(first.IsRealtime);
+        Assert.Equal(15, first.DelayMinutes);
+    }
 }

@@ -25,7 +25,7 @@ using Meili.Mac.Platform;
 using NativeChart = Meili.Mac.Platform.WebChartControl;
 #endif
 
-internal static class Program
+internal static partial class Program
 {
     private static int _exitCode = 1;
     [STAThread]
@@ -111,6 +111,7 @@ internal static class Program
             await ProbeChart(directory);
             await ProbeWorkbench(directory);
             await ProbeQqqLocal(directory);
+            await ProbeQqqPopulated(directory);
 #if !WINDOWS_READER
             await ProbeMenuBar();
 #endif

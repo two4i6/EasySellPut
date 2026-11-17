@@ -237,9 +237,12 @@ public sealed class YahooProvider : ProviderBase, IQuoteProvider, IBarsProvider,
         return await Cache.GetOrAddAsync($"yahoo:opt:{sym}:{expiration}", TimeSpan.FromSeconds(30), async c =>
         {
             using var doc = await GetWithCrumbAsync(cr => $"{Q2}/v7/finance/options/{Enc(sym)}?crumb={Enc(cr)}{date}", c).ConfigureAwait(false);
+            var receivedAt = DateTimeOffset.UtcNow;
             var chain = ParseOptions(doc.RootElement, Norm(symbol));
             if (chain.Expirations.Count == 0) throw NoData($"no options for {symbol}");
-            return chain;
+            // Receipt is not the embedded underlying market time. Preserve it
+            // across cache hits so provenance-aware capture can validate both.
+            return chain with { FetchedAt = receivedAt };
         }, ct).ConfigureAwait(false);
     }
 

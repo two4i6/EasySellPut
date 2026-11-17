@@ -315,8 +315,15 @@ jobs:
       - name: Test native WebView
         shell: pwsh
         run: |
-          dotnet run --project tests/Meili.NewsBrowser.Smoke/Meili.NewsBrowser.Smoke.csproj -c Release -p:BuildInParallel=false
-          if ($LASTEXITCODE -ne 0) { throw 'Native news reader smoke failed' }
+          dotnet build tests/Meili.NewsBrowser.Smoke/Meili.NewsBrowser.Smoke.csproj -c Release -p:BuildInParallel=false
+          if ($LASTEXITCODE -ne 0) { throw 'Native browser host build failed' }
+          $os = if ($IsWindows) { 'win' } else { 'osx' }
+          $arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant()
+          $tfm = if ($IsWindows) { 'net10.0-windows10.0.19041.0' } else { 'net10.0' }
+          python build/bundle-qqq-runtime.py "$os-$arch" "tests/Meili.NewsBrowser.Smoke/bin/Release/$tfm"
+          if ($LASTEXITCODE -ne 0) { throw 'Native browser pinned runtime bundle failed' }
+          dotnet run --no-build --project tests/Meili.NewsBrowser.Smoke/Meili.NewsBrowser.Smoke.csproj -c Release
+          if ($LASTEXITCODE -ne 0) { throw 'Native news/GEX browser smoke failed' }
 
       - name: Test Windows desktop & update reminders
         if: runner.os == 'Windows'
