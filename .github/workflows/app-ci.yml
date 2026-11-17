@@ -48,6 +48,9 @@ jobs:
       - name: Build app core without host or desktop
         working-directory: web/qqq-gex
         run: npm run build:runtime
+      - name: Build app UI without desktop host
+        working-directory: web/qqq-gex
+        run: npm run build
       - name: Test original core contracts
         working-directory: web/qqq-gex
         run: node test-results/pcs-contract.mjs
@@ -55,6 +58,10 @@ jobs:
         run: python build/pack-app.py --development --repository "${{ github.repository }}" --output "build/out/app-core/qqq-gex-${{ matrix.rid }}.espapp"
       - name: Verify development package and retained-data operation
         run: python tests/automation/app_package_smoke.py --archive "build/out/app-core/qqq-gex-${{ matrix.rid }}.espapp" --public-key "build/out/app-core/qqq-gex-${{ matrix.rid }}.espapp.public.pem" --repository "${{ github.repository }}"
+      - name: Package optional app UI
+        run: python build/pack-app.py --development --repository "${{ github.repository }}" --ui-dir web/qqq-gex/dist --output "build/out/app-core/qqq-gex-ui-${{ matrix.rid }}.espapp"
+      - name: Verify optional UI package and retained-data operation
+        run: python tests/automation/app_package_smoke.py --archive "build/out/app-core/qqq-gex-ui-${{ matrix.rid }}.espapp" --public-key "build/out/app-core/qqq-gex-ui-${{ matrix.rid }}.espapp.public.pem" --repository "${{ github.repository }}"
       - name: Upload development artifact
         uses: actions/upload-artifact@v4
         with:
