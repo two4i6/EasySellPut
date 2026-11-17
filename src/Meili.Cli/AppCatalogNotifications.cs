@@ -39,7 +39,18 @@ internal sealed class AppCatalogNotifications : IAsyncDisposable
         string? fingerprint=null;
         async Task Check(bool notify)
         {
-            var catalog=await dispatcher.GetCatalogAsync(stop.Token).ConfigureAwait(false);
+            IOperationCatalog catalog;
+            for(var attempt=0;;attempt++)
+            {
+                try{catalog=await dispatcher.GetCatalogAsync(stop.Token).ConfigureAwait(false);break;}
+                catch(IOException)when(attempt<5)
+                {
+                    // Registry publication precedes maintenance-lease release. Windows can
+                    // deliver every replacement event before authenticated discovery is ready.
+                    // Retry this event, bounded and cancellable; never accept unverified metadata.
+                    await Task.Delay(TimeSpan.FromMilliseconds(100*(1<<attempt)),stop.Token).ConfigureAwait(false);
+                }
+            }
             var next=Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(catalog.All.Where(o=>writes||!o.Writes).Select(o=>new{o.Name,o.Description,o.Writes,o.Schema}),WireJson.Options)));
             var changed=fingerprint is not null&&fingerprint!=next;fingerprint=next;
             if(notify&&changed)

@@ -52,7 +52,16 @@ internal static class AppFixture
     {
         private readonly AutomationService fallback = new(directory,new Meili.Automation.Tests.FakeMarket());
         public DataDirectoryInfo DirectoryInfo => directory;
-        public async Task<IOperationCatalog> GetCatalogAsync(CancellationToken ct=default) => ModuleOperations.Merge(await ModuleOperations.ReadAsync(directory.Path,installer,ct));
+        public async Task<IOperationCatalog> GetCatalogAsync(CancellationToken ct=default)
+        {
+            // Test-only fault: publication can precede release of the installer lease.
+            if(File.Exists(Path.Combine(directory.Path,"catalog-read-blocked")))
+            {
+                File.WriteAllText(Path.Combine(directory.Path,"catalog-read-attempted"),"");
+                throw new IOException("Fixture installer still owns catalog maintenance.");
+            }
+            return ModuleOperations.Merge(await ModuleOperations.ReadAsync(directory.Path,installer,ct));
+        }
         public async Task<JsonElement> ExecuteAsync(string operation, JsonElement arguments, bool allowWrites, CancellationToken ct=default)
         {
             var op=(await GetCatalogAsync(ct)).Find(operation);OperationCatalog.Validate(op,arguments);
