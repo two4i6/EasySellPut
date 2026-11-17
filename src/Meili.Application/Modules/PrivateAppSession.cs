@@ -21,32 +21,19 @@ public sealed class PrivateAppSession : IPrivateAppSession, IAsyncDisposable
     private readonly Task acceptLoop;
     private readonly object shutdownLock=new();
     private Task? shutdown;
-    private readonly object presentationLock=new();
-    private JsonElement presentation=JsonSerializer.SerializeToElement<object?>(null);
-    private long presentationVersion;
-    private TaskCompletionSource presentationChanged=new(TaskCreationOptions.RunContinuationsAsynchronously);
-    public void UpdatePresentation(JsonElement value)
-    {
-        if(JsonSerializer.SerializeToUtf8Bytes(value).Length>65536)throw new ArgumentException("App presentation exceeds bound.");
-        lock(presentationLock)
-        {
-            if(JsonElement.DeepEquals(presentation,value))return;
-            presentation=value.Clone();presentationVersion++;
-            var previous=presentationChanged;presentationChanged=new(TaskCreationOptions.RunContinuationsAsynchronously);previous.TrySetResult();
-        }
-    }
+    private readonly PrivateAppPresentation presentation=new();
+    public void UpdatePresentation(JsonElement value)=>presentation.Update(value);
     private readonly string token=Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
     private readonly string directory,id;
-    private readonly bool writes;
+    private readonly PrivateAppOperations api;
     private readonly ModuleInstaller installer;
-    private readonly IOperationDispatcher dispatcher;
     private readonly IDisposable lease;
     private readonly HashSet<string> declaredAssets;
     private readonly HashSet<string> htmlPages;
     public Uri PageUri {get;}
     private PrivateAppSession(string directory,string id,string entry,bool writes,ModuleInstaller installer,IOperationDispatcher dispatcher,IDisposable lease,IEnumerable<string> assets)
     {
-        this.directory=directory;this.id=id;this.writes=writes;this.installer=installer;this.dispatcher=dispatcher;this.lease=lease;declaredAssets=assets.ToHashSet(StringComparer.Ordinal);htmlPages=declaredAssets.Where(a=>a.StartsWith("ui/",StringComparison.Ordinal)&&a.EndsWith(".html",StringComparison.Ordinal)).Select(a=>a[3..]).ToHashSet(StringComparer.Ordinal);
+        this.directory=directory;this.id=id;this.installer=installer;this.lease=lease;api=new(directory,id,dispatcher,writes,installer);declaredAssets=assets.ToHashSet(StringComparer.Ordinal);htmlPages=declaredAssets.Where(a=>a.StartsWith("ui/",StringComparison.Ordinal)&&a.EndsWith(".html",StringComparison.Ordinal)).Select(a=>a[3..]).ToHashSet(StringComparer.Ordinal);
         listener.Start();PageUri=new($"http://127.0.0.1:{((IPEndPoint)listener.LocalEndpoint).Port}/{token}/{entry}");
         acceptLoop=Task.Run(Accept);
     }
@@ -93,53 +80,8 @@ public sealed class PrivateAppSession : IPrivateAppSession, IAsyncDisposable
                 headers.TryGetValue("Origin",out var sent)&&sent!=origin||headers.GetValueOrDefault("Sec-Fetch-Site")=="cross-site")
             {await Send(403,"text/plain",[]);return;}
             var route=request[1][(token.Length+2)..].Split('?')[0];
-            if(route=="host/presentation"&&request[0]=="GET"&&!headers.ContainsKey("Content-Length"))
-            {
-                var query=new Uri("http://local/"+request[1][(token.Length+2)..]).Query;
-                Task? changed=null;
-                if(query.Length>0)
-                {
-                    if(!query.StartsWith("?version=",StringComparison.Ordinal)||!long.TryParse(query[9..],out var version)||version< -1)
-                    {await Send(400,"application/json",[]);return;}
-                    lock(presentationLock)if(version==presentationVersion)changed=presentationChanged.Task;
-                }
-                if(changed is not null)
-                {
-                    deadline.CancelAfter(TimeSpan.FromSeconds(25));
-                    try{await changed.WaitAsync(TimeSpan.FromSeconds(20),ct).ConfigureAwait(false);}catch(TimeoutException){}
-                }
-                object snapshot;lock(presentationLock)snapshot=new{version=presentationVersion,value=presentation};
-                await Send(200,"application/json",JsonSerializer.SerializeToUtf8Bytes(snapshot,WireJson.Options));return;
-            }
-            if(route=="host/catalog"&&request[0]=="GET"&&!headers.ContainsKey("Content-Length"))
-            {
-                var operations=await ModuleOperations.ReadAsync(directory,installer,ct).ConfigureAwait(false);
-                await Send(200,"application/json",JsonSerializer.SerializeToUtf8Bytes(new{appId=id,allowWrites=writes,operations=operations.Where(o=>o.AppId==id&&(writes||!o.Definition.Writes)).Select(o=>new{o.Definition.Name,o.Definition.Description,o.Definition.Writes,inputSchema=o.Definition.Schema})},WireJson.Options));return;
-            }
-            if(route=="host/invoke"&&request[0]=="POST")
-            {
-                if(headers.GetValueOrDefault("Origin")!=origin||!headers.GetValueOrDefault("Content-Type","").StartsWith("application/json",StringComparison.OrdinalIgnoreCase)||
-                    !int.TryParse(headers.GetValueOrDefault("Content-Length"),out var length)||length is <1 or >1048576)
-                {await Send(403,"application/json",[]);return;}
-                var body=new byte[length];var offset=0;
-                while(offset<length){var read=await stream.ReadAsync(body.AsMemory(offset),ct).ConfigureAwait(false);if(read==0)return;offset+=read;}
-                using var input=JsonDocument.Parse(body,new JsonDocumentOptions{MaxDepth=16});ModulePackage.RejectDuplicates(input.RootElement);
-                if(input.RootElement.ValueKind!=JsonValueKind.Object||input.RootElement.EnumerateObject().Count()!=2||!input.RootElement.TryGetProperty("operation",out var op)||op.ValueKind!=JsonValueKind.String||!input.RootElement.TryGetProperty("arguments",out var arguments))
-                {await Send(400,"application/json",[]);return;}
-                var bound=(await ModuleOperations.ReadAsync(directory,installer,ct).ConfigureAwait(false)).SingleOrDefault(o=>o.AppId==id&&o.Definition.Name==op.GetString());
-                if(bound is null||bound.Definition.Writes&&!writes){await Send(403,"application/json",[]);return;}
-                try
-                {
-                OperationCatalog.Validate(new(bound.Definition.Name,bound.Definition.Description,bound.Definition.Writes,bound.Definition.Schema),arguments);
-                deadline.CancelAfter(TimeSpan.FromMinutes(2));
-                var result=await dispatcher.ExecuteAsync(bound.Definition.Name,arguments,writes,ct).ConfigureAwait(false);
-                await Send(200,"application/json",JsonSerializer.SerializeToUtf8Bytes(result));return;
-                }
-                catch(Exception ex)when(ex is ArgumentException or JsonException or InvalidOperationException or UnauthorizedAccessException or IOException)
-                {
-                    // expected: expose typed invocation errors to the caller without logging financial arguments.
-                    await Send(ex is UnauthorizedAccessException?403:ex is ArgumentException or JsonException?400:503,"application/json",JsonSerializer.SerializeToUtf8Bytes(WireJson.Error(ex),WireJson.Options));return;}
-            }
+            if(await presentation.TryHandleAsync(route,request[0],request[1],headers,stream,deadline).ConfigureAwait(false))return;
+            if(await api.TryHandleAsync(route,request[0],headers,stream,origin,deadline).ConfigureAwait(false))return;
             if(request[0]!="GET"||headers.ContainsKey("Content-Length")){await Send(403,"text/plain",[]);return;}
             var assetPath="ui/"+Uri.UnescapeDataString(route);ModulePackage.ValidatePath(assetPath);
             if(!declaredAssets.Contains(assetPath)){await Send(404,"text/plain",[]);return;}
@@ -148,7 +90,7 @@ public sealed class PrivateAppSession : IPrivateAppSession, IAsyncDisposable
             await Send(200,PrivateHttp.AssetType(route),memory.ToArray());
         }
         catch(OperationCanceledException){} // expected: page detach cancels active requests.
-        catch(Exception ex)when(ex is IOException or SocketException or ArgumentException or JsonException or InvalidOperationException or UnauthorizedAccessException)
+        catch(Exception ex)when(ex is IOException or InvalidDataException or SocketException or ArgumentException or JsonException or InvalidOperationException or UnauthorizedAccessException)
         {Meili.Core.Diagnostics.AppLog.Warn("app-view","Private app request ended: "+ex.GetType().Name);}
         finally{clients.Release();}
     }

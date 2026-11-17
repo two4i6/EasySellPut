@@ -14,6 +14,39 @@ public sealed class QqqGexSessionTests
         }
         finally{Directory.Delete(directory,true);}
     }
+    private sealed class ScopedDispatcher(string directory):Meili.Automation.IOperationDispatcher
+    {
+        public int Calls;
+        public Meili.Core.Settings.DataDirectoryInfo DirectoryInfo=>new(directory,Meili.Core.Settings.DataDirectorySource.CommandLine);
+        public Task<Meili.Automation.IOperationCatalog> GetCatalogAsync(CancellationToken ct=default)=>Task.FromResult(Meili.Automation.OperationCatalog.Snapshot);
+        public Task<System.Text.Json.JsonElement> ExecuteAsync(string operation,System.Text.Json.JsonElement arguments,bool writes,CancellationToken ct=default){Calls++;throw new InvalidOperationException("Foreign built-in must not reach the dispatcher.");}
+        public void Dispose(){}
+    }
+    [Fact] public async Task Gex_private_app_API_does_not_expose_foreign_host_tools_or_cross_profile_dispatchers()
+    {
+        var directory=Path.Combine(Path.GetTempPath(),"gex-app-api-"+Guid.NewGuid().ToString("N"));var db=Path.Combine(directory,"cache","qqq-gex.db");
+        using var dispatcher=new ScopedDispatcher(directory);
+        var api=new Meili.Automation.Modules.PrivateAppOperations(directory,Meili.Automation.Modules.ModuleAccess.QqqGex,dispatcher,true);
+        try
+        {
+            using(var session=new QqqGexSession(db,appOperations:api))using(var http=new HttpClient())
+            {
+                var catalog=await http.GetStringAsync(new Uri(session.PageUri,"host/catalog"));
+                using var parsed=System.Text.Json.JsonDocument.Parse(catalog);Assert.Empty(parsed.RootElement.GetProperty("operations").EnumerateArray());Assert.DoesNotContain("get_quotes",catalog);
+                using var request=new HttpRequestMessage(HttpMethod.Post,new Uri(session.PageUri,"host/invoke"));request.Headers.Add("Origin",session.PageUri.GetLeftPart(UriPartial.Authority));
+                request.Content=new StringContent("{\"operation\":\"get_quotes\",\"arguments\":{\"symbols\":[\"QQQ\"]}}",System.Text.Encoding.UTF8,"application/json");
+                Assert.Equal(System.Net.HttpStatusCode.Forbidden,(await http.SendAsync(request)).StatusCode);Assert.Equal(0,dispatcher.Calls);
+            }
+            var other=Path.Combine(directory,"other","cache","qqq-gex.db");
+            Assert.Throws<ArgumentException>(()=>new QqqGexSession(other,appOperations:api));Assert.False(File.Exists(other));
+        }
+        finally
+        {
+            using var pool=new Microsoft.Data.Sqlite.SqliteConnection(new Microsoft.Data.Sqlite.SqliteConnectionStringBuilder{DataSource=db,Pooling=true}.ToString());Microsoft.Data.Sqlite.SqliteConnection.ClearPool(pool);
+            if(Directory.Exists(directory))Directory.Delete(directory,true);
+        }
+    }
+
     [Fact] public async Task Removed_desktop_only_history_route_is_not_exposed()
     {
         var path=Path.Combine(Path.GetTempPath(),Guid.NewGuid()+".db");using var session=new QqqGexSession(path);using var http=new HttpClient();var response=await http.GetAsync(new Uri(session.PageUri,"api/analysis/qqq/pcs/lifecycle?date=2026-01-02"));Assert.Equal(System.Net.HttpStatusCode.NotFound,response.StatusCode);
@@ -96,7 +129,11 @@ public sealed class QqqGexSessionTests
         using var session=new QqqGexSession();using var http=new HttpClient();var address=session.PageUri;
         var color=new ScottPlot.Color(1,2,3);session.UpdatePresentation(ChartPalette.Create(false,color,color,color,color,ThemePalette.Light));
         var body=await http.GetStringAsync(new Uri(address,"presentation"));Assert.Contains("\"dark\":false",body);Assert.Contains("#010203",body);
+        using var initial=System.Text.Json.JsonDocument.Parse(await http.GetStringAsync(new Uri(address,"host/presentation")));
+        var version=initial.RootElement.GetProperty("version").GetInt64();var waiting=http.GetStringAsync(new Uri(address,"host/presentation?version="+version));
         session.UpdatePresentation(ChartPalette.Create(true,color,color,color,color,ThemePalette.Dark));Assert.Equal(address,session.PageUri);Assert.Contains("\"dark\":true",await http.GetStringAsync(new Uri(address,"presentation")));
+        using var updated=System.Text.Json.JsonDocument.Parse(await waiting.WaitAsync(TimeSpan.FromSeconds(3)));
+        Assert.True(updated.RootElement.GetProperty("version").GetInt64()>version);Assert.True(updated.RootElement.GetProperty("value").GetProperty("theme").GetProperty("dark").GetBoolean());
     }
 
     [Fact] public async Task Corrupt_gex_database_preserves_file_and_keeps_shell_and_diagnostics_available()

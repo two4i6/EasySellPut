@@ -27,3 +27,5 @@ The browser SDK's `applyTheme` is now reused by the original GEX adapter. It com
 ![Actual Chromium 1920×1080 GEX fixture using shared presentation](screenshots/gex-shared-presentation-1080p.png)
 
 This is a computed fixture screenshot, not live-market or native WebView evidence. Chromium empty/computed journeys verify no remote requests or script errors, preserved document/history selection, expiry switching and live theme/reduced-motion updates.
+
+The existing GEX page also exposes the same scoped `host/catalog`, `host/invoke` and read-only presentation contract when the desktop explicitly injects its shared dispatcher. Only authenticated operations belonging to GEX appear; it cannot proxy unrelated host tools. Its legacy chart endpoints and QuoteHub channels remain compatible while domain handlers move into the app package. Native app/profile mismatch and core-only UI startup are rejected before opening financial storage.

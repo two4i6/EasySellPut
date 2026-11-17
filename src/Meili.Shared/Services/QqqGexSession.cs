@@ -10,7 +10,7 @@ using Meili.Core.Quotes;
 
 namespace Meili.Shared.Services;
 
-/// <summary>Private cache-only viewer. No upstream requests or native JavaScript privileges.</summary>
+/// <summary>Private cached financial viewer with an optional explicit app-scoped dispatcher. No native JavaScript privileges.</summary>
 public sealed class QqqGexSession : Meili.Automation.Modules.IPrivateAppSession
 {
     private readonly TcpListener listener = new(IPAddress.Loopback, 0);
@@ -21,7 +21,8 @@ public sealed class QqqGexSession : Meili.Automation.Modules.IPrivateAppSession
     private readonly string snapshot;
     private int diagnosticCount;
     private object? presentation;
-    public void UpdatePresentation(ChartPalette palette){Volatile.Write(ref presentation,WebChartSnapshot.Theme(palette));NotifyDataUpdated();}
+    private readonly Meili.Automation.Modules.PrivateAppPresentation appPresentation=new();
+    public void UpdatePresentation(ChartPalette palette){Volatile.Write(ref presentation,WebChartSnapshot.Theme(palette));appPresentation.Update(AppViewPresentation.Create(palette));NotifyDataUpdated();}
     private readonly QuoteHub? quotes;
     private readonly DesktopActivity? activity;
     private readonly string quoteOwner="qqq-gex-"+Guid.NewGuid().ToString("N");
@@ -43,6 +44,7 @@ public sealed class QqqGexSession : Meili.Automation.Modules.IPrivateAppSession
     private readonly string? directory;
     private readonly QqqGexPreferences? preferences;
     private readonly IDisposable? moduleLease;
+    private readonly Meili.Automation.Modules.PrivateAppOperations? appOperations;
     private TaskCompletionSource<bool> changed=new(TaskCreationOptions.RunContinuationsAsynchronously);
     private QqqGexCaptureState captureState=new("idle");
     public void UpdateCaptureState(QqqGexCaptureState value){Volatile.Write(ref captureState,value);NotifyDataUpdated();}
@@ -56,25 +58,28 @@ public sealed class QqqGexSession : Meili.Automation.Modules.IPrivateAppSession
         return state;
     }
     private bool Ready()=>cache?.IsUnavailable!=true&&cache?.LatestLocalDate(DateTimeOffset.UtcNow) is not null;
+    private void AppWritten(object? sender,EventArgs e)=>NotifyDataUpdated();
     public void NotifyDataUpdated(){var old=Interlocked.Exchange(ref changed,new(TaskCreationOptions.RunContinuationsAsynchronously));old.TrySetResult(true);}
     public Uri PageUri { get; }
-    public QqqGexSession(string? databasePath = null, string snapshot = "local", QuoteHub? quotes = null, DesktopActivity? activity = null)
+    public QqqGexSession(string? databasePath = null, string snapshot = "local", QuoteHub? quotes = null, DesktopActivity? activity = null, Meili.Automation.Modules.PrivateAppOperations? appOperations = null)
     {
-        this.snapshot=snapshot;this.quotes=quotes;this.activity=activity;
+        this.snapshot=snapshot;this.quotes=quotes;this.activity=activity;this.appOperations=appOperations;
         if(databasePath is not null)
         {
             var databaseDirectory=Path.GetDirectoryName(Path.GetFullPath(databasePath))!;
             directory=Path.GetFileName(databaseDirectory)=="cache"?Path.GetDirectoryName(databaseDirectory)!:databaseDirectory;
-            cache=new QqqGexResponseStore(databasePath);
         }
         moduleLease=directory is null?null:Meili.Automation.Modules.ModuleAccess.AcquireEnabled(directory,"easysellput.qqq-gex");
         try
         {
+            if(appOperations is not null&&(directory is null||appOperations.AppId!=Meili.Automation.Modules.ModuleAccess.QqqGex||!string.Equals(Path.TrimEndingDirectorySeparator(Path.GetFullPath(directory)),Path.TrimEndingDirectorySeparator(Path.GetFullPath(appOperations.DirectoryPath)),OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal)))throw new ArgumentException("GEX app API must use its own app identity and profile.");
             if(directory is not null&&new Meili.Automation.Modules.ModuleRegistry(directory).Read().State.Apps.Any(a=>a.Id==Meili.Automation.Modules.ModuleAccess.QqqGex&&a.HasUi==false))
                 throw new InvalidOperationException("Application core has no installed UI.");
+            if(databasePath is not null)cache=new QqqGexResponseStore(databasePath);
         preferences=directory is null?null:new QqqGexPreferences(directory);
         liveQuotesRequested=preferences is null;
         if(preferences is not null)try{liveQuotesRequested=preferences.Read().values.GetValueOrDefault("qqq-local:mode")=="latest";}catch(Exception ex)when(ex is IOException or System.Text.Json.JsonException or UnauthorizedAccessException){AppLog.Warn("qqq-gex","Quote demand preference unavailable; history mode stays passive",ex);}
+        if(appOperations is not null)appOperations.Written+=AppWritten;
         listener.Start();
         if(activity is not null)activity.Changed+=QuoteActivity;if(quotes is not null)quotes.Updated+=OnQuote;
         QuoteActivity(null,EventArgs.Empty);
@@ -84,7 +89,7 @@ public sealed class QqqGexSession : Meili.Automation.Modules.IPrivateAppSession
         catch
         {
             if(activity is not null)activity.Changed-=QuoteActivity;if(quotes is not null)quotes.Updated-=OnQuote;
-            quotes?.Unsubscribe(quoteOwner);listener.Stop();moduleLease?.Dispose();throw;
+            quotes?.Unsubscribe(quoteOwner);if(appOperations is not null)appOperations.Written-=AppWritten;listener.Stop();moduleLease?.Dispose();throw;
         }
     }
     public bool IsPageUrl(string url) => Uri.TryCreate(url, UriKind.Absolute, out var u) && u.AbsoluteUri == PageUri.AbsoluteUri;
@@ -100,19 +105,23 @@ public sealed class QqqGexSession : Meili.Automation.Modules.IPrivateAppSession
         try
         {
             deadline.CancelAfter(TimeSpan.FromSeconds(10)); var ct = deadline.Token;
-            using var stream = client.GetStream(); var raw = new List<byte>(); var one = new byte[1];
-            while (raw.Count < 16384) { if (await stream.ReadAsync(one, ct) == 0) return; raw.Add(one[0]); if (raw.Count >= 4 && raw[^4] == 13 && raw[^3] == 10 && raw[^2] == 13 && raw[^1] == 10) break; }
-            var lines = Encoding.ASCII.GetString(raw.ToArray()).Split("\r\n"); var request = lines[0].Split(' ');
-            var headers = new Dictionary<string,string>(StringComparer.OrdinalIgnoreCase);
+            using var stream = client.GetStream();
+            var (request,headers,complete)=await Meili.Automation.Modules.PrivateHttp.ReadHeadAsync(stream,ct);
             var requestTime=System.Diagnostics.Stopwatch.StartNew();
             Task Send(int status,string type,byte[] body,CancellationToken token)=>Reply(stream,status,type,body,token,AcceptsGzip(headers.GetValueOrDefault("Accept-Encoding")),requestTime.ElapsedMilliseconds);
-            foreach(var line in lines.Skip(1).Where(x=>x.Length>0)) { var i=line.IndexOf(':'); if(i<=0 || !headers.TryAdd(line[..i],line[(i+1)..].Trim())) { await Send(400,"text/plain",[],ct);return; } }
             var origin=PageUri.GetLeftPart(UriPartial.Authority);
             var diagnosticWrite=request.Length==3&&request[0]=="POST"&&request[1]==$"/{token}/diagnostics";
             var preferenceWrite=request.Length==3&&request[0]=="POST"&&request[1]==$"/{token}/preferences";
-            var localWrite=preferenceWrite||diagnosticWrite;
-            if(raw.Count>=16384 || request.Length!=3 || request[0]!="GET"&&!localWrite || headers.GetValueOrDefault("Host")!=PageUri.Authority || !request[1].StartsWith($"/{token}/",StringComparison.Ordinal) || headers.ContainsKey("Transfer-Encoding") || !localWrite&&headers.ContainsKey("Content-Length") || headers.TryGetValue("Origin",out var sentOrigin)&&sentOrigin!=origin || headers.GetValueOrDefault("Sec-Fetch-Site")=="cross-site"||localWrite&&headers.GetValueOrDefault("Origin")!=origin) { await Send(403,"text/plain",[],ct);return; }
+            var appWrite=request.Length==3&&request[0]=="POST"&&request[1]==$"/{token}/host/invoke";
+            var localWrite=preferenceWrite||diagnosticWrite||appWrite;
+            if(!complete || request.Length!=3 || request[2]!="HTTP/1.1" || request[0]!="GET"&&!localWrite || headers.GetValueOrDefault("Host")!=PageUri.Authority || !request[1].StartsWith($"/{token}/",StringComparison.Ordinal) || headers.ContainsKey("Transfer-Encoding") || !localWrite&&headers.ContainsKey("Content-Length") || headers.TryGetValue("Origin",out var sentOrigin)&&sentOrigin!=origin || headers.GetValueOrDefault("Sec-Fetch-Site")=="cross-site"||localWrite&&headers.GetValueOrDefault("Origin")!=origin) { await Send(403,"text/plain",[],ct);return; }
             var route=request[1][(token.Length+2)..].Split('?')[0];
+            if(await appPresentation.TryHandleAsync(route,request[0],request[1],headers,stream,deadline))return;
+            if(route is "host/catalog" or "host/invoke")
+            {
+                if(appOperations is null){await Send(503,"application/json",Encoding.UTF8.GetBytes("{\"code\":\"APP_OPERATIONS_UNAVAILABLE\"}"),ct);return;}
+                await appOperations.TryHandleAsync(route,request[0],headers,stream,origin,deadline);return;
+            }
             if(diagnosticWrite){
                 if(Interlocked.Increment(ref diagnosticCount)>12){await Send(429,"application/json",[],ct);return;}
                 if(!int.TryParse(headers.GetValueOrDefault("Content-Length"),out var count)||count is <1 or >4096||!(headers.GetValueOrDefault("Content-Type")??"").StartsWith("application/json",StringComparison.OrdinalIgnoreCase)){await Send(400,"application/json",[],ct);return;}
@@ -172,7 +181,8 @@ public sealed class QqqGexSession : Meili.Automation.Modules.IPrivateAppSession
             using var memory=new MemoryStream();await asset.CopyToAsync(memory,ct);
             await Send(200,AssetType(route),memory.ToArray(),ct);
         }
-        catch(Exception ex) when(ex is IOException or OperationCanceledException or SocketException or ArgumentException) { AppLog.Warn("qqq-gex","Local viewer request ended: "+ex.GetType().Name); }
+        catch(OperationCanceledException){} // expected: hiding a page cancels its local pending reads.
+        catch(Exception ex) when(ex is IOException or InvalidDataException or SocketException or ArgumentException or JsonException or InvalidOperationException or UnauthorizedAccessException) { AppLog.Warn("qqq-gex","Local viewer request ended: "+ex.GetType().Name); }
         finally { clients.Release(); }
     }
     private static bool AcceptDiagnostic(JsonElement value)
@@ -190,5 +200,5 @@ public sealed class QqqGexSession : Meili.Automation.Modules.IPrivateAppSession
     private static readonly JsonSerializerOptions QueryWireOptions=new(){Encoder=System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping};
     private static bool AcceptsGzip(string? value)=>Meili.Automation.Modules.PrivateHttp.AcceptsGzip(value);
     private static Task Reply(Stream s,int status,string type,byte[] body,CancellationToken ct,bool gzip=false,long elapsed=0)=>Meili.Automation.Modules.PrivateHttp.ReplyAsync(s,status,type,body,ct,gzip,elapsed);
-    public void Dispose(){if(quotes is not null)quotes.Updated-=OnQuote;if(activity is not null)activity.Changed-=QuoteActivity;quotes?.Unsubscribe(quoteOwner);stop.Cancel();listener.Stop();moduleLease?.Dispose();}
+    public void Dispose(){if(appOperations is not null)appOperations.Written-=AppWritten;if(quotes is not null)quotes.Updated-=OnQuote;if(activity is not null)activity.Changed-=QuoteActivity;quotes?.Unsubscribe(quoteOwner);stop.Cancel();listener.Stop();moduleLease?.Dispose();}
 }
