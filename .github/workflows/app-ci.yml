@@ -3,9 +3,9 @@ run-name: "Apps · ${{ github.head_ref || github.ref_name }} · #${{ github.run_
 on:
   push:
     branches: [main, work]
-    paths: ['web/qqq-gex/**', 'web/app-sdk/**', 'build/pack-app.py', 'tests/automation/app_package_smoke.py', '.github/workflows/app-ci.yml']
+    paths: ['web/qqq-gex/**', 'web/market-liquidity/**', 'tests/automation/liquidity_app_smoke.py', 'web/app-sdk/**', 'build/pack-app.py', 'tests/automation/app_package_smoke.py', '.github/workflows/app-ci.yml']
   pull_request:
-    paths: ['web/qqq-gex/**', 'web/app-sdk/**', 'build/pack-app.py', 'tests/automation/app_package_smoke.py', '.github/workflows/app-ci.yml']
+    paths: ['web/qqq-gex/**', 'web/market-liquidity/**', 'tests/automation/liquidity_app_smoke.py', 'web/app-sdk/**', 'build/pack-app.py', 'tests/automation/app_package_smoke.py', '.github/workflows/app-ci.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -44,6 +44,12 @@ jobs:
       - name: Install app dependencies
         working-directory: web/qqq-gex
         run: npm ci --no-audit --no-fund
+      - name: Build independent liquidity core
+        run: node web/app-sdk/build-engine.mjs web/market-liquidity/runtime/report.mjs web/market-liquidity/runtime-dist/report.mjs
+      - name: Package liquidity core
+        run: python build/pack-app.py --app market-liquidity --development --repository "${{ github.repository }}" --output "build/out/app-core/liquidity-${{ matrix.rid }}.espapp"
+      - name: Verify signed liquidity core and protocol
+        run: python tests/automation/liquidity_app_smoke.py --archive "build/out/app-core/liquidity-${{ matrix.rid }}.espapp" --public-key "build/out/app-core/liquidity-${{ matrix.rid }}.espapp.public.pem" --repository "${{ github.repository }}"
       - name: Build app core without host or desktop
         working-directory: web/qqq-gex
         run: npm run build:runtime

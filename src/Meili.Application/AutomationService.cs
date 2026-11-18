@@ -52,7 +52,7 @@ public sealed partial class AutomationService(DataDirectoryInfo directory, IMark
             using var session=BeginModuleHostSession();
             return WireJson.Element(WireJson.Success(await Modules.ModuleProcess.ExecuteAsync(DirectoryInfo.Path, module, args, allowWrites, ct, session.InvokeAsync)));
         }
-        using var legacyLease = operation.Contains("_qqq_gex_", StringComparison.Ordinal) ? Modules.ModuleAccess.AcquireEnabled(DirectoryInfo.Path, Modules.ModuleAccess.QqqGex) : null;
+        using var legacyLease = Modules.ModuleAccess.OperationOwner(operation) is { } owner ? Modules.ModuleAccess.AcquireEnabled(DirectoryInfo.Path, owner) : null;
         await _gate.WaitAsync(ct);
         try { ct.ThrowIfCancellationRequested(); return WireJson.Element(WireJson.Success(await ExecuteCoreAsync(operation, new Input(args), ct))); }
         finally { _gate.Release(); }

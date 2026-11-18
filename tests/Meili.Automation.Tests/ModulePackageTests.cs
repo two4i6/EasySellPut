@@ -136,6 +136,71 @@ public sealed class ModulePackageTests : IDisposable
         await Assert.ThrowsAsync<InvalidDataException>(()=>installer.VerifyInstalledAsync(app.Id));
     }
 
+    [Fact]
+    public async Task Liquidity_core_preserves_shared_report_and_update_disable_uninstall_boundaries()
+    {
+        var profile=Path.Combine(root,"liquidity-core");var installer=new ModuleInstaller(profile,(file,ct)=>Verify(file));
+        var sourceRoot=Path.GetDirectoryName(new Uri(JsonSerializer.Deserialize<string>(HostSdkUri())!).LocalPath)!;
+        var appRoot=Path.GetFullPath(Path.Combine(sourceRoot,"..","market-liquidity"));
+        var operations=JsonSerializer.Deserialize<ModuleOperation[]>(await File.ReadAllTextAsync(Path.Combine(appRoot,"operations.json")),new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
+        var operation=Assert.Single(operations);
+        Assert.True(JsonElement.DeepEquals(OperationCatalog.Find(operation.Name).Schema,operation.Schema));
+        Assert.False(operation.Writes);Assert.Equal(new[]{"get_market_liquidity"},operation.HostOperations);
+        var script=(await File.ReadAllTextAsync(Path.Combine(appRoot,"runtime","report.mjs"))).Replace("'../../app-sdk/engine-host.mjs'",HostSdkUri());
+        using var service=new AutomationService(new(profile,Meili.Core.Settings.DataDirectorySource.CommandLine),new FakeMarket(),liquiditySource:new Meili.Testing.LiquidityFixture(),liquidityClock:Meili.Testing.LiquidityFixture.Clock);
+        var arguments=JsonSerializer.SerializeToElement(new{});
+        var native=new Meili.Shared.Services.LiquidityAppClient(profile,new Meili.Shared.Services.MarketLiquidityService(new Meili.Testing.LiquidityFixture(),new FakeMarket(),Meili.Testing.LiquidityFixture.Clock),installer,_=>Task.FromResult<string?>("node"));
+        Assert.Equal(49.8,(await native.LoadAsync()).PressureIndex.Score); // Compatibility before first install.
+        JsonElement original=default;
+        async Task<JsonElement> SharedHost(string name,JsonElement args,CancellationToken ct)
+        {
+            original=await service.ExecuteHostOperationAsync(name,args,ct);
+            return original;
+        }
+        foreach(var version in new[]{"1.0.0","1.0.1"})
+        {
+            await installer.InstallAsync(Package(path:"engine/report.mjs",id:ModuleAccess.MarketLiquidity,version:version,operations:operations,scriptText:script));
+            var bound=Assert.Single(await ModuleOperations.ReadAsync(profile,installer,CancellationToken.None));
+            Assert.Equal(version,bound.Version);
+            var result=await ModuleProcess.ExecuteAsync(profile,bound,arguments,false,installer,_=>Task.FromResult<string?>("node"),CancellationToken.None,SharedHost);
+            Assert.True(JsonElement.DeepEquals(original.GetProperty("data"),result));
+            Assert.Equal(6,result.GetProperty("metrics").GetArrayLength());Assert.Equal(11,result.GetProperty("sectors").GetArrayLength());
+            Assert.Equal(49.8,result.GetProperty("pressureIndex").GetProperty("score").GetDouble());
+            var nativeReport=await native.LoadAsync();Assert.Equal(49.8,nativeReport.PressureIndex.Score);Assert.Equal(6,nativeReport.Metrics.Count);Assert.Equal(11,nativeReport.Sectors.Count);
+        }
+        await installer.SetEnabledAsync(ModuleAccess.MarketLiquidity,false);
+        Assert.Empty(await ModuleOperations.ReadAsync(profile,installer,CancellationToken.None));Assert.False(ModuleAccess.IsEnabled(profile,ModuleAccess.MarketLiquidity));
+        await Assert.ThrowsAsync<AppUnavailableException>(()=>native.LoadAsync());
+        var disabledCatalog=await service.GetCatalogAsync();Assert.Throws<ArgumentException>(()=>disabledCatalog.Find("get_market_liquidity"));
+        await installer.SetEnabledAsync(ModuleAccess.MarketLiquidity,true);
+        installer.Uninstall(ModuleAccess.MarketLiquidity);await Assert.ThrowsAsync<AppUnavailableException>(()=>native.LoadAsync());Assert.False(ModuleAccess.IsEnabled(profile,ModuleAccess.MarketLiquidity));
+        Assert.Empty(await ModuleOperations.ReadAsync(profile,installer,CancellationToken.None));
+        Assert.Throws<InvalidOperationException>(()=>ModuleAccess.AcquireEnabled(profile,ModuleAccess.MarketLiquidity));
+        await installer.InstallAsync(Package(path:"engine/report.mjs",id:ModuleAccess.MarketLiquidity,version:"1.0.1",operations:operations,scriptText:script));
+        Assert.True(ModuleAccess.IsEnabled(profile,ModuleAccess.MarketLiquidity));
+    }
+
+    [Fact]
+    public async Task Liquidity_id_cannot_activate_without_its_compatible_report_contract()
+    {
+        var profile=Path.Combine(root,"missing-liquidity-report");var installer=new ModuleInstaller(profile,(file,ct)=>Verify(file));
+        await Assert.ThrowsAsync<InvalidDataException>(()=>installer.InstallAsync(Package(id:ModuleAccess.MarketLiquidity)));
+        await Assert.ThrowsAsync<InvalidDataException>(()=>installer.InstallAsync(Package(id:ModuleAccess.MarketLiquidity,operations:[])));
+        Assert.Empty(installer.Inspect().State.Apps);
+    }
+
+    [Theory]
+    [InlineData("easysellput.test", "get_market_liquidity", false)]
+    [InlineData("easysellput.market-liquidity", "get_quotes", false)]
+    [InlineData("easysellput.market-liquidity", "get_market_liquidity", true)]
+    public async Task Liquidity_package_cannot_steal_foreign_contracts_or_escalate_permissions(string id,string name,bool writes)
+    {
+        var profile=Path.Combine(root,Guid.NewGuid().ToString("N"));var installer=new ModuleInstaller(profile,(file,ct)=>Verify(file));
+        var op=OperationCatalog.Find(name);
+        await Assert.ThrowsAsync<InvalidDataException>(()=>installer.InstallAsync(Package(id:id,operations:[new(name,op.Description,writes,op.Schema,"engine/main.mjs")])));
+        Assert.Empty(installer.Inspect().State.Apps);
+    }
+
     private static string HostSdkUri()
     {
         var directory=AppContext.BaseDirectory;

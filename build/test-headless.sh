@@ -11,6 +11,13 @@ results=$(mktemp -d "$root/build/out/tests/run-XXXXXXXX")
 export MEILI_RENDER_DIR="$results/render"
 mkdir -p "$MEILI_RENDER_DIR"
 failed=0
+if ! (
+  set -e
+  node web/app-sdk/build-engine.mjs web/market-liquidity/runtime/report.mjs web/market-liquidity/runtime-dist/report.mjs
+  python3 build/pack-app.py --app market-liquidity --development --repository test/source --output "$results/liquidity.espapp"
+  python3 tests/automation/liquidity_app_smoke.py --archive "$results/liquidity.espapp" --public-key "$results/liquidity.espapp.public.pem" --repository test/source
+) > "$results/liquidity-core.log" 2>&1; then failed=1; fi
+cat "$results/liquidity-core.log"
 for name in Core Data Analytics Shared Mac Automation; do
   if dotnet test "tests/Meili.$name.Tests/Meili.$name.Tests.csproj" -m:3 --filter 'Category!=Live' --logger "trx;LogFileName=$name.trx" --results-directory "$results" -v minimal > "$results/$name.log" 2>&1; then
     tail -n 4 "$results/$name.log"

@@ -22,10 +22,13 @@ public static class OperationCatalogResolver
         ArgumentNullException.ThrowIfNull(directory);
         var discovery=await Modules.ModuleOperations.ReadSnapshotAsync(directory.Path,ct).ConfigureAwait(false);
         var catalog=discovery.Operations.Count==0&&discovery.Issues.Count==0?OperationCatalog.Snapshot:Modules.ModuleOperations.Merge(discovery.Operations,discovery.Issues);
-        var active=discovery.State?.Apps.SingleOrDefault(app=>app.Id==Modules.ModuleAccess.QqqGex);
-        var enabled=discovery.State is not null&&(active?.Enabled??!((discovery.State.SuppressedSeeds??[]).Contains(Modules.ModuleAccess.QqqGex)))&&
-            !discovery.Issues.Any(issue=>issue.AppId==Modules.ModuleAccess.QqqGex);
-        return enabled?catalog:new OperationSnapshot(catalog.All.Where(operation=>!Apps.QqqGex.GexContracts.All.Any(seed=>seed.Name==operation.Name)),discovery.Issues);
+        bool Enabled(string id)
+        {
+            var active=discovery.State?.Apps.SingleOrDefault(app=>app.Id==id);
+            return discovery.State is not null && (active?.Enabled ?? !(discovery.State.SuppressedSeeds??[]).Contains(id)) &&
+                !discovery.Issues.Any(issue=>issue.AppId is null || issue.AppId==id);
+        }
+        return new OperationSnapshot(catalog.All.Where(operation=>Modules.ModuleAccess.OperationOwner(operation.Name) is not { } owner || Enabled(owner)),discovery.Issues);
     }
 }
 
@@ -54,8 +57,9 @@ public sealed class OperationSnapshot : IOperationCatalog
         if(names.TryGetValue(name,out var operation))return operation;
         foreach(var issue in Issues)
         {
-            var appName=issue.AppId is null?name.StartsWith("app_",StringComparison.Ordinal)||name.Contains("_qqq_gex_",StringComparison.Ordinal):
-                issue.AppId==Modules.ModuleAccess.QqqGex?name.Contains("_qqq_gex_",StringComparison.Ordinal):name.StartsWith("app_"+issue.AppId.Replace('.','_').Replace('-','_')+"_",StringComparison.Ordinal);
+            var owner=Modules.ModuleAccess.OperationOwner(name) ?? (name.Contains("_qqq_gex_",StringComparison.Ordinal)?Modules.ModuleAccess.QqqGex:null);
+            var appName=issue.AppId is null ? name.StartsWith("app_",StringComparison.Ordinal)||owner is not null :
+                owner==issue.AppId||name.StartsWith("app_"+issue.AppId.Replace('.','_').Replace('-','_')+"_",StringComparison.Ordinal);
             if(appName)throw new Modules.AppUnavailableException(issue.AppId??"registry");
         }
         throw new ArgumentException($"Unknown operation: {name}");

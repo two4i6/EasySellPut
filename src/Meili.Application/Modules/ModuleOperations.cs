@@ -49,7 +49,11 @@ public static partial class ModuleOperations
         var result = new List<BoundModuleOperation>();
         var app = verified.Manifest;
         var metadata = app.Files.SingleOrDefault(f => f.Path == "operations.json");
-        if (metadata is null) return result.AsReadOnly();
+        if (metadata is null)
+        {
+            if(app.Id==ModuleAccess.MarketLiquidity)throw new InvalidDataException("Liquidity app must declare its public report operation.");
+            return result.AsReadOnly();
+        }
         if (metadata.Size > 262144) throw new InvalidDataException("Module operation metadata exceeds bounds.");
         using var zip = System.IO.Compression.ZipFile.OpenRead(archive);
         using var input = zip.GetEntry("operations.json")!.Open();
@@ -93,7 +97,7 @@ public static partial class ModuleOperations
                     !verified.Manifest.Files.Any(f => f.Path == op.EntryPoint)) throw new InvalidDataException("Missing module operation entrypoint.");
                 var existing = OperationCatalog.All.FirstOrDefault(o => o.Name == op.Name);
                 // A package cannot steal another domain's public tool, or change an established permission/schema.
-                if (existing is not null && (app.Id != "easysellput.qqq-gex" || !op.Name.Contains("_qqq_gex_", StringComparison.Ordinal) ||
+                if (existing is not null && (ModuleAccess.OperationOwner(op.Name) != app.Id ||
                     existing.Writes != op.Writes || !JsonElement.DeepEquals(existing.Schema, op.Schema)))
                     throw new InvalidDataException("Incompatible or foreign operation replacement.");
                 if (existing is null && !op.Name.StartsWith(app.Id == "easysellput.qqq-gex" ? "get_qqq_gex_" : "app_" + app.Id.Replace('.', '_').Replace('-', '_') + "_", StringComparison.Ordinal))
@@ -101,6 +105,8 @@ public static partial class ModuleOperations
                 if (result.Any(o => o.Definition.Name == op.Name)) throw new InvalidDataException("Duplicate module operation.");
                 result.Add(new(app.Id, app.Version, op with { Schema = op.Schema.Clone() }, verified.PackageSha256));
             }
+        if(app.Id==ModuleAccess.MarketLiquidity && !result.Any(operation=>operation.Definition.Name=="get_market_liquidity"))
+            throw new InvalidDataException("Liquidity app must preserve its public report operation.");
         return result.AsReadOnly();
     }
     public static IOperationCatalog Merge(IEnumerable<BoundModuleOperation> contributions,IEnumerable<OperationCatalogIssue>? issues=null)

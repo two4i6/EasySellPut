@@ -4,6 +4,10 @@ namespace Meili.Automation.Modules;
 public static class ModuleAccess
 {
     public const string QqqGex = "easysellput.qqq-gex";
+    public const string MarketLiquidity = "easysellput.market-liquidity";
+    // Explicit first-party ownership; a package must never claim an unrelated built-in tool.
+    public static string? OperationOwner(string name) => name == "get_market_liquidity" ? MarketLiquidity :
+        Apps.QqqGex.GexContracts.All.Any(operation => operation.Name == name) ? QqqGex : null;
     public static bool IsEnabled(string directory, string id)
     {
         var state = new ModuleRegistry(directory).Read().State;

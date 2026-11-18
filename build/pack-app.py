@@ -13,6 +13,8 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 
 
 def package(args):
+    if getattr(args, 'app', 'qqq-gex') == 'market-liquidity':
+        return liquidity_package(args)
     metadata = json.loads((ROOT / 'web/qqq-gex/app.json').read_text(encoding='utf-8'))
     if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9-]{0,38}/[A-Za-z0-9_.-]{1,100}', args.repository):
         raise ValueError('Invalid repository')
@@ -20,6 +22,7 @@ def package(args):
         metadata['version'] = args.version
     if not re.fullmatch(r'\d+\.\d+\.\d+', metadata['version']):
         raise ValueError('Stable module version required')
+    args.engine_dir = args.engine_dir or ROOT/'web/qqq-gex/runtime-dist'
     payload = {}
     for name in ['import.mjs', 'query.mjs', 'history.mjs']:
         payload['engine/' + name] = (args.engine_dir / name).read_bytes()
@@ -58,10 +61,34 @@ def package(args):
     payload['notices/EasySellPut-LICENSE'] = (ROOT / 'LICENSE').read_bytes()
     for name in ['UPSTREAM-STATUS.md', 'SOURCE-TIMING.md']:
         payload['notices/' + name] = (ROOT / 'web/qqq-gex' / name).read_bytes()
+    return write_package(args, metadata, payload, 'engine/import.mjs', 'ui/index.html' if args.ui_dir else None,
+                         json.loads((ROOT/'web/qqq-gex/source-manifest.json').read_text())['commit'])
+
+
+def liquidity_package(args):
+    folder = ROOT/'web/market-liquidity'
+    metadata = json.loads((folder/'app.json').read_text())
+    if args.version:
+        metadata['version'] = args.version
+    if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9-]{0,38}/[A-Za-z0-9_.-]{1,100}', args.repository):
+        raise ValueError('Invalid repository')
+    if not re.fullmatch(r'\d+\.\d+\.\d+', metadata['version']):
+        raise ValueError('Stable module version required')
+    if args.ui_dir:
+        raise ValueError('Liquidity optional UI is not migrated yet; do not attach unrelated assets')
+    engine = args.engine_dir or folder/'runtime-dist'
+    payload = {'engine/report.mjs': (engine/'report.mjs').read_bytes(),
+               'operations.json': (folder/'operations.json').read_bytes(),
+               'notices/EasySellPut-LICENSE': (ROOT/'LICENSE').read_bytes(),
+               'notices/README.md': (folder/'README.md').read_bytes(),
+               'notices/node-runtime-lock.json': (ROOT/'web/qqq-gex/node-runtime-lock.json').read_bytes()}
+    return write_package(args, metadata, payload, 'engine/report.mjs', None, 'shared-liquidity-v1')
+
+
+def write_package(args, metadata, payload, engine, ui, model_version):
     lock = json.loads((ROOT / 'web/qqq-gex/node-runtime-lock.json').read_text())
     manifest = dict(schemaVersion=1, repository=args.repository, **metadata,
-                    engine='engine/import.mjs', ui='ui/index.html' if args.ui_dir else None,
-                    modelVersion=json.loads((ROOT / 'web/qqq-gex/source-manifest.json').read_text())['commit'],
+                    engine=engine, ui=ui, modelVersion=model_version,
                     platforms=sorted(lock['platforms']),
                     files=[dict(path=name, size=len(data), sha256=hashlib.sha256(data).hexdigest())
                            for name, data in sorted(payload.items())])
@@ -92,12 +119,13 @@ def package(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--app', choices=('qqq-gex','market-liquidity'), default='qqq-gex')
     parser.add_argument('--repository', required=True)
     parser.add_argument('--version')
     signing = parser.add_mutually_exclusive_group(required=True)
     signing.add_argument('--key', type=pathlib.Path)
     signing.add_argument('--development', action='store_true', help='Ephemeral build-only signature, never trusted by production hosts')
-    parser.add_argument('--engine-dir', type=pathlib.Path, default=ROOT / 'web/qqq-gex/runtime-dist')
+    parser.add_argument('--engine-dir', type=pathlib.Path, default=None)
     parser.add_argument('--ui-dir', type=pathlib.Path)
     parser.add_argument('--output', type=pathlib.Path, required=True)
     print(json.dumps(package(parser.parse_args())))

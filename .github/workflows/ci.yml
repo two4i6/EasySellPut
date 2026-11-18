@@ -89,6 +89,11 @@ jobs:
           node web/app-sdk/browser-gex-app.mjs
       - name: Test shared app engine SDK
         run: node --test web/app-sdk/engine.test.mjs web/app-sdk/client.test.mjs web/app-sdk/engine-host.test.mjs web/app-sdk/presentation.test.mjs
+      - name: Build & verify liquidity core fixture
+        run: |
+          node web/app-sdk/build-engine.mjs web/market-liquidity/runtime/report.mjs web/market-liquidity/runtime-dist/report.mjs
+          python3 build/pack-app.py --app market-liquidity --development --repository "$GITHUB_REPOSITORY" --output build/out/liquidity-fixture/liquidity.espapp
+          python3 tests/automation/liquidity_app_smoke.py --archive build/out/liquidity-fixture/liquidity.espapp --public-key build/out/liquidity-fixture/liquidity.espapp.public.pem --repository "$GITHUB_REPOSITORY"
       - name: Build & verify independent app fixture
         run: |
           mkdir -p build/out/app-fixture

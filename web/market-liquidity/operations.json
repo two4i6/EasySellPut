@@ -1,0 +1,17 @@
+[
+  {
+    "name": "get_market_liquidity",
+    "description": "US market liquidity: shared dated macro indicators and completed-day sector proxies; experimental pressure index, not VIX, depth or net flows. Source dates, offline/missing status and formula are preserved.",
+    "writes": false,
+    "schema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    },
+    "entryPoint": "engine/report.mjs",
+    "hostOperations": [
+      "get_market_liquidity"
+    ]
+  }
+]

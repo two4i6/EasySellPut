@@ -8,7 +8,7 @@ namespace Meili.Shared.ViewModels;
 
 public partial class LiquidityViewModel : ObservableObject
 {
-    private readonly MarketLiquidityService _service;
+    private readonly Func<CancellationToken,Task<LiquidityReport>> _load;
     private readonly LocalizationService _loc;
     private readonly NavigationHub _nav;
     private CancellationTokenSource? _request;
@@ -31,9 +31,9 @@ public partial class LiquidityViewModel : ObservableObject
     public ObservableCollection<SectorLiquidityCard> Sectors { get; }=[];
     [ObservableProperty] public partial bool IsBusy {get;set;}
     [ObservableProperty] public partial string Status {get;set;}="";
-    public LiquidityViewModel(MarketLiquidityService service,LocalizationService loc,NavigationHub nav)
+    public LiquidityViewModel(MarketLiquidityService service,LocalizationService loc,NavigationHub nav,LiquidityAppClient? applications=null)
     {
-        _service=service;_loc=loc;_nav=nav;
+        _load=applications is null?service.LoadAsync:applications.LoadAsync;_loc=loc;_nav=nav;
         _loc.LanguageChanged+=(_,_)=>Rebuild();Ui.Platform.ColorsChanged+=(_,_)=>Rebuild();
     }
     public async Task ActivateAsync(){_active=true;if(_report is null||_report.Metrics.Any(m=>m.Latest is null)||_report.Sectors.Any(s=>s.RelativeDollarVolume is null)||DateTimeOffset.UtcNow-_report.GeneratedAt>TimeSpan.FromMinutes(30))await RefreshAsync();}
@@ -42,7 +42,7 @@ public partial class LiquidityViewModel : ObservableObject
     private async Task RefreshAsync()
     {
         _request?.Cancel();var request=_request=new CancellationTokenSource();var generation=++_generation;IsBusy=true;
-        try{var report=await _service.LoadAsync(request.Token);if(generation==_generation&&_active){_report=report;Rebuild();}}
+        try{var report=await _load(request.Token);if(generation==_generation&&_active){_report=report;Rebuild();}}
         catch(OperationCanceledException)when(request.IsCancellationRequested){}
         catch(Exception ex){Meili.Core.Diagnostics.AppLog.Warn("liquidity","Report refresh failed",ex);if(generation==_generation)Status=_loc["Liq_Unavailable"];}
         finally{if(generation==_generation)IsBusy=false;request.Dispose();if(ReferenceEquals(_request,request))_request=null;}

@@ -5,7 +5,7 @@ namespace Meili.Automation.Modules;
 public static class ModuleHostOperations
 {
     private static readonly HashSet<string> Names=new(StringComparer.Ordinal)
-    {"get_quotes","get_bars","get_expirations","get_option_chain","calculate_option","calculate_indicators","analyze_strategy"};
+    {"get_market_liquidity","get_quotes","get_bars","get_expirations","get_option_chain","calculate_option","calculate_indicators","analyze_strategy"};
     internal static void Validate(IReadOnlyList<string>? names,bool writes=false)
     {
         if(names is null)return;

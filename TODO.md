@@ -107,6 +107,9 @@ Design: [architecture](docs/55-主程序与可独立更新子应用架构研究.
 ## Later business migrations
 
 - [ ] **S13 — Market liquidity.** After S12: reuse existing service/math/provenance; validate the second app needs no duplicated package manager, market connection or UI system.
+  - [x] S13a: signed core-only adapter, exact existing CLI/MCP contract, explicit ownership and no compatibility resurrection after disable/uninstall; shared packaging/SDK and four-platform independent CI.
+  - [x] S13b: existing native liquidity page calls the installed operation; preserve shared controls, cancellation, source/missingness and navigation behavior.
+  - [ ] S13c: multi-app signed catalog/release promotion, fixed-host A/B and real CLI/MCP/native acceptance. Keep S13 open until these pass.
 - [ ] **S14 — News and fundamentals.** After S13: reuse provider routing and native article split; preserve personal pages and WebView trust boundaries.
 - [ ] **S15 — Options and strategy as one domain.** After S14: preserve selected contracts, strategy drafts, entry premiums and shared analytics; migrate as one cohesive app.
 
@@ -440,3 +443,11 @@ Actual GitHub administration remains blocked: the connected App returns HTTP 403
 - [x] Retain native package execution, architecture, source trust, GUI/CLI/MCP, updater/data-preservation checks, signed update indexes and independently signed app packages/catalogs. Release provenance/notes disclose missing OS publisher signatures.
 - [x] Add cross-target byte-preservation and corrupt/non-main rejection tests; document remaining one-time UPDATE_SIGNING_KEY setup. Eight OS certificate secrets are deferred.
 - [ ] Activate only after matching production public pin/Environment secret and successful native CI. Current GitHub App token still cannot administer Environment secrets (403); no production key or switches changed.
+
+### S13a — second app compatibility core
+
+Implemented independent market-liquidity metadata/engine and shared SDK bundle/package writer, with exact public get_market_liquidity schema/read permission. Explicit first-party operation ownership allows only its own stable facade; missing/corrupt, disabled and uninstalled modules cannot silently resurrect the facade. Host calls reuse MarketLiquidityService directly (no recursive module dispatch, copied math/provider/cache or financial data migration). App-only four-platform CI now builds/tests the actual signed liquidity core and existing GEX.
+
+Local focused module/liquidity suites passed 55 tests; real Node archive smoke passed with signature/hash/missingness/source-error checks, and existing GEX archive/engine smoke passed after shared writer extraction. Native liquidity now uses the same installed operation through LiquidityAppClient with the original shared provider instance and existing view-model cancellation/generation checks; real signed A/B tests cover native DTO decoding and disabled/uninstalled failure. The first full offline run passed all six .NET suites but its shell tail was invalidated by a concurrent script edit; a fixed-script final rerun is required. This is S13a+b evidence, not S13 completion, production distribution or native/live acceptance. See docs/app-runtime-research/liquidity-migration.md for current boundaries and follow-ups.
+
+S13a+b final-source checks: 1,060 .NET cases passed (Core 217 + two Windows-only skips, Data 160, Analytics 209, Shared 134, Avalonia 145, Automation 195), Python 75, shared SDK 9, all 58 actual CLI/MCP operations. Final full-script cache/AppDev/persistent-MCP/GEX-maintenance tail is still running at this commit; no pending tail/native runner is claimed passed. Independent liquidity/GEX package signature/engine smoke passed. Current 1920×1080 Avalonia fixture screenshots were inspected and retained; production live completeness is not implied.

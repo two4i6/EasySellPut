@@ -30,6 +30,7 @@ public static class SharedComposition
         s.AddSingleton(sp => new Meili.Data.Cache.MarketDb(System.IO.Path.Combine(dataDir.Path, "cache", "market.db")));
         s.AddSingleton<ILiquiditySeriesSource>(sp => sp.GetRequiredService<DataServices>().Providers.OfType<ILiquiditySeriesSource>().Single());
         s.AddSingleton<MarketLiquidityService>();
+        s.AddSingleton(sp=>new LiquidityAppClient(dataDir.Path,sp.GetRequiredService<MarketLiquidityService>()));
         s.AddSingleton<LiquidityViewModel>();
         s.AddSingleton<IMarketDataService>(sp => new Meili.Data.Cache.CachedMarketData(
             sp.GetRequiredService<DataServices>().Router, sp.GetRequiredService<Meili.Data.Cache.MarketDb>()));
