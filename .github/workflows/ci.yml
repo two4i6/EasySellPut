@@ -130,6 +130,7 @@ jobs:
           python3 tests/automation/app_release_smoke.py --archive build/out/app-fixture/qqq-gex-test.espapp --key "$RUNNER_TEMP/app-fixture-key.pem" --public-key "$RUNNER_TEMP/app-fixture-public.pem" --repository "$GITHUB_REPOSITORY"
           python3 tests/automation/app_release_smoke.py --app market-liquidity --archive build/out/liquidity-fixture/liquidity.espapp --key "$RUNNER_TEMP/app-fixture-key.pem" --public-key "$RUNNER_TEMP/app-fixture-public.pem" --repository "$GITHUB_REPOSITORY"
           python3 tests/automation/app_release_smoke.py --app news-fundamentals --archive build/out/news-fixture/news.espapp --key "$RUNNER_TEMP/app-fixture-key.pem" --public-key "$RUNNER_TEMP/app-fixture-public.pem" --repository "$GITHUB_REPOSITORY"
+          python3 tests/automation/app_release_smoke.py --app options-strategy --archive build/out/options-fixture/options.espapp --key "$RUNNER_TEMP/app-fixture-key.pem" --public-key "$RUNNER_TEMP/app-fixture-public.pem" --repository "$GITHUB_REPOSITORY"
           rm "$RUNNER_TEMP/app-fixture-key.pem"
       - uses: actions/upload-artifact@v4
         with:

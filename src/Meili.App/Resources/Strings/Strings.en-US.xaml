@@ -1051,4 +1051,5 @@
     <sys:String x:Key="Nf_FinancialTrend">Financial trends</sys:String>
     <sys:String x:Key="St_SaveFailed">Not saved: {0}</sys:String>
     <sys:String x:Key="St_DeleteFailed">Not deleted: {0}</sys:String>
+    <sys:String x:Key="Op_ToStrategy">Build strategy</sys:String>
 </ResourceDictionary>

@@ -116,7 +116,7 @@ Design: [architecture](docs/55-主程序与可独立更新子应用架构研究.
   - [x] S14c: complete offline/native integration gate and current 1080p UI evidence. Core-only scope; native UI/browser adapters remain shared.
 - [ ] **S15 — Options and strategy as one domain.** After S14: preserve selected contracts, strategy drafts, entry premiums and shared analytics; migrate as one cohesive app.
   - [x] S15a: fourth signed core, twelve original operations and exact-request/single-use explicit write delegation; preserve read-only MCP and installed-app discovery.
-  - [ ] S15b: shared native client, chain/pricing/save/delete integration, cancellation and draft/entry-price/store conflict protection; retain host-owned Analytics, quotes and private workbench UI.
+  - [x] S15b: shared native client, chain/pricing/save/delete integration, cancellation and draft/entry-price/store conflict protection; retain host-owned Analytics, quotes and private workbench UI.
   - [ ] S15c: serial fourth-app release, four-platform app/process CI, signed A/B/permission/data-preservation tests and full native integration acceptance.
 
 ## Optional follow-ups, after evidence supports them
@@ -494,4 +494,4 @@ The full-height news/fundamentals workspace and reusable financial charts are ac
 
 S14 remains a core-only independent package plus shared native UI/browser/provider capabilities. No main merge, public release or independently shipped news Web UI is implied. S15 is a separate pending migration.
 
-S15 core checkpoint: twelve owned operations, exact single-use write grants, shared native receipts and async saved-state integration are implemented; local core/native cross-build checks passed. Fourth-app delivery and full native/UI acceptance remain pending. See docs/app-runtime-research/options-strategy-migration.md.
+S15 UI checkpoint: twelve owned operations, exact single-use write grants, shared native receipts and async saved-state integration are implemented. Wealthsimple-inspired paired bid/ask selection, compact leg ticket and payoff reuse the shared UI/math. Three real Chromium journeys and native UI checks pass locally; full offline and exact-revision cross-platform CI acceptance remain pending. See docs/app-runtime-research/options-strategy-migration.md.

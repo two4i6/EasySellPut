@@ -171,7 +171,7 @@ public sealed record IndicatorSettings
 public sealed class OptionsPageSettings
 {
     /// <summary>E6: compact T-table preset (narrow columns; volume/gamma/theta/vega hidden) for small or scaled screens.</summary>
-    public bool CompactColumns { get; set; }
+    public bool CompactColumns { get; set; } = true;
 }
 
 /// <summary>F5: risk-free rate for locally computed IV / Greeks / strategy curves.</summary>

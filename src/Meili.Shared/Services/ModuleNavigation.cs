@@ -12,10 +12,10 @@ public static class ModuleNavigation
     }
     public static bool IsAvailable(string directory, AppPage page)
     {
-        if(page is AppPage.Options or AppPage.Strategy)return ModuleAccess.IsEnabled(directory,ModuleAccess.OptionsStrategy);
-        if(page != AppPage.QqqGex)return true;
+        if(page is not (AppPage.QqqGex or AppPage.Options or AppPage.Strategy))return true;
         try
         {
+        if(page is AppPage.Options or AppPage.Strategy)return ModuleAccess.IsEnabled(directory,ModuleAccess.OptionsStrategy);
         var state=new ModuleRegistry(directory).Read().State;
         var app=state.Apps.SingleOrDefault(a=>a.Id==ModuleAccess.QqqGex);
         return app is null?!(state.SuppressedSeeds??[]).Contains(ModuleAccess.QqqGex):app.Enabled&&app.HasUi!=false;
