@@ -250,8 +250,12 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'News build failed' }
           python tests/automation/news_mcp_smoke.py
           if ($LASTEXITCODE -ne 0) { throw "Signed news app smoke failed" }
+      - name: Test options updates through CLI & MCP
+        run: |
+          node web/app-sdk/build-engine.mjs web/options-strategy/runtime/report.mjs web/options-strategy/runtime-dist/report.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Options core build failed' }
           python tests/automation/options_mcp_smoke.py
-          if ($LASTEXITCODE -ne 0) { throw 'News fixed-host update regression failed' }
+          if ($LASTEXITCODE -ne 0) { throw 'Options fixed-host CLI/MCP update regression failed' }
       - name: Test signed original GEX app operations
         run: |
           python build/pack-app.py --development --repository test/source --ui-dir web/qqq-gex/dist --output "$env:RUNNER_TEMP/gex-pilot.espapp"
