@@ -110,10 +110,10 @@ Design: [architecture](docs/55-主程序与可独立更新子应用架构研究.
   - [x] S13a: signed core-only adapter, exact existing CLI/MCP contract, explicit ownership and no compatibility resurrection after disable/uninstall; shared packaging/SDK and four-platform independent CI.
   - [x] S13b: existing native liquidity page calls the installed operation; preserve shared controls, cancellation, source/missingness and navigation behavior.
   - [x] S13c: shared multi-app signed catalog/release promotion, fixed-host CLI/persistent-MCP A/B, and exact-commit native integration acceptance at 86f59ed (run 44240521185, attempt 2).
-- [ ] **S14 — News and fundamentals.** After S13: reuse provider routing and native article split; preserve personal pages and WebView trust boundaries.
+- [x] **S14 — News and fundamentals.** After S13: reuse provider routing and native article split; preserve personal pages and WebView trust boundaries.
   - [x] S14a: three unchanged read-only contracts, shared native facade, signed core package and no disabled/uninstalled fallback.
-  - [ ] S14b: third-app serial promotion, four-platform build/process CI, fixed-host A/B and retained personal/browser data.
-  - [ ] S14c: complete offline/native integration gate and current 1080p UI evidence. Core-only scope; native UI/browser adapters remain shared.
+  - [x] S14b: third-app serial promotion, four-platform build/process CI, fixed-host A/B and retained personal/browser data.
+  - [x] S14c: complete offline/native integration gate and current 1080p UI evidence. Core-only scope; native UI/browser adapters remain shared.
 - [ ] **S15 — Options and strategy as one domain.** After S14: preserve selected contracts, strategy drafts, entry premiums and shared analytics; migrate as one cohesive app.
 
 ## Optional follow-ups, after evidence supports them
@@ -482,3 +482,11 @@ Full offline run-ZUhgc8eg passed 1,062 .NET cases (plus two Windows-only skips),
 The native news workspace now uses the shared outer ArticleSplitView, with heading/toolbar/news on the left and fundamentals on the right. Articles replace the right pane; closing restores fundamentals and the divider ratio. Section tabs are removed. Existing personal browser sessions, shared theme controls and live quote subscriptions remain host-owned. UI regression coverage includes compact/wide themes, selection, native reader reuse and return-to-fundamentals. Final exact-commit native CI remains pending; S14 stays open. See docs/app-runtime-research/news-migration.md.
 
 S14 visual fundamentals follow-up: shared signed-column charts replace the default dense tables, with optional Yahoo EPS/revenue consensus and unchanged read-only facade names. Original tables/export and source/period/missing-value semantics remain available. Final native CI still gates acceptance.
+
+### S14 — accepted core and native workspace
+
+Accepted code `acc7fa4`: [CI 44265743202](https://github.com/two4i6/EasySellPut/actions/runs/44265743202), all eleven checks passed on the first attempt for this revision, including Windows x64/macOS Intel/Apple Silicon desktop packages and updater verification, all four CLI/MCP targets, GEX, UI and main-only release policy. Independent app runtime artifacts passed App CI 44256932977 at `3e48caa`; their payload/SDK did not change in the following native/provider work.
+
+The full-height news/fundamentals workspace and reusable financial charts are accepted with source-reported EPS/revenue consensus, per-observation currency separation and unchanged read-only operation names. Local baseline run-9mFGAUY5 passed 1,072 .NET cases (two Windows-only skips) and the complete SDK/Python/58-operation CLI/MCP, cache, app lifecycle and retained-data journeys; the currency follow-up passed Data 162 and Shared 141 before exact-revision CI. Real Yahoo AAPL retrieval returned twelve rows; this is one successful source sample, not universal live coverage. See docs/app-runtime-research/news-migration.md for fixture/native screenshots and boundaries.
+
+S14 remains a core-only independent package plus shared native UI/browser/provider capabilities. No main merge, public release or independently shipped news Web UI is implied. S15 is a separate pending migration.

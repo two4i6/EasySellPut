@@ -20,12 +20,12 @@ The news workspace uses the host’s full-height ArticleSplitView. The left pane
 
 Both native implementations reuse Claude tokens, Lucide icons, AppActionCard, compact accessible refresh/export actions and existing financial controls. Empty metadata collapses; selection remains visible. Financial tables scroll horizontally in compact panes. No market-value, WebView or split-size animation is added. Inactive locale changes defer reload until activation.
 
-Local full-height journey checks pass for default fundamentals, article replacement/reuse, Esc restoration, stable ratio and personal website navigation. Screenshots below are 1920×1080 Avalonia headless fixtures; the article region is a platform stub, not evidence of a rendered native website. Windows native WebView2 fixture coverage is included in the existing full desktop CI suite. Exact-commit native CI remains pending until the UI checkpoint is pushed and verified.
+Local full-height journey checks pass for default fundamentals, article replacement/reuse, Esc restoration, stable ratio and personal website navigation. Screenshots below are 1920×1080 Avalonia headless fixtures; the article region is a platform stub, not evidence of a rendered native website. Windows native WebView2 fixture coverage is included in the existing full desktop CI suite. Exact-commit native CI has now passed; see the acceptance record below.
 
 - [Default full-height split (fixture)](screenshots/news-fullheight-default-1920.png)
 - [Article selection, dark (headless browser stub)](screenshots/news-fullheight-reader-dark-1920.png)
 
-Core-only scope: native layout/browser adapters remain host-owned. S14 is not yet accepted pending final native exact-commit CI. Fixture results do not establish complete live coverage or production signing/distribution. No main merge or public release is performed.
+Core-only scope: native layout/browser adapters remain host-owned. S14 is accepted at the code revision recorded below. Fixture results do not establish complete live coverage or production signing/distribution. No main merge or public release is performed.
 
 ## Visual fundamentals and consensus
 
@@ -51,3 +51,9 @@ Code revision `8f8b87b` completed the local offline suite `run-9mFGAUY5`: 1,072 
 Windows x64, macOS Intel and macOS Apple Silicon desktop/package/updater jobs passed at the same revision. [Actual Windows WebView2 reader, 1920×1080 desktop capture](screenshots/news-native-windows-reader-1920.png) uses a local fixture publisher; the native browser is real, while article/quote content is synthetic. It demonstrates the full-height outer split, minimal browser actions and safe caption-button spacing.
 
 Consensus/history currencies are now taken only from each source observation. Charts split further by declared currency; a company’s financial-reporting currency is never substituted for an undeclared estimate currency. Mixed USD/CNY and unknown-currency regressions protect ADR/foreign-reporting cases. The existing complete WPF suite passed all 165 cases in the native Windows evidence above.
+
+### Acceptance
+
+Final code: `acc7fa410f7615848b10de7830a521f7878d13da`. [Integrated CI 44265743202](https://github.com/two4i6/EasySellPut/actions/runs/44265743202) passed all eleven checks on its first attempt: three native desktop/package/updater targets, four CLI/MCP targets, GEX Web, UI, release guard and Required checks. The currency follow-up passed Data 162 and Shared 141 locally. App runtime build/process CI [44256932977](https://github.com/two4i6/EasySellPut/actions/runs/44256932977) passed all four platforms at `3e48caa`; the core payload/SDK stayed unchanged afterward and final host-based signed A/B execution was covered in integrated CI.
+
+Earlier development runs found a missing failure diagnostic and two missing desktop inventory entries; both were fixed without weakening checks. An intermediate revision also hit GEX keyboard/session-status timing failures. The final revision passed those unchanged checks; it required no CI retry. Screenshots retain their labelled fixture/native provenance. This acceptance covers the independently signed core and shared native workspace, not universal free-source coverage, production signing, a main merge or public publication. This later documentation-only commit cites the tested code rather than claiming its own new CI has completed.
