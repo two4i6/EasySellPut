@@ -33,9 +33,10 @@ public sealed class ChartAppLifecycleTests : IDisposable
     {
         Ui.Platform=new FakeUiPlatform();var settings=new SettingsStore(directory);
         var data=new PricingSnapshotTests.SnapshotData{Bars=new(){Symbol="AAPL",Source="fixture",Interval=BarInterval.Day1,Bars=[Bar.CloseOnly(DateTimeOffset.UtcNow.AddDays(-1),100,10)]},News=(_,_)=>Task.FromResult<IReadOnlyList<NewsItem>>([])};
-        vm=new(new WatchlistStore(settings),data,new LocalizationService(),new SymbolContext(),settings,new ChartDrawingStore(directory),applications:new ChartAppClient(directory));
+        var context=new SymbolContext();context.Set("AAPL");
+        vm=new(new WatchlistStore(settings),data,new LocalizationService(),context,settings,new ChartDrawingStore(directory),applications:new ChartAppClient(directory));
         await vm.ActivateAsync();Assert.Equal("AAPL",vm.Series!.Symbol);vm.Deactivate();
-        data.Bars=data.Bars with{Symbol="MSFT"};await vm.OpenSymbolAsync("MSFT");Assert.Equal("AAPL",vm.Series.Symbol);
+        context.Set("QQQ");data.Bars=data.Bars with{Symbol="MSFT"};await vm.OpenSymbolAsync("MSFT");Assert.Equal("MSFT",context.Current);Assert.Equal("AAPL",vm.Series.Symbol);
         await vm.ActivateAsync();Assert.Equal("MSFT",vm.Series.Symbol);
     }
     [Fact] public async Task Corrupt_registry_blocks_native_activation_without_repair_or_market_load()

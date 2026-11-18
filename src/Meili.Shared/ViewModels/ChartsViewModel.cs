@@ -265,7 +265,10 @@ public partial class ChartsViewModel : ObservableObject
     public Task OpenSymbolAsync(string symbol)
     {
         if (WatchlistStore.TryNormalizeSymbol(symbol, out var s, out _))
+        {
             SymbolText = s;
+            _context.Set(s);
+        }
         else if (!string.IsNullOrWhiteSpace(symbol))
             SymbolText = symbol.Trim().ToUpperInvariant();
         return LoadAsync();
