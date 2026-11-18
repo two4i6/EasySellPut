@@ -38,7 +38,6 @@ public partial class ChartsViewModel : ObservableObject
     private readonly IMarketDataService _data;
     private readonly ChartAppClient? _applications;
     private IDisposable? _domainLease;
-    private bool _reloadOnActivate;
     private CancellationTokenSource? _activation;
     private bool DomainReady => _applications is null || _domainLease is not null;
     private readonly LocalizationService _loc;
@@ -215,25 +214,28 @@ public partial class ChartsViewModel : ObservableObject
         };
     }
 
+    private async Task<bool> EnsureDomainAsync()
+    {
+        if(DomainReady)return true;
+        _activation?.Cancel();var activation=new CancellationTokenSource(TimeSpan.FromSeconds(30));_activation=activation;
+        try
+        {
+            var lease=await _applications!.AcquireAsync(activation.Token);
+            if(activation.IsCancellationRequested || _activation!=activation){lease.Dispose();return false;}
+            _domainLease=lease;return true;
+        }
+        catch(OperationCanceledException){return false;}
+        catch(Exception ex){if(_activation==activation){Fail(ex.Message);UpdateStatus();PlotChanged?.Invoke(this,EventArgs.Empty);}return false;}
+        finally{if(_activation==activation)_activation=null;activation.Dispose();}
+    }
+
     public async Task ActivateAsync()
     {
         _active = true;
-        if(_applications is not null && _domainLease is null)
-        {
-            _activation?.Cancel();var activation=new CancellationTokenSource(TimeSpan.FromSeconds(30));_activation=activation;
-            try
-            {
-                var lease=await _applications.AcquireAsync(activation.Token);
-                if(!_active || activation.IsCancellationRequested || _activation!=activation){lease.Dispose();return;}
-                _domainLease=lease;
-            }
-            catch(OperationCanceledException){return;}
-            catch(Exception ex){if(_active && _activation==activation){Fail(ex.Message);UpdateStatus();PlotChanged?.Invoke(this,EventArgs.Empty);}return;}
-            finally{if(_activation==activation)_activation=null;activation.Dispose();}
-        }
-        FollowQuote();
+        if(!await EnsureDomainAsync())return;
         if (_context.ShouldAdopt(SymbolText)) { await AdoptContextAsync(); return; }
-        if (_reloadOnActivate || Series is null || Series.Symbol!=SymbolText) await LoadAsync();
+        FollowQuote();
+        if (Series is null || Series.Symbol!=SymbolText) await LoadAsync();
         else
         {
             _ = RefreshTimelineAsync(Series.Symbol);
@@ -340,8 +342,7 @@ public partial class ChartsViewModel : ObservableObject
 
     public async Task LoadAsync(bool refreshOnly = false)
     {
-        if(!DomainReady){_reloadOnActivate=true;return;}
-        _reloadOnActivate=false;
+        if(!await EnsureDomainAsync())return;
         if (!WatchlistStore.TryNormalizeSymbol(SymbolText, out var symbol, out _))
         {
             if (!refreshOnly)

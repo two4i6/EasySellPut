@@ -29,15 +29,26 @@ public sealed class ChartAppLifecycleTests : IDisposable
         Assert.Equal(bytes,File.ReadAllBytes(drawings.FilePath));
         await vm.ActivateAsync();Assert.NotEmpty(vm.StatusText);Assert.Equal(bytes,File.ReadAllBytes(drawings.FilePath));
     }
-    [Fact] public async Task Hidden_symbol_navigation_reloads_after_verification_instead_of_showing_old_series()
+    [Fact] public async Task Explicit_hidden_symbol_load_verifies_domain_and_preserves_existing_load_contract()
     {
         Ui.Platform=new FakeUiPlatform();var settings=new SettingsStore(directory);
         var data=new PricingSnapshotTests.SnapshotData{Bars=new(){Symbol="AAPL",Source="fixture",Interval=BarInterval.Day1,Bars=[Bar.CloseOnly(DateTimeOffset.UtcNow.AddDays(-1),100,10)]},News=(_,_)=>Task.FromResult<IReadOnlyList<NewsItem>>([])};
         var context=new SymbolContext();context.Set("AAPL");
         vm=new(new WatchlistStore(settings),data,new LocalizationService(),context,settings,new ChartDrawingStore(directory),applications:new ChartAppClient(directory));
         await vm.ActivateAsync();Assert.Equal("AAPL",vm.Series!.Symbol);vm.Deactivate();
-        context.Set("QQQ");data.Bars=data.Bars with{Symbol="MSFT"};await vm.OpenSymbolAsync("MSFT");Assert.Equal("MSFT",context.Current);Assert.Equal("AAPL",vm.Series.Symbol);
+        context.Set("QQQ");data.Bars=data.Bars with{Symbol="MSFT"};await vm.OpenSymbolAsync("MSFT");Assert.Equal("MSFT",context.Current);Assert.Equal("MSFT",vm.Series.Symbol);
         await vm.ActivateAsync();Assert.Equal("MSFT",vm.Series.Symbol);
+    }
+    [Fact] public async Task Cached_live_quote_cannot_overwrite_context_before_activation_adopts_it()
+    {
+        Ui.Platform=new FakeUiPlatform();var settings=new SettingsStore(directory);
+        var data=new PricingSnapshotTests.SnapshotData{Bars=new(){Symbol="AAPL",Source="fixture",Interval=BarInterval.Day1,Bars=[Bar.CloseOnly(DateTimeOffset.UtcNow.AddDays(-10),100,10)]},News=(_,_)=>Task.FromResult<IReadOnlyList<NewsItem>>([])};
+        var context=new SymbolContext();var hub=new Meili.Core.Quotes.QuoteHub(data);
+        vm=new(new WatchlistStore(settings),data,new LocalizationService(),context,settings,new ChartDrawingStore(directory),quotes:hub,applications:new ChartAppClient(directory));
+        await vm.LoadAsync();vm.Deactivate();
+        hub.ApplyTicks([new("AAPL",101,DateTimeOffset.UtcNow,MarketState.Regular,Source:"yahoo")]);
+        context.Set("MSFT");data.Bars=data.Bars with{Symbol="MSFT"};
+        await vm.ActivateAsync();Assert.Equal("MSFT",context.Current);Assert.Equal("MSFT",vm.SymbolText);Assert.Equal("MSFT",vm.Series!.Symbol);
     }
     [Fact] public async Task Corrupt_registry_blocks_native_activation_without_repair_or_market_load()
     {
