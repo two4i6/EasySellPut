@@ -14,6 +14,20 @@ namespace Meili.Mac.Tests;
 
 public sealed class UxInteractionTests
 {
+    [AvaloniaFact]
+    public async Task Selected_contract_actions_open_in_shared_popover_and_disable_without_selection()
+    {
+        MacHost.EnsureComposed();var window=new MainWindow();window.Show();
+        try
+        {
+            window.Navigate(AppPage.Options);await Settle();var page=window.CurrentView!;var vm=AppServices.Get<OptionsViewModel>();
+            await vm.LoadAsync();Assert.NotEmpty(vm.Rows);vm.SelectedRow=vm.Rows.First();await Settle();
+            var ticket=page.FindControl<AppPopover>("StrategyActionsPopover")!;Assert.True(ticket.IsEnabled);ticket.IsExpanded=true;await Settle();
+            var actions=((Control)ticket.PopupContent!).GetVisualDescendants().OfType<Button>().Where(b=>b.Command==vm.BuildStrategyCommand).ToArray();Assert.Equal(4,actions.Length);Assert.All(actions,b=>Assert.True(b.IsEffectivelyEnabled));
+            ticket.IsExpanded=false;vm.SelectedRow=null;await Settle();Assert.False(ticket.IsEnabled);Assert.All(actions,b=>Assert.False(b.IsEffectivelyEnabled));
+        }
+        finally{window.Close();}
+    }
     private static async Task Settle()
     {
         for(var i=0;i<6;i++){await Task.Delay(40);MacHost.Pump();}
