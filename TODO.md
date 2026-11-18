@@ -114,10 +114,10 @@ Design: [architecture](docs/55-主程序与可独立更新子应用架构研究.
   - [x] S14a: three unchanged read-only contracts, shared native facade, signed core package and no disabled/uninstalled fallback.
   - [x] S14b: third-app serial promotion, four-platform build/process CI, fixed-host A/B and retained personal/browser data.
   - [x] S14c: complete offline/native integration gate and current 1080p UI evidence. Core-only scope; native UI/browser adapters remain shared.
-- [ ] **S15 — Options and strategy as one domain.** After S14: preserve selected contracts, strategy drafts, entry premiums and shared analytics; migrate as one cohesive app.
+- [x] **S15 — Options and strategy as one domain.** After S14: preserve selected contracts, strategy drafts, entry premiums and shared analytics; migrate as one cohesive app.
   - [x] S15a: fourth signed core, twelve original operations and exact-request/single-use explicit write delegation; preserve read-only MCP and installed-app discovery.
   - [x] S15b: shared native client, chain/pricing/save/delete integration, cancellation and draft/entry-price/store conflict protection; retain host-owned Analytics, quotes and private workbench UI.
-  - [ ] S15c: serial fourth-app release, four-platform app/process CI, signed A/B/permission/data-preservation tests and full native integration acceptance.
+  - [x] S15c: serial fourth-app release, four-platform app/process CI, signed A/B/permission/data-preservation tests and full native integration acceptance.
 
 ## Optional follow-ups, after evidence supports them
 
@@ -492,6 +492,6 @@ Accepted code `acc7fa4`: [CI 44265743202](https://github.com/two4i6/EasySellPut/
 
 The full-height news/fundamentals workspace and reusable financial charts are accepted with source-reported EPS/revenue consensus, per-observation currency separation and unchanged read-only operation names. Local baseline run-9mFGAUY5 passed 1,072 .NET cases (two Windows-only skips) and the complete SDK/Python/58-operation CLI/MCP, cache, app lifecycle and retained-data journeys; the currency follow-up passed Data 162 and Shared 141 before exact-revision CI. Real Yahoo AAPL retrieval returned twelve rows; this is one successful source sample, not universal live coverage. See docs/app-runtime-research/news-migration.md for fixture/native screenshots and boundaries.
 
-S14 remains a core-only independent package plus shared native UI/browser/provider capabilities. No main merge, public release or independently shipped news Web UI is implied. S15 is a separate pending migration.
+S14 remains a core-only independent package plus shared native UI/browser/provider capabilities. No main merge, public release or independently shipped news Web UI is implied. S15 is recorded separately below.
 
-S15 UI checkpoint: twelve owned operations, exact single-use write grants, shared native receipts and async saved-state integration are implemented. Wealthsimple-inspired paired bid/ask selection, compact leg ticket and payoff reuse the shared UI/math. Three real Chromium journeys and native UI checks pass locally; full offline and exact-revision cross-platform CI acceptance remain pending. See docs/app-runtime-research/options-strategy-migration.md.
+S15 accepted: code `65a2336050b5ca6128fff00dea160ddf22bdfb15`, integrated CI [44297121634](https://github.com/two4i6/EasySellPut/actions/runs/44297121634), all eleven checks passed on the first attempt. Twelve original operations, exact single-use write grants, native receipts/saved state and compact Wealthsimple-inspired quote/leg/payoff UI are complete. Inactive Mac grid bindings are released and restored; the concurrent tooltip feature is preserved. Final combined local Mac/Shared suites passed 150/146; real Chromium journeys and signed A/B/permission/data-preservation checks passed. The engine core also passed four-platform App CI 44286770898 at unchanged `28720ac`. See docs/app-runtime-research/options-strategy-migration.md for boundaries, 1080p fixtures and verification history. This acceptance update changes documentation only; it cites the tested code above.

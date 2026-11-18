@@ -12,7 +12,20 @@ Only the exact first-party save_strategy/delete_strategy/record_option_snapshot 
 
 Fourth-app packaging and sequential main-only catalog promotion reuse the shared SDK, writer, signing/provenance flow and protected release job. Required CI includes its artifact, signed engine framing, intercepted release promotion and fixed-host A/B CLI/persistent-MCP cases on all four CLI platforms. Main-only publication and the independent release switches are unchanged. No release is published from work.
 
-Exact-revision native acceptance is pending for the UI checkpoint. The preceding core checkpoint is `28720ac`; its four-platform Apps build passed, while integrated CI exposed a catalog test still expecting three applications. That test now verifies all four entries and the next catalog generation; no check was removed.
+Accepted code: `65a2336050b5ca6128fff00dea160ddf22bdfb15`. [Integrated CI 44297121634](https://github.com/two4i6/EasySellPut/actions/runs/44297121634) passed all eleven checks on its first attempt: Windows x64, Mac Intel and Apple Silicon desktop packages/WebViews/updaters; four CLI/MCP platforms; layout/charts; GEX Web; main-only policy and aggregate gate. The concurrent market-glance tooltip feature (`a93b436`) is preserved and included in this tested revision.
+
+| Evidence | Outcome |
+| --- | --- |
+| [Four-platform app core CI 44286770898](https://github.com/two4i6/EasySellPut/actions/runs/44286770898), `28720ac` | All four platforms passed; options engine/package sources are unchanged in accepted code |
+| Local `bash build/test-headless.sh`, UI/core checkpoint before the concurrent tooltip merge | 1,079 .NET tests passed; two Windows-only Core tests skipped on Linux; 80 Python policy tests, all 58 CLI/MCP operations, signed A/B apps and maintenance/data preservation passed |
+| Final combined local Mac/Shared suites, Release | 150 / 146 passed, zero failures |
+| Real Chromium ↔ C# workbench journeys | Three passed, including paired quote toggling, entry premiums, payoff, locale/theme and narrow layout |
+| Intercepted fourth-app release smoke | Real re-signing, provenance/catalog promotion, stale-generation rejection and private-key cleanup passed; all GitHub writes intercepted |
+| Windows UI cross-build | Passed; actual native execution is proven by accepted CI, not the cross-build |
+
+Verification exposed and fixed a three-app catalog expectation, missing clean-runner options engine build, and native popover tests that still searched the page tree. Full UI testing then identified the inactive-grid selection feedback fixed below. Earlier runs also encountered pre-existing Windows lock/immediate-exit fixture timing races and one local shortcut-navigation timing failure; these are not claimed fixed by S15. Final combined local suites and all accepted-code CI checks passed. Font-mirror stalls in earlier runs required fresh runners; no fonts, tests, architectures or checks were removed. Existing bitmap API and test-nullability warnings do not prevent builds; zero warnings is not claimed.
+
+S15 is complete. No main merge, public release or independently delivered options Web UI is implied.
 
 ## UI and interaction
 
@@ -22,7 +35,7 @@ Reference: https://www.wealthsimple.com/en-ca/trade/options (retrieved 2026-11-1
 - Right ticket: compact legs, side/quantity/remove controls, prominent net cost, maximum profit/loss and breakevens. Existing Greeks, margin and source/model details remain available. Payoff shading uses the existing C# samples and configured gain/loss colors.
 - Native pages: refresh/export/saved controls use consistent icon buttons. Four leg actions share one popover. New profiles default to compact option columns; an explicitly stored expanded preference remains unchanged. Strategy presets and quantity controls retain accessible names without redundant labels.
 - Mac option grids release row/selection bindings when detached and rebind when attached. Closed or hidden grids cannot coerce the active shared selection to null. The native journey closes an old window, selects a visible contract, checks all four actions, leaves and returns.
-- Help and model notes are progressively disclosed. Data failures, missing quotes and coverage limits remain visible. Small control transitions respect reduced motion; market values, charts and split resizing are not animated.
+- Workbench help and model notes are progressively disclosed. Data failures, missing quotes and coverage limits remain visible. Small control transitions respect reduced motion; market values, charts and split resizing are not animated.
 - Desktop keeps native and private WebView presentation. This is a core-only independent package, not an independently delivered options Web UI. The paginated public chain and full native provider snapshot are intentionally different contracts.
 
 ## Screenshots and test scope
