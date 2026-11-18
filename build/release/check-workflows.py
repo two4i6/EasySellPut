@@ -24,10 +24,17 @@ def check(workflows):
     require(set(prepare['jobs']['draft']['needs']) == {'source', 'packages'}, 'Draft must wait for all signed native packages')
     require(set(publish['on']) == {'workflow_dispatch'}, 'Publication must be explicitly dispatched')
     require(set(publish['jobs']) == {'publish'}, 'Unexpected publication jobs')
+    host_publish = prepare['jobs']['publish']
+    require(set(host_publish['needs']) == {'source', 'draft'}, 'Host publication must wait for signed draft')
+    require("needs.source.outputs.skip != 'true'" in host_publish['if'] and "github.event_name == 'workflow_run'" in host_publish['if'], 'Automatic host publication requires version gating')
+    require("vars.HOST_AUTO_RELEASE == 'true'" in select['if'], 'Automatic host release requires configuration')
+    require(any('host-version.py' in step.get('run', '') for step in select['steps']), 'Host version must be checked before signing')
+    require(any('publish.py' in step.get('run', '') and '--publish' in step['run'] for step in host_publish['steps']), 'Reuse verified host publication')
+    require("needs.source.outputs.skip != 'true'" in prepare['jobs']['packages']['if'], 'Unchanged host version must skip signing')
     matrix = prepare['jobs']['packages']['strategy']['matrix']['include']
     require({m['rid'] for m in matrix} == {'linux-x64', 'win-x64', 'osx-x64', 'osx-arm64'}, 'Release platform coverage changed')
     apps = workflows['app-release.yml']
-    require(set(apps['on']) == {'workflow_dispatch','workflow_run'}, 'Apps may prepare after main CI; publication must remain explicit')
+    require(set(apps['on']) == {'workflow_dispatch','workflow_run'}, 'Apps may prepare after main CI; publication requires verified promotion')
     require(apps['on']['workflow_run']['branches'] == ['main'] and apps['on']['workflow_run']['workflows'] == [ci['name']], 'Automatic app drafts require main CI')
     require(set(apps['jobs']) == {'release'}, 'Unexpected app release job')
     app_job = apps['jobs']['release']
@@ -35,8 +42,8 @@ def check(workflows):
     app_commands = '\n'.join(step.get('run','') for step in app_job['steps'])
     require('app-source.py' in app_commands and 'app-release.py prepare' in app_commands and 'app-release.py publish' in app_commands, 'Apps must validate provenance and separate preparation/publication')
     publish_step = next(step for step in app_job['steps'] if 'app-release.py publish' in step.get('run',''))
-    require("github.event_name == 'workflow_dispatch'" in publish_step.get('if',''), 'Automatic app publication is forbidden')
-    require("vars.APPS_AUTO_PREPARE == 'true'" in app_job['if'], 'Automatic drafts require explicit configuration')
+    require("steps.source.outputs.skip != 'true'" in publish_step.get('if','') and "steps.source.outputs.action == 'auto'" in publish_step['if'], 'App publication requires validated version gating')
+    require("vars.APPS_AUTO_RELEASE == 'true'" in app_job['if'], 'Automatic drafts require explicit configuration')
     renew = workflows['app-catalog.yml']
     require(set(renew['on']) == {'workflow_dispatch','schedule'}, 'Catalog renewal must not react to arbitrary branch pushes')
     renew_job = renew['jobs']['renew']
@@ -70,4 +77,4 @@ def check(workflows):
 if __name__ == '__main__':
     workflows = {p.name: yaml.load(p.read_text(encoding='utf-8-sig'), Loader=yaml.BaseLoader) for p in (ROOT / '.github/workflows').glob('*.yml')}
     check(workflows)
-    print('PASS: main-only release, native package reuse, explicit publication and required policy gate')
+    print('PASS: main-only release, native package reuse, version-gated publication and required policy gate')

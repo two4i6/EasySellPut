@@ -425,3 +425,11 @@ Added opt-in current-main automatic app draft preparation (`APPS_AUTO_PREPARE=tr
 Full local aggregate `build/out/tests/run-DGKec0KS` passed: .NET 1,055 (plus two explicit Windows-only skips), SDK nine, 58 real CLI/MCP capabilities, all signed GEX/process/cache/development journeys. Final Python suite passed 69 after adding PE architecture rejection; main-only release/workflow policy guards passed. No UI renderer was changed by this task.
 
 Actual GitHub administration remains blocked: the connected App returns HTTP 403 for Environment secret/variable administration and Environment writes. No production key was generated/replaced, no signing secret or repository variable was changed, and no main merge or release was performed. Administrator authorization and confirmation of existing signing-secret state are required before applying the prepared bootstrap. Exact-commit CI must be recorded after push, never inferred from local results.
+
+## Version-gated automatic releases — 2026-11-18
+
+- [x] Host: main push CI → version check before signing → tested native package signing/notarization → signed draft → existing verified publisher. Published versions skip; existing drafts stop without replacement. Manual preparation/publication remain recovery paths.
+- [x] Apps: independent manifest version, tested-byte promotion, production signature verification, automatic publication and separate non-Latest catalog. Main/source/CI/native package gates remain intact.
+- [x] Use HOST_AUTO_RELEASE / APPS_AUTO_RELEASE; bootstrap preserves existing values and creates missing switches false. Administrator reports both false, main-only Environment and required CI ruleset configured; all nine signing secrets missing.
+- [x] Update engineering rules, delivery guides and executable workflow/version tests; Python automation suite and workflow guard passed locally (73 cases). CI already discovers test_*.py.
+- [ ] Production activation: supply real credentials and matching public pin, verify native distribution, then enable switches. No main merge, workflow dispatch or production release performed in this change.

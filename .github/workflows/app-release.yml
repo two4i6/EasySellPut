@@ -1,5 +1,5 @@
 name: Apps · Release
-run-name: "Apps · ${{ inputs.action || 'prepare draft' }} QQQ GEX ${{ inputs.version || 'current version' }} · ${{ github.ref_name }}"
+run-name: "Apps · ${{ inputs.action || 'auto publish' }} QQQ GEX ${{ inputs.version || 'current version' }} · ${{ github.ref_name }}"
 on:
   workflow_run:
     workflows: ['CI · Test & Package']
@@ -33,7 +33,7 @@ jobs:
     if: >-
       github.ref == 'refs/heads/main' &&
       (github.event_name == 'workflow_dispatch' ||
-       (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && vars.APPS_AUTO_PREPARE == 'true'))
+       (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && vars.APPS_AUTO_RELEASE == 'true'))
     runs-on: ubuntu-24.04
     environment: release
     permissions:
@@ -53,7 +53,7 @@ jobs:
         id: source
         run: python3 build/release/app-source.py --output "$RUNNER_TEMP/app-release-source.json"
       - name: Download tested app artifact
-        if: steps.source.outputs.action == 'prepare' && steps.source.outputs.skip != 'true'
+        if: (steps.source.outputs.action == 'prepare' || steps.source.outputs.action == 'auto') && steps.source.outputs.skip != 'true'
         uses: actions/download-artifact@v4
         with:
           name: QQQ-GEX-test-package
@@ -61,10 +61,10 @@ jobs:
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/tested-app
       - name: Sign tested app and prepare draft
-        if: steps.source.outputs.action == 'prepare' && steps.source.outputs.skip != 'true'
+        if: (steps.source.outputs.action == 'prepare' || steps.source.outputs.action == 'auto') && steps.source.outputs.skip != 'true'
         env:
           UPDATE_SIGNING_KEY: ${{ secrets.UPDATE_SIGNING_KEY }}
         run: python3 build/release/app-release.py prepare --run-id "$RUN_ID" --version "$APP_VERSION" --artifact "$RUNNER_TEMP/tested-app/qqq-gex-test.espapp"
-      - name: Verify draft and explicitly publish app catalog
-        if: github.event_name == 'workflow_dispatch' && steps.source.outputs.action == 'publish'
+      - name: Verify draft and publish app catalog
+        if: steps.source.outputs.skip != 'true' && (steps.source.outputs.action == 'auto' || steps.source.outputs.action == 'publish')
         run: python3 build/release/app-release.py publish --run-id "$RUN_ID" --version "$APP_VERSION"

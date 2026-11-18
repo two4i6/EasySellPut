@@ -24,14 +24,15 @@ setup = load('distribution_setup', 'build/configure-app-distribution.py')
 
 
 class AppDistributionSetupTests(unittest.TestCase):
-    def test_auto_source_selects_exact_current_main_ci_and_only_prepares(self):
+    def test_auto_source_selects_exact_current_main_ci_before_auto_promotion(self):
         sha = 'a'*40
         plan = dict(sourceCommit=sha, ciRunId=12)
         missing = mock.Mock(returncode=1, stderr='HTTP 404', stdout='')
         with mock.patch.object(source, 'current_main', return_value=sha), mock.patch.object(source, 'gh_json', return_value={'workflow_runs':[{'id':11,'head_sha':'b'*40},{'id':12,'head_sha':sha}]}), mock.patch.object(source, 'select', return_value=plan) as select, mock.patch.object(source.subprocess, 'run', return_value=missing):
-            actual, outputs = source.resolve('owner/repo', 'prepare', '1.0.1', automatic=True)
+            actual, outputs = source.resolve('owner/repo', 'auto', '1.0.1', automatic=True)
             self.assertEqual(actual, plan)
             self.assertEqual(outputs['skip'], 'false')
+            self.assertEqual(outputs['action'], 'auto')
             select.assert_called_once_with('owner/repo', '12')
         with self.assertRaisesRegex(ValueError, 'Automatic publication'):
             source.resolve('owner/repo', 'publish', automatic=True)
@@ -79,6 +80,22 @@ class AppDistributionSetupTests(unittest.TestCase):
         with mock.patch.object(setup,'api',side_effect=[dict(default_branch='main',permissions={'admin':True}),dict(protection_rules=[]),{'secrets':[{'name':'UPDATE_SIGNING_KEY'}]}]), mock.patch.object(setup.subprocess,'run') as run:
             with self.assertRaisesRegex(ValueError,'Signing secret exists'):setup.configure('owner/repo','/tmp/unused-backup.pem',True)
             run.assert_not_called()
+
+    def test_setup_preserves_existing_switches_and_defaults_new_switches_off(self):
+        for existing in (None, {'name':'APPS_AUTO_RELEASE', 'value':'true'}):
+            calls=[]
+            def api(endpoint, method='GET', body=None, missing=False):
+                calls.append((endpoint,method,body))
+                if endpoint == 'repos/owner/repo':return dict(default_branch='main',permissions={'admin':True})
+                if endpoint.endswith('/secrets'):return {'secrets':[]}
+                if endpoint.endswith('/deployment-branch-policies'):return {'branch_policies':[{'name':'main','type':'branch'}]}
+                if '/actions/variables/' in endpoint:return existing
+                return {}
+            with tempfile.TemporaryDirectory() as directory, mock.patch.object(setup,'api',side_effect=api), mock.patch.object(setup.subprocess,'run'):
+                setup.configure('owner/repo',pathlib.Path(directory)/'key.pem')
+            variable_writes=[c for c in calls if '/actions/variables' in c[0] and c[1] != 'GET']
+            self.assertEqual(len(variable_writes),2 if existing is None else 0)
+            self.assertTrue(all(c[2]['value']=='false' for c in variable_writes))
 
     def test_refresh_uses_real_signatures_preserves_packages_and_detects_publication_race(self):
         import json

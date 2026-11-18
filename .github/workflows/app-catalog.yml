@@ -12,7 +12,7 @@ concurrency:
 jobs:
   renew:
     name: Renew catalog expiry
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || vars.APPS_AUTO_PREPARE == 'true')
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || vars.APPS_AUTO_RELEASE == 'true')
     runs-on: ubuntu-24.04
     environment: release
     permissions:

@@ -5,12 +5,12 @@
 | 阶段 | 触发 | 内容 | 能否公开发布 |
 | --- | --- | --- | --- |
 | CI · Test & Package | 所有 push / PR，也可手动运行 | 共享测试、全目录 CLI/MCP、组件与浏览器测试、原生安装包及升级事务验收 | 否，仅保留 artifacts |
-| Release · Prepare draft | main 的成功 CI 自动触发；也可在 main 手动指定 run ID | 校验来源，下载七份既有包，平台签名/公证，再运行最终包，签署发行索引和更新索引，创建版本 tag 与 Release 草稿 | 否 |
+| Release · Auto publish | `HOST_AUTO_RELEASE=true` 时 main 的成功 CI 自动触发；也可在 main 手动指定 run ID | 校验来源，下载七份既有包，平台签名/公证，再运行最终包，签署发行索引和更新索引，创建草稿、复验并正式发布 | 是，仅新版本 |
 | Release · Publish | 在 main 手动输入稳定版本号 | 复验 tag、当前 main、成功 CI、两个签名索引和全部附件，再把草稿转正式发布 | 是 |
 
 `work`、PR、其他分支和标签上的 CI 产物均不能进入发布流程。工作流 job 条件和 Python 策略同时验证 main；成功的 aggregate 不能代替缺失的平台作业。来源必须是本仓库 `.github/workflows/ci.yml` 的成功 **push**，SHA 必须等于当前 main。拒绝 fork、PR、过期/缺失/重复产物和截断的 API 列表。
 
-main 若在准备或发布验证期间前进，流程停止，等待新 main 完整通过 CI。版本已存在时不覆盖或替换附件；正式发布后的新版本需要提升 `Directory.Build.props` 版本。main CI 的自动草稿流程需要版本号已经更新；文档等不需要发行的提交仍可正常通过 CI，但准备发行遇到已有版本会拒绝覆盖。
+main 若在准备或发布验证期间前进，流程停止，等待新 main 完整通过 CI。版本已存在时不覆盖或替换附件；正式发布后的新版本需要提升 `Directory.Build.props` 版本。main CI 的自动草稿流程需要版本号已经更新；文档等不需要发行的提交仍可正常通过 CI，已发布版本正常跳过，不进入签名阶段；已有草稿停止并要求人工恢复，不自动覆盖。
 
 ## 产物与代码一致性
 
@@ -19,7 +19,7 @@ main 若在准备或发布验证期间前进，流程停止，等待新 main 完
 - Release 不执行 `dotnet publish`，不重新构建应用；仅对成功 CI 的原生包进行平台签名、公证和重打包。签名会改变包字节，因此重新计算校验和，并对最终包再次执行原生验证。
 - 最终验证包括含空格路径解压、CLI/MCP 真实进程、GUI、内置图表、更新替换/重启及数据保留。macOS 另验证 Developer ID、Apple notarization、stapled ticket 和 Gatekeeper。Linux 包保持原始字节，由签名发行索引验证来源。
 - `EasySellPut-update.json` 包含构建仓库 `repository` 和三份桌面包，保持客户端协议；`EasySellPut-release.json` 包含七份包的大小/哈希、源码提交、CI run 和原始 artifact 身份。两个索引均使用内置公钥对应的 ECDSA P-256 私钥签名。
-- 正式发布前下载全部草稿附件，复验两个签名、九个平台目标、哈希、校验文件和附件集合。没有 `--publish` 的验证不会发布；工作流只在显式手动发布时传入它。
+- 正式发布前下载全部草稿附件，复验两个签名、七个产物目标、哈希、校验文件和附件集合。没有 `--publish` 的验证不会发布；自动发布和手动恢复入口均调用同一验证器传入它。
 
 ## 首次启用配置
 
@@ -48,7 +48,7 @@ macOS 使用临时 keychain、hardened runtime 和 .NET JIT entitlements，Apple
 ## 操作
 
 1. 将改动合入 main，并设置新的三段稳定版本号。
-2. 等 main 的完整 CI 成功。自动准备工作流启动；也可在 main 手动选择 `Release · Prepare draft`，输入该 CI run ID 和可选说明。
+2. 等 main 的完整 CI 成功。自动准备工作流启动；也可在 main 手动选择 `Release · Auto publish`，输入该 CI run ID 和可选说明。
 3. 检查草稿、发行说明、签名及所有平台的最终包验证结果。tag 在草稿准备阶段创建并指向该 main SHA；不重新指向已有版本。
 4. 在 main 运行 `Release · Publish`，输入如 `0.6.0`。它会再次验证当前 main、tag、来源和附件后公开发布。
 
@@ -69,3 +69,7 @@ CI 通过 GitHub Actions 环境将当前 `github.repository` 编译进每个 GUI
 每个平台对解压后的 CLI 执行离线 `update source --json`，GUI 自检报告同时输出自身内置源；两者的仓库和公钥指纹必须匹配当前发行仓库和源码。签名后的包也复用同样检查，仍不重新编译。签名更新索引必须包含当前仓库，Publish 再次核对；错误绑定会阻止草稿/发布。
 
 这些检查不替代首次签名密钥配置，也不允许 `work`/PR 发布。首次初始化应先提交仓库自己的公钥，再运行 main CI 并配置对应私钥；已有客户端的密钥不得自动轮换。
+
+## 自动发布启用状态（2026-11-18）
+
+管理员确认 GitHub release Environment 已限制 main，Ruleset 已要求 `CI · Required checks`，默认 Actions 权限保持只读。`HOST_AUTO_RELEASE=false`、`APPS_AUTO_RELEASE=false`；九项签名 Secrets 尚未提供。以上替代早期服务端未配置的状态记录。当前实现准备自动发布，不代表生产签名及安装已验收；须先补齐凭据与匹配的固定公钥，再开启相应开关。子应用独立发布不改变主程序 Latest。

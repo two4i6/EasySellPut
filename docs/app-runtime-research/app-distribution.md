@@ -50,7 +50,7 @@ python3 build/configure-app-distribution.py --repo two4i6/EasySellPut \
   --key "$HOME/.config/EasySellPut-signing/update-signing.pem" --initialize
 ```
 
-The helper preserves existing reviewers/timers, restricts `release` deployments to the main branch (not tags), uploads `UPDATE_SIGNING_KEY`, pins the matching public key and enables `APPS_AUTO_PREPARE=true`. It refuses silent replacement of an existing signing secret or initialization after published releases. For existing trust, supply the matching backup without `--initialize`. It never merges main or publishes a release. Commit only the public key and reviewed source/workflows; preserve the private backup securely outside Git.
+The helper preserves existing reviewers/timers, restricts `release` deployments to the main branch (not tags), uploads `UPDATE_SIGNING_KEY`, pins the matching public key and creates missing `HOST_AUTO_RELEASE` and `APPS_AUTO_RELEASE` variables as `false`, preserving existing values. It refuses silent replacement of an existing signing secret or initialization after published releases. For existing trust, supply the matching backup without `--initialize`. It never merges main or publishes a release. Commit only the public key and reviewed source/workflows; preserve the private backup securely outside Git.
 
 The initial public key currently in source is a development pin. Production setup is incomplete until the matching production secret/public pin and main-only Environment configuration are applied. Never promote development-key CI artifacts as production installers.
 
@@ -58,12 +58,16 @@ The initial public key currently in source is a development pin. Production setu
 
 1. Develop with the shared SDK and scratch-only `tools/Meili.AppDev`; run **Apps · Build & Test** for host-independent core/UI feedback. CI artifacts use ephemeral development keys, not production trust.
 2. Increment `web/qqq-gex/app.json` for changed payloads, preserving existing public contracts/data semantics. An app-only release leaves the host version unchanged.
-3. Merge reviewed changes into main. The full **CI · Test & Package** remains the integration gate, including native packages. With `APPS_AUTO_PREPARE=true`, successful current-main push CI triggers **Apps · Release** to promote the tested payload into a signed draft. It does not rebuild or publish the app.
-4. Review the draft. Explicitly run **Apps · Release → publish** on main. Version and CI run are optional inputs: empty values resolve the current app version and the successful CI for the exact current main commit. A published version is immutable; an old-commit draft is never automatically overwritten.
+3. Merge reviewed changes into main. The full **CI · Test & Package** remains the integration gate, including native packages. With `APPS_AUTO_RELEASE=true`, successful current-main push CI triggers **Apps · Release** to promote the tested payload into a signed draft. It then verifies and automatically publishes the signed app and separate catalog; it never rebuilds the payload.
+4. Automatic publication follows successful draft preparation. **Apps · Release → prepare/publish** on main remains available for recovery. Version and CI run are optional inputs: empty values resolve the current app version and the successful CI for the exact current main commit. A published version is immutable; an old-commit draft is never automatically overwritten.
 5. Users check/download the separate signed catalog, then explicitly install/update through the shared manager. App installation never modifies the signed host bundle.
 
 **Apps · Renew catalog** runs weekly after setup, or manually on main. Renewal and app publication share one non-cancelling concurrency group and recheck the prior catalog. If renewal/main changes make an old draft stale, prepare a new current draft before publishing.
 
-Automatic preparation/renewal remain inactive without the setup variable, signing secret and deployed main workflows. `work`/PR runs cannot release. Initial host distribution still requires the normal platform signing/notarization credentials; app resource updates do not require re-signing the host bundle. No production draft/publication is performed merely by editing these workflow files.
+Automatic publication/renewal remain inactive without the setup variable, signing secret and deployed main workflows. `work`/PR runs cannot release. Initial host distribution still requires the normal platform signing/notarization credentials; app resource updates do not require re-signing the host bundle. No production draft/publication is performed merely by editing these workflow files.
 
 See [the pilot acceptance](pilot-acceptance.md), [GEX integration](gex-branch-integration.md), [package contract](package-v1.md) and [CLI/MCP protocol](../08-CLI与MCP使用说明.md).
+
+## Activation status — 2026-11-18
+
+The administrator reports a main-only release Environment, an active main ruleset requiring `CI · Required checks`, and both automatic release variables set to `false`. All nine production signing secrets are missing. Keep the switches off until credentials, matching production public key and native release verification are ready. Existing environment reviewers can still require approval. Host and app releases are independently version-gated; only the host changes Latest.

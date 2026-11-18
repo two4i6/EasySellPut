@@ -17,7 +17,7 @@
 |---|---|---|
 | Apps · Build & Test | 子应用/SDK 变更，独立构建并验证 core/UI，提供测试产物 | 不会 |
 | CI · Test & Package | 主程序、CLI/MCP、原生视图和真实包集成验证 | 不会 |
-| Apps · Release | 配置后，main CI 成功自动准备签名草稿；也可手动 prepare | 自动流程不会；只有手动 publish 才发布 |
+| Apps · Release | 启用后，main CI 成功自动签名、复验并发布新版本；保留手动恢复入口 | 是，须通过全部来源和签名验证 |
 | Apps · Renew catalog | 每周为已有目录续签 30 天有效期，或手动运行 | 不发布新应用版本，不更换安装包 |
 
 正式支持 Windows x64、macOS Intel/Apple Silicon，以及 Linux x64 CLI/MCP。共三个桌面、四个 CLI/子应用 CI 目标；不再构建或提供其他 Windows CPU 架构包。
@@ -30,11 +30,15 @@
 
 1. `release` Environment 仅允许 main 分支，保留已有审核人/等待时间。
 2. `UPDATE_SIGNING_KEY` 为 ECDSA P-256 私钥，必须匹配源码公钥；私钥备份必须在 Git 仓库之外保管。
-3. 仓库变量 `APPS_AUTO_PREPARE=true`，启用自动草稿和目录续签。
+3. 仓库变量 `APPS_AUTO_RELEASE=true`，启用子应用自动发布和目录续签；主程序使用 `HOST_AUTO_RELEASE=true`，首次配置均默认 false。
 4. 将审查并测试后的工作流、公钥及运行时代码合入 main。仅修改 work 不会启用 main 的自动发布配置。
 
 已提供一条管理员初始化命令，见 [英文操作指南](app-runtime-research/app-distribution.md#one-time-github-setup)。工具不会合并 main 或发布版本；已有签名 secret 或已发布客户端时会拒绝静默换钥。
 
 当前连接的 GitHub App 可以推送，但管理 Environment secrets/variables 返回 HTTP 403。源码仍是初始开发公钥；在取得管理员授权并确认已有 secret 状态前，不生成或替换生产密钥，不宣称生产分发已经启用。
 
-之后每次更新只需提高 `web/qqq-gex/app.json` 的子应用版本、完成测试并合入 main，审查自动草稿后点击 publish。空版本/CI 输入会自动选择当前版本和精确匹配当前 main 的成功 CI。旧版本不可覆盖；过期或旧提交草稿必须重新准备。
+之后每次更新只需提高 `web/qqq-gex/app.json` 的子应用版本、完成测试并合入 main，自动复验草稿并发布。空版本/CI 输入会自动选择当前版本和精确匹配当前 main 的成功 CI。旧版本不可覆盖；旧提交草稿不自动覆盖，需要人工恢复或提升版本。
+
+## 服务端配置状态（2026-11-18）
+
+管理员已确认 release Environment 仅允许 main，main Ruleset 要求 `CI · Required checks`，两个自动发布开关均为 false。九项正式签名凭据全部缺失，尚不能验收真实发布。补齐凭据及匹配公钥、完成原生验证后再启用；不要使用临时密钥或绕过系统签名。

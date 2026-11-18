@@ -12,8 +12,8 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 
 
 def resolve(repository, action, version='', run_id='', automatic=False):
-    require(action in ('prepare', 'publish'), 'Unknown app release action')
-    require(not automatic or action == 'prepare', 'Automatic publication is forbidden')
+    require(action in ('prepare', 'publish', 'auto'), 'Unknown app release action')
+    require(not automatic or action in ('prepare', 'auto'), 'Automatic publication requires the prepare-and-verify path')
     version = version or json.loads((ROOT / 'web/qqq-gex/app.json').read_text())['version']
     require(re.fullmatch(r'(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)', version), 'Canonical app version required')
     sha = current_main(repository)
@@ -41,7 +41,7 @@ def main():
     args = parser.parse_args()
     require(os.environ.get('GITHUB_REF') == 'refs/heads/main', 'App releases require main')
     automatic = os.environ.get('GITHUB_EVENT_NAME') == 'workflow_run'
-    action = 'prepare' if automatic else os.environ.get('APP_ACTION', 'prepare')
+    action = 'auto' if automatic else os.environ.get('APP_ACTION', 'prepare')
     plan, outputs = resolve(os.environ['GITHUB_REPOSITORY'], action, os.environ.get('APP_VERSION_INPUT', ''), os.environ.get('CI_RUN_INPUT', ''), automatic)
     require(plan['sourceCommit'] == os.environ['GITHUB_SHA'], 'Main advanced since workflow dispatch; run again')
     args.output.write_text(json.dumps(plan, indent=2) + '\n')

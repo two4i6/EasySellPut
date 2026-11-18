@@ -1,5 +1,5 @@
-name: Release · Prepare draft
-run-name: "Prepare release · main · CI ${{ inputs.ci_run_id || github.event.workflow_run.id }}"
+name: Release · Auto publish
+run-name: "Host release · main · CI ${{ inputs.ci_run_id || github.event.workflow_run.id }}"
 on:
   workflow_run:
     workflows: ['CI · Test & Package']
@@ -27,11 +27,13 @@ jobs:
     if: >-
       github.ref == 'refs/heads/main' &&
       (github.event_name == 'workflow_dispatch' ||
-       (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'))
+       (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && vars.HOST_AUTO_RELEASE == 'true'))
     runs-on: ubuntu-24.04
     outputs:
       sha: ${{ steps.tested.outputs.sha }}
       run_id: ${{ steps.tested.outputs.run_id }}
+      skip: ${{ steps.version.outputs.skip }}
+      version: ${{ steps.version.outputs.version }}
     env:
       GH_TOKEN: ${{ github.token }}
       RUN_ID: ${{ inputs.ci_run_id || github.event.workflow_run.id }}
@@ -43,6 +45,9 @@ jobs:
       - name: Verify CI source & all packages
         id: tested
         run: python3 build/release/policy.py --run-id "$RUN_ID" --output "$RUNNER_TEMP/release-source.json"
+      - name: Check host version
+        id: version
+        run: python3 build/release/host-version.py
       - name: Upload source provenance
         uses: actions/upload-artifact@v4
         with:
@@ -52,7 +57,7 @@ jobs:
 
   packages:
     name: ${{ matrix.label }} · Sign & Verify
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && needs.source.outputs.skip != 'true'
     needs: source
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
@@ -164,7 +169,7 @@ jobs:
   draft:
     name: Create release draft
     needs: [source, packages]
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && needs.source.outputs.skip != 'true'
     runs-on: ubuntu-24.04
     environment: release
     permissions:
@@ -226,3 +231,24 @@ jobs:
             gh api "repos/$GITHUB_REPOSITORY/git/refs" -f "ref=refs/tags/$TAG" -f "sha=$TESTED_SHA"
           fi
           gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --verify-tag --title "EasySellPut $TAG" --draft --notes-file "$RUNNER_TEMP/release-notes.md" "$RUNNER_TEMP/release-assets/"*
+
+  publish:
+    name: Verify & publish host
+    needs: [source, draft]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_run' && needs.source.outputs.skip != 'true'
+    runs-on: ubuntu-24.04
+    environment: release
+    permissions:
+      contents: write
+      actions: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_VERSION: ${{ needs.source.outputs.version }}
+    steps:
+      - name: Checkout tested source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.source.outputs.sha }}
+          persist-credentials: false
+      - name: Revalidate signed draft & publish
+        run: python3 build/release/publish.py --version "$RELEASE_VERSION" --publish

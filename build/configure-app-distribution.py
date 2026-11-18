@@ -68,10 +68,11 @@ def configure(repository, key, initialize=False):
     if initialize:
         command.append('--initialize')
     subprocess.run(command, check=True)
-    endpoint = base + '/actions/variables/APPS_AUTO_PREPARE'
-    exists = api(endpoint, missing=True)
-    api(endpoint if exists else base + '/actions/variables', 'PATCH' if exists else 'POST', {'name': 'APPS_AUTO_PREPARE', 'value': 'true'})
-    print('Configured main-only release environment, matching signing secret and automatic app drafts.')
+    for name in ('HOST_AUTO_RELEASE', 'APPS_AUTO_RELEASE'):
+        endpoint = base + '/actions/variables/' + name
+        if api(endpoint, missing=True) is None:
+            api(base + '/actions/variables', 'POST', {'name': name, 'value': 'false'})
+    print('Configured main-only release environment and matching signing secret. Automatic release switches are preserved; new switches default to false.')
     print('Private backup remains at your chosen path. Commit only the public key and verified workflow changes.')
     print('No main merge, draft preparation or publication was dispatched.')
 
