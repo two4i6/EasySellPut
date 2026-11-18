@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
 using Avalonia.Controls.Templates;
+using Avalonia.Data;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
@@ -16,6 +17,7 @@ public partial class OptionsPage : UserControl
     private readonly MacTheme _theme = AppServices.Get<MacTheme>();
     private readonly ChartPainter _themePaint = new();
     private OptionColumnSet? _builtFor;
+    private IDisposable? _rowsBinding, _selectionBinding;
 
     /// <summary>Avalonia's column header reserves room for the sort glyph, which WPF's widths don't account for.</summary>
     private const double HeaderChrome = 14;
@@ -29,6 +31,9 @@ public partial class OptionsPage : UserControl
         EventHandler onColors = (_, _) => Dispatcher.UIThread.Post(RenderSmile);
         AttachedToVisualTree += async (_, _) =>
         {
+            // Detached grids must not coerce a shared selection back to null or retain its rows.
+            _rowsBinding = ChainList.Bind(DataGrid.ItemsSourceProperty, new Binding(nameof(vm.Rows)) { Source = vm });
+            _selectionBinding = ChainList.Bind(DataGrid.SelectedItemProperty, new Binding(nameof(vm.SelectedRow)) { Source = vm, Mode = BindingMode.TwoWay });
             vm.TableChanged += onTable;
             Ui.Platform.ColorsChanged += onColors;
             Refresh();
@@ -37,6 +42,9 @@ public partial class OptionsPage : UserControl
         };
         DetachedFromVisualTree += (_, _) =>
         {
+            _selectionBinding?.Dispose(); _selectionBinding = null;
+            _rowsBinding?.Dispose(); _rowsBinding = null;
+            ChainList.ItemsSource = null;
             vm.TableChanged -= onTable;
             Ui.Platform.ColorsChanged -= onColors;
             vm.Deactivate();

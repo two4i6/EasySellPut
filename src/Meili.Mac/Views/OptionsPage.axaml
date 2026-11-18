@@ -100,7 +100,7 @@
         <sp:AvaPlot x:Name="SmilePlot" DockPanel.Dock="Bottom" Height="150" Margin="16,0,16,12" IsVisible="{Binding ShowSmile}" />
         <Panel Margin="16,0,16,16">
             <TextBlock Classes="Secondary" Margin="16,8" Text="{DynamicResource Op_Empty}" IsVisible="{Binding !HasRows}" />
-            <DataGrid x:Name="ChainList" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow}" IsVisible="{Binding HasRows}"
+            <DataGrid x:Name="ChainList" IsVisible="{Binding HasRows}"
                       SelectionMode="Single" GridLinesVisibility="Horizontal" CanUserSortColumns="False">
                 <DataGrid.ContextMenu>
                     <ContextMenu>

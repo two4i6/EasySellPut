@@ -23,7 +23,7 @@ public sealed class UxInteractionTests
                 var disclosure=(AppPopover)page.FindName("OptionControlsPopover");Assert.False(disclosure.IsExpanded);vm.ShowGamma=!old;disclosure.IsExpanded=true;await WpfHost.Settle();Assert.Equal(13,UiAudit.Descendants<CheckBox>((DependencyObject)disclosure.PopupContent!).Count());disclosure.IsExpanded=false;Assert.Equal(!old,vm.ShowGamma);
                 var refresh=UiAudit.Descendants<System.Windows.Controls.Primitives.ButtonBase>(page).First(b=>b.Command==vm.RefreshCommand);vm.IsBusy=true;await WpfHost.Settle();Assert.False(refresh.IsEnabled);vm.IsBusy=false;
                 var ticket=(AppPopover)page.FindName("StrategyActionsPopover");
-                await vm.LoadAsync();Assert.NotEmpty(vm.Rows);vm.SelectedRow=vm.Rows.First();await WpfHost.Settle();Assert.True(ticket.IsEnabled);
+                await vm.LoadAsync();await WpfHost.Settle();var chain=(Wpf.Ui.Controls.ListView)page.FindName("ChainList");Assert.NotEmpty(chain.Items);chain.SelectedIndex=0;await WpfHost.Settle();Assert.NotNull(vm.SelectedRow);Assert.True(ticket.IsEnabled);
                 ticket.IsExpanded=true;await WpfHost.Settle();
                 var actions=UiAudit.Descendants<System.Windows.Controls.Primitives.ButtonBase>((DependencyObject)ticket.PopupContent!).Where(b=>b.Command==vm.BuildStrategyCommand).ToArray();Assert.Equal(4,actions.Length);Assert.All(actions,b=>Assert.True(b.IsEnabled));
                 ticket.IsExpanded=false;vm.SelectedRow=null;await WpfHost.Settle();Assert.False(ticket.IsEnabled);Assert.All(actions,b=>Assert.False(b.IsEnabled));
