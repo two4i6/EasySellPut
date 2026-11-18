@@ -41,6 +41,12 @@ with tempfile.TemporaryDirectory(prefix='news fixed host ') as folder:
                 assert cli==result
                 if name=='get_news':assert result[0]['url']=='https://example.com' and result[0]['source']=='fixture'
                 else:assert result['symbol']=='AAPL' and result['source']=='fixture'
+                if name=='get_fundamentals':
+                    assert result['financialCurrency']=='USD'
+                    actual,future=result['earnings']
+                    assert actual['actual']==0 and actual['estimate']==-.2 and not actual['isForecast']
+                    assert future.get('actual') is None and future['isForecast'] and future['estimate']==2
+                    assert (future['low'],future['high'],future['analysts'],future['source'])==(1,3,12,'fixture')
             assert client.process.pid==pid
         assert client.call('get_news',{'symbol':'AAPL','limit':51}).get('isError')
         # Uninstall through the real CLI manager, not a protocol-only fake. User data remain untouched.

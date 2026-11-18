@@ -25,6 +25,7 @@ CLI/MCP：本次为桌面视觉与组件基础设施，业务操作和权限不�
 | 组件 | Windows | macOS | 内置网页 |
 | --- | --- | --- | --- |
 | 设计变量/字体 | 生成 Tokens.xaml + DesignTokens.cs | 生成 Tokens.axaml/ThemeDefaults.axaml | 生成 design-tokens.css |
+| 实际／预测柱图 | AppFinancialChart + FinancialChart，共享零线与正负比例 | AppFinancialChart + FinancialChart，同一模型 | 暂无需求 |
 | 0–100 表盘 | AppGauge，共享 GaugePlan 几何 | AppGauge，共享 GaugePlan 几何 | 暂无需求，不引入替代实现 |
 | 操作卡片 | AppActionCard，继承 AppButton 模板 | AppActionCard，继承共享 Button 模板与动效 | 业务区域使用既有 .panel |
 | 按钮/输入/select/状态 | DesignSystem/Components.xaml | DesignSystem/Components.axaml | components.css |
@@ -42,3 +43,5 @@ CLI/MCP：本次为桌面视觉与组件基础设施，业务操作和权限不�
 已迁移 `AppSelect`；其 macOS 端修复选中 ComboBoxItem 的本地化标签缓存，切换语言不重设 SelectedIndex，不触发额外设置写入。共享输入/选择保留平台弹出、键盘与 IME 行为；图表比较按钮统一为 32px 高度。组件画廊只存在于测试，不向产品页面加入开发说明。
 
 本地验证：Windows 编译通过；共享层 64 项、Chromium 13 项交互、自动化 36 项检查通过。CI 的完整桌面 83 项回归已通过；原生 WebView 冒烟测试的主题背景断言也改为读取同一设计变量。截图位于 build/out/claude-design，为实际 Avalonia/Skia 和 Chromium 渲染，使用测试数据。
+
+基本面：`AppFinancialChart` 采用实心实际值／空心预测值，保留共同零线、负数与缺失值；每列可通过键盘聚焦或点击显示准确值、来源和预测区间。复用组件画廊与 NewsSplitTests 的 1080p fixture 截图。仅点选详情和展开报表使用已有短时透明度反馈，尊重减少动态效果；不动画化财务数值或分屏尺寸。

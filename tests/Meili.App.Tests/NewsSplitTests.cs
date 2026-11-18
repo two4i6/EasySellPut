@@ -8,10 +8,10 @@ public sealed class NewsSplitTests
         WpfHost.Run(async()=>
         {
             var w=new MainWindow{Width=980,Height=1080};w.Show();w.NavigateForSmoke(typeof(Meili.App.Views.Pages.NewsPage));
-            var page=UiAudit.Descendants<Meili.App.Views.Pages.NewsPage>(w).Single();
             try
             {
                 await ScreenRenderTests.Settle();
+                var page=UiAudit.Descendants<Meili.App.Views.Pages.NewsPage>(w).Single();
                 Assert.IsType<NewsViewModel>(page.DataContext);w.UpdateLayout();
                 var news=(System.Windows.FrameworkElement)page.FindName("NewsFeedPane");var fund=(System.Windows.FrameworkElement)page.FindName("FundamentalsPane");
                 Assert.True(news.IsVisible);Assert.True(fund.IsVisible);Assert.True(w.NewsSplit!.IsShowingDefault);
@@ -34,6 +34,11 @@ public sealed class NewsSplitTests
             {
                 var page=UiAudit.Descendants<Meili.App.Views.Pages.NewsPage>(w).Single();
                 var model=Assert.IsType<NewsViewModel>(page.DataContext);await model.LoadAsync();Assert.True(w.NewsSplit!.IsShowingDefault);
+                await ScreenRenderTests.Settle();
+                var chart=UiAudit.Descendants<Meili.App.Views.Controls.AppFinancialChart>(w).First();
+                var bar=UiAudit.Descendants<Button>(chart).First(b=>b.DataContext is Meili.Shared.ViewModels.FinancialChartPoint);
+                bar.RaiseEvent(new System.Windows.RoutedEventArgs(Button.ClickEvent));
+                Assert.Contains(UiAudit.Descendants<TextBlock>(chart),t=>t.Text==((Meili.Shared.ViewModels.FinancialChartPoint)bar.DataContext).Detail);
                 model.News.Clear();var article=new NewsEntry{Title="Reading company news alongside fundamentals",Url=publisher.Url,Publisher="Local UI acceptance fixture",TimeText="09:30 ET"};model.News.Add(article);
                 await ScreenRenderTests.Settle();
                 var card=UiAudit.Descendants<Meili.App.Views.Controls.AppActionCard>(w).Single(button=>ReferenceEquals(button.CommandParameter,article));

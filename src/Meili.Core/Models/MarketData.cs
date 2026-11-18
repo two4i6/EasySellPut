@@ -220,6 +220,11 @@ public enum EventDateStatus { Unknown, Estimated, SourceConfirmed }
 public sealed record Fundamentals : SourcedData
 {
     public required string Symbol { get; init; }
+    public string? FinancialCurrency { get; init; }
+    /// <summary>Source-reported EPS history and consensus estimates. Empty is unavailable, never zero.</summary>
+    public IReadOnlyList<EarningsObservation> Earnings { get; init; } = [];
+    public string? EarningsAvailability { get; init; }
+
     public string? Name { get; init; }
     public string? QuoteType { get; init; }
     public string? Exchange { get; init; }
@@ -249,6 +254,23 @@ public sealed record Fundamentals : SourcedData
     public EventDateStatus EarningsDateStatus { get; init; }
     public EventDateStatus ExDividendDateStatus { get; init; }
     public DateOnly? ExDividendDate { get; init; }
+}
+
+/// <summary>One source period. Actual and consensus are separate; a future estimate is not a reported result.</summary>
+public sealed record EarningsObservation
+{
+    public required string Metric { get; init; } // EPS or Revenue
+    public required string Period { get; init; } // source label, never a fabricated fiscal quarter
+    public DateOnly? PeriodEnd { get; init; }
+    public bool IsForecast { get; init; }
+    public bool Annual { get; init; }
+    public double? Actual { get; init; }
+    public double? Estimate { get; init; }
+    public double? Low { get; init; }
+    public double? High { get; init; }
+    public int? Analysts { get; init; }
+    public required string Source { get; init; }
+    public DateTimeOffset? FetchedAt { get; init; }
 }
 
 public enum FinancialStatementKind { Income, Balance, CashFlow }

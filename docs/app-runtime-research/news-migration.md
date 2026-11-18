@@ -26,3 +26,20 @@ Local full-height journey checks pass for default fundamentals, article replacem
 - [Article selection, dark (headless browser stub)](screenshots/news-fullheight-reader-dark-1920.png)
 
 Core-only scope: native layout/browser adapters remain host-owned. S14 is not yet accepted pending final native exact-commit CI. Fixture results do not establish complete live coverage or production signing/distribution. No main merge or public release is performed.
+
+## Visual fundamentals and consensus
+
+Both native panes now share FinancialChart/AppFinancialChart: all available statement metrics can be selected as chronological annual/quarterly signed column charts; original statement tables remain under a disclosure. EPS history compares actual and consensus, followed by the source’s current/next quarter and year estimates. Revenue consensus is shown separately. Solid/outlined columns distinguish reported and estimated values; negative and zero values keep their meaning and missing actuals remain missing. Each column exposes exact values and source/range/analyst count through focus, click and tooltip. Small detail/disclosure feedback reuses reduced-motion-aware components; financial bars and split dimensions are not animated.
+
+Yahoo earningsHistory/earningsTrend are an optional bounded eight-second request inside the existing thirty-minute managed fundamentals cache. An inaccessible or missing consensus endpoint preserves the usable company profile and exposes availability; user cancellation still propagates. The source’s fiscal labels/end dates, optional currency, fetched time, low/high estimates and analyst counts are retained. Forecasts are source consensus, not company guidance, guaranteed outcomes or locally extrapolated values. Coverage is limited to what the free source returns (currently EPS and revenue); ETFs and restricted symbols may have no estimates. Financial statement amounts retain original provider units; no unsupported currency normalization is implied.
+
+The existing get_fundamentals CLI/MCP result gains additive financialCurrency/earnings/earningsAvailability fields. No new tool permission or browser capability is introduced. Actual signed core A/B CLI/persistent-MCP checks verify zero actuals, null future actuals, estimate intervals, source and analyst-count parity. Exports include the available consensus rows.
+
+- [Visual fundamentals, 1920×1080 fixture](screenshots/news-financial-charts-default-1920.png)
+- [Dark visual fundamentals, 1920×1080 fixture](screenshots/news-financial-charts-dark-1920.png)
+
+The visual captures deliberately use labelled synthetic periods and amounts, not live company results. Source parser, unavailable-endpoint caching, signed shared zero/negative/null chart projection and actual signed CLI/MCP tests provide separate data-path evidence. New tests run under existing full Data/Shared/native desktop and four-platform CLI CI jobs; no narrower class allowlist replaces native regression coverage.
+
+A deliberate live AAPL CLI check on 2026-11-18 returned Yahoo/USD, four EPS history comparisons and eight EPS/revenue consensus rows covering current/next quarter and fiscal year (twelve rows total). This demonstrates one successful free-source request, not a coverage guarantee. Quarter and fiscal-year charts are separated, with source period-end dates; no annual/quarterly magnitude comparison is implied.
+
+Local visual follow-up checks: Data 162 passed (15 opt-in live checks skipped), Shared 138 passed, full Avalonia 145 passed (one opt-in live check skipped), updated split/personal-session journeys 4 passed, WPF cross-build passed and workflow policy validation passed. One concurrent Shared run hit an existing source-health timing deadline; the complete Shared suite passed on the isolated rerun. Actual signed A/B CLI/persistent-MCP forecast parity passed. WPF native execution is still delegated to full Windows CI, not inferred from cross-build.

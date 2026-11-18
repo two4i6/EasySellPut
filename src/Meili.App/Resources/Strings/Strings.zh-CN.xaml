@@ -1032,4 +1032,20 @@
     <sys:String x:Key="Apps_Error">操作未完成。请关闭该应用的页面和任务，并确认安装包来自此版本信任的仓库。</sys:String>
     <sys:String x:Key="Apps_Enabled">已启用</sys:String>
     <sys:String x:Key="Apps_Disabled">已停用</sys:String>
+    <sys:String x:Key="Nf_Actual">实际</sys:String>
+    <sys:String x:Key="Nf_Estimate">预测</sys:String>
+    <sys:String x:Key="Nf_Consensus">分析师一致预期 · 非公司指引</sys:String>
+    <sys:String x:Key="Nf_ProviderUnits">原始报表单位（未统一币种）</sys:String>
+    <sys:String x:Key="Nf_CurrencyUnknown">币种未披露</sys:String>
+    <sys:String x:Key="Nf_Range">预测区间</sys:String>
+    <sys:String x:Key="Nf_Analysts">分析师</sys:String>
+    <sys:String x:Key="Nf_NoEstimates">暂无可用预测；免费数据源可能不覆盖此标的或无访问权限。</sys:String>
+    <sys:String x:Key="Nf_EstimatesNote">实心：实际 · 空心：预测。预测不代表已实现结果，悬停或聚焦查看来源、区间与人数。</sys:String>
+    <sys:String x:Key="Nf_CurrentQuarter">本季度预测</sys:String>
+    <sys:String x:Key="Nf_NextQuarter">下季度预测</sys:String>
+    <sys:String x:Key="Nf_CurrentYear">本财年预测</sys:String>
+    <sys:String x:Key="Nf_NextYear">下一财年预测</sys:String>
+    <sys:String x:Key="Nf_EarningsOutlook">财报表现与未来预期</sys:String>
+    <sys:String x:Key="Nf_StatementDetails">查看原始报表</sys:String>
+    <sys:String x:Key="Nf_FinancialTrend">财务趋势</sys:String>
 </ResourceDictionary>

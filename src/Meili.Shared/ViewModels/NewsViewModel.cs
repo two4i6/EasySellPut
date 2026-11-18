@@ -36,6 +36,11 @@ public partial class NewsViewModel : ObservableObject
     private Fundamentals? _lastFundamentals;
 
     public ObservableCollection<string> WatchSymbols { get; } = [];
+    public ObservableCollection<FinancialChart> FinancialCharts {get;}=[];
+    public ObservableCollection<FinancialChart> EstimateCharts {get;}=[];
+    [ObservableProperty] public partial FinancialChart? SelectedFinancialChart {get;set;}
+    [ObservableProperty] public partial string EarningsStatus {get;set;}="";
+    [ObservableProperty] public partial string FinancialBasis {get;set;}="";
     public ObservableCollection<StatItem> Stats { get; } = [];
     public ObservableCollection<NewsEntry> News { get; } = [];
     public StatementBlock Income { get; } = new();
@@ -140,6 +145,16 @@ public partial class NewsViewModel : ObservableObject
                 Rows = block.Rows.Select(r => (IReadOnlyList<string>)new[] { r.Label, r.V0, r.V1, r.V2, r.V3 }.Take(headers.Count).ToArray()).ToList(),
             });
         }
+        if (_lastFundamentals?.Earnings is {Count:>0} outlook)
+            tables.Add(new ExportTable
+            {
+                Name=_loc["Nf_EarningsOutlook"],
+                Headers=[_loc["Ex_Field"],"Period","Period end","Annual","Forecast",_loc["Nf_Actual"],_loc["Nf_Estimate"],"Low","High",_loc["Nf_Analysts"],"Source","Fetched UTC","Currency"],
+                Rows=outlook.Select(x=>(IReadOnlyList<string>)[x.Metric,x.Period,x.PeriodEnd?.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture)??"",x.Annual.ToString(),x.IsForecast.ToString(),
+                    x.Actual?.ToString("R",CultureInfo.InvariantCulture)??"",x.Estimate?.ToString("R",CultureInfo.InvariantCulture)??"",
+                    x.Low?.ToString("R",CultureInfo.InvariantCulture)??"",x.High?.ToString("R",CultureInfo.InvariantCulture)??"",x.Analysts?.ToString(CultureInfo.InvariantCulture)??"",
+                    x.Source,x.FetchedAt?.ToString("u",CultureInfo.InvariantCulture)??"",_lastFundamentals.FinancialCurrency??""]).ToList()
+            });
         if (News.Count > 0)
             tables.Add(new ExportTable
             {
@@ -331,6 +346,7 @@ public partial class NewsViewModel : ObservableObject
         FillBlock(Balance, StatementTable.Build(lines, FinancialStatementKind.Balance, Annual), "Nf_Balance");
         FillBlock(CashFlow, StatementTable.Build(lines, FinancialStatementKind.CashFlow, Annual), "Nf_CashFlow");
         HasFinancials = Income.HasData || Balance.HasData || CashFlow.HasData;
+        RebuildCharts();
     }
 
     private void FillBlock(StatementBlock block, StatementTable table, string titleKey)

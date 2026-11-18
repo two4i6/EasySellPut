@@ -125,7 +125,7 @@
                     </StackPanel></ux:AppDisclosure>
 
                     <DockPanel Margin="0,16,0,8">
-                        <TextBlock Style="{StaticResource CardTitle}" Text="{DynamicResource Nf_Financials}" VerticalAlignment="Center" />
+                        <TextBlock Style="{StaticResource CardTitle}" Text="{DynamicResource Nf_FinancialTrend}" VerticalAlignment="Center" />
                         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
                             <Button Style="{StaticResource RangeChip}" Content="{DynamicResource Nf_Annual}" Tag="annual" Click="OnPeriodClick" />
                             <Button Style="{StaticResource RangeChip}" Content="{DynamicResource Nf_Quarterly}" Tag="quarterly" Click="OnPeriodClick" />
@@ -133,11 +133,17 @@
                     </DockPanel>
                     <TextBlock Style="{StaticResource Secondary}" Text="{DynamicResource Nf_NoFinancials}"
                                Visibility="{Binding HasFinancials, Converter={StaticResource InverseBoolToVis}}" />
-                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Visibility="{Binding HasFinancials, Converter={StaticResource BoolToVis}}"><StackPanel Visibility="{Binding HasFinancials, Converter={StaticResource BoolToVis}}" MinWidth="460">
+                    <StackPanel Visibility="{Binding HasFinancials, Converter={StaticResource BoolToVis}}"><ux:AppSelect ItemsSource="{Binding FinancialCharts}" SelectedItem="{Binding SelectedFinancialChart, Mode=TwoWay}" HorizontalAlignment="Stretch" Margin="0,0,0,12">
+                        <ux:AppSelect.ItemTemplate><DataTemplate><TextBlock Text="{Binding Title}"/></DataTemplate></ux:AppSelect.ItemTemplate>
+                    </ux:AppSelect><ContentControl Content="{Binding SelectedFinancialChart}" Margin="0,0,0,12"><ContentControl.ContentTemplate><DataTemplate><ux:AppFinancialChart/></DataTemplate></ContentControl.ContentTemplate></ContentControl></StackPanel>
+<TextBlock Style="{StaticResource CardTitle}" Text="{DynamicResource Nf_EarningsOutlook}" Margin="0,20,0,8"/>
+                    <TextBlock Style="{StaticResource Caption}" Text="{Binding EarningsStatus}" TextWrapping="Wrap" Margin="0,0,0,12"/>
+                    <ItemsControl ItemsSource="{Binding EstimateCharts}"><ItemsControl.ItemTemplate><DataTemplate><ux:AppCard Padding="16" Margin="0,0,0,12"><ux:AppFinancialChart/></ux:AppCard></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+                    <ux:AppDisclosure Header="{DynamicResource Nf_StatementDetails}" HorizontalAlignment="Stretch">                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Visibility="{Binding HasFinancials, Converter={StaticResource BoolToVis}}"><StackPanel Visibility="{Binding HasFinancials, Converter={StaticResource BoolToVis}}" MinWidth="460">
                         <ContentPresenter Content="{Binding Income}" ContentTemplate="{StaticResource StatementTemplate}" Margin="0,0,0,12" />
                         <ContentPresenter Content="{Binding Balance}" ContentTemplate="{StaticResource StatementTemplate}" Margin="0,0,0,12" />
                         <ContentPresenter Content="{Binding CashFlow}" ContentTemplate="{StaticResource StatementTemplate}" />
-                    </StackPanel></ScrollViewer>
+                    </StackPanel></ScrollViewer></ux:AppDisclosure>
                 </StackPanel>
                 </ux:AppCard>
             </ScrollViewer>

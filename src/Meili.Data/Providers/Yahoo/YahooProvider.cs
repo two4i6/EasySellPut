@@ -10,7 +10,7 @@ namespace Meili.Data.Providers.Yahoo;
 /// Yahoo Finance public JSON endpoints (no account). Quotes/options/quoteSummary need a session cookie + "crumb":
 /// GET https://fc.yahoo.com (sets cookie, 404 is normal) then GET /v1/test/getcrumb.
 /// </summary>
-public sealed class YahooProvider : ProviderBase, IQuoteProvider, IBarsProvider, IOptionsProvider, IFundamentalsProvider,
+public sealed partial class YahooProvider : ProviderBase, IQuoteProvider, IBarsProvider, IOptionsProvider, IFundamentalsProvider,
     IFinancialsProvider, INewsProvider, ISymbolSearchProvider
 {
     private const string Q1 = "https://query1.finance.yahoo.com";
@@ -300,7 +300,19 @@ public sealed class YahooProvider : ProviderBase, IQuoteProvider, IBarsProvider,
         {
             const string modules = "price,summaryDetail,defaultKeyStatistics,financialData,assetProfile,calendarEvents,quoteType";
             using var doc = await GetWithCrumbAsync(cr => $"{Q2}/v10/finance/quoteSummary/{Enc(sym)}?modules={modules}&crumb={Enc(cr)}", c).ConfigureAwait(false);
-            return ParseQuoteSummary(doc.RootElement, Norm(symbol)) ?? throw NoData($"no fundamentals for {symbol}");
+            var fundamentals=ParseQuoteSummary(doc.RootElement, Norm(symbol)) ?? throw NoData($"no fundamentals for {symbol}");
+            // Optional consensus must never turn a usable company profile into a provider failure.
+            try
+            {
+                using var optional=CancellationTokenSource.CreateLinkedTokenSource(c); optional.CancelAfter(TimeSpan.FromSeconds(8));
+                using var estimates=await GetWithCrumbAsync(cr=>$"{Q2}/v10/finance/quoteSummary/{Enc(sym)}?modules=earningsHistory,earningsTrend&crumb={Enc(cr)}",optional.Token).ConfigureAwait(false);
+                var observations=ParseEarnings(estimates.RootElement,DateTimeOffset.UtcNow);
+                return fundamentals with {Earnings=observations,EarningsAvailability=observations.Count>0?null:"not-reported"};
+            }
+            catch(OperationCanceledException) when(!c.IsCancellationRequested){return fundamentals with {EarningsAvailability="timeout"};}
+            catch(OperationCanceledException){throw;}
+            catch(Exception ex) when(ex is HttpRequestException or DataSourceException or JsonException)
+            { return fundamentals with {EarningsAvailability="unavailable"}; }
         }, ct).ConfigureAwait(false);
     }
 
@@ -315,6 +327,7 @@ public sealed class YahooProvider : ProviderBase, IQuoteProvider, IBarsProvider,
         return new Fundamentals
         {
             Symbol = symbol,
+            FinancialCurrency = S(fd, "financialCurrency"),
             Name = S(price, "longName") ?? S(price, "shortName"),
             QuoteType = S(price, "quoteType") ?? S(r.Prop("quoteType"), "quoteType"),
             Exchange = S(price, "exchangeName"),

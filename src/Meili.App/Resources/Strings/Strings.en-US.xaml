@@ -1032,4 +1032,20 @@
     <sys:String x:Key="Apps_Error">Could not complete the operation. Close this app’s pages/tasks and use a package signed by this build’s trusted repository.</sys:String>
     <sys:String x:Key="Apps_Enabled">Enabled</sys:String>
     <sys:String x:Key="Apps_Disabled">Disabled</sys:String>
+    <sys:String x:Key="Nf_Actual">Actual</sys:String>
+    <sys:String x:Key="Nf_Estimate">Estimate</sys:String>
+    <sys:String x:Key="Nf_Consensus">Analyst consensus · not company guidance</sys:String>
+    <sys:String x:Key="Nf_ProviderUnits">Original statement units (currencies not normalized)</sys:String>
+    <sys:String x:Key="Nf_CurrencyUnknown">Currency not reported</sys:String>
+    <sys:String x:Key="Nf_Range">Estimate range</sys:String>
+    <sys:String x:Key="Nf_Analysts">Analysts</sys:String>
+    <sys:String x:Key="Nf_NoEstimates">Estimates unavailable; the free source may not cover this symbol or permit access.</sys:String>
+    <sys:String x:Key="Nf_EstimatesNote">Solid: actual · outline: estimate. Forecasts are not reported results. Hover or focus for source, range and analyst count.</sys:String>
+    <sys:String x:Key="Nf_CurrentQuarter">Current quarter forecast</sys:String>
+    <sys:String x:Key="Nf_NextQuarter">Next quarter forecast</sys:String>
+    <sys:String x:Key="Nf_CurrentYear">Current fiscal year forecast</sys:String>
+    <sys:String x:Key="Nf_NextYear">Next fiscal year forecast</sys:String>
+    <sys:String x:Key="Nf_EarningsOutlook">Earnings and outlook</sys:String>
+    <sys:String x:Key="Nf_StatementDetails">Statement details</sys:String>
+    <sys:String x:Key="Nf_FinancialTrend">Financial trends</sys:String>
 </ResourceDictionary>

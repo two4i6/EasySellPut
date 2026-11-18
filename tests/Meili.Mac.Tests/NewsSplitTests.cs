@@ -25,6 +25,20 @@ public sealed class NewsSplitTests
             Assert.NotNull(card.Command);Assert.True(card.Command!.CanExecute(card.CommandParameter));card.Command.Execute(card.CommandParameter);MacHost.Pump();
             Assert.Same(card.CommandParameter,model.SelectedNews);
             MacHost.Save(w,"news-fundamentals-default-1920");
+            var chart=Meili.Shared.ViewModels.FinancialChart.Build("Revenue · synthetic UI fixture","Original fixture units · not live",
+                new (string,string,double?,double?)[]{("2022","fixture",80,null),("2023","fixture",95,null),("2024","fixture",90,null),("2025","fixture",120,null)});
+            model.FinancialCharts.Clear();model.FinancialCharts.Add(chart);model.SelectedFinancialChart=chart;
+            model.EstimateCharts.Clear();model.EstimateCharts.Add(Meili.Shared.ViewModels.FinancialChart.Build("EPS · synthetic UI fixture","USD · analyst consensus fixture · not live",
+                new (string,string,double?,double?)[]{("2025 Q1","fixture actual / estimate",-1,-.5),("2025 Q2","fixture actual / estimate",1.2,1.1),("2025 Q3","fixture actual / estimate",1.5,1.4),("Next quarter","fixture forecast; actual unknown",null,1.8)}));
+            model.EarningsStatus="Solid: actual · outline: estimate · synthetic acceptance data";MacHost.Pump();
+            Assert.NotEmpty(w.NewsSplit.GetVisualDescendants().OfType<AppFinancialChart>());
+            MacHost.Save(w,"news-financial-charts-default-1920");
+            var bar=w.NewsSplit.GetVisualDescendants().OfType<Button>().First(b=>b.DataContext is Meili.Shared.ViewModels.FinancialChartPoint);
+            bar.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));MacHost.Pump();
+            Assert.Contains(w.NewsSplit.GetVisualDescendants().OfType<TextBlock>(),t=>t.Text==((Meili.Shared.ViewModels.FinancialChartPoint)bar.DataContext!).Detail);
+            foreach(var width in new[]{1280,980}){w.Width=width;MacHost.Pump();MacHost.Save(w,$"news-financial-charts-default-{width}");}
+            w.Width=1920;AppServices.Get<MacTheme>().Apply(Meili.Core.Settings.AppThemeMode.Dark);MacHost.Pump();MacHost.Save(w,"news-financial-charts-dark-1920");
+            AppServices.Get<MacTheme>().Apply(Meili.Core.Settings.AppThemeMode.Light);MacHost.Pump();
             w.OpenNewsArticle("https://example.com/story-one","Fixture article");MacHost.Pump();
             Assert.False(w.NewsSplit!.IsShowingDefault);
             Assert.Empty(w.OwnedWindows);Assert.True(w.NewsSplit!.IsOpen);Assert.False(w.NewsSplit.IsVertical);

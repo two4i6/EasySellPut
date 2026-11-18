@@ -480,3 +480,5 @@ Full offline run-ZUhgc8eg passed 1,062 .NET cases (plus two Windows-only skips),
 ### S14 — full-height news workspace checkpoint
 
 The native news workspace now uses the shared outer ArticleSplitView, with heading/toolbar/news on the left and fundamentals on the right. Articles replace the right pane; closing restores fundamentals and the divider ratio. Section tabs are removed. Existing personal browser sessions, shared theme controls and live quote subscriptions remain host-owned. UI regression coverage includes compact/wide themes, selection, native reader reuse and return-to-fundamentals. Final exact-commit native CI remains pending; S14 stays open. See docs/app-runtime-research/news-migration.md.
+
+S14 visual fundamentals follow-up: shared signed-column charts replace the default dense tables, with optional Yahoo EPS/revenue consensus and unchanged read-only facade names. Original tables/export and source/period/missing-value semantics remain available. Final native CI still gates acceptance.
