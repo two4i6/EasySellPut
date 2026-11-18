@@ -44,6 +44,25 @@
       }
     },
     {
+      "path": "src/Meili.Shared/ViewModels/AppManagementViewModel.cs",
+      "operations": [],
+      "scope": "Explicit local signed application maintenance shared with CLI apps commands. Executable installation, disable and removal are intentionally excluded from market/business MCP tools. Selection, native file picker and confirmation are presentation.",
+      "commands": {
+        "RefreshAppsAsync": {
+          "uiOnly": "Inspect the local module registry; equivalent explicit CLI maintenance is apps list/doctor, never an MCP installation tool."
+        },
+        "InstallAppAsync": {
+          "uiOnly": "User selects a local signed app package; CLI apps install/update provides the same verification without an MCP self-modification endpoint."
+        },
+        "ToggleAppAsync": {
+          "uiOnly": "Explicitly enable/disable installed executable code under execution leases; equivalent apps enable/disable remains CLI-only maintenance."
+        },
+        "UninstallAppAsync": {
+          "uiOnly": "Confirm code removal while retaining observations, data and backups; equivalent apps uninstall remains CLI-only maintenance."
+        }
+      }
+    },
+    {
       "path": "src/Meili.Shared/ViewModels/ChartsViewModel.cs",
       "operations": [
         "get_chart_analysis",
@@ -157,6 +176,44 @@
       }
     },
     {
+      "path": "src/Meili.Shared/ViewModels/FinancialChart.cs",
+      "operations": [
+        "get_fundamentals",
+        "get_financials"
+      ],
+      "scope": "Presentation-only signed column scaling, source labels and exact accessible values for existing read-only fundamentals and financial statements; no forecast calculation or execution capability.",
+      "commands": {}
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/LiquidityViewModel.cs",
+      "operations": [
+        "get_market_liquidity"
+      ],
+      "scope": "Shared application liquidity report and Analytics math are identical across desktop, CLI and MCP. Card layout, bounded page lifecycle, colors and chart navigation are presentation. Six US macro indicators retain dated FRED inputs; sector ETF turnover/Amihud are daily proxies, not executable depth or flows.",
+      "commands": {
+        "RefreshAsync": {
+          "operations": [
+            "get_market_liquidity"
+          ]
+        },
+        "OpenSector": {
+          "uiOnly": "Navigate to the selected sector ETF chart in the desktop; bar/indicator data remain available through get_bars/get_chart_analysis."
+        },
+        "OpenSources": {
+          "uiOnly": "Navigate to existing source health diagnostics; source health data remain available through get_source_health."
+        }
+      }
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/NewsViewModel.Charts.cs",
+      "operations": [
+        "get_fundamentals",
+        "get_financials"
+      ],
+      "scope": "Projects unchanged provider statement values and additive source-reported earnings/consensus fields into separate annual/quarterly charts; selection, labels and chart geometry are native presentation.",
+      "commands": {}
+    },
+    {
       "path": "src/Meili.Shared/ViewModels/NewsViewModel.cs",
       "operations": [
         "get_news",
@@ -256,6 +313,17 @@
           "uiOnly": "Near-strike windowing is presentation; analyze_option_chain provides strike data and pagination for client filtering."
         }
       }
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/QuotePanelViewModel.cs",
+      "operations": [
+        "get_quotes",
+        "get_bars",
+        "get_watchlists",
+        "get_live_quotes"
+      ],
+      "scope": "Native macOS menu bar / Windows tray and pinned window are desktop-only presentation. Quotes, intraday bars and watchlist remain available through existing CLI/MCP operations; timestamped extended-price selection, Auto/Pre/Regular/Post/Overnight chart switching and matching-session sparklines are UI projections only; live tails reuse LiveBarStitcher (get_live_bars); absent overnight data is never inferred from postmarket; get_quotes retains separate regular/extended fields. They add no indicator or new business mutation. Visibility, selection, paging and pinning do not launch competing market loops.",
+      "commands": {}
     },
     {
       "path": "src/Meili.Shared/ViewModels/SettingsViewModel.cs",
@@ -509,6 +577,37 @@
       }
     },
     {
+      "path": "src/Meili.Shared/ViewModels/UpdateViewModel.cs",
+      "scope": "Desktop-owned verified update checks, shared footer/dialog/settings state, downloads and explicit installer handoff; never exposed via MCP.",
+      "operations": [],
+      "commands": {
+        "CheckUpdatesAsync": {
+          "uiOnly": "Explicit desktop software maintenance: reads signed official releases, verifies/downloads packages, or confirms an external installer and normal restart. Replacing executable code is not a market/business MCP operation; CLI update check/download provides local maintenance access without MCP self-modification."
+        },
+        "DownloadUpdateAsync": {
+          "uiOnly": "Explicit desktop software maintenance: reads signed official releases, verifies/downloads packages, or confirms an external installer and normal restart. Replacing executable code is not a market/business MCP operation; CLI update check/download provides local maintenance access without MCP self-modification."
+        },
+        "InstallUpdateAsync": {
+          "uiOnly": "Explicit desktop software maintenance: reads signed official releases, verifies/downloads packages, or confirms an external installer and normal restart. Replacing executable code is not a market/business MCP operation; CLI update check/download provides local maintenance access without MCP self-modification."
+        },
+        "CancelUpdate": {
+          "uiOnly": "Explicit desktop software maintenance: reads signed official releases, verifies/downloads packages, or confirms an external installer and normal restart. Replacing executable code is not a market/business MCP operation; CLI update check/download provides local maintenance access without MCP self-modification."
+        },
+        "OpenUpdateFolder": {
+          "uiOnly": "Opens the already verified local download folder for explicit manual installation/recovery; never accepts arbitrary URLs or exposes executable replacement through MCP."
+        },
+        "OpenUpdateHistory": {
+          "uiOnly": "Explicit desktop software maintenance: reads signed official releases, verifies/downloads packages, or confirms an external installer and normal restart. Replacing executable code is not a market/business MCP operation; CLI update check/download provides local maintenance access without MCP self-modification."
+        },
+        "OpenUpdatePrompt": {
+          "uiOnly": "Desktop update reminder visibility only; no business mutation, installation or MCP equivalent."
+        },
+        "DismissUpdatePrompt": {
+          "uiOnly": "Desktop update reminder visibility only; no business mutation, installation or MCP equivalent."
+        }
+      }
+    },
+    {
       "path": "src/Meili.Shared/ViewModels/WatchlistViewModel.cs",
       "operations": [
         "get_watchlists",
@@ -608,87 +707,6 @@
       ],
       "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation.",
       "commands": {}
-    },
-    {
-      "path": "src/Meili.Shared/ViewModels/QuotePanelViewModel.cs",
-      "operations": [
-        "get_quotes",
-        "get_bars",
-        "get_watchlists",
-        "get_live_quotes"
-      ],
-      "scope": "Native macOS menu bar / Windows tray and pinned window are desktop-only presentation. Quotes, intraday bars and watchlist remain available through existing CLI/MCP operations; timestamped extended-price selection, Auto/Pre/Regular/Post/Overnight chart switching and matching-session sparklines are UI projections only; live tails reuse LiveBarStitcher (get_live_bars); absent overnight data is never inferred from postmarket; get_quotes retains separate regular/extended fields. They add no indicator or new business mutation. Visibility, selection, paging and pinning do not launch competing market loops.",
-      "commands": {}
-    },
-    {
-      "path": "src/Meili.Shared/ViewModels/UpdateViewModel.cs",
-      "scope": "Desktop-owned verified update checks, shared footer/dialog/settings state, downloads and explicit installer handoff; never exposed via MCP.",
-      "operations": [],
-      "commands": {
-        "CheckUpdatesAsync": {
-          "uiOnly": "Explicit desktop software maintenance: reads signed official releases, verifies/downloads packages, or confirms an external installer and normal restart. Replacing executable code is not a market/business MCP operation; CLI update check/download provides local maintenance access without MCP self-modification."
-        },
-        "DownloadUpdateAsync": {
-          "uiOnly": "Explicit desktop software maintenance: reads signed official releases, verifies/downloads packages, or confirms an external installer and normal restart. Replacing executable code is not a market/business MCP operation; CLI update check/download provides local maintenance access without MCP self-modification."
-        },
-        "InstallUpdateAsync": {
-          "uiOnly": "Explicit desktop software maintenance: reads signed official releases, verifies/downloads packages, or confirms an external installer and normal restart. Replacing executable code is not a market/business MCP operation; CLI update check/download provides local maintenance access without MCP self-modification."
-        },
-        "CancelUpdate": {
-          "uiOnly": "Explicit desktop software maintenance: reads signed official releases, verifies/downloads packages, or confirms an external installer and normal restart. Replacing executable code is not a market/business MCP operation; CLI update check/download provides local maintenance access without MCP self-modification."
-        },
-        "OpenUpdateFolder": {
-          "uiOnly": "Opens the already verified local download folder for explicit manual installation/recovery; never accepts arbitrary URLs or exposes executable replacement through MCP."
-        },
-        "OpenUpdateHistory": {
-          "uiOnly": "Explicit desktop software maintenance: reads signed official releases, verifies/downloads packages, or confirms an external installer and normal restart. Replacing executable code is not a market/business MCP operation; CLI update check/download provides local maintenance access without MCP self-modification."
-        },
-        "OpenUpdatePrompt": {
-          "uiOnly": "Desktop update reminder visibility only; no business mutation, installation or MCP equivalent."
-        },
-        "DismissUpdatePrompt": {
-          "uiOnly": "Desktop update reminder visibility only; no business mutation, installation or MCP equivalent."
-        }
-      }
-    },
-    {
-      "path": "src/Meili.Shared/ViewModels/LiquidityViewModel.cs",
-      "operations": [
-        "get_market_liquidity"
-      ],
-      "scope": "Shared application liquidity report and Analytics math are identical across desktop, CLI and MCP. Card layout, bounded page lifecycle, colors and chart navigation are presentation. Six US macro indicators retain dated FRED inputs; sector ETF turnover/Amihud are daily proxies, not executable depth or flows.",
-      "commands": {
-        "RefreshAsync": {
-          "operations": [
-            "get_market_liquidity"
-          ]
-        },
-        "OpenSector": {
-          "uiOnly": "Navigate to the selected sector ETF chart in the desktop; bar/indicator data remain available through get_bars/get_chart_analysis."
-        },
-        "OpenSources": {
-          "uiOnly": "Navigate to existing source health diagnostics; source health data remain available through get_source_health."
-        }
-      }
-    },
-    {
-      "path": "src/Meili.Shared/ViewModels/AppManagementViewModel.cs",
-      "operations": [],
-      "scope": "Explicit local signed application maintenance shared with CLI apps commands. Executable installation, disable and removal are intentionally excluded from market/business MCP tools. Selection, native file picker and confirmation are presentation.",
-      "commands": {
-        "RefreshAppsAsync": {
-          "uiOnly": "Inspect the local module registry; equivalent explicit CLI maintenance is apps list/doctor, never an MCP installation tool."
-        },
-        "InstallAppAsync": {
-          "uiOnly": "User selects a local signed app package; CLI apps install/update provides the same verification without an MCP self-modification endpoint."
-        },
-        "ToggleAppAsync": {
-          "uiOnly": "Explicitly enable/disable installed executable code under execution leases; equivalent apps enable/disable remains CLI-only maintenance."
-        },
-        "UninstallAppAsync": {
-          "uiOnly": "Confirm code removal while retaining observations, data and backups; equivalent apps uninstall remains CLI-only maintenance."
-        }
-      }
     }
   ]
 }
