@@ -1080,4 +1080,5 @@
     <sys:String x:Key="St_SaveFailed">Not saved: {0}</sys:String>
     <sys:String x:Key="St_DeleteFailed">Not deleted: {0}</sys:String>
     <sys:String x:Key="Op_ToStrategy">Build strategy</sys:String>
+    <sys:String x:Key="Ch_Pan">Pan / select</sys:String>
 </ResourceDictionary>

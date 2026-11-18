@@ -47,8 +47,8 @@ public class ChartThemeTests
                 var page = new ChartsPage();
                 using var host = new OffscreenHost(page, 1280, 800);
                 await ScreenRenderTests.Settle();
-                var tools = UiAudit.Descendants<System.Windows.Controls.Primitives.ButtonBase>(page).Where(b => b.Command == ((ChartsViewModel)page.DataContext).StartDrawingCommand || b.Command == ((ChartsViewModel)page.DataContext).ClearDrawingsCommand).ToArray();
-                Assert.Equal(3,tools.Length);Assert.All(tools,b=>{Assert.Equal(56,b.ActualWidth);Assert.Equal(56,b.ActualHeight);});
+                var tools = UiAudit.Descendants<System.Windows.Controls.Primitives.ButtonBase>(page).Where(b => b.Command == ((ChartsViewModel)page.DataContext).StartDrawingCommand || b.Command == ((ChartsViewModel)page.DataContext).ClearDrawingsCommand || b.Command == ((ChartsViewModel)page.DataContext).CancelDrawingCommand).ToArray();
+                Assert.Equal(4,tools.Length);Assert.All(tools,b=>{Assert.Equal(32,b.ActualWidth);Assert.Equal(32,b.ActualHeight);});
                 var symbol=UiAudit.Descendants<SymbolBox>(page).First();
                 var dropdown=UiAudit.Descendants<Wpf.Ui.Controls.Button>(symbol).Single(b=>System.Windows.Automation.AutomationProperties.GetAutomationId(b)=="SymbolBoxDropDown");
                 Assert.Equal(32,dropdown.ActualWidth);Assert.Equal(32,dropdown.ActualHeight);

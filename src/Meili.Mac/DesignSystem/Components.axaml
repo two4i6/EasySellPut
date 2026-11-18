@@ -39,4 +39,6 @@
     <!-- Full-surface action rows retain shared focus/selection colors instead of the platform blue. -->
     <Style Selector="ListBox.ActionList ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="Transparent"/></Style>
     <Style Selector="ListBox.ActionList ListBoxItem:selected Button"><Setter Property="BorderBrush" Value="{DynamicResource FocusBrush}"/><Setter Property="Background" Value="{DynamicResource RowHighlightBrush}"/></Style>
+    <Style Selector="Button.ChartInterval"><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Padding" Value="8,4"/></Style>
+    <Style Selector="Button.ChartInterval.Selected"><Setter Property="Background" Value="{DynamicResource RowHighlightBrush}"/><Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/></Style>
 </Styles>

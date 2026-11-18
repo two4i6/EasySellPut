@@ -51,11 +51,13 @@ public static class NavigationIcons
     public const string Dividend = "M 3.85 8.62 a 4 4 0 0 1 4.78 -4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1 -4.77 4.78 4 4 0 0 1 -6.75 0 4 4 0 0 1 -4.78 -4.77 4 4 0 0 1 0 -6.76 Z M 16 8 h -6 a 2 2 0 1 0 0 4 h 4 a 2 2 0 1 1 0 4 H 8 M 12 18 V 6";
     public const string List = "M 3 5 h .01 M 3 12 h .01 M 3 19 h .01 M 8 5 h 13 M 8 12 h 13 M 8 19 h 13";
     public const string CornerDownLeft = "M 20 4 v 7 a 4 4 0 0 1 -4 4 H 4 M 9 10 l -5 5 5 5";
+    public const string Cursor = "M 4.037 4.688 a .495 .495 0 0 1 .651 -.651 l 16 6.5 a .5 .5 0 0 1 -.063 .947 l -6.124 1.58 a 2 2 0 0 0 -1.438 1.435 l -1.579 6.126 a .5 .5 0 0 1 -.947 .063 z";
+    public const string Fit = "M 3 7 V 5 a 2 2 0 0 1 2 -2 h 2 M 17 3 h 2 a 2 2 0 0 1 2 2 v 2 M 21 17 v 2 a 2 2 0 0 1 -2 2 h -2 M 7 21 H 5 a 2 2 0 0 1 -2 -2 v -2";
+    public const string PanelRight = "M 5.0 3.0 H 19.0 A 2.0 2.0 0 0 1 21.0 5.0 V 19.0 A 2.0 2.0 0 0 1 19.0 21.0 H 5.0 A 2.0 2.0 0 0 1 3.0 19.0 V 5.0 A 2.0 2.0 0 0 1 5.0 3.0 Z M 15 3 v 18 M 8 9 l 3 3 -3 3";
     public static string For(AppPage page) => page switch
     {
         AppPage.Watchlist => Watchlist,
         AppPage.Charts => Charts,
-        AppPage.QqqGex => Charts,
         AppPage.Options => Options,
         AppPage.Strategy => Strategy,
         AppPage.News => News,
@@ -63,6 +65,7 @@ public static class NavigationIcons
         AppPage.DataSources => DataSources,
         AppPage.Settings => Settings,
         AppPage.Dashboard => Home,
+        AppPage.QqqGex => Charts,
         _ => throw new ArgumentOutOfRangeException(nameof(page)),
     };
     public static string Get(string name) => name switch
@@ -115,6 +118,9 @@ public static class NavigationIcons
         "Dividend" => Dividend,
         "List" => List,
         "CornerDownLeft" => CornerDownLeft,
+        "Cursor" => Cursor,
+        "Fit" => Fit,
+        "PanelRight" => PanelRight,
         _ => throw new ArgumentException("Unknown Lucide icon: "+name,nameof(name)),
     };
 }

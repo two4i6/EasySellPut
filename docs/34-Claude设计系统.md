@@ -63,3 +63,16 @@ Web 端复用 `.app-segmented` 和 `.app-popover`；原生端继续使用已有 
 ```
 
 弹层统一负责视口内定位、内部焦点、点击外部关闭、Esc 返回触发器和减少动态支持。选项是交互控件，不能放进 tooltip。期权字段使用现有私有 typed event 与 SettingsStore；无需新增远端桥接权限。实际画廊示例和键盘/窄屏测试在 `tests/webcharts/test_workbench.py`，截图为真实 Chromium 与 C# 测试宿主生成。
+
+## 图表周期按钮
+
+`ChartInterval` 是 RangeChip 的紧凑变体，使用相同控制高度、悬停和焦点状态，选中使用 RowHighlight；不增加专用按钮模板。
+
+```xml
+<!-- WPF: DataContext is ChartRangeTab; command comes from the workspace -->
+<Button Style="{StaticResource ChartInterval}" Content="{Binding CompactTitle}"/>
+<!-- Avalonia -->
+<Button Classes="ChartInterval" Classes.Selected="{Binding IsSelected}" Content="{Binding CompactTitle}"/>
+```
+
+实际画廊和交互检查在 `ChartWorkspaceTests`，包含 1920×1080 明暗主题、键盘进入周期滚动区、图标工具栏和指标抽屉。Web 数据范围帮助复用 `.app-popover`，不再用独立整行展开器。`ChartToolRailWidth` / `ChartSidebarWidth` 由 tokens.json 生成。

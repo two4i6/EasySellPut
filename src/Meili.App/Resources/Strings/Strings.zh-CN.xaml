@@ -1080,4 +1080,5 @@
     <sys:String x:Key="St_SaveFailed">未保存：{0}</sys:String>
     <sys:String x:Key="St_DeleteFailed">未删除：{0}</sys:String>
     <sys:String x:Key="Op_ToStrategy">加入策略</sys:String>
+    <sys:String x:Key="Ch_Pan">平移 / 选择</sys:String>
 </ResourceDictionary>

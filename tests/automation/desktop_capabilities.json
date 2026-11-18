@@ -99,6 +99,9 @@
         "ExportAsync": {
           "uiOnly": "Native save dialog and CSV layout are presentation; mapped operations expose the underlying structured data for client-side export, without arbitrary file-write tools."
         },
+        "CancelDrawing": {
+          "uiOnly": "Return to pan/select and cancel an unfinished gesture without changing persisted annotations."
+        },
         "StartDrawing": {
           "uiOnly": "Choosing a drawing mode is UI state; persisted annotations are covered by get/add/clear_chart_drawings."
         },

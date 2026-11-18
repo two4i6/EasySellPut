@@ -44,6 +44,8 @@
     <x:Double x:Key="TradingQuoteWidth">76</x:Double>
     <x:Double x:Key="TradingTableFontSize">15</x:Double>
     <x:Double x:Key="TradingHeaderHeight">52</x:Double>
+    <x:Double x:Key="ChartToolRailWidth">48</x:Double>
+    <x:Double x:Key="ChartSidebarWidth">320</x:Double>
     <sys:TimeSpan x:Key="MotionFastDuration">0:0:0.120</sys:TimeSpan>
     <sys:TimeSpan x:Key="MotionStandardDuration">0:0:0.180</sys:TimeSpan>
     <sys:TimeSpan x:Key="MotionEnterDuration">0:0:0.220</sys:TimeSpan>

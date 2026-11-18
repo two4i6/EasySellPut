@@ -510,3 +510,8 @@ Eight original operations are packaged with the shared SDK/installer/catalog/rel
 ### S16b — native chart lifecycle checkpoint
 
 The existing chart workspace now acquires a verified domain lease before activation and releases it on hide. Hidden gestures cannot mutate retained drawings; corrupt/suppressed apps cannot start source loads. Native snapshots, computations, live stitching and direct drawing gestures intentionally remain shared host capabilities (documented desktop exception); an active page pins its compatibility version, so leave the page before updating/disabling it. Local Shared 154, real Chromium 19, full Windows test-project cross-build and native-smoke project build passed. Full offline/native CI acceptance is pending S16c.
+
+### Chart UI follow-up — 2026-11-18
+
+- [x] Implement TradingView-inspired compact native controls, pan/select, OHLC, collapsible sidebar and shared Help popover; preserve chart data and CLI/MCP contracts. Shared 157, Chromium 20, Python 80 and full Windows cross-build passed.
+- [ ] Record exact-code native CI; final local Mac suite passed all 152, in addition to Shared 157 / Chromium 20 / Python 80 / full Windows cross-build. See docs/58-TradingView风格图表工作区.md for actual 1080p renders and scope. Previous b712a94 host CI passed non-ARM jobs; ARM jobs could not acquire hosted runners, so S16c remains unaccepted.

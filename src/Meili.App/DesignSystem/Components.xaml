@@ -69,4 +69,5 @@
     <Style x:Key="ActionCardInList" TargetType="ds:AppActionCard" BasedOn="{StaticResource AppButton}">
         <Style.Triggers><DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListViewItem}}" Value="True"><Setter Property="BorderBrush" Value="{DynamicResource FocusBrush}"/><Setter Property="Background" Value="{DynamicResource RowHighlightBrush}"/></DataTrigger></Style.Triggers>
     </Style>
+    <Style x:Key="ChartInterval" TargetType="Button" BasedOn="{StaticResource RangeChip}"><Setter Property="Background" Value="Transparent"/><Setter Property="Padding" Value="8,4"/><Style.Triggers><DataTrigger Binding="{Binding IsSelected}" Value="True"><Setter Property="Background" Value="{DynamicResource RowHighlightBrush}"/><Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/></DataTrigger></Style.Triggers></Style>
 </ResourceDictionary>

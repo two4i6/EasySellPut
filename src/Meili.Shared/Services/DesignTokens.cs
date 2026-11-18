@@ -115,6 +115,8 @@ public static class DesignTokens
     public const double TradingQuoteWidth = 76;
     public const double TradingTableFontSize = 15;
     public const double TradingHeaderHeight = 52;
+    public const double ChartToolRailWidth = 48;
+    public const double ChartSidebarWidth = 320;
     public static IEnumerable<(string Key,uint Argb)> ComponentBrushes(bool dark) => dark ? DarkBrushes : LightBrushes;
     private static readonly (string Key,uint Argb)[] LightBrushes =
     [

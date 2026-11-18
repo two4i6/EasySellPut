@@ -43,6 +43,45 @@ class TimelineTests(unittest.TestCase):
             self.page.screenshot(path=str(pathlib.Path(output)/(name+'.png')))
             if name.startswith('news-history'):
                 self.page.locator('#timeline').screenshot(path=str(pathlib.Path(output)/(name+'-panel.png')))
+    def test_workspace_sidebar_retains_filters_zoom_and_ohlc_with_keyboard_and_compact_layout(self):
+        p=self.browser.new_page(viewport=dict(width=1920,height=1080));errors=[];p.on('pageerror',lambda e:errors.append(str(e)))
+        try:
+            self.process.stdin.write('dark\nzh-CN\n');self.process.stdin.flush()
+            p.goto(self.url);p.wait_for_function('()=>meiliChart?.inspect().state?.events.length===4')
+            self.assertEqual(p.locator('#legend .legend-price').count(),4)
+            self.assertIn('开盘',p.locator('#legend .legend-value').first.get_attribute('aria-label'))
+            p.locator('[data-view=news]').click();count=p.locator('#event-list button').count()
+            p.evaluate('()=>meiliChart.inspect().chart.timeScale().setVisibleLogicalRange({from:20,to:80})')
+            p.wait_for_function('()=>Math.abs(meiliChart.inspect().chart.timeScale().getVisibleLogicalRange().from-20)<.01')
+            width=p.locator('#chart').bounding_box()['width']
+            p.locator('#collapse-events').click();p.wait_for_function('()=>!document.querySelector("#event-panel").checkVisibility()')
+            self.assertGreater(p.locator('#chart').bounding_box()['width'],width+200)
+            p.wait_for_function('()=>Math.abs(meiliChart.inspect().chart.timeScale().getVisibleLogicalRange().from-20)<.01')
+            self.assertEqual(p.locator('[data-view=news]').get_attribute('aria-expanded'),'false')
+            self.assertTrue(p.locator('[data-view=news]').evaluate('(e)=>e===document.activeElement'))
+            p.keyboard.press('Enter');self.assertTrue(p.locator('#event-panel').is_visible());self.assertEqual(count,p.locator('#event-list button').count())
+            p.locator('#event-info-heading').click();self.assertTrue(p.locator('#event-scope').is_visible())
+            bounds=p.locator('#event-info .app-popover-panel').bounding_box();self.assertGreaterEqual(bounds['x'],0);self.assertLessEqual(bounds['x']+bounds['width'],1920)
+            p.keyboard.press('Escape');self.assertFalse(p.locator('#event-scope').is_visible())
+            p.locator('#fit').click();p.locator('#symbol').click();p.wait_for_timeout(120)
+            if output:=os.environ.get('MEILI_RENDER_DIR'):
+                pathlib.Path(output).mkdir(parents=True,exist_ok=True);p.screenshot(path=str(pathlib.Path(output)/'charts-dark-1920.png'))
+            self.process.stdin.write('light\nen-US\n');self.process.stdin.flush()
+            p.wait_for_function('()=>meiliChart.inspect().state.language==="en-US"&&!meiliChart.inspect().state.theme.dark')
+            self.assertIn('Open',p.locator('#legend .legend-value').first.get_attribute('aria-label'))
+            panel=p.locator('#event-panel').bounding_box()
+            for selector in ['#event-filters','#event-info-heading','#collapse-events']:
+                control=p.locator(selector).bounding_box();self.assertLessEqual(control['x']+control['width'],panel['x']+panel['width'])
+            self.assertEqual(count,p.locator('#event-list button').count())
+            if output:p.screenshot(path=str(pathlib.Path(output)/'charts-light-1920.png'))
+            p.emulate_media(reduced_motion='reduce');p.set_viewport_size(dict(width=560,height=720));p.reload();p.wait_for_function('()=>meiliChart?.inspect().state?.rows.length===120')
+            self.assertFalse(p.locator('#event-panel').is_visible());self.assertGreater(p.locator('#chart').bounding_box()['width'],500)
+            p.locator('[data-view=all]').focus();p.keyboard.press('Enter');self.assertTrue(p.locator('#event-panel').is_visible())
+            self.assertEqual('0s',p.locator('#timeline').evaluate('(e)=>getComputedStyle(e).transitionDuration'))
+            self.assertFalse(errors)
+        finally:
+            p.close();self.process.stdin.write('dark\nzh-CN\n');self.process.stdin.flush()
+
     def test_aggregated_marker_opens_all_28_events_with_matching_filters(self):
         p=self.page
         original=p.evaluate('structuredClone(meiliChart.inspect().state)')

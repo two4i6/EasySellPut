@@ -48,7 +48,7 @@ class RendererTests(unittest.TestCase):
                     if same and params.get('quote',['0'])[0]==str(cls.quote_version): self.send_response(204); self.end_headers(); return
                     body=json.dumps(dict(version=cls.version,data=None if same else cls.state,quoteVersion=cls.quote_version,quote=cls.quote)).encode(); mime='application/json'
                 else:
-                    file={'/index.html':'index.html','/chart.js':'chart.js','/icons.js':'icons.js','/motion.js':'motion.js','/design-tokens.css':'design-tokens.css','/components.css':'components.css',**{'/fonts/'+name:'../Assets/Fonts/'+name for name in ['SourceSans3-Regular.ttf','SourceSans3-Semibold.ttf','SourceSerif4-Regular.ttf','SourceCodePro-Regular.ttf']},'/library.js':'vendor/lightweight-charts.js'}.get(route)
+                    file={'/index.html':'index.html','/chart.js':'chart.js','/chart.css':'chart.css','/components.js':'components.js','/icons.js':'icons.js','/motion.js':'motion.js','/design-tokens.css':'design-tokens.css','/components.css':'components.css',**{'/fonts/'+name:'../Assets/Fonts/'+name for name in ['SourceSans3-Regular.ttf','SourceSans3-Semibold.ttf','SourceSerif4-Regular.ttf','SourceCodePro-Regular.ttf']},'/library.js':'vendor/lightweight-charts.js'}.get(route)
                     if file is None: self.send_error(404); return
                     body=(ASSETS/file).read_bytes(); mime='font/ttf' if route.endswith('.ttf') else 'text/css' if route.endswith('.css') else 'text/html' if route.endswith('.html') else 'text/javascript'
                 self.send_response(200);self.send_header('Content-Type',mime);self.send_header('Content-Length',str(len(body)));self.end_headers();self.wfile.write(body)
@@ -104,7 +104,7 @@ class RendererTests(unittest.TestCase):
         after=p.evaluate('meiliChart.inspect().chart.timeScale().getVisibleLogicalRange()')
         self.assertAlmostEqual(before['from'],after['from'],places=5);self.assertAlmostEqual(before['to'],after['to'],places=5)
         self.assertEqual(p.evaluate('meiliChart.inspect().series.candles.options().upColor'),'#1A7050')
-        self.assertEqual(p.locator('#fit').inner_text(),'适应')
+        self.assertEqual(p.locator('#fit').get_attribute('aria-label'),'适应图表窗口');self.assertEqual(p.locator('#fit svg[data-lucide=Fit]').count(),1)
         next_state['show']['rsi']=False;p.evaluate('(s)=>meiliChart.render(s)',next_state)
         self.assertEqual(p.evaluate('meiliChart.inspect().chart.panes().length'),4)
         next_state['drawingMode']='HorizontalLine';p.evaluate('(s)=>meiliChart.render(s)',next_state)
@@ -135,7 +135,9 @@ class RendererTests(unittest.TestCase):
             p.evaluate('(s)=>meiliChart.render(s)',data)
             p.mouse.move(1,1);p.wait_for_timeout(150)
             style=p.locator('#fit').evaluate('(e)=>{const s=getComputedStyle(e);return {background:s.backgroundColor,radius:s.borderRadius,size:s.fontSize,height:e.getBoundingClientRect().height}}')
-            self.assertEqual(style['background'],'rgb(50, 48, 44)' if dark else 'rgb(251, 247, 240)')
+            self.assertEqual(style['background'],'rgba(0, 0, 0, 0)')
+            p.locator('#fit').hover();p.wait_for_timeout(180)
+            self.assertEqual(p.locator('#fit').evaluate('(e)=>getComputedStyle(e).backgroundColor'),'rgb(50, 48, 44)' if dark else 'rgb(251, 247, 240)')
             self.assertEqual(p.evaluate('meiliChart.inspect().chart.options().layout.panes.separatorColor'),data['theme']['border'])
             self.assertEqual(p.evaluate('meiliChart.inspect().chart.options().crosshair.vertLine.labelBackgroundColor'),data['theme']['accent'])
             self.assertEqual(style['radius'],'8px');self.assertEqual(style['size'],'14px');self.assertGreaterEqual(style['height'],32)

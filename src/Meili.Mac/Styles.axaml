@@ -186,5 +186,7 @@
     </Style>
     <Style Selector=".ChartWorkspace #ChartToolbar Button, .ChartWorkspace #ChartToolbar ToggleButton"><Setter Property="Height" Value="32"/><Setter Property="MinHeight" Value="32"/><Setter Property="VerticalAlignment" Value="Center"/><Setter Property="Padding" Value="10,4"/></Style>
     <Style Selector=".ChartWorkspace #ChartToolbar Button.Icon"><Setter Property="Width" Value="32"/><Setter Property="MinWidth" Value="32"/><Setter Property="Padding" Value="0"/></Style>
-    <Style Selector=".ChartWorkspace Button.DrawTool, .ChartWorkspace ToggleButton.DrawTool"><Setter Property="Width" Value="56"/><Setter Property="Height" Value="56"/><Setter Property="MinWidth" Value="56"/><Setter Property="MinHeight" Value="56"/><Setter Property="Padding" Value="4"/><Setter Property="HorizontalAlignment" Value="Center"/></Style>
+    <Style Selector=".ChartWorkspace Button.DrawTool, .ChartWorkspace ToggleButton.DrawTool"><Setter Property="Width" Value="{StaticResource ControlHeight}"/><Setter Property="Height" Value="{StaticResource ControlHeight}"/><Setter Property="MinWidth" Value="{StaticResource ControlHeight}"/><Setter Property="MinHeight" Value="{StaticResource ControlHeight}"/><Setter Property="Padding" Value="4"/><Setter Property="HorizontalAlignment" Value="Center"/></Style>
+    <Style Selector=".ChartWorkspace Button.ChartInterval"><Setter Property="Background" Value="Transparent"/></Style>
+    <Style Selector=".ChartWorkspace Button.ChartInterval.Selected"><Setter Property="Background" Value="{DynamicResource RowHighlightBrush}"/></Style>
 </Styles>

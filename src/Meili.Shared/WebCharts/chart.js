@@ -3,11 +3,24 @@
 (() => {
   const root = document.getElementById('chart');
   let byTime = new Map(), eventMarkers, selectedEvent, selectedEventTime=null, filters = new Set(["news","earnings","ex_dividend"]);
+  const text = (tag,value,css) => {const node=document.createElement(tag);node.textContent=value;if(css)node.className=css;return node;};
+  let sidebarCollapsed=window.innerWidth<640, sidebarViewport=null;
+  function setSidebarCollapsed(value){
+    if(value!==sidebarCollapsed&&chart)sidebarViewport??={chart,key,range:chart.timeScale().getVisibleLogicalRange()};
+    sidebarCollapsed=value;
+    const panel=document.getElementById('event-panel');
+    if(value&&panel.contains(document.activeElement))document.querySelector('#right-tools button[aria-pressed=true]')?.focus();
+    document.getElementById('timeline').classList.toggle('collapsed',value);
+
+    for(const button of document.querySelectorAll('#right-tools button'))button.setAttribute('aria-expanded',String(!value&&button.getAttribute('aria-pressed')==='true'));
+  }
+  document.getElementById('collapse-events').addEventListener('click',()=>setSidebarCollapsed(true));
   let sessionBands=[],sessionLayers=[];
   let chart, state, version = -1, signature = '', key = '', series = {}, priceLines = [], drawingSeries = [];
   let quoteVersion=-1,liveQuote=null,livePriceLine=null,livePriceOwner=null;
   let posting = false, pendingHover = null, userRange = null, applying = false;
   let editorPreview=null, sameBarWarning = false, draft = null, drawingHover = null, selectedDrawing = -1, drawingRevision = '', drawingBusy = false;
+  setSidebarCollapsed(sidebarCollapsed);
   const finite = Number.isFinite;
   const post = body => fetch('event', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)});
   const diagnostic = body => post({kind: 'diagnostic', ...body}).catch(() => {});
@@ -134,7 +147,12 @@
     }
     if((e.key==='Delete'||e.key==='Backspace') && selectedDrawing>=0 && e.target===root){e.preventDefault();changeDrawing(true);}
   });
-  new ResizeObserver(()=>requestAnimationFrame(drawOverlay)).observe(root);
+  new ResizeObserver(()=>requestAnimationFrame(()=>{
+    // Restore after Lightweight Charts processes autoSize, without fitting/reloading market data.
+    const saved=sidebarViewport;sidebarViewport=null;
+    if(saved?.range&&chart===saved.chart&&key===saved.key){chart.timeScale().setVisibleLogicalRange(saved.range);userRange=saved.range;}
+    drawOverlay();
+  })).observe(root);
   function point(row, field, color) {
     return finite(row[field]) ? {time: row.time, value: row[field], ...(color ? {color} : {})} : {time: row.time};
   }
@@ -266,6 +284,7 @@
         const hits=eventHitItems(param);
         hideEventTooltip();
         if (hits.length) {
+          setSidebarCollapsed(false);
           selectedEventTime=hits[0].time;
           selectedEvent=hits.length===1?hits[0].event.id:null;
           renderEvents();
@@ -302,6 +321,9 @@
   const scheduleHistory=()=>{if(!historyFrame)historyFrame=requestAnimationFrame(()=>{historyFrame=0;historyPosition();});};
   document.getElementById('event-list').addEventListener('scroll',scheduleHistory,{passive:true});
   for(const button of document.querySelectorAll('#right-tools button')) button.addEventListener('click',()=>{
+    const same=button.getAttribute('aria-pressed')==='true';
+    if(same){setSidebarCollapsed(!sidebarCollapsed);return;}
+    setSidebarCollapsed(false);
     filters.clear();
     for(const type of button.dataset.view==='news'?['news']:button.dataset.view==='calendar'?['earnings','ex_dividend']:['news','earnings','ex_dividend'])filters.add(type);
     for(const input of document.querySelectorAll('#event-filters input'))input.checked=filters.has(input.dataset.type);
@@ -320,7 +342,7 @@
     const names = eventNames();
     const labels = zh ? {estimated:'预计',source_confirmed:'来源已确认',unverified:'未核实',reported_published:'来源发布时间',timestamp:'精确时间',date:'仅日期',date_range:'日期范围',unknown:'时间未知',outside_chart:'图表范围外',next_bar:'对齐后续 K 线',same_day:'同日 K 线',period_bucket:'周期汇总',exact:'精确对齐',available:'可用',empty:'暂无新闻',not_reported:'来源未提供',unavailable:'不可用'} :
       {estimated:'Estimated',source_confirmed:'Source confirmed',unverified:'Unverified',reported_published:'Reported publication',timestamp:'Timestamp',date:'Date only',date_range:'Date range',unknown:'Time unknown',outside_chart:'Outside chart',next_bar:'Aligned to next bar',same_day:'Same day bar',period_bucket:'Period bucket',exact:'Exact',available:'Available',empty:'No recent news',not_reported:'Not reported',unavailable:'Unavailable'};
-    const text = (tag,value,css) => {const node=document.createElement(tag);node.textContent=value;if(css)node.className=css;return node;};
+
     const date = (e,compact=false) => e.published ? new Intl.DateTimeFormat(state.language,{timeZone:'America/New_York',dateStyle:compact?'short':'medium',timeStyle:'short'}).format(new Date(e.published))+' ET' : e.date ? e.date+(e.endDate ? ' – '+e.endDate : '') : labels.unknown;
     const view=filters.size===3?'all':filters.size===1&&filters.has('news')?'news':filters.size===2&&!filters.has('news')?'calendar':null;
     const viewNames=zh?{all:'动态',news:'新闻',calendar:'日历'}:{all:'Activity',news:'News',calendar:'Calendar'};
@@ -330,8 +352,10 @@
     document.getElementById('right-tools').setAttribute('aria-label',zh?'侧栏视图':'Sidebar views');
     for(const button of document.querySelectorAll('#right-tools button')){
       button.setAttribute('aria-pressed',String(button.dataset.view===view));
+      button.setAttribute('aria-expanded',String(!sidebarCollapsed&&button.dataset.view===view));button.setAttribute('aria-controls','event-panel');
       button.title=viewNames[button.dataset.view];button.setAttribute('aria-label',button.title);button.querySelector('span').textContent=button.title;
     }
+    const collapse=document.getElementById('collapse-events');collapse.title=zh?'收起侧栏':'Collapse sidebar';collapse.setAttribute('aria-label',collapse.title);
     document.getElementById('event-heading').setAttribute('aria-label',zh?'事件与新闻':'Events and news');
     const box = document.getElementById('event-filters');
     if (box.dataset.language !== state.language) {
@@ -345,7 +369,7 @@
     const status=document.getElementById('event-status');
     status.textContent=state.timelineStatus==='loading' ? (zh?'加载中…':'Loading…') : (state.coverage||[]).filter(c=>c.status==='unavailable').map(c=>names[c.type]+': '+labels.unavailable).join(' · ');
     status.hidden=!status.textContent;
-    document.getElementById('event-info-heading').textContent=zh?'数据范围':'Coverage';
+    const help=document.getElementById('event-info-heading');help.title=zh?'数据范围':'Coverage';help.setAttribute('aria-label',help.title);document.querySelector('#event-info [role=dialog]').setAttribute('aria-label',help.title);
     document.getElementById('event-coverage').textContent=(state.coverage||[]).map(c=>names[c.type]+': '+(labels[c.status]||c.status)).join(' · ');
     document.getElementById('event-scope').textContent=zh?'最近新闻与当前日历快照，不含完整历史。':'Recent news and current calendar snapshot; historical coverage is limited.';
     const visible=(state.events||[]).filter(e=>filters.has(e.event.type));
@@ -423,7 +447,15 @@
     const sessionNames=state.language==='zh-CN'?{PreMarket:'盘前',Regular:'常规',AfterHours:'盘后',Closed:'休市'}:{PreMarket:'Pre-market',Regular:'Regular',AfterHours:'After-hours',Closed:'Closed'};
     const values=fields.filter(Boolean).map(([label,value])=>label+' '+(finite(value)?value.toFixed(2):'—'));
     if(state.intraday&&row.session)values.unshift(sessionNames[row.session]);
-    document.getElementById('legend').textContent=values.join('   ');
+    const legend=document.getElementById('legend');legend.replaceChildren();
+    const names=state.language==='zh-CN'?['开','高','低','收']:['O','H','L','C'];
+    const fullNames=state.language==='zh-CN'?['开盘','最高','最低','收盘']:['Open','High','Low','Close'];
+    [row.open,row.high,row.low,row.close].forEach((value,i)=>{
+      const item=text('span','','legend-value');item.setAttribute('aria-label',fullNames[i]+' '+(finite(value)?value.toFixed(2):'—'));item.append(text('b',names[i]),text('span',finite(value)?value.toFixed(2):'—','legend-price'));legend.append(item);
+    });
+    for(const value of values)legend.append(text('span',value,'legend-value legend-study'));
+    legend.title=[...legend.children].map(item=>item.getAttribute('aria-label')||item.textContent).join(' · ');
+
   }
   function render(next) {
     const previousKey = key, saved = userRange, previousMode=state?.drawingMode, previousRevision=state?.drawingRevision,previousEpoch=state?.drawingEpoch;
@@ -446,7 +478,7 @@
       for (const [name,value] of Object.entries({brand:t.brand,focus:t.focus,link:t.link,input:t.input,hover:t.hover,pressed:t.pressed,danger:t.danger,background:t.background,text:t.text,muted:t.muted,control:t.control,border:t.border,accent:t.accent,'error-background':t.errorBackground,'error-text':t.errorText}))
         if (value) document.documentElement.style.setProperty('--'+name,value);
       document.getElementById('symbol').textContent = state.symbol;
-      document.getElementById('fit').textContent = state.language === 'zh-CN' ? '适应' : 'Fit';
+      document.getElementById('fit').title = state.language === 'zh-CN' ? '适应图表窗口' : 'Fit chart to window';
       document.getElementById('fit').setAttribute('aria-label',state.language === 'zh-CN' ? '适应图表窗口' : 'Fit chart to window');
       const attribution=document.getElementById('attribution');
       attribution.replaceChildren(meiliIcons.svg('Info',16));

@@ -110,9 +110,10 @@ public partial class ChartsViewModel : ObservableObject
     private IndicatorSettings _ind = new();
 
     // B5: user drawings (per symbol, saved) and one rebased comparison symbol.
+    public bool IsPan => DrawMode is null;
     public bool IsHorizontalDrawing => DrawMode == DrawingKind.HorizontalLine;
     public bool IsTrendDrawing => DrawMode == DrawingKind.TrendLine;
-    [NotifyPropertyChangedFor(nameof(IsHorizontalDrawing), nameof(IsTrendDrawing))]
+    [NotifyPropertyChangedFor(nameof(IsHorizontalDrawing), nameof(IsTrendDrawing), nameof(IsPan))]
     [ObservableProperty] public partial DrawingKind? DrawMode { get; set; }
     [ObservableProperty] public partial IReadOnlyList<ChartDrawing> Drawings { get; set; } = [];
     [ObservableProperty] public partial string CompareText { get; set; } = "";
@@ -477,6 +478,7 @@ public partial class ChartsViewModel : ObservableObject
     public long DrawingEpoch { get; private set; }
     public (DateTimeOffset Time, double Price)? DrawingStart => _trendStart;
     public string DrawingRevision => Series is null ? "" : _drawings.Revision(Series.Symbol);
+    [RelayCommand]
     public void CancelDrawing()
     {
         DrawingEpoch++; DrawMode = null; _trendStart = null; UpdateStatus(); PlotChanged?.Invoke(this, EventArgs.Empty);

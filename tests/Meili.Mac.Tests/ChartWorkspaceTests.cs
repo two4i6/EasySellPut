@@ -20,6 +20,8 @@ public sealed class ChartWorkspaceTests
     [InlineData(980, 620, "en-US", true)]
     [InlineData(1320, 840, "zh-CN", true)]
     [InlineData(1320, 840, "en-US", false)]
+    [InlineData(1920, 1080, "en-US", true)]
+    [InlineData(1920, 1080, "zh-CN", false)]
     public async Task Chart_keeps_the_space_and_settings_remain_accessible(int width,int height,string language,bool dark)
     {
         MacHost.EnsureComposed();
@@ -46,7 +48,9 @@ public sealed class ChartWorkspaceTests
 
             Assert.True(chart.Bounds.Height>page.Bounds.Height*.72,$"Chart height: {chart.Bounds}, page: {page.Bounds}");
             Assert.True(chart.Bounds.Width>page.Bounds.Width*.82);
-            Assert.Equal(loc["Ch_Tools"],toggle.Content);
+            Assert.Equal(loc["Ch_Tools"],Avalonia.Automation.AutomationProperties.GetName(toggle));
+            Assert.Equal("Settings",Assert.IsType<Meili.Mac.Views.Controls.LucideIcon>(toggle.Content).Kind);
+            Assert.Equal(48,page.FindControl<Border>("DrawingToolbar")!.Bounds.Width);
             MacHost.Save(window,$"workspace-{width}-{language}-{dark}-default");
             if(Environment.GetEnvironmentVariable("MEILI_RENDER_DIR") is {Length:>0} renderDir)
             {
@@ -69,7 +73,10 @@ public sealed class ChartWorkspaceTests
             Assert.Equal(Color.FromUInt32(Meili.Shared.Services.ThemePalette.For(dark).Control),((ISolidColorBrush)draw.Background!).Color);
             draw.Command!.Execute(draw.CommandParameter);await Task.Delay(160);MacHost.Pump();Assert.True(draw.IsChecked);
             Assert.Equal(Color.FromUInt32(Meili.Shared.Services.ThemePalette.For(dark).RowHighlight),((ISolidColorBrush)draw.Background!).Color);
-            vm.DrawMode=null;MacHost.Pump();Assert.False(draw.IsChecked);
+            var pan=page.GetVisualDescendants().OfType<ToggleButton>().Single(b=>b.Command==vm.CancelDrawingCommand);
+            Assert.False(pan.IsChecked);pan.Command!.Execute(null);MacHost.Pump();Assert.False(draw.IsChecked);Assert.True(pan.IsChecked);
+            var toolButtons=page.FindControl<Border>("DrawingToolbar")!.GetVisualDescendants().OfType<Button>().ToArray();
+            Assert.All(toolButtons,b=>{Assert.Equal(32,b.Bounds.Width);Assert.Equal(32,b.Bounds.Height);});
             MacHost.Save(window,$"workspace-{width}-{language}-{dark}-inspector");
             toggle.IsChecked=false;MacHost.Pump();Assert.False(vm.ShowInspector);
             Assert.Equal(fullWidth,chart.Bounds.Width);
