@@ -41,6 +41,22 @@ public sealed class NewsReaderTests
     }
 
     [Fact]
+    public async Task Language_changes_defer_hidden_news_fetch_until_activation()
+    {
+        Ui.Platform=new FakeUiPlatform();var calls=0;
+        var directory=Path.Combine(Path.GetTempPath(),"news-locale-"+Guid.NewGuid().ToString("N"));
+        var data=new PricingSnapshotTests.SnapshotData{News=(_,_)=>{calls++;return Task.FromResult<IReadOnlyList<Meili.Core.Models.NewsItem>>([new(){Title="fixture",Url="https://example.com",Source="fixture"}]);}};
+        var loc=new LocalizationService();var model=new NewsViewModel(new WatchlistStore(new SettingsStore(directory)),data,loc,new SymbolContext());
+        try
+        {
+            await model.ActivateAsync();model.Deactivate();var before=calls;
+            loc.Apply("en-US");Assert.Equal(before,calls);
+            await model.ActivateAsync();Assert.True(calls>before);
+        }
+        finally{model.Deactivate();if(Directory.Exists(directory))Directory.Delete(directory,true);}
+    }
+
+    [Fact]
     public void News_uses_internal_reader_while_company_website_keeps_explicit_browser_behavior()
     {
         var directory = Path.Combine(Path.GetTempPath(), "meili-news-" + Guid.NewGuid().ToString("N"));
@@ -52,6 +68,7 @@ public sealed class NewsReaderTests
                 new PricingSnapshotTests.SnapshotData(), loc, new SymbolContext());
             vm.OpenArticleCommand.Execute(new NewsEntry { Url = "https://example.com/article", Title = "Article title" });
             Assert.Equal(("https://example.com/article", "Article title"), Assert.Single(ui.Articles));
+            Assert.NotNull(vm.SelectedNews);Assert.Equal("https://example.com/article",vm.SelectedNews.Url);
             Assert.Empty(ui.Opened);
             vm.OpenArticleCommand.Execute(new NewsEntry { Url = "file:///private/file", Title = "Blocked" });
             Assert.Single(ui.Articles);

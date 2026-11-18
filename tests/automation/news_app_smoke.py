@@ -30,7 +30,7 @@ def check(archive,public_key,repository):
             value=[dict(title='原始新闻',url='https://example.com/article?q=literal',published=None,source='fixture')]if op['name']=='get_news' else dict(symbol='AAPL',source='fixture',asOf=None,missing=None)
             request=dict(protocol=1,framing='host-jsonl-v1',operation=op['name'],arguments=args,context=dict(appId=manifest['id'],hostOperations=[op['name']]))
             for reply in (dict(success=True,data=value),dict(success=False,error=dict(code='data_source_error',message='fixture source failed'))):
-                result=subprocess.run(['node',str(script)],input=json.dumps(request)+'\n'+json.dumps(dict(type='hostResult',id=1,result=reply))+'\n',text=True,capture_output=True,timeout=15,check=True)
+                result=subprocess.run(['node',str(script)],input=json.dumps(request)+'\n'+json.dumps(dict(type='hostResult',id=1,result=reply))+'\n',text=True,encoding="utf-8",capture_output=True,timeout=15,check=True)
                 frames=[json.loads(line)for line in result.stdout.splitlines()]
                 assert frames[0]==dict(type='hostCall',id=1,operation=op['name'],arguments=args)
                 assert len(frames)==2

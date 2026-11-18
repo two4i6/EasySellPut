@@ -16,6 +16,13 @@ Local core baseline run-ZUhgc8eg passed 1,062 .NET cases (two additional Windows
 
 ## UI modernization and acceptance
 
-User requested modernization using the existing split component. Planned scope: reduce three-column overload, prioritize the article list, provide a clear news/fundamentals switch, reuse action cards and compact icon actions, retain readable sources and existing financial controls. Match the Claude design tokens and Lucide icons; no duplicate component system or page/layout animations. Original articles stay in the same left/right ArticleSplitView with resize/history/close behavior and WebView isolation.
+The news workspace uses the host’s full-height ArticleSplitView. The left pane contains the page heading, symbol toolbar, quote/source summary and news list. The right pane initially contains fundamentals and financial statements. There is no news/fundamentals tab strip or nested split below the toolbar. Opening an article replaces the entire right pane with the existing isolated native reader; close/Esc restores the same fundamentals view and split ratio. The divider remains draggable, and changing articles retains browser identity. Leaving the workspace releases the article reader without deleting personal website sessions.
 
-Core-only scope: native layout/browser adapters remain host-owned. Current UI modernization and final native exact-commit CI are pending; S14 is not yet accepted. Fixture results do not establish complete live coverage or production signing/distribution. No main merge or public release is performed.
+Both native implementations reuse Claude tokens, Lucide icons, AppActionCard, compact accessible refresh/export actions and existing financial controls. Empty metadata collapses; selection remains visible. Financial tables scroll horizontally in compact panes. No market-value, WebView or split-size animation is added. Inactive locale changes defer reload until activation.
+
+Local full-height journey checks pass for default fundamentals, article replacement/reuse, Esc restoration, stable ratio and personal website navigation. Screenshots below are 1920×1080 Avalonia headless fixtures; the article region is a platform stub, not evidence of a rendered native website. Windows native WebView2 fixture coverage is included in the existing full desktop CI suite. Exact-commit native CI remains pending until the UI checkpoint is pushed and verified.
+
+- [Default full-height split (fixture)](screenshots/news-fullheight-default-1920.png)
+- [Article selection, dark (headless browser stub)](screenshots/news-fullheight-reader-dark-1920.png)
+
+Core-only scope: native layout/browser adapters remain host-owned. S14 is not yet accepted pending final native exact-commit CI. Fixture results do not establish complete live coverage or production signing/distribution. No main merge or public release is performed.

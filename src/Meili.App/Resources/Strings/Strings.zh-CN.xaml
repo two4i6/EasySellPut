@@ -327,6 +327,7 @@
     <sys:String x:Key="Nf_SourceFin">财报来源 {0}</sys:String>
     <sys:String x:Key="Nf_Profile">公司简介</sys:String>
     <sys:String x:Key="Nf_Stats">关键指标</sys:String>
+    <sys:String x:Key="Nf_Fundamentals">基本面</sys:String>
     <sys:String x:Key="Nf_Financials">财务报表</sys:String>
     <sys:String x:Key="Nf_News">新闻</sys:String>
     <sys:String x:Key="Nf_OpenArticle">打开原文</sys:String>

@@ -82,9 +82,11 @@ public partial class MainWindow : Window
         if(!ModuleNavigation.IsAvailable(AppServices.Get<DataDirectoryInfo>().Path,page))page=AppPage.Settings;
         if (!_pages.TryGetValue(page, out var view))
             _pages[page] = view = CreatePage(page);
+        if(page==AppPage.News || CurrentPage==AppPage.News)CloseNewsArticle();
         CurrentPage = page;
         ShowMarketWorkspace();
         PageHost.Content = _presentationSuspended?null:view;
+        ConfigureNewsDefault((view as Meili.Mac.Views.NewsPage)?.FundamentalsContent);
     }
 
     private static Control CreatePage(AppPage page) => page switch

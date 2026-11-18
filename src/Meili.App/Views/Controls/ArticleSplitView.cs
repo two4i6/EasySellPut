@@ -9,6 +9,9 @@ public sealed class ArticleSplitView : Grid
     private readonly Border _article=new();
     private readonly FrameworkElement _main;
     private bool _open;
+    private FrameworkElement? _defaultSupplement;
+    public bool HasDefaultSupplement=>_defaultSupplement is not null;
+    public bool IsShowingDefault=>_defaultSupplement is not null && ReferenceEquals(_article.Child,_defaultSupplement);
     public bool IsOpen=>_open;
     public bool IsVertical=>false;
     public ArticleSplitView(FrameworkElement main)
@@ -21,7 +24,18 @@ public sealed class ArticleSplitView : Grid
         SetOpen(false);
     }
     public void Open(FrameworkElement article){_article.Child=article;if(!_open)SetOpen(true);}
-    public void Close(){_article.Child=null;SetOpen(false);}
+    public void SetDefaultSupplement(FrameworkElement? supplement)
+    {
+        var showingDefault=IsShowingDefault;
+        _defaultSupplement=supplement;
+        if(showingDefault || !_open || _article.Child is null)Close();
+    }
+    public void Close()
+    {
+        _article.Child=_defaultSupplement;
+        var open=_defaultSupplement is not null;
+        if(_open!=open)SetOpen(open);
+    }
     private void SetOpen(bool open)
     {
         _open=open;_divider.Visibility=_article.Visibility=open?Visibility.Visible:Visibility.Collapsed;

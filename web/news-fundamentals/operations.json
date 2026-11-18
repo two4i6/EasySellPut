@@ -1,7 +1,7 @@
 [
   {
     "name": "get_news",
-    "description": "Shared provider data with original sources, dates, missingness and URLs; remote pages receive no app capabilities.",
+    "description": "Recent provider news with original publisher, URL and publication time (which may be unknown). Limit is 1..50, default 20. Article URLs are data; opening them is an explicit desktop action, not a browser capability.",
     "writes": false,
     "schema": {
       "type": "object",
@@ -30,7 +30,7 @@
   },
   {
     "name": "get_fundamentals",
-    "description": "Shared provider data with original sources, dates, missingness and URLs; remote pages receive no app capabilities.",
+    "description": "Company fundamentals and profile with source/freshness metadata, optional metrics, earnings/date status and missingness. Preserve provenance; this is not a live quote source.",
     "writes": false,
     "schema": {
       "type": "object",
@@ -53,7 +53,7 @@
   },
   {
     "name": "get_financials",
-    "description": "Shared provider data with original sources, dates, missingness and URLs; remote pages receive no app capabilities.",
+    "description": "Financial statements with original reporting periods, currency, provider units, source and freshness metadata. Missing values remain missing; annual/quarterly choice belongs to presentation.",
     "writes": false,
     "schema": {
       "type": "object",

@@ -54,7 +54,7 @@ public partial class MainWindow : FluentWindow
         Closing += OnClosing;
         _nav.Requested += OnNavigateRequested;
         _notify.ExitRequested += (_, _) => RequestExit();
-        RootNavigation.Navigated += (_, e) => { _currentPage = e.Page as FrameworkElement; SyncMarketNavigation(); };
+        RootNavigation.Navigated += (_, e) => { if(e.Page is Meili.App.Views.Pages.NewsPage || _currentPage is Meili.App.Views.Pages.NewsPage)CloseNewsArticle(); _currentPage = e.Page as FrameworkElement; SyncMarketNavigation(); ConfigureNewsDefault((_currentPage as Meili.App.Views.Pages.NewsPage)?.FundamentalsContent); };
         WizardBox.WatchSymbols = AppServices.Get<WatchlistStore>().AllSymbols;
         WizardBox.CommitCommand = new RelayCommand(CommitWizard);
         PreviewKeyDown += OnShortcutKeyDown;

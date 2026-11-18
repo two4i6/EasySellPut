@@ -124,6 +124,7 @@ public partial class MainWindow
     internal void OpenModule(string id)
     {
         if(!ModuleNavigation.Entries(AppServices.DataDirectory.Path).Any(a=>a.Id==id))return;
+        ConfigureNewsDefault(null);
         CloseModulePresentation();_activeModule=id;_activeWebsite=null;
         NativePageHost.Children.Remove(RootNavigation);WebTabHost.Visibility=Visibility.Collapsed;
         if(!_modulePages.TryGetValue(id,out var page))_modulePages[id]=page=new Meili.App.Views.Pages.ModuleAppPage(id);
@@ -138,6 +139,7 @@ public partial class MainWindow
     }
     internal void OpenWebsite(WebWorkspaceTab tab)
     {
+        ConfigureNewsDefault(null);
         CloseModulePresentation();
         if (!_webTabs.TryGetValue(tab.Id, out var pane))
         {

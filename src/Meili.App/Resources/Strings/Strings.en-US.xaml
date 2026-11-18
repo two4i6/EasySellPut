@@ -327,6 +327,7 @@
     <sys:String x:Key="Nf_SourceFin">Financials: {0}</sys:String>
     <sys:String x:Key="Nf_Profile">Profile</sys:String>
     <sys:String x:Key="Nf_Stats">Key statistics</sys:String>
+    <sys:String x:Key="Nf_Fundamentals">Fundamentals</sys:String>
     <sys:String x:Key="Nf_Financials">Financials</sys:String>
     <sys:String x:Key="Nf_News">News</sys:String>
     <sys:String x:Key="Nf_OpenArticle">Open article</sys:String>

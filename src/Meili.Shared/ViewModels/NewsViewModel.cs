@@ -30,6 +30,7 @@ public partial class NewsViewModel : ObservableObject
     private CancellationTokenSource? _cts;
     private long _generation;
     private bool _active;
+    private bool _relabelPending;
     private string? _lastError;
     private FinancialStatements? _financials;
     private Fundamentals? _lastFundamentals;
@@ -43,6 +44,7 @@ public partial class NewsViewModel : ObservableObject
 
     [ObservableProperty] public partial string SymbolText { get; set; } = "";
     [ObservableProperty] public partial bool IsBusy { get; set; }
+    [ObservableProperty] public partial NewsEntry? SelectedNews {get;set;}
     [ObservableProperty] public partial bool Annual { get; set; } = true;
     [ObservableProperty] public partial string StatusText { get; set; } = "";
     [ObservableProperty] public partial string Headline { get; set; } = "";
@@ -50,7 +52,8 @@ public partial class NewsViewModel : ObservableObject
     [ObservableProperty] public partial string PriceText { get; set; } = "";
     [ObservableProperty] public partial string ChangeText { get; set; } = "";
     [ObservableProperty] public partial object? ChangeBrush { get; set; }
-    [ObservableProperty] public partial string MetaText { get; set; } = "";
+    public bool HasMetaText=>!string.IsNullOrWhiteSpace(MetaText);
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(HasMetaText))] public partial string MetaText { get; set; } = "";
     [ObservableProperty] public partial string Description { get; set; } = "";
     [ObservableProperty] public partial string WebsiteText { get; set; } = "";
     [ObservableProperty] public partial string? WebsiteUrl { get; set; }
@@ -80,7 +83,7 @@ public partial class NewsViewModel : ObservableObject
         _active = true;
         LiveQuote.Activate(SymbolText);
         if (_context.ShouldAdopt(SymbolText)) { await AdoptContextAsync(); return; }
-        if (string.IsNullOrEmpty(Headline) && Stats.Count == 0 && News.Count == 0) await LoadAsync();
+        if (_relabelPending || (string.IsNullOrEmpty(Headline) && Stats.Count == 0 && News.Count == 0)) { _relabelPending=false; await LoadAsync(); }
         else _timer.Start();
     }
 
@@ -161,7 +164,7 @@ public partial class NewsViewModel : ObservableObject
     {
         if (item is null) return;
         if (!NewsReaderPolicy.IsAllowed(item.Url)) { StatusText = _loc["Reader_Blocked"]; return; }
-        try { Ui.Platform.OpenNewsArticle(item.Url, item.Title); }
+        try { Ui.Platform.OpenNewsArticle(item.Url, item.Title); SelectedNews=item; }
         catch (Exception ex) { AppLog.Warn("news", "Could not open news reader", ex); StatusText = _loc["Reader_Failed"]; }
     }
 
@@ -418,8 +421,8 @@ public partial class NewsViewModel : ObservableObject
     {
         // Rebuild labels from the last payload we still have in collections / financials.
         RebuildFinancials();
-        if (!string.IsNullOrEmpty(SymbolText))
-            _ = LoadAsync(refreshOnly: true);
+        if (_active && !string.IsNullOrEmpty(SymbolText)) _ = LoadAsync(refreshOnly: true);
+        else _relabelPending=true;
     }
 
     private void UpdateStatus()

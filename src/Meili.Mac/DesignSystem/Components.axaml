@@ -36,4 +36,7 @@
         <Setter Property="VerticalAlignment" Value="Center"/><Setter Property="VerticalContentAlignment" Value="Center"/><Setter Property="HorizontalContentAlignment" Value="Center"/>
     </Style>
     <Style Selector="Ellipse.StatusDot"><Setter Property="Width" Value="{StaticResource StatusDotSize}"/><Setter Property="Height" Value="{StaticResource StatusDotSize}"/><Setter Property="VerticalAlignment" Value="Center"/></Style>
+    <!-- Full-surface action rows retain shared focus/selection colors instead of the platform blue. -->
+    <Style Selector="ListBox.ActionList ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="Transparent"/></Style>
+    <Style Selector="ListBox.ActionList ListBoxItem:selected Button"><Setter Property="BorderBrush" Value="{DynamicResource FocusBrush}"/><Setter Property="Background" Value="{DynamicResource RowHighlightBrush}"/></Style>
 </Styles>
