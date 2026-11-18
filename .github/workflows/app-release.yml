@@ -16,7 +16,7 @@ on:
       app:
         description: App to prepare or recover manually (automatic runs check every app)
         type: choice
-        options: [qqq-gex, market-liquidity]
+        options: [qqq-gex, market-liquidity, news-fundamentals]
         default: qqq-gex
         required: true
       version:
@@ -95,3 +95,23 @@ jobs:
       - name: Verify liquidity draft and publish catalog
         if: steps.liquidity.outputs.skip != 'true' && (steps.liquidity.outputs.action == 'auto' || steps.liquidity.outputs.action == 'publish')
         run: python3 build/release/app-release.py publish --app market-liquidity --run-id "$RUN_ID" --version "$APP_VERSION"
+      - name: Resolve news version and verify current main CI
+        id: news
+        if: github.event_name != 'workflow_dispatch' || inputs.app == 'news-fundamentals'
+        run: python3 build/release/app-source.py --app news-fundamentals --output "$RUNNER_TEMP/news-release-source.json"
+      - name: Download tested news artifact
+        if: (steps.news.outputs.action == 'prepare' || steps.news.outputs.action == 'auto') && steps.news.outputs.skip != 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: NEWS-test-package
+          run-id: ${{ steps.news.outputs.run_id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/tested-news
+      - name: Sign tested news and prepare draft
+        if: (steps.news.outputs.action == 'prepare' || steps.news.outputs.action == 'auto') && steps.news.outputs.skip != 'true'
+        env:
+          UPDATE_SIGNING_KEY: ${{ secrets.UPDATE_SIGNING_KEY }}
+        run: python3 build/release/app-release.py prepare --app news-fundamentals --run-id "$RUN_ID" --version "$APP_VERSION" --artifact "$RUNNER_TEMP/tested-news/news.espapp"
+      - name: Verify news draft and publish catalog
+        if: steps.news.outputs.skip != 'true' && (steps.news.outputs.action == 'auto' || steps.news.outputs.action == 'publish')
+        run: python3 build/release/app-release.py publish --app news-fundamentals --run-id "$RUN_ID" --version "$APP_VERSION"

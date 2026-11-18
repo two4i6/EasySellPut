@@ -201,6 +201,34 @@ public sealed class ModulePackageTests : IDisposable
         Assert.Empty(installer.Inspect().State.Apps);
     }
 
+    [Fact]
+    public async Task News_signed_core_keeps_all_contracts_sources_and_native_facade_lifecycle()
+    {
+        var profile=Path.Combine(root,"news-core");var installer=new ModuleInstaller(profile,(file,ct)=>Verify(file));
+        var sdkRoot=Path.GetDirectoryName(new Uri(JsonSerializer.Deserialize<string>(HostSdkUri())!).LocalPath)!;
+        var folder=Path.GetFullPath(Path.Combine(sdkRoot,"..","news-fundamentals"));
+        var operations=JsonSerializer.Deserialize<ModuleOperation[]>(await File.ReadAllTextAsync(Path.Combine(folder,"operations.json")),new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
+        var script=(await File.ReadAllTextAsync(Path.Combine(folder,"runtime","report.mjs"))).Replace("'../../app-sdk/engine-host.mjs'",HostSdkUri());
+        using var service=new AutomationService(new(profile,Meili.Core.Settings.DataDirectorySource.CommandLine),new FakeMarket());
+        var native=new ModuleFacadeClient(profile,ModuleAccess.NewsFundamentals,installer,_=>Task.FromResult<string?>("node"));
+        foreach(var version in new[]{"1.0.0","1.0.1"})
+        {
+            await installer.InstallAsync(Package(path:"engine/report.mjs",id:ModuleAccess.NewsFundamentals,version:version,operations:operations,scriptText:script));
+            foreach(var op in operations)
+            {
+                Assert.False(op.Writes);Assert.True(JsonElement.DeepEquals(OperationCatalog.Find(op.Name).Schema,op.Schema));
+                var args=op.Name=="get_news"?JsonSerializer.SerializeToElement(new{symbol="AAPL",limit=30}):JsonSerializer.SerializeToElement(new{symbol="AAPL"});
+                var expected=(await service.ExecuteHostOperationAsync(op.Name,args,CancellationToken.None)).GetProperty("data");
+                var result=await native.InvokeAsync(op.Name,args,async token=>(await service.ExecuteHostOperationAsync(op.Name,args,token)).GetProperty("data"));
+                Assert.True(JsonElement.DeepEquals(expected,result));
+            }
+        }
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(()=>native.InvokeAsync("get_quotes",JsonSerializer.SerializeToElement(new{symbols=new[]{"AAPL"}}),_=>Task.FromResult(JsonSerializer.SerializeToElement(new{}))));
+        installer.Uninstall(ModuleAccess.NewsFundamentals);
+        await Assert.ThrowsAsync<AppUnavailableException>(()=>native.InvokeAsync("get_fundamentals",JsonSerializer.SerializeToElement(new{symbol="AAPL"}),_=>Task.FromResult(JsonSerializer.SerializeToElement(new{}))));
+        await Assert.ThrowsAsync<InvalidDataException>(()=>installer.InstallAsync(Package(path:"engine/report.mjs",id:ModuleAccess.NewsFundamentals,operations:operations[..2],scriptText:script)));
+    }
+
     private static string HostSdkUri()
     {
         var directory=AppContext.BaseDirectory;

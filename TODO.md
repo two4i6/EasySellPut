@@ -111,6 +111,9 @@ Design: [architecture](docs/55-主程序与可独立更新子应用架构研究.
   - [x] S13b: existing native liquidity page calls the installed operation; preserve shared controls, cancellation, source/missingness and navigation behavior.
   - [x] S13c: shared multi-app signed catalog/release promotion, fixed-host CLI/persistent-MCP A/B, and exact-commit native integration acceptance at 86f59ed (run 44240521185, attempt 2).
 - [ ] **S14 — News and fundamentals.** After S13: reuse provider routing and native article split; preserve personal pages and WebView trust boundaries.
+  - [x] S14a: three unchanged read-only contracts, shared native facade, signed core package and no disabled/uninstalled fallback.
+  - [ ] S14b: third-app serial promotion, four-platform build/process CI, fixed-host A/B and retained personal/browser data.
+  - [ ] S14c: complete offline/native integration gate and current 1080p UI evidence. Core-only scope; native UI/browser adapters remain shared.
 - [ ] **S15 — Options and strategy as one domain.** After S14: preserve selected contracts, strategy drafts, entry premiums and shared analytics; migrate as one cohesive app.
 
 ## Optional follow-ups, after evidence supports them
@@ -467,3 +470,9 @@ Implementation `86f59ed8d569432e470406ff391c1ef2ee7aabe0` passed [CI · Test & P
 S13 is accepted as the independently updateable compatibility core plus its existing native presentation: the shared financial math/providers intentionally remain host capabilities, not copied domain kernels. Core-only packaging, exact public contracts, actual signed A/B CLI/persistent-MCP/native-client calls, data-preserving uninstall/reinstall, sequential multi-app signed catalog promotion and shared UI controls are implemented. Optional independently shipped liquidity Web UI, new financial semantics, live source completeness, production trust setup, main merge and public release are not implied. S14 remains a separate pending migration.
 
 This acceptance update is documentation-only and cites the unchanged implementation revision above; its own newly triggered CI is not claimed passed.
+
+### S14a — news core and shared native facade
+
+Implemented three stable news/fundamental operations in easysellput.news-fundamentals; same package/SDK/provider/cache/runtime/catalog, no browser or installer capability. Native ModuleFacadeClient is shared with liquidity and only grants the requested operation and exact arguments. Native news uses existing shared market instances; chart timeline and personal browser ownership remain unchanged. Added generation/hidden-request fencing after finding late results could overwrite a newer symbol.
+
+Full offline run-ZUhgc8eg passed 1,062 .NET cases (plus two Windows-only skips), Python 80, SDK 9, 58 real CLI/MCP cases and all cache/AppDev/GEX/maintenance journeys. Actual news archive signature/engine, fixed-host persistent-MCP A/B, retained data/bookmark hash and intercepted production-signing promotion passed. Native/code revision CI and user-requested split-aware UI modernization remain pending. See docs/app-runtime-research/news-migration.md. This core checkpoint does not close S14.

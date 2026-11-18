@@ -70,6 +70,18 @@ class AppDistributionSetupTests(unittest.TestCase):
             self.assertIn('easysellput.market-liquidity-v1.2.3',run.call_args.args[0][-1])
         with self.assertRaises(ValueError):source.resolve('owner/repo','auto',app='../foreign')
 
+    def test_news_joins_the_same_signed_catalog_without_mutating_prior_app_entries(self):
+        from app_definitions import definition
+        self.assertEqual(definition('news-fundamentals')['id'],'easysellput.news-fundamentals')
+        now=dt.datetime.now(dt.timezone.utc)
+        catalog=None
+        for app in ('qqq-gex','market-liquidity','news-fundamentals'):
+            old=copy.deepcopy(catalog)
+            catalog=release.merge_catalog(catalog,dict(id=definition(app)['id'],version='1.0.0',dataFormat=1),'owner/repo',catalog_sequence(catalog,'1000'),now)
+            if old:self.assertTrue(all(entry in catalog['apps'] for entry in old['apps']))
+        self.assertEqual(catalog['sequence'],1002)
+        self.assertEqual(len(catalog['apps']),3)
+
     def test_catalog_renewal_retains_all_package_identities_even_after_expiry(self):
         now = dt.datetime.now(dt.timezone.utc)
         previous = dict(schemaVersion=1,repository='owner/repo',sequence=10,issuedAt=(now-dt.timedelta(days=50)).isoformat(),expiresAt=(now-dt.timedelta(days=20)).isoformat(),apps=[dict(id='one',version='1.0.0',sha256='a'*64,withdrawn=False),dict(id='two',version='2.0.0',withdrawn=True)])

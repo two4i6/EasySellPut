@@ -23,10 +23,12 @@ public partial class NewsViewModel : ObservableObject
     private string? _profileSymbol;
     private readonly WatchlistStore _watchlist;
     private readonly IMarketDataService _data;
+    private readonly NewsAppClient? _applications;
     private readonly LocalizationService _loc;
     private readonly SymbolContext _context;
     private readonly IUiTimer _timer = Ui.Timer(TimeSpan.FromMinutes(3));
     private CancellationTokenSource? _cts;
+    private long _generation;
     private bool _active;
     private string? _lastError;
     private FinancialStatements? _financials;
@@ -58,16 +60,16 @@ public partial class NewsViewModel : ObservableObject
     [ObservableProperty] public partial bool HasFinancials { get; set; }
     [ObservableProperty] public partial bool HasWebsite { get; set; }
 
-    public NewsViewModel(WatchlistStore watchlist, IMarketDataService data, LocalizationService loc, SymbolContext context, Meili.Core.Quotes.QuoteHub? quotes=null)
+    public NewsViewModel(WatchlistStore watchlist, IMarketDataService data, LocalizationService loc, SymbolContext context, Meili.Core.Quotes.QuoteHub? quotes=null, NewsAppClient? applications=null)
     {
-        _watchlist = watchlist; _data = data; _loc = loc; _context = context; LiveQuote=new(quotes,loc,"news-live"); LiveQuote.Updated+=(_,_)=>{if(_profileSymbol==LiveQuote.Symbol&&LiveQuote.Quote is {} quote)ApplyQuoteAndProfile(LiveQuote.Symbol,quote,_lastFundamentals);};
+        _applications=applications; _watchlist = watchlist; _data = data; _loc = loc; _context = context; LiveQuote=new(quotes,loc,"news-live"); LiveQuote.Updated+=(_,_)=>{if(_profileSymbol==LiveQuote.Symbol&&LiveQuote.Quote is {} quote)ApplyQuoteAndProfile(LiveQuote.Symbol,quote,_lastFundamentals);};
         // D1: follow the shared symbol while visible; when hidden, ActivateAsync adopts it on the next visit.
         _context.Changed += (_, sym) => { if (_active && _context.ShouldAdopt(SymbolText)) _ = AdoptContextAsync(); };
         SymbolText = watchlist.AllSymbols.Contains("AAPL", StringComparer.OrdinalIgnoreCase)
             ? "AAPL"
             : (watchlist.AllSymbols.FirstOrDefault() ?? "AAPL");
         RebuildWatchSymbols();
-        _timer.Tick += async (_, _) => await LoadAsync(refreshOnly: true);
+        _timer.Tick += async (_, _) => { if(_active)await LoadAsync(refreshOnly: true); };
         _watchlist.Changed += (_, _) => RebuildWatchSymbols();
         _loc.LanguageChanged += (_, _) => Relabel();
         Ui.Platform.ColorsChanged += (_, _) => ChangeBrush = UpDownBrush(_up); // E4: theme tones
@@ -92,6 +94,8 @@ public partial class NewsViewModel : ObservableObject
     public void Deactivate()
     {
         _active = false;
+        _generation++;
+        IsBusy=false;
         LiveQuote.Deactivate();
         _timer.Stop();
         _cts?.Cancel();
@@ -186,8 +190,9 @@ public partial class NewsViewModel : ObservableObject
         IsBusy = true;
         if (!refreshOnly) StatusText = _loc["Nf_Loading"];
         _cts?.Cancel();
-        _cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
-        var ct = _cts.Token;
+        var request=_cts=new CancellationTokenSource(TimeSpan.FromSeconds(60));
+        var generation=++_generation;
+        var ct=request.Token;
         try
         {
             var quoteTask = SafeQuotes(symbol, ct);
@@ -198,6 +203,8 @@ public partial class NewsViewModel : ObservableObject
             var (fund, fundErr) = await fundTask;
             var (fin, finErr) = await finTask;
             var (news, newsErr) = await newsTask;
+            if(generation!=_generation)return;
+            ct.ThrowIfCancellationRequested();
             var quote = quotes.FirstOrDefault(x => x.Symbol.Equals(symbol, StringComparison.OrdinalIgnoreCase));
 
             _lastFundamentals = fund;
@@ -224,17 +231,22 @@ public partial class NewsViewModel : ObservableObject
                 if (notes.Count > 0) StatusText += "   ·   " + string.Join("  ", notes);
             }
         }
-        catch (OperationCanceledException) when (_active && !refreshOnly)
+        catch (OperationCanceledException) when (generation==_generation && _active && !refreshOnly)
         {
             _lastError = _loc["Nf_Timeout"];
         }
         catch (OperationCanceledException) { }
-        catch (Exception ex) { AppLog.Warn("news", "refresh failed", ex); _lastError = ex.Message; }
+        catch (Exception ex) { AppLog.Warn("news", "refresh failed", ex); if(generation==_generation)_lastError = ex.Message; }
         finally
         {
-            IsBusy = false;
-            if (_active) _timer.Start();
-            UpdateStatus();
+            if(generation==_generation)
+            {
+                IsBusy=false;
+                if(_active)_timer.Start();
+                UpdateStatus();
+            }
+            request.Dispose();
+            if(ReferenceEquals(_cts,request))_cts=null;
         }
     }
 
@@ -419,7 +431,7 @@ public partial class NewsViewModel : ObservableObject
 
     private async Task<(Fundamentals? Data, string? Error)> SafeFundamentals(string symbol, CancellationToken ct)
     {
-        try { return (await _data.GetFundamentalsAsync(symbol, ct), null); }
+        try { return (await (_applications is null?_data.GetFundamentalsAsync(symbol,ct):_applications.FundamentalsAsync(symbol,ct)), null); }
         catch (AllSourcesFailedException) { return (null, _loc["Nf_FundFailed"]); }
         catch (OperationCanceledException) { throw; }
         catch (Exception ex) { AppLog.Warn("news", $"load for {symbol} failed", ex); return (null, ex.Message); }
@@ -427,7 +439,7 @@ public partial class NewsViewModel : ObservableObject
 
     private async Task<(FinancialStatements? Data, string? Error)> SafeFinancials(string symbol, CancellationToken ct)
     {
-        try { return (await _data.GetFinancialsAsync(symbol, ct), null); }
+        try { return (await (_applications is null?_data.GetFinancialsAsync(symbol,ct):_applications.FinancialsAsync(symbol,ct)), null); }
         catch (AllSourcesFailedException) { return (null, _loc["Nf_FinFailed"]); }
         catch (OperationCanceledException) { throw; }
         catch (Exception ex) { AppLog.Warn("news", $"load for {symbol} failed", ex); return (null, ex.Message); }
@@ -435,7 +447,7 @@ public partial class NewsViewModel : ObservableObject
 
     private async Task<(IReadOnlyList<NewsItem>? Data, string? Error)> SafeNews(string symbol, CancellationToken ct)
     {
-        try { return (await _data.GetNewsAsync(symbol, 30, ct), null); }
+        try { return (await (_applications is null?_data.GetNewsAsync(symbol,30,ct):_applications.NewsAsync(symbol,30,ct)), null); }
         catch (AllSourcesFailedException) { return (null, _loc["Nf_NewsFailed"]); }
         catch (OperationCanceledException) { throw; }
         catch (Exception ex) { AppLog.Warn("news", $"load for {symbol} failed", ex); return (null, ex.Message); }

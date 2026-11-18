@@ -56,3 +56,13 @@ class AppReleasePolicyTests(unittest.TestCase):
         step=next(s for s in changed['app-release.yml']['jobs']['release']['steps'] if 'app-release.py publish --app market-liquidity' in s.get('run',''))
         step['if']='true'
         with self.assertRaises(ValueError):guard.check(changed)
+
+    def test_news_promotion_needs_version_gate_and_tested_artifact(self):
+        workflows={p.name:yaml.load(p.read_text(encoding='utf-8-sig'),Loader=yaml.BaseLoader)for p in (ROOT/'.github/workflows').glob('*.yml')}
+        changed=copy.deepcopy(workflows)
+        step=next(s for s in changed['app-release.yml']['jobs']['release']['steps']if 'app-release.py publish --app news-fundamentals' in s.get('run',''))
+        step['if']='true'
+        with self.assertRaises(ValueError):guard.check(changed)
+        changed=copy.deepcopy(workflows)
+        changed['ci.yml']['jobs']['qqq-gex']['steps']=[s for s in changed['ci.yml']['jobs']['qqq-gex']['steps']if s.get('with',{}).get('name')!='NEWS-test-package']
+        with self.assertRaises(ValueError):guard.check(changed)

@@ -89,6 +89,16 @@ jobs:
           node web/app-sdk/browser-gex-app.mjs
       - name: Test shared app engine SDK
         run: node --test web/app-sdk/engine.test.mjs web/app-sdk/client.test.mjs web/app-sdk/engine-host.test.mjs web/app-sdk/presentation.test.mjs
+      - name: Build & verify news core fixture
+        run: |
+          node web/app-sdk/build-engine.mjs web/news-fundamentals/runtime/report.mjs web/news-fundamentals/runtime-dist/report.mjs
+          python3 build/pack-app.py --app news-fundamentals --development --repository "$GITHUB_REPOSITORY" --output build/out/news-fixture/news.espapp
+          python3 tests/automation/news_app_smoke.py --archive build/out/news-fixture/news.espapp --public-key build/out/news-fixture/news.espapp.public.pem --repository "$GITHUB_REPOSITORY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: NEWS-test-package
+          path: build/out/news-fixture/
+          if-no-files-found: error
       - name: Build & verify liquidity core fixture
         run: |
           node web/app-sdk/build-engine.mjs web/market-liquidity/runtime/report.mjs web/market-liquidity/runtime-dist/report.mjs
@@ -109,6 +119,7 @@ jobs:
           python3 tests/automation/app_package_smoke.py --archive build/out/app-fixture/qqq-gex-test.espapp --public-key "$RUNNER_TEMP/app-fixture-public.pem" --repository "$GITHUB_REPOSITORY"
           python3 tests/automation/app_release_smoke.py --archive build/out/app-fixture/qqq-gex-test.espapp --key "$RUNNER_TEMP/app-fixture-key.pem" --public-key "$RUNNER_TEMP/app-fixture-public.pem" --repository "$GITHUB_REPOSITORY"
           python3 tests/automation/app_release_smoke.py --app market-liquidity --archive build/out/liquidity-fixture/liquidity.espapp --key "$RUNNER_TEMP/app-fixture-key.pem" --public-key "$RUNNER_TEMP/app-fixture-public.pem" --repository "$GITHUB_REPOSITORY"
+          python3 tests/automation/app_release_smoke.py --app news-fundamentals --archive build/out/news-fixture/news.espapp --key "$RUNNER_TEMP/app-fixture-key.pem" --public-key "$RUNNER_TEMP/app-fixture-public.pem" --repository "$GITHUB_REPOSITORY"
           rm "$RUNNER_TEMP/app-fixture-key.pem"
       - uses: actions/upload-artifact@v4
         with:
@@ -222,6 +233,12 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Liquidity core build failed' }
           python tests/automation/liquidity_mcp_smoke.py
           if ($LASTEXITCODE -ne 0) { throw 'Liquidity fixed-host CLI/MCP update regression failed' }
+      - name: Test news updates through CLI & MCP
+        run: |
+          node web/app-sdk/build-engine.mjs web/news-fundamentals/runtime/report.mjs web/news-fundamentals/runtime-dist/report.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'News build failed' }
+          python tests/automation/news_mcp_smoke.py
+          if ($LASTEXITCODE -ne 0) { throw 'News fixed-host update regression failed' }
       - name: Test signed original GEX app operations
         run: |
           python build/pack-app.py --development --repository test/source --ui-dir web/qqq-gex/dist --output "$env:RUNNER_TEMP/gex-pilot.espapp"

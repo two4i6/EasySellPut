@@ -13,6 +13,13 @@ mkdir -p "$MEILI_RENDER_DIR"
 failed=0
 if ! (
   set -e
+  node web/app-sdk/build-engine.mjs web/news-fundamentals/runtime/report.mjs web/news-fundamentals/runtime-dist/report.mjs
+  python3 build/pack-app.py --app news-fundamentals --development --repository test/source --output "$results/news.espapp"
+  python3 tests/automation/news_app_smoke.py --archive "$results/news.espapp" --public-key "$results/news.espapp.public.pem" --repository test/source
+) > "$results/news-core.log" 2>&1; then failed=1; fi
+cat "$results/news-core.log"
+if ! (
+  set -e
   node web/app-sdk/build-engine.mjs web/market-liquidity/runtime/report.mjs web/market-liquidity/runtime-dist/report.mjs
   python3 build/pack-app.py --app market-liquidity --development --repository test/source --output "$results/liquidity.espapp"
   python3 tests/automation/liquidity_app_smoke.py --archive "$results/liquidity.espapp" --public-key "$results/liquidity.espapp.public.pem" --repository test/source
@@ -42,6 +49,8 @@ if dotnet build tests/Meili.Automation.Host/Meili.Automation.Host.csproj -c Rele
   if ! python3 tests/automation/app_mcp_update_smoke.py > "$results/app-mcp-update.log" 2>&1; then failed=1; fi
   cat "$results/app-mcp-update.log"
   if ! python3 build/pack-app.py --development --repository test/source --ui-dir web/qqq-gex/dist --output "$results/gex-pilot.espapp" > "$results/gex-pilot-package.log" 2>&1; then failed=1; fi
+  if ! python3 tests/automation/news_mcp_smoke.py > "$results/news-mcp.log" 2>&1; then failed=1; fi
+  cat "$results/news-mcp.log"
   if ! python3 tests/automation/liquidity_mcp_smoke.py > "$results/liquidity-mcp.log" 2>&1; then failed=1; fi
   cat "$results/liquidity-mcp.log"
   if ! python3 tests/automation/app_gex_operations_smoke.py --archive "$results/gex-pilot.espapp" > "$results/gex-pilot.log" 2>&1; then failed=1; fi

@@ -13,8 +13,8 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 
 
 def package(args):
-    if getattr(args, 'app', 'qqq-gex') == 'market-liquidity':
-        return liquidity_package(args)
+    if getattr(args, 'app', 'qqq-gex') in ('market-liquidity','news-fundamentals'):
+        return facade_package(args)
     metadata = json.loads((ROOT / 'web/qqq-gex/app.json').read_text(encoding='utf-8'))
     if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9-]{0,38}/[A-Za-z0-9_.-]{1,100}', args.repository):
         raise ValueError('Invalid repository')
@@ -65,8 +65,9 @@ def package(args):
                          json.loads((ROOT/'web/qqq-gex/source-manifest.json').read_text())['commit'])
 
 
-def liquidity_package(args):
-    folder = ROOT/'web/market-liquidity'
+def facade_package(args):
+    app=getattr(args,'app','market-liquidity')
+    folder = ROOT/'web'/app
     metadata = json.loads((folder/'app.json').read_text())
     if args.version:
         metadata['version'] = args.version
@@ -75,14 +76,14 @@ def liquidity_package(args):
     if not re.fullmatch(r'\d+\.\d+\.\d+', metadata['version']):
         raise ValueError('Stable module version required')
     if args.ui_dir:
-        raise ValueError('Liquidity optional UI is not migrated yet; do not attach unrelated assets')
+        raise ValueError('Native-facade apps do not accept unrelated optional UI assets')
     engine = args.engine_dir or folder/'runtime-dist'
     payload = {'engine/report.mjs': (engine/'report.mjs').read_bytes(),
                'operations.json': (folder/'operations.json').read_bytes(),
                'notices/EasySellPut-LICENSE': (ROOT/'LICENSE').read_bytes(),
                'notices/README.md': (folder/'README.md').read_bytes(),
                'notices/node-runtime-lock.json': (ROOT/'web/qqq-gex/node-runtime-lock.json').read_bytes()}
-    return write_package(args, metadata, payload, 'engine/report.mjs', None, 'shared-liquidity-v1')
+    return write_package(args, metadata, payload, 'engine/report.mjs', None, 'shared-liquidity-v1' if app=='market-liquidity' else 'shared-news-v1')
 
 
 def write_package(args, metadata, payload, engine, ui, model_version):
@@ -119,7 +120,7 @@ def write_package(args, metadata, payload, engine, ui, model_version):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--app', choices=('qqq-gex','market-liquidity'), default='qqq-gex')
+    parser.add_argument('--app', choices=('qqq-gex','market-liquidity','news-fundamentals'), default='qqq-gex')
     parser.add_argument('--repository', required=True)
     parser.add_argument('--version')
     signing = parser.add_mutually_exclusive_group(required=True)

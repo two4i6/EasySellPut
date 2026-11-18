@@ -51,7 +51,7 @@ public static partial class ModuleOperations
         var metadata = app.Files.SingleOrDefault(f => f.Path == "operations.json");
         if (metadata is null)
         {
-            if(app.Id==ModuleAccess.MarketLiquidity)throw new InvalidDataException("Liquidity app must declare its public report operation.");
+            if(app.Id is ModuleAccess.MarketLiquidity or ModuleAccess.NewsFundamentals)throw new InvalidDataException("Facade app must declare its public operations.");
             return result.AsReadOnly();
         }
         if (metadata.Size > 262144) throw new InvalidDataException("Module operation metadata exceeds bounds.");
@@ -107,6 +107,8 @@ public static partial class ModuleOperations
             }
         if(app.Id==ModuleAccess.MarketLiquidity && !result.Any(operation=>operation.Definition.Name=="get_market_liquidity"))
             throw new InvalidDataException("Liquidity app must preserve its public report operation.");
+        if(app.Id==ModuleAccess.NewsFundamentals && new[]{"get_news","get_fundamentals","get_financials"}.Any(name=>!result.Any(operation=>operation.Definition.Name==name)))
+            throw new InvalidDataException("News app must preserve all three public operations.");
         return result.AsReadOnly();
     }
     public static IOperationCatalog Merge(IEnumerable<BoundModuleOperation> contributions,IEnumerable<OperationCatalogIssue>? issues=null)

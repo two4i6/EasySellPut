@@ -19,6 +19,28 @@ public sealed class NewsReaderTests
         Assert.Equal(allowed, NewsReaderPolicy.IsAllowed(url));
 
     [Fact]
+    public async Task Late_news_cannot_replace_a_new_symbol_or_hidden_page()
+    {
+        Ui.Platform=new FakeUiPlatform();
+        var directory=Path.Combine(Path.GetTempPath(),"news-generation-"+Guid.NewGuid().ToString("N"));
+        var late=new TaskCompletionSource<IReadOnlyList<Meili.Core.Models.NewsItem>>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var data=new PricingSnapshotTests.SnapshotData{News=(symbol,_)=>symbol=="AAPL"?late.Task:Task.FromResult<IReadOnlyList<Meili.Core.Models.NewsItem>>([new(){Title="new symbol",Source="fixture",Url="https://example.com/fixture"}])};
+        var model=new NewsViewModel(new WatchlistStore(new SettingsStore(directory)),data,new LocalizationService(),new SymbolContext());
+        try
+        {
+            model.SymbolText="AAPL";var previous=model.LoadAsync();
+            model.SymbolText="MSFT";await model.LoadAsync();
+            late.SetResult([new(){Title="stale",Source="fixture",Url="https://example.com/fixture"}]);await previous;
+            Assert.Equal("new symbol",Assert.Single(model.News).Title);Assert.Equal("MSFT",model.NameText);
+            var hidden=new TaskCompletionSource<IReadOnlyList<Meili.Core.Models.NewsItem>>(TaskCreationOptions.RunContinuationsAsynchronously);
+            data.News=(_,_)=>hidden.Task;var pending=model.LoadAsync();model.Deactivate();
+            hidden.SetResult([new(){Title="hidden stale",Source="fixture",Url="https://example.com/fixture"}]);await pending;
+            Assert.Equal("new symbol",Assert.Single(model.News).Title);Assert.False(model.IsBusy);
+        }
+        finally{model.Deactivate();if(Directory.Exists(directory))Directory.Delete(directory,true);}
+    }
+
+    [Fact]
     public void News_uses_internal_reader_while_company_website_keeps_explicit_browser_behavior()
     {
         var directory = Path.Combine(Path.GetTempPath(), "meili-news-" + Guid.NewGuid().ToString("N"));
