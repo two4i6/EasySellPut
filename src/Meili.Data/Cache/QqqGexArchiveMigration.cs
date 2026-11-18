@@ -57,7 +57,9 @@ public sealed class QqqGexArchiveMigration
     GexArchiveMigrationResult Run(string source,string destination,string codec,bool resume,CancellationToken ct)
     {
         QqqGexArchiveBody.WriteCodec(codec);source=NormalizePath(source);destination=NormalizePath(destination);PathCheck(source);PathCheck(destination);
-        if(source==destination||(!resume&&!File.Exists(source)))throw new ArgumentException("An existing source and a separate NEW destination are required");
+        var pathComparison=OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal;
+        foreach(var suffix in new[]{"",".migration.db",".migration.lock",".backup.db"}){var reserved=destination+suffix;PathCheck(reserved);if(source.Equals(reserved,pathComparison))throw new ArgumentException("Source must be separate from every destination/control/backup path");}
+        if(!resume&&!File.Exists(source))throw new ArgumentException("An existing source and a separate NEW destination are required");
         Directory.CreateDirectory(Path.GetDirectoryName(destination)!);ct.ThrowIfCancellationRequested();
         using var lease=new FileStream(destination+".migration.lock",FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
         var statePath=destination+".migration.db";
@@ -75,6 +77,7 @@ public sealed class QqqGexArchiveMigration
         using var state=Open(statePath);string backup,work,phase,backupSha;
         using(var q=state.CreateCommand()){q.CommandText="SELECT source,backup,work,codec,phase,backup_sha FROM migration WHERE id=1";using var r=q.ExecuteReader();if(!r.Read()||r.GetString(0)!=source||r.GetString(3)!=codec)throw new InvalidDataException("Resume source or codec mismatch");backup=r.GetString(1);work=r.GetString(2);phase=r.GetString(4);backupSha=r.GetString(5);}
         if(Path.GetDirectoryName(backup)!=Path.GetDirectoryName(destination)||backup!=destination+".backup.db"||Path.GetDirectoryName(work)!=Path.GetDirectoryName(destination)||!Path.GetFileName(work).StartsWith(Path.GetFileName(destination)+".working-",StringComparison.Ordinal))throw new InvalidDataException("Migration state paths are invalid");
+        PathCheck(backup);PathCheck(work);if(source.Equals(backup,pathComparison)||source.Equals(work,pathComparison))throw new InvalidDataException("Migration working/backup path aliases the source");
         ct.ThrowIfCancellationRequested();
         if(backupSha.Length==0)
         {

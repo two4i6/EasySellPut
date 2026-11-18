@@ -53,6 +53,13 @@ public sealed class QqqGexMigrationTests
         await Assert.ThrowsAnyAsync<OperationCanceledException>(()=>service.RunAsync(source,dest,ct:stop.Token));Assert.False(File.Exists(dest));Assert.True(File.Exists(dest+".backup.db"));
         var completed=await new QqqGexArchiveMigration().RunAsync(source,dest,resume:true);Assert.Equal("complete",completed.Status);Assert.NotEmpty(Directory.GetFiles(root,"*.unverified-*"));
     }
+    [Fact] public async Task Source_cannot_alias_reserved_migration_sidecars()
+    {
+        var root=Root();var seed=Seed(root);foreach(var suffix in new[]{".migration.db",".migration.lock",".backup.db"})
+        {
+            var dest=Path.Combine(root,Guid.NewGuid()+".db");var source=dest+suffix;File.Copy(seed,source);var before=Hash(File.ReadAllBytes(source));await Assert.ThrowsAsync<ArgumentException>(()=>new QqqGexArchiveMigration().RunAsync(source,dest));Assert.Equal(before,Hash(File.ReadAllBytes(source)));Assert.False(File.Exists(dest));
+        }
+    }
     [Fact] public async Task Disk_preflight_and_sqlite_full_keep_source_and_resume()
     {
         var root=Root();var source=Seed(root);var before=Hash(File.ReadAllBytes(source));var dest=Path.Combine(root,"space.db");await Assert.ThrowsAsync<IOException>(()=>new QqqGexArchiveMigration(_=>0,null).RunAsync(source,dest));Assert.False(File.Exists(dest+".migration.db"));
