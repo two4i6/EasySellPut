@@ -45,8 +45,29 @@ public class QuoteHubIntegrationTests
             }
             finally { dash.Deactivate();watch.Deactivate(); }
             Assert.Empty(hub.SubscribedSymbols);                // hidden pages stop asking (alerts are off in tests)
+            await DrainTestLeasesAsync(directory);
             }
             finally { Directory.Delete(directory,true); }
         });
     }
+    // Deactivation cancels the dashboard's asynchronous app work. Wait for its
+    // actual leases to drain before deleting this test profile on Windows.
+    private static async Task DrainTestLeasesAsync(string directory)
+    {
+        var deadline=DateTimeOffset.UtcNow.AddSeconds(5);
+        while(true)
+        {
+            var leases=new List<FileStream>();
+            try
+            {
+                foreach(var file in Directory.EnumerateFiles(directory,"*.lease",SearchOption.AllDirectories))
+                    leases.Add(new FileStream(file,FileMode.Open,FileAccess.ReadWrite,FileShare.None));
+                return;
+            }
+            catch(IOException) when(DateTimeOffset.UtcNow<deadline){}
+            finally{foreach(var lease in leases)lease.Dispose();}
+            await Task.Delay(25);
+        }
+    }
+
 }

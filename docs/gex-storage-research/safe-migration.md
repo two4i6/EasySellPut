@@ -86,7 +86,11 @@ part of these commands.
 ## Old-client isolation and limits
 
 A ready v2 database contains version 2/status ready and SQLite BEFORE INSERT,
-UPDATE and DELETE triggers on existing GEX tables, including the marker/receipt.
+UPDATE and DELETE triggers on every known GEX writer table, including the marker/receipt. Missing
+legacy tables are precreated empty
+in the working copy before fencing, so old clients cannot create unguarded ones.
+The original-table manifest is checked against the unchanged backup; these
+explicit new compatibility tables do not alter any original record.
 Those triggers call `gex_v2_writer()`. Updated Node/.NET connection factories
 validate the marker and register version 2. Old clients do not register the
 function, so their normal startup INSERT OR IGNORE and subsequent DML fail inside
@@ -118,3 +122,15 @@ marker/connection gate enforces codec compatibility. Installing an older payload
 is not a way to bypass the database trigger gate. Use the updated host and payload
 when explicitly selecting a migrated profile. No app or host release is published
 by merging this work branch.
+
+Control-state initialization is published only after its SQLite metadata is
+complete. Interruption before that leaves an unaccepted private initializing
+file; retry can initialize normally without overwriting it. If the initial
+working snapshot is interrupted, resume validates that private copy against the
+verified backup and retains an invalid partial copy as `.unverified-*` before
+rebuilding. Tests exercise interruption before working-copy acceptance. Current
+normal readers also verify all known table fences; missing/altered fences fail
+closed and require another verified copy, rather than reopening an unsafe target.
+The commands use local non-symlink filesystem paths (standard macOS /var and
+/tmp aliases are canonicalized before validation); network-filesystem locking
+and native macOS/Windows acceptance remain platform validation boundaries.
