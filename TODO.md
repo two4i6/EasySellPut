@@ -106,10 +106,10 @@ Design: [architecture](docs/55-主程序与可独立更新子应用架构研究.
 
 ## Later business migrations
 
-- [ ] **S13 — Market liquidity.** After S12: reuse existing service/math/provenance; validate the second app needs no duplicated package manager, market connection or UI system.
+- [x] **S13 — Market liquidity.** After S12: reuse existing service/math/provenance; validate the second app needs no duplicated package manager, market connection or UI system.
   - [x] S13a: signed core-only adapter, exact existing CLI/MCP contract, explicit ownership and no compatibility resurrection after disable/uninstall; shared packaging/SDK and four-platform independent CI.
   - [x] S13b: existing native liquidity page calls the installed operation; preserve shared controls, cancellation, source/missingness and navigation behavior.
-  - [ ] S13c: multi-app signed catalog/release promotion and fixed-host CLI/persistent-MCP A/B implemented and locally verified; final exact-commit native integration CI pending. Keep S13 open until that gate passes.
+  - [x] S13c: shared multi-app signed catalog/release promotion, fixed-host CLI/persistent-MCP A/B, and exact-commit native integration acceptance at 86f59ed (run 44240521185, attempt 2).
 - [ ] **S14 — News and fundamentals.** After S13: reuse provider routing and native article split; preserve personal pages and WebView trust boundaries.
 - [ ] **S15 — Options and strategy as one domain.** After S14: preserve selected contracts, strategy drafts, entry premiums and shared analytics; migrate as one cohesive app.
 
@@ -458,4 +458,12 @@ Generalized the existing release source/package/provenance validator with explic
 
 Actual packaged liquidity A/B passed real CLI and persistent official SDK MCP calls with a fixed host hash, unchanged contract, explicit uninstall removing discovery/invocation, retained app data and successful reinstall. Both app re-sign/catalog/publication tests passed with all GitHub writes intercepted, including cross-app substitution/stale-catalog rejection. Python 78, policy guard and final Automation 195 passed. Generic persistent MCP 2025/2026 modes and all original signed GEX facades passed again after sharing the production catalog resolver with the fixture host. Full prior-source offline script completed successfully at run-cxYkSLYN (1,060 .NET, 75 Python at that stage, SDK 9, all 58 actual CLI/MCP, cache protection, AppDev, persistent app updates, GEX source parity and cross-process maintenance); subsequent changes were covered by the named focused reruns rather than a second broad UI run.
 
-Unchanged core artifacts passed all four native App core jobs in https://github.com/two4i6/EasySellPut/actions/runs/44239654589 at 02b470d. Latest host/release integration CI is pending; do not call S13 accepted or start S14 until it passes. Production key/bootstrap and public release remain unperformed and are separate from these fixture validations.
+The core engine source passed all four native App core jobs in https://github.com/two4i6/EasySellPut/actions/runs/44239654589 at 02b470d. Host/release integration CI was pending at that implementation commit; the final acceptance below supersedes that status. Production key/bootstrap and public release remain unperformed and are separate from these fixture validations.
+
+### S13 accepted — shared runtime, native report and multi-app delivery
+
+Implementation `86f59ed8d569432e470406ff391c1ef2ee7aabe0` passed [CI · Test & Package / 44240521185](https://github.com/two4i6/EasySellPut/actions/runs/44240521185), including CI · Required checks, all three native desktop/package/updater targets, all four CLI/MCP/package targets, Web, UI and release policy. Its exact app artifacts also passed all four [Apps · Build & Test / 44240521145](https://github.com/two4i6/EasySellPut/actions/runs/44240521145) native core jobs. The initial UI runner stalled downloading the 61.2 MB Noto CJK package from an Ubuntu mirror; an unchanged-code UI-only rerun completed successfully in attempt 2, retaining the already successful native results. No check was weakened or skipped.
+
+S13 is accepted as the independently updateable compatibility core plus its existing native presentation: the shared financial math/providers intentionally remain host capabilities, not copied domain kernels. Core-only packaging, exact public contracts, actual signed A/B CLI/persistent-MCP/native-client calls, data-preserving uninstall/reinstall, sequential multi-app signed catalog promotion and shared UI controls are implemented. Optional independently shipped liquidity Web UI, new financial semantics, live source completeness, production trust setup, main merge and public release are not implied. S14 remains a separate pending migration.
+
+This acceptance update is documentation-only and cites the unchanged implementation revision above; its own newly triggered CI is not claimed passed.
