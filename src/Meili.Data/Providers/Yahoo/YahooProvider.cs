@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Meili.Core.Diagnostics;
 using Meili.Core.Abstractions;
 using Meili.Core.Models;
 using Meili.Data.Http;
@@ -312,7 +313,7 @@ public sealed partial class YahooProvider : ProviderBase, IQuoteProvider, IBarsP
             catch(OperationCanceledException) when(!c.IsCancellationRequested){return fundamentals with {EarningsAvailability="timeout"};}
             catch(OperationCanceledException){throw;}
             catch(Exception ex) when(ex is HttpRequestException or DataSourceException or JsonException)
-            { return fundamentals with {EarningsAvailability="unavailable"}; }
+            { AppLog.Warn("yahoo",$"Optional earnings consensus unavailable ({ex.GetType().Name}); profile retained."); return fundamentals with {EarningsAvailability="unavailable"}; }
         }, ct).ConfigureAwait(false);
     }
 
