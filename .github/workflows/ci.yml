@@ -352,7 +352,8 @@ jobs:
   ui:
     name: UI · Layout & Charts
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    # Cold font/browser installation can consume most of the old 15-minute budget.
+    timeout-minutes: 30
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
