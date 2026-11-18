@@ -9,7 +9,7 @@ var queue=Channel.CreateUnbounded<Action>(new(){SingleReader=true,SingleWriter=f
 Ui.Platform=new QueuedUi(queue);_ =new LocalizationService();
 var directory=Path.Combine(Path.GetTempPath(),"meili-workbench-host-"+Guid.NewGuid().ToString("N"));
 var chartMode=args.Contains("--chart");
-var vm=chartMode?null:await WorkbenchFixture.CreateAsync(directory);
+var vm=chartMode?null:await WorkbenchFixture.CreateAsync(directory,args.Contains("--dense"));
 var chartVm=chartMode?await WorkbenchFixture.CreateChartAsync(directory,args.Contains("--sessions")):null;
 var palette=WorkbenchFixture.Palette(true);
 using var session=chartMode?new WebChartSession(chartVm!):new WebChartSession(vm!);

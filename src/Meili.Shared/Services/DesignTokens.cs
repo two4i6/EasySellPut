@@ -109,6 +109,12 @@ public static class DesignTokens
     public const double QuotePanelHeight = 680;
     public const double QuotePanelSparkWidth = 64;
     public const double QuotePanelHeroSparkHeight = 80;
+    public const double TradingCardRadius = 24;
+    public const double TradingTicketRadius = 32;
+    public const double TradingRowHeight = 48;
+    public const double TradingQuoteWidth = 76;
+    public const double TradingTableFontSize = 15;
+    public const double TradingHeaderHeight = 52;
     public static IEnumerable<(string Key,uint Argb)> ComponentBrushes(bool dark) => dark ? DarkBrushes : LightBrushes;
     private static readonly (string Key,uint Argb)[] LightBrushes =
     [
@@ -127,6 +133,12 @@ public static class DesignTokens
         ("StorageLogsBrush", 0xFF3D7263),
         ("StorageCacheBrush", 0xFF8A5F4C),
         ("StorageOtherBrush", 0xFF66655E),
+        ("TradingCanvasBrush", 0xFFFAF9F5),
+        ("TradingSurfaceBrush", 0xFFFFFFFF),
+        ("TradingEdgeBrush", 0xFFD1CFC5),
+        ("TradingMutedBrush", 0xFF5E5D59),
+        ("BuyQuoteBrush", 0xFF24643D),
+        ("SellQuoteBrush", 0xFFAA3929),
         ("TextControlBorderBrushFocused", 0xFFC46849),
         ("SystemControlErrorTextForegroundBrush", 0xFFA53E36),
     ];
@@ -147,6 +159,12 @@ public static class DesignTokens
         ("StorageLogsBrush", 0xFF8AB9A7),
         ("StorageCacheBrush", 0xFFEBC9B7),
         ("StorageOtherBrush", 0xFFC2C0B6),
+        ("TradingCanvasBrush", 0xFF101110),
+        ("TradingSurfaceBrush", 0xFF181A19),
+        ("TradingEdgeBrush", 0xFF343734),
+        ("TradingMutedBrush", 0xFFB0B4AE),
+        ("BuyQuoteBrush", 0xFF6FC48B),
+        ("SellQuoteBrush", 0xFFF77B67),
         ("TextControlBorderBrushFocused", 0xFFD97757),
         ("SystemControlErrorTextForegroundBrush", 0xFFE5A19A),
     ];

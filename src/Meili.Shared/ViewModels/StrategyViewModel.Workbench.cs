@@ -1,3 +1,5 @@
+using Meili.Shared.Services;
+using Meili.Core.Settings;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
@@ -10,6 +12,68 @@ namespace Meili.Shared.ViewModels;
 public partial class StrategyViewModel
 {
     public StrategyGreeks? WorkbenchGreeks { get; private set; }
+    private long _quoteCacheRevision = -1;
+    internal long WorkbenchQuoteVersion { get; private set; }
+    private DateOnly? _quoteCacheExpiry;
+    private double? _quoteCacheSpot;
+    internal string? WorkbenchCompanyName => _hdrQuote?.Name;
+    private IReadOnlyList<WorkbenchQuote> _quoteCache = [];
+    internal IReadOnlyList<WorkbenchQuote> WorkbenchQuotes
+    {
+        get
+        {
+            if (_quoteCacheRevision != _workbenchChainRevision || _quoteCacheExpiry != SelectedExpiration?.Date || _quoteCacheSpot != Spot)
+            {
+                WorkbenchQuoteVersion++;
+                _quoteCache = StrategyWorkbench.BuildQuotes(_hdrChain, SelectedExpiration?.Date, Spot, _inputs);
+                _quoteCacheRevision = _workbenchChainRevision;
+                _quoteCacheExpiry = SelectedExpiration?.Date;
+                _quoteCacheSpot = Spot;
+            }
+            return _quoteCache;
+        }
+    }
+    public IReadOnlyList<string> WorkbenchVisibleColumns => WorkbenchColumns.Normalize(_settings.Current.Options.WorkbenchColumns);
+    public bool SelectWorkbenchExpiration(DateOnly date)
+    {
+        if (IsBusy || Expirations.FirstOrDefault(e => e.Date == date) is not { } choice) return false;
+        if (SelectedExpiration == choice) { ChartChanged?.Invoke(this, EventArgs.Empty); return true; }
+        SelectedExpiration = choice;
+        return true;
+    }
+    public long WorkbenchColumnsRevision { get; private set; }
+    public string WorkbenchColumnsError { get; private set; } = "";
+    public bool SetWorkbenchColumns(IReadOnlyList<string> columns)
+    {
+        if (columns.Count > WorkbenchColumns.Available.Count || columns.Distinct().Count() != columns.Count || columns.Any(c => !WorkbenchColumns.Available.Contains(c))) return false;
+        WorkbenchColumnsRevision++;
+        WorkbenchColumnsError = "";
+        var previous = _settings.Current.Options.WorkbenchColumns;
+        try
+        {
+            _settings.Update(s => s.Options.WorkbenchColumns = WorkbenchColumns.Normalize(columns));
+            WorkbenchMessage = "";
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            _settings.Current.Options.WorkbenchColumns = previous;
+            // Read the winning snapshot for review; never retry a conflicted write silently.
+            var refreshed = false;
+            if (ex is DataConflictException)
+            {
+                try { _settings.ReloadForEditing(); refreshed = true; }
+                catch (Exception readError) when (readError is IOException or UnauthorizedAccessException or System.Text.Json.JsonException or NotSupportedException)
+                { Meili.Core.Diagnostics.AppLog.Warn("strategy", "column preferences could not be reloaded", readError); }
+            }
+            Meili.Core.Diagnostics.AppLog.Warn("strategy", "column preferences could not be saved", ex);
+            WorkbenchColumnsError = WorkbenchMessage = _loc[refreshed ? "Wb_ColumnsConflict" : "Wb_ColumnsFailed"];
+            ChartChanged?.Invoke(this, EventArgs.Empty);
+            return false;
+        }
+        ChartChanged?.Invoke(this, EventArgs.Empty);
+        return true;
+    }
+
     private long _workbenchChainRevision;
     private string? _workbenchDraftSymbol;
     public string WorkbenchDraftSymbol => _workbenchDraftSymbol ?? _loadedSymbol ?? SymbolText;

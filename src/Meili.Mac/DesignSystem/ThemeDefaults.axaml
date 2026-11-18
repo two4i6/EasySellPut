@@ -34,6 +34,12 @@
 <SolidColorBrush x:Key="StorageLogsBrush" Color="#3D7263"/>
 <SolidColorBrush x:Key="StorageCacheBrush" Color="#8A5F4C"/>
 <SolidColorBrush x:Key="StorageOtherBrush" Color="#66655E"/>
+<SolidColorBrush x:Key="TradingCanvasBrush" Color="#FAF9F5"/>
+<SolidColorBrush x:Key="TradingSurfaceBrush" Color="#FFFFFF"/>
+<SolidColorBrush x:Key="TradingEdgeBrush" Color="#D1CFC5"/>
+<SolidColorBrush x:Key="TradingMutedBrush" Color="#5E5D59"/>
+<SolidColorBrush x:Key="BuyQuoteBrush" Color="#24643D"/>
+<SolidColorBrush x:Key="SellQuoteBrush" Color="#AA3929"/>
 </ResourceDictionary>
 <ResourceDictionary x:Key="Dark">
 <SolidColorBrush x:Key="ApplicationBackgroundBrush" Color="#1F1E1D"/>
@@ -70,5 +76,11 @@
 <SolidColorBrush x:Key="StorageLogsBrush" Color="#8AB9A7"/>
 <SolidColorBrush x:Key="StorageCacheBrush" Color="#EBC9B7"/>
 <SolidColorBrush x:Key="StorageOtherBrush" Color="#C2C0B6"/>
+<SolidColorBrush x:Key="TradingCanvasBrush" Color="#101110"/>
+<SolidColorBrush x:Key="TradingSurfaceBrush" Color="#181A19"/>
+<SolidColorBrush x:Key="TradingEdgeBrush" Color="#343734"/>
+<SolidColorBrush x:Key="TradingMutedBrush" Color="#B0B4AE"/>
+<SolidColorBrush x:Key="BuyQuoteBrush" Color="#6FC48B"/>
+<SolidColorBrush x:Key="SellQuoteBrush" Color="#F77B67"/>
 </ResourceDictionary>
 </ResourceDictionary.ThemeDictionaries></ResourceDictionary>

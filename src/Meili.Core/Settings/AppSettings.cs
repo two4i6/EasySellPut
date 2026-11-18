@@ -82,6 +82,8 @@ public sealed class AppSettings
         Network.ManualProxy ??= "";
         Pricing ??= new PricingSettings();
         Charts ??= new ChartSettings();
+        Options ??= new OptionsPageSettings();
+        Options.WorkbenchColumns = WorkbenchColumns.Normalize(Options.WorkbenchColumns);
         if (!double.IsFinite(Pricing.FixedRatePercent)) Pricing.FixedRatePercent = 4.0;
         Pricing.FixedRatePercent = Math.Clamp(Pricing.FixedRatePercent, -1, 20);
         if (!Enum.IsDefined(Pricing.RateMode)) Pricing.RateMode = RiskFreeRateMode.Treasury13Week;
@@ -172,6 +174,7 @@ public sealed class OptionsPageSettings
 {
     /// <summary>E6: compact T-table preset (narrow columns; volume/gamma/theta/vega hidden) for small or scaled screens.</summary>
     public bool CompactColumns { get; set; } = true;
+    public List<string> WorkbenchColumns { get; set; } = global::Meili.Core.Settings.WorkbenchColumns.Default.ToList();
 }
 
 /// <summary>F5: risk-free rate for locally computed IV / Greeks / strategy curves.</summary>

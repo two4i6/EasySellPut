@@ -115,6 +115,7 @@ Design: [architecture](docs/55-主程序与可独立更新子应用架构研究.
   - [x] S14b: third-app serial promotion, four-platform build/process CI, fixed-host A/B and retained personal/browser data.
   - [x] S14c: complete offline/native integration gate and current 1080p UI evidence. Core-only scope; native UI/browser adapters remain shared.
 - [x] **S15 — Options and strategy as one domain.** After S14: preserve selected contracts, strategy drafts, entry premiums and shared analytics; migrate as one cohesive app.
+  - [ ] S15 UI follow-up: configurable persistent chain fields, Wealthsimple-inspired trading composition and initial ATM centering; local UI/contract checks pass, exact-code native CI pending. See docs/15-期权链与策略联动工作台.md.
   - [x] S15a: fourth signed core, twelve original operations and exact-request/single-use explicit write delegation; preserve read-only MCP and installed-app discovery.
   - [x] S15b: shared native client, chain/pricing/save/delete integration, cancellation and draft/entry-price/store conflict protection; retain host-owned Analytics, quotes and private workbench UI.
   - [x] S15c: serial fourth-app release, four-platform app/process CI, signed A/B/permission/data-preservation tests and full native integration acceptance.

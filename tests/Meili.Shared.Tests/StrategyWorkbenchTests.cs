@@ -134,5 +134,68 @@ public sealed class StrategyWorkbenchTests : IDisposable
         var path=Path.Combine(_directory,"apps","registry.json");Directory.CreateDirectory(Path.GetDirectoryName(path)!);File.WriteAllText(path,"{");
         Assert.False(ModuleNavigation.IsAvailable(_directory,AppPage.Options));Assert.False(ModuleNavigation.IsAvailable(_directory,AppPage.Strategy));Assert.True(ModuleNavigation.IsAvailable(_directory,AppPage.News));Assert.Equal("{",File.ReadAllText(path));
     }
+    [Fact]
+    public async Task Display_fields_share_analytics_and_preserve_missing_quotes_without_filling_missing_observations()
+    {
+        await _vm.LoadAsync();
+        using var json = JsonDocument.Parse(StrategyWorkbench.Serialize(_vm, _palette));
+        var call = json.RootElement.GetProperty("contracts").EnumerateArray().Single(c => c.GetProperty("id").GetString() == "call100");
+        Assert.Equal(104, call.GetProperty("be").GetDouble()); // Ask 4, not midpoint 3.
+        Assert.Equal(.04, call.GetProperty("bePercent").GetDouble(), 9);
+        var expected = OptionEnricher.Enrich(ARight.Call, 100, 100, _expiry, .25, 2, 4, null,
+            settings: new OptionEnrichmentSettings { RiskFreeRate = 0, DividendYield = 0, Now = _data.Chain!.AsOf!.Value });
+        Assert.Equal(expected.Gamma!.Value, call.GetProperty("gamma").GetDouble(), 12);
+        Assert.True(call.GetProperty("greeksComputedLocally").GetBoolean());
+        Assert.Equal(JsonValueKind.Null, call.GetProperty("oi").ValueKind);
+        var missing = json.RootElement.GetProperty("contracts").EnumerateArray().Single(c => c.GetProperty("id").GetString() == "missing");
+        Assert.Equal(JsonValueKind.Null, missing.GetProperty("be").ValueKind);
+        var crossed = json.RootElement.GetProperty("contracts").EnumerateArray().Single(c => c.GetProperty("id").GetString() == "crossed");
+        Assert.Equal(JsonValueKind.Null, crossed.GetProperty("be").ValueKind);
+    }
+    [Fact]
+    public async Task Column_preferences_persist_even_after_quote_revision_and_do_not_mutate_entries()
+    {
+        await _vm.LoadAsync(); Assert.True(_vm.AddWorkbenchContract("call100", PositionSide.Long, 1, "ask"));
+        var premium = _vm.Legs[0].PremiumText; var key = _vm.WorkbenchKey;
+        using var preference = JsonDocument.Parse("""{"kind":"set-columns","key":"old-quote-revision","columns":["Gamma","Be"]}""");
+        Assert.True(StrategyWorkbench.ValidEvent(preference.RootElement)); StrategyWorkbench.Dispatch(_vm, preference.RootElement);
+        Assert.Equal(new[] { "Be", "Gamma" }, new SettingsStore(_directory).Load().Options.WorkbenchColumns);
+        Assert.Equal(key, _vm.WorkbenchKey); Assert.Equal(premium, _vm.Legs[0].PremiumText);
+        Assert.False(_vm.SetWorkbenchColumns(["unknown"])); Assert.False(_vm.SetWorkbenchColumns(["Gamma", "Gamma"]));
+        using var bad = JsonDocument.Parse("""{"kind":"set-columns","key":"x","columns":["Gamma",1]}""");
+        Assert.False(StrategyWorkbench.ValidEvent(bad.RootElement));
+        Assert.True(_vm.SetWorkbenchColumns([])); Assert.Empty(new SettingsStore(_directory).Load().Options.WorkbenchColumns);
+        using var json = JsonDocument.Parse(StrategyWorkbench.Serialize(_vm, _palette)); Assert.Empty(json.RootElement.GetProperty("columns").EnumerateArray());
+    }
+    [Fact]
+    public async Task Failed_preference_save_retains_disk_choice_and_draft_and_reports_conflict()
+    {
+        await _vm.LoadAsync(); _vm.AddWorkbenchContract("call100", PositionSide.Long, 1, "ask");
+        Assert.True(_vm.SetWorkbenchColumns(["Iv"]));
+        var other = new SettingsStore(_directory); other.Load(); other.Update(s => s.Options.WorkbenchColumns = ["Oi"]);
+        Assert.False(_vm.SetWorkbenchColumns(["Gamma"]));
+        Assert.Equal(new[] { "Oi" }, new SettingsStore(_directory).Load().Options.WorkbenchColumns);
+        Assert.Equal(new[] { "Oi" }, _vm.WorkbenchVisibleColumns); Assert.NotEmpty(_vm.WorkbenchMessage);
+        Assert.Equal("4", Assert.Single(_vm.Legs).PremiumText);
+        Assert.True(_vm.SetWorkbenchColumns(["Gamma"])); Assert.Equal(new[] { "Gamma" }, new SettingsStore(_directory).Load().Options.WorkbenchColumns); Assert.Empty(_vm.WorkbenchColumnsError);
+        Assert.False(_vm.SelectWorkbenchExpiration(_expiry.AddYears(1))); Assert.Equal(_expiry, _vm.SelectedExpiration!.Date);
+    }
+    [Fact]
+    public async Task Private_expiry_control_reuses_listed_dates_and_rejects_invalid_or_stale_requests()
+    {
+        await _vm.LoadAsync(); using var session = new WebChartSession(_vm); session.Update(_palette);
+        using var client = new HttpClient(new HttpClientHandler { UseProxy = false });
+        async Task<HttpStatusCode> Send(string date, string key)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(session.PageUri, "event")) { Content = new ByteArrayContent(JsonSerializer.SerializeToUtf8Bytes(new { kind = "select-expiration", key, expiration = date })) };
+            request.Headers.Add("Origin", session.Origin); request.Content.Headers.ContentType = new("application/json"); using var response = await client.SendAsync(request); return response.StatusCode;
+        }
+        Assert.Equal(HttpStatusCode.NoContent, await Send(_expiry.ToString("yyyy-MM-dd"), _vm.WorkbenchKey));
+        Assert.Equal(HttpStatusCode.BadRequest, await Send("2099-99-99", _vm.WorkbenchKey));
+        Assert.Equal(HttpStatusCode.NoContent, await Send(_expiry.AddDays(1).ToString("yyyy-MM-dd"), _vm.WorkbenchKey));
+        Assert.Equal(_expiry, _vm.SelectedExpiration!.Date); Assert.NotEmpty(_vm.WorkbenchMessage);
+        Assert.Equal(HttpStatusCode.NoContent, await Send(_expiry.ToString("yyyy-MM-dd"), "stale"));
+        Assert.Equal(_expiry, _vm.SelectedExpiration.Date); Assert.Empty(_vm.Legs);
+    }
     public void Dispose(){_vm.Deactivate();if(Directory.Exists(_directory))Directory.Delete(_directory,true);}
 }

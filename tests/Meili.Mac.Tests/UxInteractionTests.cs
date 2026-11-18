@@ -21,12 +21,12 @@ public sealed class UxInteractionTests
         try
         {
             window.Navigate(AppPage.Options);await Settle();var page=window.CurrentView!;var vm=AppServices.Get<OptionsViewModel>();
-            await vm.LoadAsync();await Settle();var chain=page.FindControl<DataGrid>("ChainList")!;Assert.NotEmpty(chain.ItemsSource.Cast<object>());chain.SelectedIndex=0;await Settle();Assert.True(vm.SelectedRow is not null,$"Selection: index={chain.SelectedIndex}, item={chain.SelectedItem}, rows={vm.Rows.Count}, busy={vm.IsBusy}, context={ReferenceEquals(page.DataContext,vm)}");
+            await vm.LoadAsync();await Settle();var chain=page.FindControl<DataGrid>("ChainList")!;Assert.NotEmpty(chain.ItemsSource!.Cast<object>());chain.SelectedIndex=0;await Settle();Assert.True(vm.SelectedRow is not null,$"Selection: index={chain.SelectedIndex}, item={chain.SelectedItem}, rows={vm.Rows.Count}, busy={vm.IsBusy}, context={ReferenceEquals(page.DataContext,vm)}");
             var ticket=page.FindControl<AppPopover>("StrategyActionsPopover")!;Assert.True(ticket.IsEnabled);ticket.IsExpanded=true;await Settle();
             var actions=((Control)ticket.PopupContent!).GetVisualDescendants().OfType<Button>().Where(b=>b.Command==vm.BuildStrategyCommand).ToArray();Assert.Equal(4,actions.Length);Assert.All(actions,b=>Assert.True(b.IsEffectivelyEnabled));
             ticket.IsExpanded=false;vm.SelectedRow=null;await Settle();Assert.False(ticket.IsEnabled);Assert.All(actions,b=>Assert.False(b.IsEffectivelyEnabled));
             window.Navigate(AppPage.Dashboard);await Settle();Assert.Null(chain.ItemsSource);
-            window.Navigate(AppPage.Options);await Settle();await vm.LoadAsync();await Settle();Assert.NotEmpty(chain.ItemsSource.Cast<object>());chain.SelectedIndex=0;await Settle();Assert.NotNull(vm.SelectedRow);Assert.True(ticket.IsEnabled);
+            window.Navigate(AppPage.Options);await Settle();await vm.LoadAsync();await Settle();Assert.NotEmpty(chain.ItemsSource!.Cast<object>());chain.SelectedIndex=0;await Settle();Assert.NotNull(vm.SelectedRow);Assert.True(ticket.IsEnabled);
         }
         finally{window.Close();}
     }

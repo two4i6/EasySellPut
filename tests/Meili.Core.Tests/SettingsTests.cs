@@ -8,6 +8,31 @@ public class SettingsTests : IDisposable
     public void Dispose() { try { Directory.Delete(_dir, true); } catch { } }
 
     [Fact]
+    public void Conflict_reload_rejects_corrupt_data_without_adopting_its_write_baseline()
+    {
+        var store = new SettingsStore(_dir); store.Load(); store.Update(s => s.Language = "en-US");
+        var before = store.Current;
+        File.WriteAllText(store.FilePath, "{");
+        Assert.Throws<System.Text.Json.JsonException>(store.ReloadForEditing);
+        Assert.Same(before, store.Current);
+        Assert.Throws<DataConflictException>(() => store.Update(s => s.Options.WorkbenchColumns = ["Gamma"]));
+        Assert.Equal("{", File.ReadAllText(store.FilePath));
+    }
+
+    [Fact]
+    public void Workbench_fields_normalize_old_and_hand_edited_files_and_keep_explicit_empty_selection()
+    {
+        var store = new SettingsStore(_dir);
+        Assert.Equal(WorkbenchColumns.Default, store.Load().Options.WorkbenchColumns);
+        store.Update(s => s.Options.WorkbenchColumns = ["Gamma", "unknown", "Delta", "Gamma"]);
+        Assert.Equal(new[] { "Delta", "Gamma" }, new SettingsStore(_dir).Load().Options.WorkbenchColumns);
+        store.Update(s => s.Options.WorkbenchColumns = []);
+        Assert.Empty(new SettingsStore(_dir).Load().Options.WorkbenchColumns);
+        store.Update(s => s.Options = null!);
+        Assert.Equal(WorkbenchColumns.Default, new SettingsStore(_dir).Load().Options.WorkbenchColumns);
+    }
+
+    [Fact]
     public void Load_WithoutFile_ReturnsDefaults()
     {
         var s = new SettingsStore(_dir).Load();

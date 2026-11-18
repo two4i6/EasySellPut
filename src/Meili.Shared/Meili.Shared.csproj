@@ -21,10 +21,12 @@
     <EmbeddedResource Include="Assets/Fonts/*" LogicalName="WebCharts/fonts/%(Filename)%(Extension)" />
     <EmbeddedResource Include="WebCharts/design-tokens.css" LogicalName="WebCharts/design-tokens.css" />
     <EmbeddedResource Include="WebCharts/components.css" LogicalName="WebCharts/components.css" />
+    <EmbeddedResource Include="WebCharts/components.js" LogicalName="WebCharts/components.js" />
     <EmbeddedResource Include="WebCharts/motion.js" LogicalName="WebCharts/motion.js" />
     <EmbeddedResource Include="WebCharts/icons.js" LogicalName="WebCharts/icons.js" />
     <EmbeddedResource Include="WebCharts/chart.js" LogicalName="WebCharts/chart.js" />
     <EmbeddedResource Include="WebCharts/workbench.html" LogicalName="WebCharts/workbench.html" />
+    <EmbeddedResource Include="WebCharts/workbench.css" LogicalName="WebCharts/workbench.css" />
     <EmbeddedResource Include="WebCharts/workbench.js" LogicalName="WebCharts/workbench.js" />
     <EmbeddedResource Include="WebCharts/vendor/lightweight-charts.js" LogicalName="WebCharts/vendor/lightweight-charts.js" />
     <EmbeddedResource Include="WebCharts/vendor/LICENSE" LogicalName="WebCharts/vendor/LICENSE" />

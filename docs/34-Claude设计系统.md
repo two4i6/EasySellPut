@@ -45,3 +45,21 @@ CLI/MCP：本次为桌面视觉与组件基础设施，业务操作和权限不�
 本地验证：Windows 编译通过；共享层 64 项、Chromium 13 项交互、自动化 36 项检查通过。CI 的完整桌面 83 项回归已通过；原生 WebView 冒烟测试的主题背景断言也改为读取同一设计变量。截图位于 build/out/claude-design，为实际 Avalonia/Skia 和 Chromium 渲染，使用测试数据。
 
 基本面：`AppFinancialChart` 采用实心实际值／空心预测值，保留共同零线、负数与缺失值；每列可通过键盘聚焦或点击显示准确值、来源和预测区间。复用组件画廊与 NewsSplitTests 的 1080p fixture 截图。仅点选详情和展开报表使用已有短时透明度反馈，尊重减少动态效果；不动画化财务数值或分屏尺寸。
+
+
+## 交易工作区与 Web 弹层
+
+期权工作区沿用字体、间距、动效及 Lucide，新增的交易表面/买卖报价角色也只在 `tokens.json` 定义：`TradingCanvas`、`TradingSurface`、`TradingEdge`、`TradingMuted`、`BuyQuote`、`SellQuote`。浅色保留现有米白；深色参考提供的交易界面，使用更暗的画布、层次表面和清晰的报价胶囊。行情涨跌与买卖动作配色是不同语义。
+
+Web 端复用 `.app-segmented` 和 `.app-popover`；原生端继续使用已有 `AppPopover`，不复制弹层模板。Web 示例（引入共享 `components.css`、`components.js` 和 `motion.js`）：
+
+```html
+<details class="app-popover" data-app-popover>
+  <summary aria-expanded="false" aria-controls="example-options">显示字段</summary>
+  <div id="example-options" class="app-popover-panel" role="group" aria-label="显示字段">
+    <label><input type="checkbox">Delta</label>
+  </div>
+</details>
+```
+
+弹层统一负责视口内定位、内部焦点、点击外部关闭、Esc 返回触发器和减少动态支持。选项是交互控件，不能放进 tooltip。期权字段使用现有私有 typed event 与 SettingsStore；无需新增远端桥接权限。实际画廊示例和键盘/窄屏测试在 `tests/webcharts/test_workbench.py`，截图为真实 Chromium 与 C# 测试宿主生成。

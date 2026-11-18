@@ -56,6 +56,7 @@ def outputs():
         def rgba(value):return '#'+value[3:]+value[1:3] if len(value)==9 else value
         theme={k:components[k.title()] for k in ['brand','focus','link','input','hover','pressed','danger']}
         theme.update(dark=name=='dark',control=palette['Control'],border=palette['Border'],accent=palette['Accent'],errorBackground=palette['ErrorBar'],errorText=palette['Degraded'],sessionPre=rgba(palette['PreMarketTint']),sessionPost=rgba(palette['AfterHoursTint']),background=palette['Chart'],text=palette['PrimaryText'],muted=palette['MutedText'],grid=palette['PrimaryText']+format(palette['GridAlpha'],'02X'),up=palette['Up'],down=palette['Down'],colors=[palette['Series'+str(i)] for i in range(1,7)])
+        theme.update({key:components[role] for key,role in {'tradingCanvas':'TradingCanvas','tradingSurface':'TradingSurface','tradingEdge':'TradingEdge','tradingMuted':'TradingMuted','buyQuote':'BuyQuote','sellQuote':'SellQuote'}.items()})
         presentations[name]=theme
     result['src/Meili.Application/Modules/app-theme-defaults.json']=json.dumps(presentations,indent=2)+'\n'
     return result

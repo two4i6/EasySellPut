@@ -361,6 +361,8 @@ internal static partial class Program
         {
             window.Show();chart.Start(vm,palette);
             await Until(()=>Result(d=>d.GetProperty("contracts").GetInt32()==18),"Native workspace document");
+            await Send(new{kind="set-columns",key=vm.WorkbenchKey,columns=new[]{"Be","Oi","Gamma"}});
+            await Until(()=>Result(d=>d.GetProperty("columns").GetArrayLength()==3&&d.GetProperty("visibleColumnCount").GetInt32()==6),"Native configurable chain fields");
             await Send(new{kind="add-contract",key=vm.WorkbenchKey,contract="Call100",side="Long",quantity=1});
             await Until(()=>Result(d=>d.GetProperty("legs").GetInt32()==1&&d.GetProperty("points").GetInt32()==vm.Curve!.Prices.Length&&d.GetProperty("renderedPoints").GetInt32()==vm.Curve.Prices.Length),"Native linked curve after first leg");
             await Send(new{kind="add-contract",key=vm.WorkbenchKey,contract="Call110",side="Short",quantity=1});
@@ -373,7 +375,7 @@ internal static partial class Program
             palette=WorkbenchFixture.Palette(false);chart.Update(palette);
             await Until(()=>Result(d=>d.GetProperty("background").GetString()==$"#{ThemePalette.Light.Chart & 0xFFFFFF:X6}"),"Workspace theme");
             chart.Stop();chart.Start(vm,palette);
-            await Until(()=>Result(d=>d.GetProperty("legs").GetInt32()==2),"Workspace reload preserves draft");
+            await Until(()=>Result(d=>d.GetProperty("legs").GetInt32()==2&&d.GetProperty("columns").GetArrayLength()==3&&d.GetProperty("visibleColumnCount").GetInt32()==6),"Workspace reload preserves draft and columns");
             Console.WriteLine("PASS: native linked workspace, chain, spread/Analytics payoff, quantity, what-if, theme and restart.");
         }
         catch(Exception){Console.Error.WriteLine("Workspace diagnostic: "+chart.LastDiagnostic);Console.Error.WriteLine($"Model legs={vm.Legs.Count}, points={vm.Curve?.Prices.Length}");throw;}

@@ -28,7 +28,13 @@
       "#3D7263",
       "#8A5F4C",
       "#66655E"
-    ]
+    ],
+    "tradingCanvas": "#FAF9F5",
+    "tradingSurface": "#FFFFFF",
+    "tradingEdge": "#D1CFC5",
+    "tradingMuted": "#5E5D59",
+    "buyQuote": "#24643D",
+    "sellQuote": "#AA3929"
   },
   "dark": {
     "brand": "#D97757",
@@ -59,6 +65,12 @@
       "#8AB9A7",
       "#EBC9B7",
       "#C2C0B6"
-    ]
+    ],
+    "tradingCanvas": "#101110",
+    "tradingSurface": "#181A19",
+    "tradingEdge": "#343734",
+    "tradingMuted": "#B0B4AE",
+    "buyQuote": "#6FC48B",
+    "sellQuote": "#F77B67"
   }
 }
