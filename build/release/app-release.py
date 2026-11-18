@@ -10,6 +10,7 @@ import re
 import subprocess
 import tempfile
 import zipfile
+from app_definitions import APPS, definition, catalog_sequence
 from policy import require, select, current_main
 
 ROOT=pathlib.Path(__file__).resolve().parents[2]
@@ -25,7 +26,8 @@ def verify(body,signature):
     subprocess.run(['openssl','dgst','-sha256','-verify',str(PUBLIC),'-signature',str(signature),str(body)],check=True,capture_output=True)
 
 
-def validate_package(path,repository,version):
+def validate_package(path,repository,version,app='qqq-gex'):
+    delivery=definition(app)
     require(path.stat().st_size<=512*1024*1024,'App archive exceeds bound')
     with zipfile.ZipFile(path) as archive:
         names=archive.namelist()
@@ -35,8 +37,8 @@ def validate_package(path,repository,version):
             require(len(name)<=240 and not name.startswith('/') and '\\' not in name and ':' not in name and all(p not in ('','.','..') for p in name.split('/')),'Unsafe app archive path')
         body=archive.read('app.json');require(len(body)<=262144,'Oversized app manifest');manifest=json.loads(body)
         require(manifest['schemaVersion']==manifest['hostApi']==manifest['engineProtocol']==1,'Unsupported app protocol')
-        require(manifest['repository']==repository and manifest['id']=='easysellput.qqq-gex' and manifest['version']==version,'App source/version mismatch')
-        expected=json.loads((ROOT/'web/qqq-gex/source-manifest.json').read_text())['commit']
+        require(manifest['repository']==repository and manifest['id']==delivery['id'] and manifest['version']==version,'App source/version mismatch')
+        expected=delivery['model']
         require(manifest['modelVersion']==expected,'Original model revision mismatch')
         files=manifest['files'];require({f['path'] for f in files}|{'app.json','app.sig'}==set(names) and len(files)==len(names)-2,'Incomplete app file table')
         for item in files:
@@ -80,7 +82,7 @@ def sign(path,key):
 
 def prepare(args,plan,folder):
     repository=plan['repository'];source=pathlib.Path(args.artifact)
-    manifest,payload=validate_package(source,repository,args.version)
+    manifest,payload=validate_package(source,repository,args.version,getattr(args,'app','qqq-gex'))
     raw=os.environ.get('UPDATE_SIGNING_KEY','');require(bool(raw),'Configure UPDATE_SIGNING_KEY matching pinned host trust')
     key=folder/'private.pem';key.write_text(raw);key.chmod(0o600)
     try:
@@ -94,7 +96,7 @@ def prepare(args,plan,folder):
         verify(manifest_file,signature_file)
         old=folder/'previous';old.mkdir();previous=previous_catalog(repository,old)
         entry=dict(id=app_id,version=args.version,hostApi=manifest['hostApi'],engineProtocol=manifest['engineProtocol'],dataFormat=manifest['dataFormat'],platforms=manifest['platforms'],size=package.stat().st_size,sha256=hashlib.sha256(package.read_bytes()).hexdigest(),hasUi=manifest.get('ui') is not None,withdrawn=False)
-        catalog=merge_catalog(previous,entry,repository,int(os.environ['GITHUB_RUN_ID']),dt.datetime.now(dt.timezone.utc))
+        catalog=merge_catalog(previous,entry,repository,catalog_sequence(previous,os.environ['GITHUB_RUN_ID']),dt.datetime.now(dt.timezone.utc))
         catalog_file=folder/CATALOG;catalog_file.write_text(json.dumps(catalog,separators=(',',':')));sign(catalog_file,key)
         provenance=dict(schemaVersion=1,repository=repository,sourceCommit=plan['sourceCommit'],ciRunId=plan['ciRunId'],appId=app_id,version=args.version,sequence=catalog['sequence'],package=name,sha256=entry['sha256'],size=entry['size'],catalogSha256=hashlib.sha256(catalog_file.read_bytes()).hexdigest())
         index=folder/'app-release.json';index.write_text(json.dumps(provenance,separators=(',',':')));sign(index,key)
@@ -108,13 +110,13 @@ def prepare(args,plan,folder):
             gh('release','upload',tag,*assets,'--repo',repository,'--clobber')
         else:
             require('HTTP 404' in existing.stderr,'Could not inspect existing app draft')
-            gh('release','create',tag,*assets,'--repo',repository,'--target',plan['sourceCommit'],'--title',f'QQQ GEX {args.version}','--notes','Independent app package. Host binaries are unchanged. Publication requires the explicit Apps release workflow.','--draft','--prerelease')
+            gh('release','create',tag,*assets,'--repo',repository,'--target',plan['sourceCommit'],'--title',f'{app_id} {args.version}','--notes','Independent app package. Host binaries are unchanged. Published by the main-only Apps release workflow.','--draft','--prerelease')
     finally:
         key.unlink(missing_ok=True)
 
 
 def publish(args,plan,folder):
-    repository=plan['repository'];app_id='easysellput.qqq-gex';tag=f'{app_id}-v{args.version}';name=f'{app_id}-{args.version}.espapp'
+    repository=plan['repository'];app_id=definition(getattr(args,'app','qqq-gex'))['id'];tag=f'{app_id}-v{args.version}';name=f'{app_id}-{args.version}.espapp'
     release=json.loads(gh('release','view',tag,'--repo',repository,'--json','isDraft,isPrerelease,targetCommitish,assets'))
     expected={name,CATALOG,CATALOG+'.sig','app-release.json','app-release.json.sig'}
     require(release['isDraft'] and release['isPrerelease'] and release['targetCommitish']==plan['sourceCommit'],'Expected the current tested main app draft')
@@ -126,7 +128,7 @@ def publish(args,plan,folder):
     require(index['package']==name and index['size']==package.stat().st_size and index['sha256']==hashlib.sha256(package.read_bytes()).hexdigest(),'Draft package mismatch')
     require(index['catalogSha256']==hashlib.sha256((folder/CATALOG).read_bytes()).hexdigest() and catalog['repository']==repository and catalog['sequence']==index['sequence'],'Draft catalog mismatch')
     require(dt.datetime.fromisoformat(catalog['expiresAt'])>dt.datetime.now(dt.timezone.utc),'Draft catalog expired; prepare a new draft')
-    _,payload=validate_package(package,repository,args.version)
+    _,payload=validate_package(package,repository,args.version,getattr(args,'app','qqq-gex'))
     (folder/'manifest.json').write_bytes(payload['app.json'])
     with zipfile.ZipFile(package) as archive:(folder/'manifest.sig').write_bytes(archive.read('app.sig'))
     verify(folder/'manifest.json',folder/'manifest.sig')
@@ -167,7 +169,7 @@ def refresh(repository, folder):
     if previous is None:
         print('No published app catalog yet; nothing to renew.')
         return
-    catalog = renew_catalog(previous, repository, int(os.environ['GITHUB_RUN_ID']), dt.datetime.now(dt.timezone.utc))
+    catalog = renew_catalog(previous, repository, catalog_sequence(previous,os.environ['GITHUB_RUN_ID']), dt.datetime.now(dt.timezone.utc))
     raw = os.environ.get('UPDATE_SIGNING_KEY', '')
     require(bool(raw), 'Configure UPDATE_SIGNING_KEY matching pinned host trust')
     key = folder/'private.pem'; key.write_text(raw); key.chmod(0o600)
@@ -182,7 +184,7 @@ def refresh(repository, folder):
         key.unlink(missing_ok=True)
 
 if __name__=='__main__':
-    parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('action',choices=['prepare','publish','refresh']);parser.add_argument('--run-id');parser.add_argument('--version');parser.add_argument('--artifact',type=pathlib.Path)
+    parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('action',choices=['prepare','publish','refresh']);parser.add_argument('--app',choices=APPS,default='qqq-gex');parser.add_argument('--run-id');parser.add_argument('--version');parser.add_argument('--artifact',type=pathlib.Path)
     args=parser.parse_args();require(os.environ.get('GITHUB_REF')=='refs/heads/main','App releases require main');require(args.action=='refresh' or args.version is not None and re.fullmatch(r'\d+\.\d+\.\d+',args.version),'Stable app version required')
     if args.action=='refresh':
         with tempfile.TemporaryDirectory(prefix='app-catalog-renew-') as scratch:refresh(os.environ['GITHUB_REPOSITORY'],pathlib.Path(scratch))

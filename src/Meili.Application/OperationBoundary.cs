@@ -21,6 +21,11 @@ public static class OperationCatalogResolver
     {
         ArgumentNullException.ThrowIfNull(directory);
         var discovery=await Modules.ModuleOperations.ReadSnapshotAsync(directory.Path,ct).ConfigureAwait(false);
+        return FromDiscovery(discovery);
+    }
+
+    internal static IOperationCatalog FromDiscovery(Modules.ModuleDiscovery discovery)
+    {
         var catalog=discovery.Operations.Count==0&&discovery.Issues.Count==0?OperationCatalog.Snapshot:Modules.ModuleOperations.Merge(discovery.Operations,discovery.Issues);
         bool Enabled(string id)
         {

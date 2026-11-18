@@ -46,3 +46,13 @@ class AppReleasePolicyTests(unittest.TestCase):
             changed=copy.deepcopy(workflows)
             changed['update-release.yml']['jobs']['publish'][field]=value
             with self.assertRaises(ValueError):guard.check(changed)
+
+    def test_liquidity_cannot_bypass_source_validation_or_serialize_catalog_in_parallel(self):
+        workflows={p.name:yaml.load(p.read_text(encoding='utf-8-sig'),Loader=yaml.BaseLoader)for p in (ROOT/'.github/workflows').glob('*.yml')}
+        changed=copy.deepcopy(workflows)
+        changed['app-release.yml']['jobs']['release']['strategy']={'matrix':{'app':['qqq-gex','market-liquidity']}}
+        with self.assertRaises(ValueError):guard.check(changed)
+        changed=copy.deepcopy(workflows)
+        step=next(s for s in changed['app-release.yml']['jobs']['release']['steps'] if 'app-release.py publish --app market-liquidity' in s.get('run',''))
+        step['if']='true'
+        with self.assertRaises(ValueError):guard.check(changed)

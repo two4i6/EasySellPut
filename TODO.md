@@ -13,7 +13,7 @@ Design: [architecture](docs/55-主程序与可独立更新子应用架构研究.
 - Keep public CLI/MCP names, schemas, JSON envelopes, errors and permissions compatible. Business logic has one implementation; no desktop dependency in CLI/MCP.
 - Reuse existing UI primitives, tokens, market connections, storage and cache boundaries. New UI requires actual screenshots and relevant native checks.
 - Keep user data, original financial observations, model provenance, source times and missingness. Default uninstall retains data. Test migrations and rollback before enabling them.
-- No main merge, public release, signing bypass, production fixture/trust override or MCP installation tool. Releases remain main-only GitHub Actions with explicit publish.
+- No main merge, public release, production fixture/trust override or MCP installation tool without instruction. Releases use main-only GitHub Actions, version-gated automatic promotion and explicit repository switches. OS publisher signing is currently deferred by user instruction; update/app signatures and native package checks remain mandatory.
 
 ## First delivery: shared runtime and QQQ GEX
 
@@ -109,7 +109,7 @@ Design: [architecture](docs/55-主程序与可独立更新子应用架构研究.
 - [ ] **S13 — Market liquidity.** After S12: reuse existing service/math/provenance; validate the second app needs no duplicated package manager, market connection or UI system.
   - [x] S13a: signed core-only adapter, exact existing CLI/MCP contract, explicit ownership and no compatibility resurrection after disable/uninstall; shared packaging/SDK and four-platform independent CI.
   - [x] S13b: existing native liquidity page calls the installed operation; preserve shared controls, cancellation, source/missingness and navigation behavior.
-  - [ ] S13c: multi-app signed catalog/release promotion, fixed-host A/B and real CLI/MCP/native acceptance. Keep S13 open until these pass.
+  - [ ] S13c: multi-app signed catalog/release promotion and fixed-host CLI/persistent-MCP A/B implemented and locally verified; final exact-commit native integration CI pending. Keep S13 open until that gate passes.
 - [ ] **S14 — News and fundamentals.** After S13: reuse provider routing and native article split; preserve personal pages and WebView trust boundaries.
 - [ ] **S15 — Options and strategy as one domain.** After S14: preserve selected contracts, strategy drafts, entry premiums and shared analytics; migrate as one cohesive app.
 
@@ -451,3 +451,11 @@ Implemented independent market-liquidity metadata/engine and shared SDK bundle/p
 Local focused module/liquidity suites passed 55 tests; real Node archive smoke passed with signature/hash/missingness/source-error checks, and existing GEX archive/engine smoke passed after shared writer extraction. Native liquidity now uses the same installed operation through LiquidityAppClient with the original shared provider instance and existing view-model cancellation/generation checks; real signed A/B tests cover native DTO decoding and disabled/uninstalled failure. The first full offline run passed all six .NET suites but its shell tail was invalidated by a concurrent script edit; a fixed-script final rerun is required. This is S13a+b evidence, not S13 completion, production distribution or native/live acceptance. See docs/app-runtime-research/liquidity-migration.md for current boundaries and follow-ups.
 
 S13a+b final-source checks: 1,060 .NET cases passed (Core 217 + two Windows-only skips, Data 160, Analytics 209, Shared 134, Avalonia 145, Automation 195), Python 75, shared SDK 9, all 58 actual CLI/MCP operations. Final full-script cache/AppDev/persistent-MCP/GEX-maintenance tail is still running at this commit; no pending tail/native runner is claimed passed. Independent liquidity/GEX package signature/engine smoke passed. Current 1920×1080 Avalonia fixture screenshots were inspected and retained; production live completeness is not implied.
+
+### S13c — shared multi-app delivery and fixed-host evidence
+
+Generalized the existing release source/package/provenance validator with explicit first-party app identities; no second installer or signing implementation. Main-only Apps release checks each app manifest and sequentially promotes exact tested GEX/liquidity artifacts into the same separate signed non-Latest catalog. Manual recovery selects one app. Catalog generations advance from the authenticated previous generation when two app versions publish within the same run; renewal follows the same rule and retains all entries.
+
+Actual packaged liquidity A/B passed real CLI and persistent official SDK MCP calls with a fixed host hash, unchanged contract, explicit uninstall removing discovery/invocation, retained app data and successful reinstall. Both app re-sign/catalog/publication tests passed with all GitHub writes intercepted, including cross-app substitution/stale-catalog rejection. Python 78, policy guard and final Automation 195 passed. Generic persistent MCP 2025/2026 modes and all original signed GEX facades passed again after sharing the production catalog resolver with the fixture host. Full prior-source offline script completed successfully at run-cxYkSLYN (1,060 .NET, 75 Python at that stage, SDK 9, all 58 actual CLI/MCP, cache protection, AppDev, persistent app updates, GEX source parity and cross-process maintenance); subsequent changes were covered by the named focused reruns rather than a second broad UI run.
+
+Unchanged core artifacts passed all four native App core jobs in https://github.com/two4i6/EasySellPut/actions/runs/44239654589 at 02b470d. Latest host/release integration CI is pending; do not call S13 accepted or start S14 until it passes. Production key/bootstrap and public release remain unperformed and are separate from these fixture validations.

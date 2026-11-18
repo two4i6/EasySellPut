@@ -18,7 +18,7 @@ Application tests install signed liquidity A and B through the real installer/ru
 
 ## Remaining acceptance boundaries
 
-S13a+b are not complete S13 acceptance. Native liquidity now resolves the installed report through LiquidityAppClient, with the same existing MarketLiquidityService instance when host inputs are requested. Its signed execution/compatibility fallback respects disable/uninstall and corruption, propagates request cancellation and deserializes the existing report DTO. The view model retains its generation fencing, shared controls and refresh lifecycle. No UI styling or business algorithm changed. S13c must generalize release/catalog promotion beyond the current GEX selection and hold host files fixed across actual CLI/MCP/native package A/B updates. Production signing setup remains separate and incomplete; test keys are not installation trust overrides. No release or main merge is performed by this migration.
+S13a+b are not complete S13 acceptance. Native liquidity now resolves the installed report through LiquidityAppClient, with the same existing MarketLiquidityService instance when host inputs are requested. Its signed execution/compatibility fallback respects disable/uninstall and corruption, propagates request cancellation and deserializes the existing report DTO. The view model retains its generation fencing, shared controls and refresh lifecycle. No UI styling or business algorithm changed. The shared release workflow now selects both app identities explicitly, resolves each manifest version, downloads its exact required-CI artifact and promotes it sequentially. One protected concurrency group also serializes catalog renewal. Catalog generations use max(run ID, authenticated previous generation + 1), allowing two versions in the same workflow run while preserving all other entries. Manual recovery selects one app. Real fixed-host CLI/persistent-MCP A/B, uninstall/reinstall and retained-data tests now pass; final native exact-commit CI remains the S13 acceptance gate. Production signing setup remains separate and incomplete; test keys are not installation trust overrides. No release or main merge is performed by this migration.
 
 ## Local evidence — S13a+b
 
@@ -27,3 +27,9 @@ S13a+b are not complete S13 acceptance. Native liquidity now resolves the instal
 ![Chinese light native-control fixture](screenshots/liquidity-core-zh-light-1080p.png)
 
 ![English dark native-control fixture](screenshots/liquidity-core-en-dark-1080p.png)
+
+## S13c local delivery acceptance
+
+`liquidity_mcp_smoke.py` installs the actual packaged A/B through the shared installer in a test-only trust host. It invokes the existing tool using real CLI processes and a persistent official SDK MCP process, checks unchanged schema/data semantics and a fixed host binary hash, then uninstalls using the real CLI manager. Discovery removes the tool, invocation fails, retained data survive, and reinstall restores it. The test host reuses the production catalog policy instead of maintaining its own disabled-domain filter. No production fixture switch was added.
+
+Both real app archive re-signing/catalog/provenance/promotion tests pass with every GitHub write intercepted; wrong-app artifact substitution and stale catalog publication are rejected. Python policy suite now has 78 passing cases. Generic persistent MCP update modes and full GEX operation regressions are rerun after the shared catalog change. App-only four-platform build/test run [44239654589](https://github.com/two4i6/EasySellPut/actions/runs/44239654589) passed at unchanged core payload commit `02b470d`; this is not a claim about the later host/release integration revision's CI.

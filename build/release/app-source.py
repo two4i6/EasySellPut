@@ -6,15 +6,17 @@ import os
 import pathlib
 import re
 import subprocess
+from app_definitions import definition
 from policy import current_main, gh_json, require, select
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 
 
-def resolve(repository, action, version='', run_id='', automatic=False):
+def resolve(repository, action, version='', run_id='', automatic=False, app='qqq-gex'):
     require(action in ('prepare', 'publish', 'auto'), 'Unknown app release action')
     require(not automatic or action in ('prepare', 'auto'), 'Automatic publication requires the prepare-and-verify path')
-    version = version or json.loads((ROOT / 'web/qqq-gex/app.json').read_text())['version']
+    metadata = definition(app)
+    version = version or metadata['version']
     require(re.fullmatch(r'(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)', version), 'Canonical app version required')
     sha = current_main(repository)
     if not run_id:
@@ -26,7 +28,7 @@ def resolve(repository, action, version='', run_id='', automatic=False):
     require(plan['sourceCommit'] == sha, 'Main advanced during source selection')
     skip = False
     if automatic:
-        result = subprocess.run(['gh', 'api', f'repos/{repository}/releases/tags/easysellput.qqq-gex-v{version}'], capture_output=True, text=True)
+        result = subprocess.run(['gh', 'api', f'repos/{repository}/releases/tags/{metadata["id"]}-v{version}'], capture_output=True, text=True)
         if result.returncode == 0:
             release = json.loads(result.stdout)
             skip = not release['draft'] or release['target_commitish'] != sha
@@ -37,12 +39,13 @@ def resolve(repository, action, version='', run_id='', automatic=False):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--app', default='qqq-gex')
     parser.add_argument('--output', type=pathlib.Path, required=True)
     args = parser.parse_args()
     require(os.environ.get('GITHUB_REF') == 'refs/heads/main', 'App releases require main')
     automatic = os.environ.get('GITHUB_EVENT_NAME') == 'workflow_run'
     action = 'auto' if automatic else os.environ.get('APP_ACTION', 'prepare')
-    plan, outputs = resolve(os.environ['GITHUB_REPOSITORY'], action, os.environ.get('APP_VERSION_INPUT', ''), os.environ.get('CI_RUN_INPUT', ''), automatic)
+    plan, outputs = resolve(os.environ['GITHUB_REPOSITORY'], action, os.environ.get('APP_VERSION_INPUT', ''), os.environ.get('CI_RUN_INPUT', ''), automatic, args.app)
     require(plan['sourceCommit'] == os.environ['GITHUB_SHA'], 'Main advanced since workflow dispatch; run again')
     args.output.write_text(json.dumps(plan, indent=2) + '\n')
     with open(os.environ['GITHUB_OUTPUT'], 'a') as stream:

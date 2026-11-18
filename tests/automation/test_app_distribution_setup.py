@@ -20,6 +20,7 @@ def load(name, path):
 
 source = load('app_source', 'build/release/app-source.py')
 release = load('catalog_release', 'build/release/app-release.py')
+from app_definitions import catalog_sequence
 setup = load('distribution_setup', 'build/configure-app-distribution.py')
 
 
@@ -47,6 +48,27 @@ class AppDistributionSetupTests(unittest.TestCase):
         with mock.patch.object(source, 'current_main', return_value=sha), mock.patch.object(source, 'gh_json', return_value={'workflow_runs':[]}):
             with self.assertRaisesRegex(ValueError,'Wait for successful CI'):
                 source.resolve('owner/repo','prepare','1.0.1')
+
+    def test_two_apps_can_advance_one_catalog_in_the_same_run_without_replacing_other_entries(self):
+        now=dt.datetime.now(dt.timezone.utc)
+        first=release.merge_catalog(None,dict(id='easysellput.qqq-gex',version='1.0.0',dataFormat=1),'owner/repo',catalog_sequence(None,'1000'),now)
+        second=release.merge_catalog(first,dict(id='easysellput.market-liquidity',version='1.0.0',dataFormat=1),'owner/repo',catalog_sequence(first,'1000'),now)
+        self.assertEqual(first['sequence'],1000);self.assertEqual(second['sequence'],1001)
+        self.assertIn(first['apps'][0],second['apps'])
+        self.assertEqual(catalog_sequence(second,'1002'),1002)
+        self.assertEqual(catalog_sequence(second,'999'),1002)
+        for previous in ({}, {'sequence':True}, {'sequence':0}, {'sequence':2**53}, {'sequence':'1000'}):
+            with self.assertRaises(ValueError):catalog_sequence(previous,'1000')
+        for run in ('0','-1','unsafe',str(2**53)):
+            with self.assertRaises(ValueError):catalog_sequence(second,run)
+
+    def test_liquidity_source_resolves_its_own_version_and_tag(self):
+        sha='a'*40
+        with mock.patch.object(source,'current_main',return_value=sha), mock.patch.object(source,'select',return_value=dict(sourceCommit=sha,ciRunId=12)), mock.patch.object(source.subprocess,'run',return_value=mock.Mock(returncode=1,stderr='HTTP 404')) as run:
+            _,outputs=source.resolve('owner/repo','auto','1.2.3','12',True,app='market-liquidity')
+            self.assertEqual(outputs['version'],'1.2.3')
+            self.assertIn('easysellput.market-liquidity-v1.2.3',run.call_args.args[0][-1])
+        with self.assertRaises(ValueError):source.resolve('owner/repo','auto',app='../foreign')
 
     def test_catalog_renewal_retains_all_package_identities_even_after_expiry(self):
         now = dt.datetime.now(dt.timezone.utc)

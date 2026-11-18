@@ -44,13 +44,13 @@ internal static class AppFixture
         async Task<IOperationCatalog> Catalog(string? path)
         {
             var directory = LocalPaths.Resolve(path,migrateLegacy:false);
-            var snapshot=await ModuleOperations.ReadSnapshotAsync(directory.Path,Installer(directory.Path),CancellationToken.None);return ModuleOperations.Merge(snapshot.Operations,snapshot.Issues);
+            var snapshot=await ModuleOperations.ReadSnapshotAsync(directory.Path,Installer(directory.Path),CancellationToken.None);return OperationCatalogResolver.FromDiscovery(snapshot);
         }
         return await Meili.Cli.Program.RunAsync(args, directory=>new Dispatcher(directory,Installer(directory.Path),runtime,captureFixture),Catalog);
     }
     private sealed class Dispatcher(DataDirectoryInfo directory, ModuleInstaller installer, string runtime,string? captureFixture) : IOperationDispatcher
     {
-        private readonly AutomationService fallback = new(directory,captureFixture is not null?GexCaptureFixture.Market(captureFixture):new Meili.Automation.Tests.FakeMarket());
+        private readonly AutomationService fallback = new(directory,captureFixture is not null?GexCaptureFixture.Market(captureFixture):new Meili.Automation.Tests.FakeMarket(),liquiditySource:new Meili.Testing.LiquidityFixture(),liquidityClock:Meili.Testing.LiquidityFixture.Clock);
         public DataDirectoryInfo DirectoryInfo => directory;
         public async Task<IOperationCatalog> GetCatalogAsync(CancellationToken ct=default)
         {
@@ -61,7 +61,7 @@ internal static class AppFixture
                 throw new IOException("Fixture installer still owns catalog maintenance.");
             }
             var snapshot=await ModuleOperations.ReadSnapshotAsync(directory.Path,installer,ct);
-            return ModuleOperations.Merge(snapshot.Operations,snapshot.Issues);
+            return OperationCatalogResolver.FromDiscovery(snapshot);
         }
         public async Task<JsonElement> ExecuteAsync(string operation, JsonElement arguments, bool allowWrites, CancellationToken ct=default)
         {

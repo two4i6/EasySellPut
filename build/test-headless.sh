@@ -42,6 +42,8 @@ if dotnet build tests/Meili.Automation.Host/Meili.Automation.Host.csproj -c Rele
   if ! python3 tests/automation/app_mcp_update_smoke.py > "$results/app-mcp-update.log" 2>&1; then failed=1; fi
   cat "$results/app-mcp-update.log"
   if ! python3 build/pack-app.py --development --repository test/source --ui-dir web/qqq-gex/dist --output "$results/gex-pilot.espapp" > "$results/gex-pilot-package.log" 2>&1; then failed=1; fi
+  if ! python3 tests/automation/liquidity_mcp_smoke.py > "$results/liquidity-mcp.log" 2>&1; then failed=1; fi
+  cat "$results/liquidity-mcp.log"
   if ! python3 tests/automation/app_gex_operations_smoke.py --archive "$results/gex-pilot.espapp" > "$results/gex-pilot.log" 2>&1; then failed=1; fi
   cat "$results/gex-pilot.log"
   if ! python3 tests/automation/app_maintenance_smoke.py > "$results/app-maintenance.log" 2>&1; then failed=1; fi

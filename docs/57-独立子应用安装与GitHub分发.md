@@ -48,3 +48,9 @@
 The user explicitly authorized automatic host/app distribution before Windows Authenticode and Apple Developer ID/notarization are available. Host preparation now selects `--platform-signing none` explicitly, preserves exact tested archive/checksum bytes and still runs native GUI/CLI/MCP and updater transaction checks. macOS retains its existing ad-hoc integrity signature; no quarantine removal, Gatekeeper bypass or system policy changes are performed. Release notes disclose missing publisher signatures and possible OS warnings/blocks. This does not guarantee a frictionless first installation.
 
 `UPDATE_SIGNING_KEY` remains required for both host indexes and independently installed app packages/catalogs. Its matching public key must be committed before CI builds the first trusted host. The eight Apple/Windows secrets are deferred, not required by the current path. Both auto-release switches remain false until this one-time trust setup and native CI succeed. Future OS signing must switch preparation and assembly together to `required` and re-enable notarization/Gatekeeper validation; missing credentials must never silently trigger an unsigned fallback. Browser installation may require platform-supported user approval; never automate bypasses.
+
+## 第二个子应用：市场流动性
+
+流动性核心 ID 为 `easysellput.market-liquidity`，版本位于 `web/market-liquidity/app.json`。安装/更新/卸载沿用同一管理器，原生页面复用现有组件并调用已验证的报告接口；CLI/MCP 保留 `get_market_liquidity` 名称和权限。主程序未安装该包时保留兼容实现，明确禁用/卸载后不再自动回退。
+
+启用自动发布后，同一 main 成功 CI 会分别检查两个子应用版本并串行发布；仅更新有新版本的应用，保留另一个应用的目录记录。手动恢复时需选择 app。两种包均执行真实签名与发布验证的离线测试，GitHub 写入全部拦截；固定主程序下的实际 CLI/持久 MCP A/B 更新与卸载/重装已验证。生产信任配置及最终原生 CI 状态另见迁移报告，不代表当前已经公开发布。
