@@ -1,3 +1,7 @@
+using Meili.Mac.Views.Controls;
+using Avalonia.Headless;
+using Avalonia.Input;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.VisualTree;
 using Avalonia.Headless.XUnit;
@@ -19,7 +23,12 @@ public sealed class QuotePanelTests
         try
         {
             await w.ShowPanelAsync();await Task.Delay(220);MacHost.Pump();Assert.Equal(6,model.Rows.Count);Assert.All(model.Rows,r=>Assert.True(r.Graph.Points.Count>10));Assert.Equal(6,hub.SubscribedSymbols.Count);Assert.All(w.GetVisualDescendants().OfType<TextBlock>().Where(t=>t.IsEffectivelyVisible),t=>Assert.True(t.FontSize>=12));
-            MacHost.Save(w,$"quote-panel-{language}-{dark}");model.Select("NVDA");MacHost.Pump();Assert.Equal("NVDA",model.Selected!.Symbol);Assert.NotEqual(model.Rows[0].Graph.Points[10].Y,model.Rows[^1].Graph.Points[10].Y);
+            MacHost.Save(w,$"quote-panel-{language}-{dark}");
+            var mainChart=w.GetVisualDescendants().OfType<QuoteSparkline>().Single(c=>c.EnableTooltip);
+            var sample=mainChart.Data.Points[10];
+            w.MouseMove(mainChart.TranslatePoint(new Point(sample.X*mainChart.Bounds.Width,40),w)!.Value);MacHost.Pump();
+            Assert.True(ToolTip.GetIsOpen(mainChart));await Task.Delay(250);MacHost.Pump();MacHost.Save(w,$"quote-panel-tooltip-{language}-{dark}");
+            model.Select("NVDA");Assert.False(ToolTip.GetIsOpen(mainChart));MacHost.Pump();Assert.Equal("NVDA",model.Selected!.Symbol);Assert.NotEqual(model.Rows[0].Graph.Points[10].Y,model.Rows[^1].Graph.Points[10].Y);
             w.HidePanel();Assert.Empty(hub.SubscribedSymbols);var count=data.Bars;await hub.PollAsync();Assert.Equal(count,data.Bars);
             await w.ShowPanelAsync();Assert.Equal(count,data.Bars);w.HidePanel();
         }
@@ -145,5 +154,47 @@ public sealed class QuotePanelTests
             MacHost.Save(panel,$"quote-panel-sparse-night-{language}-{dark}");
         }
         finally{panel.Close();loc.Apply("zh-CN");theme.Apply(AppThemeMode.System);}
+    }
+    [AvaloniaTheory]
+    [InlineData("en-US",false)] [InlineData("zh-CN",true)]
+    public async Task Sparkline_tooltip_tracks_pointer_and_keyboard_and_clears_on_gaps_replacement_and_exit(string language,bool dark)
+    {
+        MacHost.EnsureComposed();var loc=LocalizationService.Current;loc.Apply(language);
+        var theme=AppServices.Get<MacTheme>();theme.Apply(dark?AppThemeMode.Dark:AppThemeMode.Light);
+        var time=MarketClock.FromEastern(new DateTime(2026,11,13,9,30,0));
+        var graph=IntradaySparkline.Create(new BarSeries{Symbol="AAPL",Interval=BarInterval.Minute5,Bars=[new(time,100,103,99,102,10),Bar.CloseOnly(time.AddMinutes(30),105,1)]},null,time.AddHours(1));
+        var chart=new QuoteSparkline{Width=400,Height=96,EnableTooltip=true,Data=graph};
+        var window=new Window{Width=440,Height=240,Content=chart};window.Show();MacHost.Pump();
+        try
+        {
+            Point At(double x)=>chart.TranslatePoint(new Point(x*chart.Bounds.Width,40),window)!.Value;
+            window.MouseMove(At(0));MacHost.Pump();
+            Assert.True(ToolTip.GetIsOpen(chart));Assert.Contains("09:30:00 ET",((TextBlock)ToolTip.GetTip(chart)!).Text);
+            await Task.Delay(250);MacHost.Pump();MacHost.Save(window,$"sparkline-tooltip-{language}-{dark}");
+            window.MouseMove(At(15d/390));MacHost.Pump();Assert.False(ToolTip.GetIsOpen(chart));
+            window.MouseMove(At(30d/390));MacHost.Pump();Assert.Contains("10:00:00 ET",((TextBlock)ToolTip.GetTip(chart)!).Text);
+            window.MouseMove(new Point(439,239));MacHost.Pump();Assert.False(ToolTip.GetIsOpen(chart));
+            chart.Focus();window.KeyPress(Key.End,RawInputModifiers.None,PhysicalKey.End,null);MacHost.Pump();
+            Assert.True(ToolTip.GetIsOpen(chart));Assert.Contains("10:00:00 ET",((TextBlock)ToolTip.GetTip(chart)!).Text);
+            window.KeyPress(Key.Home,RawInputModifiers.None,PhysicalKey.Home,null);MacHost.Pump();Assert.Contains("09:30:00 ET",((TextBlock)ToolTip.GetTip(chart)!).Text);
+            chart.Data=graph with{Source="replacement"};MacHost.Pump();Assert.False(ToolTip.GetIsOpen(chart));
+            window.KeyPress(Key.Right,RawInputModifiers.None,PhysicalKey.ArrowRight,null);MacHost.Pump();Assert.True(ToolTip.GetIsOpen(chart));
+            chart.ClearTooltip();Assert.False(ToolTip.GetIsOpen(chart));
+            using var touch=window.TouchBegin(At(30d/390));MacHost.Pump();
+            Assert.True(ToolTip.GetIsOpen(chart));Assert.Contains("10:00:00 ET",((TextBlock)ToolTip.GetTip(chart)!).Text);
+            window.TouchMove(touch,At(0));MacHost.Pump();Assert.Contains("09:30:00 ET",((TextBlock)ToolTip.GetTip(chart)!).Text);
+            window.TouchEnd(touch,At(0));MacHost.Pump();Assert.False(ToolTip.GetIsOpen(chart));
+            var night=MarketClock.FromEastern(new DateTime(2026,11,13,23,50,0));
+            chart.Data=IntradaySparkline.Create(new BarSeries{Symbol="QQQ",Interval=BarInterval.Minute1,Bars=[Bar.CloseOnly(night,100,1),Bar.CloseOnly(night.AddMinutes(20),102,1)]},null,night.AddHours(1),MarketSession.Overnight,true);
+            var area=window.Screens.Primary!.WorkingArea;
+            window.Position=new PixelPoint(area.Right-(int)window.Width,area.Bottom-(int)window.Height);
+            window.MouseMove(At(.999));MacHost.Pump();
+            var edgeTip=(TextBlock)ToolTip.GetTip(chart)!;Assert.Contains("00:10:00 ET",edgeTip.Text);
+            var origin=edgeTip.PointToScreen(default);
+            Assert.InRange(origin.X,area.X,area.Right-(int)Math.Ceiling(edgeTip.Bounds.Width*window.RenderScaling));
+            Assert.InRange(origin.Y,area.Y,area.Bottom-(int)Math.Ceiling(edgeTip.Bounds.Height*window.RenderScaling));
+            await Task.Delay(250);MacHost.Pump();MacHost.Save(window,$"sparkline-tooltip-edge-{language}-{dark}");
+        }
+        finally{window.Close();loc.Apply("zh-CN");theme.Apply(AppThemeMode.System);}
     }
 }

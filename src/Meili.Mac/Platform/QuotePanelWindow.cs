@@ -18,7 +18,7 @@ public sealed class QuotePanelWindow : Window
     private readonly LocalizationService _loc;private readonly StackPanel _rows=new(){Spacing=3};
     private readonly Dictionary<string,RowView> _views=new();
     private readonly TextBlock _title=new(),_name=new(),_price=new(),_change=new(),_source=new(),_asof=new(),_extended=new(),_date=new(),_status=new(),_page=new(),_empty=new();
-    private readonly QuoteSparkline _chart=new(){Height=DesignTokens.QuotePanelHeroSparkHeight};private readonly TextBlock[] _metrics=[new(),new(),new(),new()];
+    private readonly QuoteSparkline _chart=new(){Height=DesignTokens.QuotePanelHeroSparkHeight,EnableTooltip=true};private readonly TextBlock[] _metrics=[new(),new(),new(),new()];
     private readonly Border _chartSurface = new() { CornerRadius = new(DesignTokens.ControlRadius), Padding = new(DesignTokens.SpaceXS) };
     private readonly AppSelect _sessions = new() { MinHeight = 32, FontSize = 12, HorizontalAlignment = HorizontalAlignment.Stretch };
     private readonly TextBlock[] _ticks = [new(), new(), new()];
@@ -71,7 +71,7 @@ public sealed class QuotePanelWindow : Window
         }
         _activity.SetVisible(_activityOwner,true);Show();Activate();AppMotion.Enter(_title);await _model.ActivateAsync();
     }
-    public void HidePanel(){_activity.SetVisible(_activityOwner,false);Hide();_model.Deactivate();}
+    public void HidePanel(){_chart.ClearTooltip();_activity.SetVisible(_activityOwner,false);Hide();_model.Deactivate();}
     private void OpenSelected(){if(_model.Selected is { } row){HidePanel();_open(row.Symbol);}}
     private void OnChanged(object? sender,EventArgs e)=>UpdateView();
     private IBrush Brush(string key)=>Application.Current!.TryGetResource(key,ActualThemeVariant,out var value)&&value is IBrush b?b:Brushes.Gray;

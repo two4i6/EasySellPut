@@ -905,6 +905,7 @@
     <sys:String x:Key="QP_Refresh">Refresh</sys:String>
     <sys:String x:Key="QP_Close">Close</sys:String>
     <sys:String x:Key="QP_OpenPrice">Open</sys:String>
+    <sys:String x:Key="QP_ClosePrice">Close</sys:String>
     <sys:String x:Key="QP_High">High</sys:String>
     <sys:String x:Key="QP_Low">Low</sys:String>
     <sys:String x:Key="QP_Volume">Volume</sys:String>

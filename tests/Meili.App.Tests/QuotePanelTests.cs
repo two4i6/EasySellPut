@@ -1,3 +1,9 @@
+using Meili.Core.Time;
+using Meili.Core.Models;
+using Meili.App.Views.Controls;
+using System.Windows.Input;
+using System.Windows.Controls;
+using System.Windows;
 using System.IO;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -49,6 +55,34 @@ public sealed class QuotePanelTests
             try{await panel.ShowPanelAsync();await WpfHost.Settle();var row=model.Selected!;var count=row.Graph.Points.Count;now=now.AddSeconds(10);hub.ApplyTicks([new("QQQ",row.Quote!.Price*1.02,now,Meili.Core.Models.MarketState.AfterHours,Source:"yahoo")]);await WpfHost.Settle();Assert.True(row.Graph.Points.Count>count);Assert.True(row.ChartObserved);
                 var picker=UiAudit.Descendants<Meili.App.Views.Controls.AppSelect>(panel).Single();picker.SelectedIndex=4;await WpfHost.Settle();Assert.Empty(row.Graph.Points);Assert.Equal(Meili.Core.Time.MarketSession.Overnight,row.Graph.Session);Assert.Contains(UiAudit.Descendants<System.Windows.Controls.TextBlock>(panel),t=>t.IsVisible&&t.Text==LocalizationService.Current["QP_NoNightChart"]);picker.SelectedIndex=0;Assert.NotEmpty(row.Graph.Points);panel.HidePanel();Assert.Empty(hub.SubscribedSymbols);}
             finally{panel.Close();}
+        });
+    }
+    [Theory]
+    [InlineData("en-US")]
+    [InlineData("zh-CN")]
+    public void Sparkline_keyboard_tooltip_matches_source_and_closes_on_replacement_and_hide(string language)
+    {
+        WpfHost.Run(async()=>
+        {
+            var loc=LocalizationService.Current;var previousLanguage=loc.Language;
+            loc.Apply(language);ScreenRenderTests.Apply(language,true);
+            var time=MarketClock.FromEastern(new DateTime(2026,11,13,9,30,0));
+            var graph=IntradaySparkline.Create(new BarSeries{Symbol="AAPL",Interval=BarInterval.Minute5,Bars=[new(time,100,103,99,102,10),Bar.CloseOnly(time.AddMinutes(5),105,1)]},null,time.AddHours(1));
+            var chart=new QuoteSparkline{Width=400,Height=96,EnableTooltip=true,Data=graph};
+            var window=new Window{Width=440,Height=240,Content=chart};window.Show();await WpfHost.Settle();
+            try
+            {
+                chart.Focus();
+                void Press(Key key)=>chart.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice,PresentationSource.FromVisual(chart),0,key){RoutedEvent=Keyboard.KeyDownEvent});
+                var tip=(ToolTip)chart.ToolTip;
+                Press(Key.End);await WpfHost.Settle();Assert.True(tip.IsOpen);
+                Assert.Equal($"2026-11-13 09:35:00 ET\n{loc["QP_ClosePrice"]}  {NumberDisplay.Price(105)}",((TextBlock)tip.Content).Text);
+                Press(Key.Home);await WpfHost.Settle();
+                Assert.Equal($"2026-11-13 09:30:00 ET\n{loc["QP_OpenPrice"]}  {NumberDisplay.Price(100)}    {loc["QP_High"]}  {NumberDisplay.Price(103)}\n{loc["QP_Low"]}  {NumberDisplay.Price(99)}    {loc["QP_ClosePrice"]}  {NumberDisplay.Price(102)}",((TextBlock)tip.Content).Text);
+                chart.Data=graph with{Source="replacement"};Assert.False(tip.IsOpen);
+                Press(Key.Right);Assert.True(tip.IsOpen);window.Hide();await WpfHost.Settle();Assert.False(tip.IsOpen);
+            }
+            finally{window.Close();loc.Apply(previousLanguage);}
         });
     }
 }
