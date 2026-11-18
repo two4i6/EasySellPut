@@ -69,4 +69,30 @@ public sealed class IntradaySparklineTests
         Assert.Equal(2,row.Graph.Points.Count);Assert.Equal(0,row.Graph.Points[0].X);Assert.Equal(1,row.Graph.Points[^1].X);Assert.False(row.ChartRepairing);Assert.Equal("02:00:10",row.Graph.StartLabel);Assert.Equal("02:01:10",row.Graph.EndLabel);
         row.SetGraphs(history,now);row.SetNightObservations(buffer.Snapshot("QQQ",now),now);Assert.Equal(2,row.Graph.Points.Count);Assert.Equal(first,row.Graph.WindowStart);
     }
+    [Fact] public void Partial_overnight_gaps_have_explicit_guides_without_adding_or_moving_observations()
+    {
+        var first=At(17,20,21);var last=At(18,2,6);
+        var series=new BarSeries{Symbol="QQQ",Interval=BarInterval.Minute1,Source="fixture",Bars=[B(first,660),B(first.AddMinutes(1),661),B(At(17,21,20),660.5),B(At(17,21,21),661.5),B(last,662)]};
+        var graph=IntradaySparkline.Create(series,657,last,MarketSession.Overnight,fitObserved:true);
+        Assert.Equal(5,graph.Points.Count);Assert.Equal(first,graph.WindowStart);Assert.Equal(last,graph.WindowEnd);
+        Assert.Equal(0,graph.Points[0].X);Assert.Equal(1,graph.Points[^1].X);
+        Assert.Equal(59d/345,graph.Points[2].X,10);
+        Assert.False(graph.Points[1].Break);Assert.True(graph.Points[2].Break);Assert.True(graph.Points[2].GapGuide);
+        Assert.True(graph.Points[4].GapGuide);Assert.True(graph.HasGapGuides);
+        var fixedAxis=IntradaySparkline.Create(series,657,last,MarketSession.Overnight);
+        Assert.False(fixedAxis.HasGapGuides);Assert.True(fixedAxis.Points[2].Break);
+    }
+    [Fact] public void Explicit_invalid_samples_remain_unbridged_even_in_received_only_windows()
+    {
+        var at=At(17,22);
+        var graph=IntradaySparkline.Create(new(){Symbol="QQQ",Interval=BarInterval.Minute1,Bars=[B(at,660),B(at.AddMinutes(1),double.NaN),B(at.AddMinutes(20),661)]},null,at.AddHours(1),MarketSession.Overnight,fitObserved:true);
+        Assert.Equal(2,graph.Points.Count);Assert.All(graph.Points,p=>Assert.True(p.Break));Assert.False(graph.HasGapGuides);
+    }
+    [Fact] public void Received_tick_gap_uses_elapsed_time_not_calendar_minute_boundaries()
+    {
+        var at=At(17,22).AddSeconds(59);
+        var graph=IntradaySparkline.Create(new(){Symbol="QQQ",Interval=BarInterval.Minute1,Bars=[B(at,660),B(at.AddSeconds(61),661),B(at.AddSeconds(181),662)]},null,at.AddHours(1),MarketSession.Overnight,fitObserved:true);
+        Assert.False(graph.Points[1].Break);Assert.False(graph.Points[1].GapGuide);
+        Assert.True(graph.Points[2].Break);Assert.True(graph.Points[2].GapGuide);
+    }
 }

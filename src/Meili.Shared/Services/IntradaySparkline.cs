@@ -2,9 +2,10 @@ using Meili.Core.Models;
 using Meili.Core.Time;
 namespace Meili.Shared.Services;
 
-public sealed record SparkPoint(double X,double Y,bool Break=false);
+public sealed record SparkPoint(double X,double Y,bool Break=false, bool GapGuide=false);
 public sealed record IntradaySparkline(IReadOnlyList<SparkPoint> Points,DateOnly? Day,double? Baseline,string Source,bool Offline, MarketSession Session = MarketSession.Regular, DateTimeOffset? AsOf = null, DateTimeOffset? WindowStart = null, DateTimeOffset? WindowEnd = null)
 {
+    public bool HasGapGuides => Points.Any(p => p.GapGuide);
     public static readonly IntradaySparkline Empty=new([],null,null,"",false);
     public string StartLabel => WindowStart is { } first ? WindowEnd==first ? "—" : WindowLabel(first) : Session == MarketSession.Closed ? "—" : Session == MarketSession.Overnight ? "20:00" : Session == MarketSession.PreMarket ? "04:00" : Session == MarketSession.AfterHours ? "16:00" : "09:30";
     public string MiddleLabel => WindowStart is { } first && WindowEnd is { } last ? WindowLabel(first+(last-first)/2) : Session == MarketSession.Closed ? "—" : Session == MarketSession.Overnight ? "00:00" : Session == MarketSession.PreMarket ? "06:45" : Session == MarketSession.AfterHours ? "18:00" : "12:45";
@@ -35,7 +36,7 @@ public sealed record IntradaySparkline(IReadOnlyList<SparkPoint> Points,DateOnly
         var firstTime=bars[0].Time;var lastTime=bars[^1].Time;
         double X(DateTimeOffset at) => fit ? lastTime==firstTime ? .5 : (at-firstTime).TotalSeconds/(lastTime-firstTime).TotalSeconds : (Minute(at)-start)/(end-start);
         var result=new List<SparkPoint>();DateTimeOffset? last=null;var broken=true;
-        foreach(var b in bars){if(!double.IsFinite(b.Close)||b.Close<=0){broken=true;continue;}var gap=last is { } t && (fit ? b.Time.ToUnixTimeSeconds()/60-t.ToUnixTimeSeconds()/60>=2 : b.Time-t>=series.Interval.Duration()*2);result.Add(new(X(b.Time),Y(b.Close),broken||gap));last=b.Time;broken=false;}
+        foreach(var b in bars){if(!double.IsFinite(b.Close)||b.Close<=0){broken=true;continue;}var gap=last is { } t && (fit ? b.Time-t>=TimeSpan.FromMinutes(2) : b.Time-t>=series.Interval.Duration()*2);result.Add(new(X(b.Time),Y(b.Close),broken||gap,fit && gap && !broken));last=b.Time;broken=false;}
         return new(result,day,previous is >0&&double.IsFinite(previous.Value)?Y(previous.Value):null,series.Source,series.OfflineCache,session,bars[^1].Time,fit?firstTime:null,fit?lastTime:null);
     }
 }

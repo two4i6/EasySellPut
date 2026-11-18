@@ -119,4 +119,31 @@ public sealed class QuotePanelTests
         Assert.Same(previous,model.Selected.Graph);Assert.Equal(calls,data.Bars);Assert.Equal(2,hub.GetOvernightObservations("QQQ").Count);
         await model.ActivateAsync();Assert.Equal(MarketSession.Overnight,model.Selected.Graph.Session);Assert.Equal(2,model.Selected.Graph.Points.Count);Assert.NotNull(model.Selected.Graph.WindowStart);model.Deactivate();Assert.Equal(new[]{"QQQ"},hub.SubscribedSymbols);
     }
+    [AvaloniaTheory]
+    [InlineData("zh-CN",true)] [InlineData("en-US",false)]
+    public async Task Sparse_overnight_window_marks_gaps_and_renders_isolated_observations(string language,bool dark)
+    {
+        MacHost.EnsureComposed();var loc=LocalizationService.Current;loc.Apply(language);var theme=AppServices.Get<MacTheme>();theme.Apply(dark?AppThemeMode.Dark:AppThemeMode.Light);
+        var now=MarketClock.FromEastern(new DateTime(2026,11,18,2,6,0));
+        var data=new QuotePanelMarketData{Phase=MarketState.Overnight,Clock=now,Overnight=true};var hub=new QuoteHub(data){Now=()=>now};var context=new SymbolContext();context.Set("QQQ");
+        using var model=new QuotePanelViewModel(hub,data,new WatchlistStore(new(Path.Combine(MacHost.DataDir,"sparse-night-"+Guid.NewGuid()))),context,loc){Now=()=>now};
+        var panel=new QuotePanelWindow(model,_=>{},()=>{},()=>{});
+        try
+        {
+            await panel.ShowPanelAsync();
+            var points=new[]{(now.AddHours(-5).AddMinutes(-45),660d),(now.AddHours(-5).AddMinutes(-44),661d),(now.AddHours(-4),660.5),(now.AddHours(-4).AddMinutes(1),661.5),(now.AddMinutes(-2),661d),(now,662d)};
+            var row=model.Selected!;
+            row.Quote=new Quote{Symbol="QQQ",Price=657,AsOf=now.AddHours(-12),Source="fixture",MarketState=MarketState.Overnight,ExtendedPrice=662,ExtendedTime=now,ExtendedSource="fixture",ExtendedDelivery="websocket"};
+            row.SetGraphs(new(){Symbol="QQQ",Interval=BarInterval.Minute1,Source="fixture",Bars=[]},now);
+            row.SetNightObservations(points.Select(p=>new QuoteTick("QQQ",p.Item2,p.Item1,MarketState.Overnight,Source:"fixture")).ToArray(),now);
+            // Use the actual panel refresh path so hero/mini and caption share the same projection.
+            model.SelectChartSession(4);MacHost.Pump();
+            Assert.True(row.Graph.HasGapGuides);Assert.Equal(points.Length,row.Graph.Points.Count);
+            Assert.Contains(loc["QP_GapGuide"],QuoteGlanceText.GraphLabel(row,loc,now));
+            var chart=panel.GetVisualDescendants().OfType<Meili.Mac.Views.Controls.QuoteSparkline>().First();
+            chart.Data=row.Graph;chart.InvalidateVisual();MacHost.Pump();
+            MacHost.Save(panel,$"quote-panel-sparse-night-{language}-{dark}");
+        }
+        finally{panel.Close();loc.Apply("zh-CN");theme.Apply(AppThemeMode.System);}
+    }
 }

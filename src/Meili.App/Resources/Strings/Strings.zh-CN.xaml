@@ -1018,6 +1018,7 @@
     <sys:String x:Key="QP_ChartSessionHelp">切换走势图时段；上方仍是最新报价。夜盘为美东 20:00–次日 04:00，历史缺失时仅显示已接收片段，并按实际接收范围缩放。</sys:String>
     <sys:String x:Key="QP_NoNightChart">暂无夜盘历史 · 等待推送</sys:String>
     <sys:String x:Key="QP_ObservedTail">推送尾部 · 未完成</sys:String>
+    <sys:String x:Key="QP_GapGuide">点虚线仅连接缺口端点，非实际走势</sys:String>
     <sys:String x:Key="QP_ObservedWindow">已接收片段 · 非完整历史</sys:String>
     <sys:String x:Key="Apps_Title">子应用</sys:String>
     <sys:String x:Key="Apps_Help">独立安装或更新签名子应用包。卸载保留历史数据；使用中的应用需先关闭页面或任务。</sys:String>
