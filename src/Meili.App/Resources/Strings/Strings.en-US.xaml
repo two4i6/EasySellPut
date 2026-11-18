@@ -1018,6 +1018,7 @@
     <sys:String x:Key="QP_ChartSessionHelp">Choose the chart session; the price above remains the latest quote. Overnight spans 20:00–04:00 ET. Missing history is not filled; received segments use their actual time range.</sys:String>
     <sys:String x:Key="QP_NoNightChart">No overnight history · waiting for updates</sys:String>
     <sys:String x:Key="QP_ObservedTail">Pushed tail · incomplete</sys:String>
+    <sys:String x:Key="QP_GapGuide">Dotted guides join gap endpoints, not observed prices</sys:String>
     <sys:String x:Key="QP_ObservedWindow">Received segment · partial history</sys:String>
     <sys:String x:Key="Apps_Title">Applications</sys:String>
     <sys:String x:Key="Apps_Help">Install or update signed app packages independently. Uninstall preserves history. Close active app pages or tasks before maintenance.</sys:String>

@@ -13,6 +13,7 @@ public static class QuoteGlanceText
             + (graph.WindowStart is not null ? " · " + SourceNames.Display(graph.Source,loc) + " · " + loc["QP_ObservedWindow"] : row.ChartMeta is { } meta ? " · " + FreshnessText.SourceAndTiming(meta with { AsOf = graph.AsOf }, loc, now) : "")
             + (graph.WindowStart is null && row.ChartObserved && row.Display?.Session == graph.Session ? " · " + loc["QP_ObservedTail"] : "")
             + (row.ChartRepairing && row.Display?.Session == graph.Session ? " · " + loc["Ch_Backfilling"] : "")
+            + (graph.HasGapGuides ? " · " + loc["QP_GapGuide"] : "")
             + (graph.Offline || row.GraphFailed ? " · " + loc["Mb_Stale"] : "");
     }
     public static readonly string[] SessionKeys = ["QP_ChartAuto", "Quote_Pre", "QP_RegularShort", "Quote_Post", "Quote_Overnight"];
