@@ -57,11 +57,15 @@ public sealed class QuotePanelTests
             finally{panel.Close();}
         });
     }
-    [Fact] public void Sparkline_keyboard_tooltip_matches_source_and_closes_on_replacement_and_hide()
+    [Theory]
+    [InlineData("en-US")]
+    [InlineData("zh-CN")]
+    public void Sparkline_keyboard_tooltip_matches_source_and_closes_on_replacement_and_hide(string language)
     {
         WpfHost.Run(async()=>
         {
-            ScreenRenderTests.Apply("en-US",true);
+            var loc=LocalizationService.Current;var previousLanguage=loc.Language;
+            loc.Apply(language);ScreenRenderTests.Apply(language,true);
             var time=MarketClock.FromEastern(new DateTime(2026,11,13,9,30,0));
             var graph=IntradaySparkline.Create(new BarSeries{Symbol="AAPL",Interval=BarInterval.Minute5,Bars=[new(time,100,103,99,102,10),Bar.CloseOnly(time.AddMinutes(5),105,1)]},null,time.AddHours(1));
             var chart=new QuoteSparkline{Width=400,Height=96,EnableTooltip=true,Data=graph};
@@ -72,12 +76,13 @@ public sealed class QuotePanelTests
                 void Press(Key key)=>chart.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice,PresentationSource.FromVisual(chart),0,key){RoutedEvent=Keyboard.KeyDownEvent});
                 var tip=(ToolTip)chart.ToolTip;
                 Press(Key.End);await WpfHost.Settle();Assert.True(tip.IsOpen);
-                Assert.Contains("09:35:00 ET",((TextBlock)tip.Content).Text);Assert.DoesNotContain("Open",((TextBlock)tip.Content).Text);
-                Press(Key.Home);await WpfHost.Settle();Assert.Contains("Close  102",((TextBlock)tip.Content).Text);
+                Assert.Equal($"2026-11-13 09:35:00 ET\n{loc["QP_ClosePrice"]}  {NumberDisplay.Price(105)}",((TextBlock)tip.Content).Text);
+                Press(Key.Home);await WpfHost.Settle();
+                Assert.Equal($"2026-11-13 09:30:00 ET\n{loc["QP_OpenPrice"]}  {NumberDisplay.Price(100)}    {loc["QP_High"]}  {NumberDisplay.Price(103)}\n{loc["QP_Low"]}  {NumberDisplay.Price(99)}    {loc["QP_ClosePrice"]}  {NumberDisplay.Price(102)}",((TextBlock)tip.Content).Text);
                 chart.Data=graph with{Source="replacement"};Assert.False(tip.IsOpen);
                 Press(Key.Right);Assert.True(tip.IsOpen);window.Hide();await WpfHost.Settle();Assert.False(tip.IsOpen);
             }
-            finally{window.Close();}
+            finally{window.Close();loc.Apply(previousLanguage);}
         });
     }
 }
