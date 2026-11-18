@@ -291,10 +291,10 @@ internal static partial class Program
 #endif
         var settings = new SettingsStore(directory);
         var vm = new ChartsViewModel(new WatchlistStore(settings), new ChartData(), LocalizationService.Current,
-            new SymbolContext(), settings, new ChartDrawingStore(directory));
+            new SymbolContext(), settings, new ChartDrawingStore(directory),applications:new ChartAppClient(directory));
         vm.SymbolText = "FIXTURE"; vm.Range = ChartRangeKind.Minute5;
         vm.ShowMa = vm.ShowEma = vm.ShowBoll = vm.ShowVolume = vm.ShowMacd = vm.ShowRsi = vm.ShowKdj = true;
-        await vm.LoadAsync();
+        await vm.ActivateAsync();
         ChartPalette Palette(bool dark, bool green)
         {
             var p = ThemePalette.For(dark); var (up, down) = p.UpDown(green ? UpDownColorMode.GreenUp : UpDownColorMode.RedUp);

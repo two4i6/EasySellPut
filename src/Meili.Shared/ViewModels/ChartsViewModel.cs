@@ -36,6 +36,10 @@ public partial class ChartsViewModel : ObservableObject
 {
     private readonly WatchlistStore _watchlist;
     private readonly IMarketDataService _data;
+    private readonly ChartAppClient? _applications;
+    private IDisposable? _domainLease;
+    private CancellationTokenSource? _activation;
+    private bool DomainReady => _applications is null || _domainLease is not null;
     private readonly LocalizationService _loc;
     private readonly SymbolContext _context;
     private readonly SettingsStore _settings;
@@ -140,6 +144,7 @@ public partial class ChartsViewModel : ObservableObject
     }
     private async Task<bool> LoadTimelineAsync(string symbol)
     {
+        if(!DomainReady)return false;
         if (_timelineSymbol == symbol && DateTimeOffset.UtcNow - _timelineRequested < TimeSpan.FromMinutes(5)) return false;
         _timelineCts?.Cancel();
         var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(35));
@@ -188,9 +193,9 @@ public partial class ChartsViewModel : ObservableObject
         && a.Bars[^1] == b.Bars[^1];
 
     public ChartsViewModel(WatchlistStore watchlist, IMarketDataService data, LocalizationService loc, SymbolContext context, SettingsStore settings,
-        ChartDrawingStore drawings, Meili.Core.Quotes.QuoteHub? quotes=null)
+        ChartDrawingStore drawings, Meili.Core.Quotes.QuoteHub? quotes=null, ChartAppClient? applications=null)
     {
-        _watchlist = watchlist; _data = data; _loc = loc; _context = context; _settings = settings; _drawings = drawings; LiveQuote=new(quotes,loc,"chart-live");LiveQuote.Updated+=OnLiveBar;
+        _watchlist = watchlist; _data = data; _applications=applications; _loc = loc; _context = context; _settings = settings; _drawings = drawings; LiveQuote=new(quotes,loc,"chart-live");LiveQuote.Updated+=OnLiveBar;
         ApplyIndicators(settings.Current.Charts.Indicators.Normalized());
         DividendAdjusted = settings.Current.Charts.DividendAdjusted;
         // D1: follow the shared symbol while visible; when hidden, ActivateAsync adopts it on the next visit.
@@ -212,6 +217,19 @@ public partial class ChartsViewModel : ObservableObject
     public async Task ActivateAsync()
     {
         _active = true;
+        if(_applications is not null && _domainLease is null)
+        {
+            _activation?.Cancel();var activation=new CancellationTokenSource(TimeSpan.FromSeconds(30));_activation=activation;
+            try
+            {
+                var lease=await _applications.AcquireAsync(activation.Token);
+                if(!_active || activation.IsCancellationRequested || _activation!=activation){lease.Dispose();return;}
+                _domainLease=lease;
+            }
+            catch(OperationCanceledException){return;}
+            catch(Exception ex){if(_active && _activation==activation){Fail(ex.Message);UpdateStatus();PlotChanged?.Invoke(this,EventArgs.Empty);}return;}
+            finally{if(_activation==activation)_activation=null;activation.Dispose();}
+        }
         FollowQuote();
         if (_context.ShouldAdopt(SymbolText)) { await AdoptContextAsync(); return; }
         if (Series is null) await LoadAsync();
@@ -232,6 +250,8 @@ public partial class ChartsViewModel : ObservableObject
 
     public void Deactivate()
     {
+        _activation?.Cancel();_activation=null;
+        _domainLease?.Dispose();_domainLease=null;
         LiveQuote.Deactivate();
         _active = false; DrawingEpoch++; DrawMode = null; _trendStart = null;
         _timer.Stop();
@@ -316,6 +336,7 @@ public partial class ChartsViewModel : ObservableObject
 
     public async Task LoadAsync(bool refreshOnly = false)
     {
+        if(!DomainReady)return;
         if (!WatchlistStore.TryNormalizeSymbol(SymbolText, out var symbol, out _))
         {
             if (!refreshOnly)
@@ -340,7 +361,9 @@ public partial class ChartsViewModel : ObservableObject
         {
             var request = BuildRequest(symbol, Range) with { Adjust = DividendAdjusted ? AdjustMode.Total : AdjustMode.Split };
             // C2: the cache layer turns a refresh into a short tail download; nothing new → no recompute, no redraw.
-            var series = await _data.GetBarsAsync(request, _cts.Token);
+            var loading=_cts;
+            var series = await _data.GetBarsAsync(request, loading.Token);
+            if(loading.IsCancellationRequested || _cts!=loading || !DomainReady)return;
 
             if (refreshOnly && Series is { } shown && SameData(shown, series))
             {
@@ -397,6 +420,7 @@ public partial class ChartsViewModel : ObservableObject
     [RelayCommand]
     private void StartDrawing(DrawingKind kind)
     {
+        if(!DomainReady)return;
         DrawingEpoch++;
         DrawMode = DrawMode == kind ? null : kind;
         _trendStart = null;
@@ -411,7 +435,7 @@ public partial class ChartsViewModel : ObservableObject
     [RelayCommand]
     private void ClearDrawings()
     {
-        if (Series is null) return;
+        if (!DomainReady || Series is null) return;
         try { _drawings.Clear(Series.Symbol); }
         catch (DataConflictException) { ReportDrawingConflict(); return; }
         Drawings = []; DrawMode = null; _trendStart = null;
@@ -421,7 +445,7 @@ public partial class ChartsViewModel : ObservableObject
     /// <summary>B5: a click on the price chart while drawing. Returns true when the click was used for drawing.</summary>
     public bool AddDrawingPoint(DateTimeOffset time, double price)
     {
-        if (DrawMode is not { } mode || Series is null) return false;
+        if (!DomainReady || DrawMode is not { } mode || Series is null) return false;
         if (mode == DrawingKind.TrendLine && _trendStart is null)
         {
             _trendStart = (time, price);
@@ -453,7 +477,7 @@ public partial class ChartsViewModel : ObservableObject
     }
     public void EditDrawing(int index, double? first, double? second, string revision)
     {
-        if (Series is null || index < 0 || index >= Drawings.Count) return;
+        if (!DomainReady || Series is null || index < 0 || index >= Drawings.Count) return;
         var original = Drawings[index];
         try
         {
@@ -472,7 +496,7 @@ public partial class ChartsViewModel : ObservableObject
     [RelayCommand]
     private async Task ApplyCompareAsync()
     {
-        if (Series is null) return;
+        if (!DomainReady || Series is null) return;
         await LoadCompareAsync(BuildRequest(Series.Symbol, Range) with { Adjust = DividendAdjusted ? AdjustMode.Total : AdjustMode.Split }, Series, CancellationToken.None);
         PlotChanged?.Invoke(this, EventArgs.Empty);
     }

@@ -123,7 +123,7 @@ Design: [architecture](docs/55-主程序与可独立更新子应用架构研究.
 ## K-line migration — approved 2026-11-18
 
 - [x] **S16a — Signed chart core and transport parity.** Package eight unchanged historical/analysis/event/drawing operations as `easysellput.charts`. Reuse host Analytics/providers/timeline/drawing stores; preserve exact single-use drawing writes, read-only MCP, revisions and retained data. Add fixed-host A/B and independent build/release coverage before native ownership changes.
-- [ ] **S16b — Native chart lifecycle.** Bind the existing native chart workspace to verified domain availability; preserve live-bar stitching, drawings, event buckets, splits and shared controls. No second market connection or frontend math. Verify native packages and current 1080p screenshots.
+- [x] **S16b — Native chart lifecycle.** Bind the existing native chart workspace to verified domain availability; preserve live-bar stitching, drawings, event buckets, splits and shared controls. No second market connection or frontend math. Verify native packages and current 1080p screenshots.
 - [ ] **S16c — Acceptance.** Record exact-code native CI, cross-entry contracts, uninstall/reinstall retention and independent update boundaries. UI independence is separate from a core-only delivery; do not claim a host-owned renderer independently updates.
 
 ## Optional follow-ups, after evidence supports them
@@ -506,3 +506,7 @@ S15 accepted: code `65a2336050b5ca6128fff00dea160ddf22bdfb15`, integrated CI [44
 ### S16a — chart compatibility core checkpoint
 
 Eight original operations are packaged with the shared SDK/installer/catalog/release flow. Local Automation 205, Python 80, signed archive/engine framing, fixed-host real CLI/persistent-MCP A/B, exact drawing write grants, stale revision rejection, disable/uninstall/reinstall retention and intercepted release promotion passed. Native binding is still S16b; no UI independence or final native CI acceptance is claimed. See docs/app-runtime-research/charts-migration.md.
+
+### S16b — native chart lifecycle checkpoint
+
+The existing chart workspace now acquires a verified domain lease before activation and releases it on hide. Hidden gestures cannot mutate retained drawings; corrupt/suppressed apps cannot start source loads. Native snapshots, computations, live stitching and direct drawing gestures intentionally remain shared host capabilities (documented desktop exception); an active page pins its compatibility version, so leave the page before updating/disabling it. Local Shared 154, real Chromium 19, full Windows test-project cross-build and native-smoke project build passed. Full offline/native CI acceptance is pending S16c.

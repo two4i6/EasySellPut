@@ -77,7 +77,7 @@
         "get_live_quotes",
         "get_live_bars"
       ],
-      "scope": "Business data and calculations are mapped; transient selection, the chart inspector, drawing-tool selection, responsive event panels, window layout, theme rendering and native navigation are presentation.",
+      "scope": "Chart core owns eight unchanged public contracts. Native full receipts, shared Analytics, live stitching and drawing gestures remain host capabilities under an authenticated visible-domain lease; hide releases it and permits updates. Native direct drawing gestures retain the same store/revision protection; CLI/MCP writes use exact-request single-use grants. Transient selection, the chart inspector, drawing-tool selection, responsive event panels, window layout, theme rendering and native navigation are presentation.",
       "commands": {
         "SelectRange": {
           "operations": [
