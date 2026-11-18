@@ -38,6 +38,7 @@ public partial class ChartsViewModel : ObservableObject
     private readonly IMarketDataService _data;
     private readonly ChartAppClient? _applications;
     private IDisposable? _domainLease;
+    private bool _reloadOnActivate;
     private CancellationTokenSource? _activation;
     private bool DomainReady => _applications is null || _domainLease is not null;
     private readonly LocalizationService _loc;
@@ -232,7 +233,7 @@ public partial class ChartsViewModel : ObservableObject
         }
         FollowQuote();
         if (_context.ShouldAdopt(SymbolText)) { await AdoptContextAsync(); return; }
-        if (Series is null) await LoadAsync();
+        if (_reloadOnActivate || Series is null || Series.Symbol!=SymbolText) await LoadAsync();
         else
         {
             _ = RefreshTimelineAsync(Series.Symbol);
@@ -336,7 +337,8 @@ public partial class ChartsViewModel : ObservableObject
 
     public async Task LoadAsync(bool refreshOnly = false)
     {
-        if(!DomainReady)return;
+        if(!DomainReady){_reloadOnActivate=true;return;}
+        _reloadOnActivate=false;
         if (!WatchlistStore.TryNormalizeSymbol(SymbolText, out var symbol, out _))
         {
             if (!refreshOnly)
