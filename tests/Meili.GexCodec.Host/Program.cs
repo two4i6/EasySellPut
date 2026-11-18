@@ -8,6 +8,11 @@ else if(operation=="provider")
     var hash=store.RecordProviderBody("synthetic-codec-test",bytes,now,now);
     File.WriteAllBytes(args[2],store.ReadProviderBody(hash));store.ReleaseIdleConnections();Console.WriteLine(hash);
 }
+else if(operation=="compact")
+{
+    var store=new QqqGexResponseStore(args[3]);var result=store.Compact();
+    File.WriteAllText(args[2],System.Text.Json.JsonSerializer.Serialize(result));store.ReleaseIdleConnections();
+}
 else if(operation=="day")
 {
     var store=new QqqGexResponseStore(args[3]);var response=store.ReadLocalDay("/api/analysis/qqq/gex/day?from=2026-01-02T14:30:00Z&to=2026-01-02T15:30:00Z",DateTimeOffset.UtcNow)??throw new InvalidDataException("Synthetic day missing");

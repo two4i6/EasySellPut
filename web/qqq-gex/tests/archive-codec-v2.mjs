@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {mkdtempSync,writeFileSync,readFileSync} from 'node:fs';
+import {mkdtempSync,writeFileSync,readFileSync,existsSync} from 'node:fs';
 import {createInterface} from 'node:readline';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
@@ -15,6 +15,8 @@ for(const bytes of [Buffer.alloc(0),inputBytes]){
  for(const p of [0,4,5,6,7,8,12,16,47,48,encoded.length-1]){const bad=Buffer.from(encoded);bad[p]^=64;assert.throws(()=>decodeArchiveBytes(bad));}
  assert.throws(()=>decodeArchiveBytes(encoded.subarray(0,-1)));
  if(bytes.length)assert.throws(()=>decodeArchiveBytes(encoded,bytes.length-1));
+ for(const offset of [8,12]){const overflow=Buffer.from(encoded);overflow.writeUInt32LE(0xffffffff,offset);assert.throws(()=>decodeArchiveBytes(overflow));}
+ for(const limit of [-1,NaN,Number.MAX_SAFE_INTEGER,128*1024*1024+1])assert.throws(()=>decodeArchiveBytes(encoded,limit));
  const trailing=Buffer.concat([encoded,Buffer.from([1])]);trailing.writeUInt32LE(trailing.length-48,12);assert.throws(()=>decodeArchiveBytes(trailing));
 }
 assert.equal(decodeArchiveBody('legacy 中文'),'legacy 中文');assert.equal(decodeArchiveBody(encodeArchiveBody('legacy 中文','gzip-v1')),'legacy 中文');assert.throws(()=>encodeArchiveBody('x','unknown'));
@@ -47,7 +49,11 @@ if(process.env.GEX_CODEC_HOST){
  const host=process.env.GEX_CODEC_HOST,dotnet=process.env.DOTNET??'dotnet',rawFile=path.join(dir,'binary.bin'),nodeFile=path.join(dir,'node-v2.bin'),netFile=path.join(dir,'net-v2.bin'),out=path.join(dir,'decoded.bin');writeFileSync(rawFile,inputBytes);writeFileSync(nodeFile,encodeArchiveBytes(inputBytes,'brotli-v2'));
  execFileSync(dotnet,[host,'decode',nodeFile,out]);assert.deepEqual(readFileSync(out),inputBytes);execFileSync(dotnet,[host,'encode',rawFile,netFile,'brotli-v2']);assert.deepEqual(decodeArchiveBytes(readFileSync(netFile)),inputBytes);
  const netDb=path.join(dir,'dotnet-provider.db');execFileSync(dotnet,[host,'provider',rawFile,out,netDb],{env:{...process.env,MEILI_GEX_ARCHIVE_CODEC:'brotli-v2'}});assert.deepEqual(readFileSync(out),inputBytes);const c=new DatabaseSync(netDb,{readOnly:true});const r=c.prepare('SELECT body,encoding FROM qqq_gex_provider_raw').get();assert.equal(r.encoding,'brotli-v2');assert.deepEqual(decodeArchiveBytes(r.body),inputBytes);c.close();
+ assert.throws(()=>execFileSync(dotnet,[host,'provider',rawFile,out,netDb],{env:{...process.env,MEILI_GEX_ARCHIVE_CODEC:'invalid'},stdio:['ignore','pipe','pipe']}));const rejected=new DatabaseSync(netDb,{readOnly:true});const retained=rejected.prepare('SELECT body,encoding FROM qqq_gex_provider_raw').get();assert.deepEqual(Buffer.from(retained.body),Buffer.from(r.body));assert.equal(retained.encoding,r.encoding);rejected.close();
  const netSource=new DatabaseSync(target,{readOnly:true});const provider=netSource.prepare('SELECT body FROM qqq_gex_provider_raw').get().body;netSource.close();writeFileSync(nodeFile,provider);execFileSync(dotnet,[host,'decode',nodeFile,out]);assert.deepEqual(readFileSync(out),inputBytes);
+ const compactCopy=path.join(dir,'net-compact.db');await copyForCodecExperiment(target,compactCopy);const compactBefore=physical(compactCopy);execFileSync(dotnet,[host,'compact',rawFile,out,compactCopy],{env:{...process.env,MEILI_GEX_ARCHIVE_CODEC:'brotli-v2'}});assert.deepEqual(physical(compactCopy),compactBefore);assert.deepEqual(logical(compactCopy),logicalBefore);
+ const mixed=new DatabaseSync(compactCopy);const legacyBody='{"symbol":"QQQ","source":"synthetic-compaction-legacy","captures":[]}';const inserted=mixed.prepare('INSERT INTO qqq_gex_observed_inputs VALUES(?,?,?,?)').run('legacy-compact',0,hash(legacyBody).toUpperCase(),legacyBody).lastInsertRowid;mixed.close();execFileSync(dotnet,[host,'compact',rawFile,out,compactCopy],{env:{...process.env,MEILI_GEX_ARCHIVE_CODEC:'brotli-v2'}});const compactCheck=new DatabaseSync(compactCopy,{readOnly:true});const legacyEncoded=compactCheck.prepare("SELECT body FROM qqq_gex_observed_inputs WHERE identity='legacy-compact'").get().body;assert.equal(legacyEncoded[0],31);assert.equal(legacyEncoded[1],139);assert.equal(decodeArchiveBody(legacyEncoded),legacyBody);compactCheck.close();const preserved=physical(compactCopy).filter(r=>!(r[0]==='qqq_gex_observed_inputs'&&r[1]===inserted));assert.deepEqual(preserved,compactBefore);
+ console.log('PASS: existing Compact under v2 opt-in preserves every stored v2 BLOB and only encodes legacy TEXT as gzip');
  const legacyDayCopy=path.join(dir,'net-legacy-day.db');await copyForCodecExperiment(source,legacyDayCopy);execFileSync(dotnet,[host,'day',rawFile,out,legacyDayCopy]);const dayBefore=JSON.parse(readFileSync(out));execFileSync(dotnet,[host,'day',rawFile,out,target]);assert.deepEqual(JSON.parse(readFileSync(out)),dayBefore);
  console.log('PASS: .NET real day projection from Node gzip and migrated v2 profiles is identical');
  console.log('PASS: Node↔.NET envelope interoperability and real .NET provider store opt-in write/read');
@@ -60,6 +66,7 @@ async function hostEngine(script,root,args,codec,handler){
  const result=new Promise((resolve,reject)=>{child.once('error',reject);child.once('exit',code=>{if(code)reject(Error(errors));});lines.on('line',line=>{try{const frame=JSON.parse(line);if(frame.type==='result'){child.stdin.end();resolve(frame.result);}else{const data=handler(frame.operation,frame.arguments);child.stdin.write(JSON.stringify({type:'hostResult',id:frame.id,result:{success:true,data}})+'\n');}}catch(error){child.kill();reject(error);}});});
  child.stdin.write(JSON.stringify({protocol:1,framing:'host-jsonl-v1',arguments:args,context:{dataDirectory:root,allowWrites:true,maxHostCalls:100,hostOperations:['open_market_snapshot','read_market_snapshot','write_app_input']}})+'\n');return result;
 }
+const invalidRoot=path.join(dir,'invalid-codec');const invalid=await hostEngine('capture',invalidRoot,{},'invalid',()=>{throw Error('Invalid codec must fail before host calls');});assert.match(invalid.$appError.message,/Unsupported GEX write codec/);assert.equal(existsSync(path.join(invalidRoot,'cache','qqq-gex.db')),false);
 for(const codec of ['gzip-v1','brotli-v2']){
  const root=path.join(dir,'capture-'+codec),receipts=new Map([['raw',inputBytes]]);let published;
  const receipt=b=>{const id='r'+receipts.size;receipts.set(id,b);return {receipt:id,size:b.length,sha256:hash(b).toUpperCase()};};

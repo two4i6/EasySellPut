@@ -27,8 +27,12 @@ public sealed class QqqGexCodecV2Tests
         Assert.ThrowsAny<Exception>(()=>QqqGexArchiveBody.DecodeBytes(encoded,raw.Length-1));
         var trailing=encoded.Concat(new byte[]{1}).ToArray();BinaryPrimitives.WriteUInt32LittleEndian(trailing.AsSpan(12),(uint)(trailing.Length-48));
         Assert.ThrowsAny<Exception>(()=>QqqGexArchiveBody.DecodeBytes(trailing,128*1024*1024));
-        var forged=encoded.ToArray();BinaryPrimitives.WriteUInt32LittleEndian(forged.AsSpan(8),uint.MaxValue);
-        Assert.ThrowsAny<Exception>(()=>QqqGexArchiveBody.DecodeBytes(forged,128*1024*1024));
+        foreach(var offset in new[]{8,12})
+        {
+            var forged=encoded.ToArray();BinaryPrimitives.WriteUInt32LittleEndian(forged.AsSpan(offset),uint.MaxValue);
+            Assert.ThrowsAny<Exception>(()=>QqqGexArchiveBody.DecodeBytes(forged,128*1024*1024));
+        }
+        foreach(var limit in new[]{-1,int.MaxValue,128*1024*1024+1})Assert.Throws<InvalidDataException>(()=>QqqGexArchiveBody.DecodeBytes(encoded,limit));
     }
     [Fact] public void Actual_store_reads_mixed_v2_observed_provider_and_legacy_without_rewriting()
     {

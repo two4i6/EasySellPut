@@ -122,3 +122,36 @@ dotnet tests/Meili.GexCodec.Host/bin/Debug/net10.0/Meili.GexCodec.Host.dll bench
 ```
 
 Use PYTHON=python where python3 is unavailable. These test helpers target local synthetic validation, not arbitrary existing user archives. Public CI definitions include the new codec tests for future review, but no CI was triggered. Next step is review of this isolated commit, then representative immutable real backups when available; production enablement remains off.
+
+## Commit review supplement
+
+Review of 509aaae found two coverage gaps, not a codec defect: Node lacked an
+explicit UInt32.MaxValue header test, and opt-in mixed-format Compact had not
+been executed directly. Follow-up tests now forge both decoded/encoded uint32
+lengths on both runtimes, reject invalid caller limits, execute actual Compact
+with brotli-v2 enabled, compare all existing encoded BLOBs unchanged, and verify
+an added legacy TEXT record is encoded as gzip. Invalid Node capture settings
+fail before host calls/database creation; invalid .NET provider settings throw
+and leave the prior retained BLOB and encoding tag unchanged.
+
+The old baseline decoder requires gzip magic 1F8B and rejects QGEX (51474558);
+its provider switch rejects brotli-v2. Existing record insertions are INSERT OR
+IGNORE. Old and new compaction select only TEXT non-reference bodies and
+provider encoding=identity; they do not reencode existing v2 BLOBs. This does
+not make the whole DB read-only for an old client: other cache/metadata or new
+gzip records can still be written, and explicit VACUUM changes physical pages.
+Use an isolated data directory. Compact checks SQLite integrity, not every
+existing encoded BLOB's decoded SHA; it is not a full archive verification pass.
+
+Arithmetic reviewed: profiles (6113193-5030670)/6113193=17.7079801014%;
+all original stored bodies (10064806-6483363)/10064806=35.5838254607%.
+The Node reencoded-current-policy comparison is separately
+(10033211-6483363)/10033211=35.3809762398%, not the original-source comparison.
+Performance baseline correctly retains provider gzip1, ordinary archive gzip3,
+plaintext day metadata and original observed references. These are Node writer
+policies; the separate .NET benchmark retains its original Fastest gzip policy.
+
+Follow-up checks: QqqGex .NET tests 15 passed/0 failed/0 skipped, complete Node
+codec integration passed including new compaction/invalid-setting checks, and
+git diff --check passed. Production codec code and prior performance samples
+are unchanged. No Mac, real user data, shared work, push or public CI was used.
