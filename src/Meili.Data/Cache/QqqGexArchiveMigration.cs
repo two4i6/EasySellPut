@@ -21,7 +21,11 @@ public sealed class QqqGexArchiveMigration
     }
     internal QqqGexArchiveMigration(Func<string,long> available,Action<string,SqliteConnection>? checkpoint){this.available=available;this.checkpoint=checkpoint;}
     static string Hash(byte[] b)=>Convert.ToHexString(SHA256.HashData(b));
-    static string FileHash(string p){using var f=new FileStream(p,FileMode.Open,FileAccess.Read,FileShare.Read);return Convert.ToHexString(SHA256.HashData(f));}
+    static string FileHash(string p,CancellationToken ct=default)
+    {
+        using var f=new FileStream(p,FileMode.Open,FileAccess.Read,FileShare.Read,65536,FileOptions.SequentialScan);using var hash=IncrementalHash.CreateHash(HashAlgorithmName.SHA256);var buffer=new byte[65536];int count;
+        while((count=f.Read(buffer))>0){ct.ThrowIfCancellationRequested();hash.AppendData(buffer.AsSpan(0,count));}ct.ThrowIfCancellationRequested();return Convert.ToHexString(hash.GetHashAndReset());
+    }
     static SqliteConnection Open(string path,bool readOnly=false){var c=new SqliteConnection(new SqliteConnectionStringBuilder{DataSource=path,Mode=readOnly?SqliteOpenMode.ReadOnly:SqliteOpenMode.ReadWrite,Pooling=false,DefaultTimeout=5}.ToString());c.Open();c.CreateFunction("gex_v2_writer",()=>2,isDeterministic:true);return c;}
     static object? Scalar(SqliteConnection c,string sql,SqliteTransaction? tx=null){using var q=c.CreateCommand();q.Transaction=tx;q.CommandText=sql;return q.ExecuteScalar();}
     static bool Exists(SqliteConnection c,string table)=>Scalar(c,"SELECT 1 FROM sqlite_master WHERE type='table' AND name='"+table+"'") is not null;
@@ -46,7 +50,7 @@ public sealed class QqqGexArchiveMigration
     }
     public Task<GexArchiveMigrationResult> RestoreAsync(string migrationDestination,string destination,CancellationToken ct=default)
     {
-        var state=Status(migrationDestination);if(!File.Exists(state.Backup)||FileHash(state.Backup)!=state.BackupSha256)throw new InvalidDataException("Verified migration backup missing or corrupt");
+        var state=Status(migrationDestination);if(!File.Exists(state.Backup)||FileHash(state.Backup,ct)!=state.BackupSha256)throw new InvalidDataException("Verified migration backup missing or corrupt");
         return RunAsync(state.Backup,destination,"gzip-v1",false,ct);
     }
     static GexArchiveMigrationResult Report(SqliteConnection c,string destination)
@@ -88,9 +92,9 @@ public sealed class QqqGexArchiveMigration
             // immediately after it. An unaccepted partial backup is never published.
             checkpoint?.Invoke("snapshot",state);ct.ThrowIfCancellationRequested();
             using(var original=Open(backup,true)){var digest=Digest(original,ct);Set(state,"digest",digest);}
-            backupSha=FileHash(backup);Set(state,"backup_sha",backupSha);Set(state,"phase","copied");
+            backupSha=FileHash(backup,ct);Set(state,"backup_sha",backupSha);Set(state,"phase","copied");
         }
-        if(!File.Exists(backup)||FileHash(backup)!=backupSha)throw new InvalidDataException("Verified backup missing or corrupt; no migration or restore performed");
+        if(!File.Exists(backup)||FileHash(backup,ct)!=backupSha)throw new InvalidDataException("Verified backup missing or corrupt; no migration or restore performed");
         var report=Report(state,destination);if(report.Status=="complete"){VerifyPublication(destination,work,codec,backupSha,ct);return report;}
         if(File.Exists(destination))
         {
@@ -147,7 +151,8 @@ public sealed class QqqGexArchiveMigration
             Exec(c,"PRAGMA wal_checkpoint(TRUNCATE)");
         }
         ct.ThrowIfCancellationRequested();Set(state,"phase","validated");
-        if(FileHash(backup)!=backupSha)throw new InvalidDataException("Backup changed during migration");
+        if(FileHash(backup,ct)!=backupSha)throw new InvalidDataException("Backup changed during migration");
+        checkpoint?.Invoke("publish",state);ct.ThrowIfCancellationRequested();
         File.Move(work,destination);Set(state,"phase","complete");return Report(state,destination);
     }
     static void PreserveUnverified(string path)

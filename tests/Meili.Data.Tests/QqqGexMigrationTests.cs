@@ -60,6 +60,11 @@ public sealed class QqqGexMigrationTests
             var dest=Path.Combine(root,Guid.NewGuid()+".db");var source=dest+suffix;File.Copy(seed,source);var before=Hash(File.ReadAllBytes(source));await Assert.ThrowsAsync<ArgumentException>(()=>new QqqGexArchiveMigration().RunAsync(source,dest));Assert.Equal(before,Hash(File.ReadAllBytes(source)));Assert.False(File.Exists(dest));
         }
     }
+    [Fact] public async Task Cancellation_at_publication_keeps_ready_work_private_and_can_resume()
+    {
+        var root=Root();var source=Seed(root);var dest=Path.Combine(root,"publish-cancel.db");using var stop=new CancellationTokenSource();var service=new QqqGexArchiveMigration(_=>long.MaxValue,(stage,_)=>{if(stage=="publish")stop.Cancel();});
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(()=>service.RunAsync(source,dest,ct:stop.Token));Assert.False(File.Exists(dest));Assert.True(File.Exists(dest+".backup.db"));Assert.Equal("complete",(await new QqqGexArchiveMigration().RunAsync(source,dest,resume:true)).Status);
+    }
     [Fact] public async Task Disk_preflight_and_sqlite_full_keep_source_and_resume()
     {
         var root=Root();var source=Seed(root);var before=Hash(File.ReadAllBytes(source));var dest=Path.Combine(root,"space.db");await Assert.ThrowsAsync<IOException>(()=>new QqqGexArchiveMigration(_=>0,null).RunAsync(source,dest));Assert.False(File.Exists(dest+".migration.db"));
