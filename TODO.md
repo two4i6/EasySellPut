@@ -515,3 +515,9 @@ The existing chart workspace now acquires a verified domain lease before activat
 
 - [x] Implement TradingView-inspired compact native controls, pan/select, OHLC, collapsible sidebar and shared Help popover; preserve chart data and CLI/MCP contracts. Shared 157, Chromium 20, Python 80 and full Windows cross-build passed.
 - [ ] Record exact-code native CI; final local Mac suite passed all 152, in addition to Shared 157 / Chromium 20 / Python 80 / full Windows cross-build. See docs/58-TradingView风格图表工作区.md for actual 1080p renders and scope. Previous b712a94 host CI passed non-ARM jobs; ARM jobs could not acquire hosted runners, so S16c remains unaccepted.
+
+### Charts renderer distribution
+
+- [x] Package Charts HTML/CSS/JS in the signed Charts app and load it from the existing chart route. Share source with the compatibility renderer and retain host-owned market data, renderer dependencies and typed chart gestures.
+- [x] Verify fixed-host renderer asset A/B, missing signed assets, and freshly generated signed app payloads.
+- [ ] Record final native CI for the packaged renderer integration.

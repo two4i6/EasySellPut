@@ -44,7 +44,7 @@ jobs:
       - name: Install app dependencies
         working-directory: web/qqq-gex
         run: npm ci --no-audit --no-fund
-      - name: Build and verify charts core
+      - name: Build and verify charts app
         run: |
           node web/app-sdk/build-engine.mjs web/charts/runtime/report.mjs web/charts/runtime-dist/report.mjs
           python build/pack-app.py --app charts --development --repository "${{ github.repository }}" --output "build/out/app-core/charts-${{ matrix.rid }}.espapp"
