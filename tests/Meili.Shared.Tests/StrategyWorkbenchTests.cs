@@ -121,6 +121,18 @@ public sealed class StrategyWorkbenchTests : IDisposable
         Assert.Equal(4,double.Parse(_vm.Legs[0].PremiumText,System.Globalization.CultureInfo.InvariantCulture));
         Assert.True(_vm.AddWorkbenchContract("call110",PositionSide.Short,1,"bid"));Assert.Equal("1",_vm.Legs[1].PremiumText);
         Assert.False(_vm.AddWorkbenchContract("crossed",PositionSide.Long,1,"ask"));Assert.False(_vm.AddWorkbenchContract("call100",PositionSide.Long,1,"bid"));
+        Assert.True(_vm.ToggleWorkbenchContract("call100",PositionSide.Long,1,"ask"));Assert.Single(_vm.Legs);Assert.True(_vm.ToggleWorkbenchContract("call100",PositionSide.Long,1,"ask"));Assert.Equal(2,_vm.Legs.Count);
+    }
+    [Fact] public void New_profiles_default_to_compact_columns_and_keep_explicit_detailed_choice()
+    {
+        var store=new SettingsStore(_directory);Assert.True(store.Load().Options.CompactColumns);
+        store.Update(settings=>settings.Options.CompactColumns=false);
+        Assert.False(new SettingsStore(_directory).Load().Options.CompactColumns);
+    }
+    [Fact] public void Corrupt_app_navigation_fails_closed_without_affecting_other_pages()
+    {
+        var path=Path.Combine(_directory,"apps","registry.json");Directory.CreateDirectory(Path.GetDirectoryName(path)!);File.WriteAllText(path,"{");
+        Assert.False(ModuleNavigation.IsAvailable(_directory,AppPage.Options));Assert.False(ModuleNavigation.IsAvailable(_directory,AppPage.Strategy));Assert.True(ModuleNavigation.IsAvailable(_directory,AppPage.News));Assert.Equal("{",File.ReadAllText(path));
     }
     public void Dispose(){_vm.Deactivate();if(Directory.Exists(_directory))Directory.Delete(_directory,true);}
 }

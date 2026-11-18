@@ -63,19 +63,14 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" MinHeight="220" />
         </Grid.RowDefinitions>
-        <StackPanel x:Name="HeaderPanel" Grid.Row="0" Margin="32,16,32,4">
+        <StackPanel x:Name="HeaderPanel" Grid.Row="0" Margin="24,16,24,8">
             <ux:AppFormHeader Title="{DynamicResource St_Title}" HelpText="{DynamicResource St_Hint}" IsPageTitle="True" Margin="0,0,0,4"/>
             <!-- Toolbar: symbol, expiration, template, quantity, refresh; saved strategies in an overflow. -->
             <DockPanel Margin="0,0,0,8" LastChildFill="True">
-                <ui:Button DockPanel.Dock="Right" Appearance="Secondary" Padding="12,6" Margin="8,0,0,0" Command="{Binding RefreshCommand}" IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}">
-                    <StackPanel Orientation="Horizontal">
-                        <lucide:LucideIcon Kind="Refresh" Width="16" Height="16" Margin="0,0,6,0" />
-                        <TextBlock Text="{DynamicResource St_Refresh}" FontSize="14" />
-                    </StackPanel>
-                </ui:Button>
+                <Button DockPanel.Dock="Right" Width="36" Height="36" Padding="0" Margin="8,0,0,0" Command="{Binding RefreshCommand}" AutomationProperties.Name="{DynamicResource St_Refresh}" ToolTip="{DynamicResource St_Refresh}" IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}"><ux:LucideIcon Kind="Refresh" Width="18" Height="18"/></Button>
                 <Grid DockPanel.Dock="Right" Margin="8,0,0,0">
-                    <ui:Button x:Name="SavedButton" Appearance="Secondary" Padding="12,6" Click="OnSavedClick"
-                               Content="{DynamicResource St_SavedMenu}" />
+                    <ui:Button x:Name="SavedButton" Appearance="Secondary" Click="OnSavedClick"
+                               Width="36" Height="36" Padding="0" AutomationProperties.Name="{DynamicResource St_SavedMenu}" ToolTip="{DynamicResource St_SavedMenu}"><ux:LucideIcon Kind="Folder" Width="18" Height="18"/></ui:Button>
                     <Popup x:Name="SavedPopup" PlacementTarget="{Binding ElementName=SavedButton}" Placement="Bottom"
                            StaysOpen="False" AllowsTransparency="True">
                         <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
@@ -100,13 +95,13 @@
                         </Border>
                     </Popup>
                 </Grid>
-                <ui:NumberBox DockPanel.Dock="Right" Value="{Binding Quantity, UpdateSourceTrigger=PropertyChanged}" Minimum="1" Maximum="1000"
+                <ui:NumberBox DockPanel.Dock="Right" AutomationProperties.Name="{DynamicResource St_Quantity}" ToolTip="{DynamicResource St_Quantity}" Value="{Binding Quantity, UpdateSourceTrigger=PropertyChanged}" Minimum="1" Maximum="1000"
                               SpinButtonPlacementMode="Compact" FontSize="14" Width="90" Margin="8,0,0,0" />
-                <TextBlock DockPanel.Dock="Right" Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="8,0,0,0" Text="{DynamicResource St_Quantity}" />
-                <ds:AppSelect DockPanel.Dock="Right" MinWidth="180" FontSize="14" Margin="8,0,0,0"
-                          ItemsSource="{Binding Presets}" SelectedItem="{Binding SelectedPreset}" DisplayMemberPath="Label" />
-                <TextBlock DockPanel.Dock="Right" Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="8,0,0,0" Text="{DynamicResource St_Preset}" />
-                <ds:AppSelect DockPanel.Dock="Right" MinWidth="180" FontSize="14" Margin="8,0,0,0"
+
+                <ds:AppSelect DockPanel.Dock="Right" MinWidth="140" FontSize="14" Margin="8,0,0,0"
+                          AutomationProperties.Name="{DynamicResource St_Preset}" ToolTip="{DynamicResource St_Preset}" ItemsSource="{Binding Presets}" SelectedItem="{Binding SelectedPreset}" DisplayMemberPath="Label" />
+
+                <ds:AppSelect DockPanel.Dock="Right" MinWidth="140" FontSize="14" Margin="8,0,0,0"
                           Visibility="{Binding NeedsFarExpiration, Converter={StaticResource BoolToVis}}"
                           ItemsSource="{Binding FarExpirations}" SelectedItem="{Binding SelectedFarExpiration}" DisplayMemberPath="Label" />
                 <TextBlock DockPanel.Dock="Right" Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="8,0,0,0"
@@ -120,7 +115,7 @@
                     <TextBlock FontSize="12" Foreground="{DynamicResource DownBrush}" Text="{DynamicResource St_ExpiresToday}" />
                 </Border>
                 <ds:AppSelect x:Name="ExpirationBox" AutomationProperties.AutomationId="StrategyExpiration"
-                          DockPanel.Dock="Right" MinWidth="200" FontSize="14" Margin="8,0,0,0"
+                          DockPanel.Dock="Right" MinWidth="150" FontSize="14" Margin="8,0,0,0"
                           ItemsSource="{Binding Expirations}" SelectedItem="{Binding SelectedExpiration}" DisplayMemberPath="Label" />
                 <controls:SymbolBox x:Name="SymbolInput" AutomationProperties.AutomationId="StrategySymbol" MinWidth="160"
                                     Text="{Binding SymbolText}" WatchSymbols="{Binding WatchSymbols}" CommitCommand="{Binding LoadFromBoxCommand}" />
@@ -146,7 +141,7 @@
             </WrapPanel>
         </StackPanel>
 
-        <TabControl x:Name="SurfaceTabs" Grid.Row="1" Margin="16,0,16,12">
+        <TabControl x:Name="SurfaceTabs" Grid.Row="1" Margin="24,0,24,16">
             <TabItem x:Name="WorkbenchTab" Header="{DynamicResource Wb_Workbench}" IsSelected="True">
                 <controls:WebChartControl x:Name="Workspace" MinHeight="300" />
             </TabItem>
@@ -254,7 +249,7 @@
         </ScrollViewer>
 
         <!-- Chart takes at least half of the remaining height. -->
-        <DockPanel Grid.Row="1" Margin="16,0,16,12">
+        <DockPanel Grid.Row="1" Margin="24,0,24,16">
             <WrapPanel DockPanel.Dock="Top" Margin="16,0,16,6" VerticalAlignment="Center">
                 <TextBlock Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0,0,10,0" Text="{DynamicResource St_Horizon}" />
                 <Button Style="{StaticResource RangeChip}" Content="{DynamicResource St_TnNow}" Tag="0" Click="OnHorizonClick" />

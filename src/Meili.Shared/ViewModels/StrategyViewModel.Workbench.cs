@@ -50,6 +50,16 @@ public partial class StrategyViewModel
         return true;
     }
 
+    public bool ToggleWorkbenchContract(string contractSymbol,PositionSide side,int quantity,string quoteSide)
+    {
+        var contract=_hdrChain?.Contracts.FirstOrDefault(c=>c.ContractSymbol==contractSymbol && c.Expiration==SelectedExpiration?.Date);
+        if(IsBusy || contract is null || !Enum.IsDefined(contract.Right) || !Enum.IsDefined(side) || quantity is <1 or >1000 || !double.IsFinite(contract.Strike) || contract.Strike<=0 || !string.Equals(contract.Underlying,_hdrChain?.Underlying,StringComparison.OrdinalIgnoreCase) || !WorkbenchSymbolMatches || !string.Equals(_hdrChain?.Underlying,SymbolText,StringComparison.OrdinalIgnoreCase)
+            || quoteSide=="bid"&&side!=PositionSide.Short || quoteSide=="ask"&&side!=PositionSide.Long || quoteSide is not ("bid" or "ask"))return RejectWorkbench("Wb_Stale");
+        var type=contract.Right==Meili.Core.Models.OptionRight.Call?LegType.Call:LegType.Put;
+        var existing=Legs.FirstOrDefault(row=>row.TryToLeg(out var leg,out _) && leg is not null && leg.Type==type && leg.Side==side && leg.Strike==contract.Strike && leg.Expiry==contract.Expiration);
+        return existing is null?AddWorkbenchContract(contractSymbol,side,quantity,quoteSide):EditWorkbenchLeg(existing.Id,"remove");
+    }
+
     public bool EditWorkbenchLeg(Guid id, string field, int quantity = 0, PositionSide side = PositionSide.Long)
     {
         var row = Legs.FirstOrDefault(l => l.Id == id);

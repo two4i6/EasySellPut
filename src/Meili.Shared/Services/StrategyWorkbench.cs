@@ -50,9 +50,10 @@ public static class StrategyWorkbench
     public static bool ValidEvent(JsonElement e)
     {
         if (e.ValueKind != JsonValueKind.Object || !String(e, "kind") || !String(e, "key")) return false;
+        if(e.GetProperty("kind").GetString()=="toggle-contract" && !String(e,"quoteSide"))return false;
         return e.GetProperty("kind").GetString() switch
         {
-            "add-contract" => String(e, "contract") && String(e, "side") && Number(e, "quantity", 1, 1000) && e.GetProperty("quantity").TryGetInt32(out _) && (!e.TryGetProperty("quoteSide",out var quoteSide)||quoteSide.ValueKind==JsonValueKind.String && quoteSide.GetString() is "reference" or "bid" or "ask"),
+            "add-contract" or "toggle-contract" => String(e, "contract") && String(e, "side") && Number(e, "quantity", 1, 1000) && e.GetProperty("quantity").TryGetInt32(out _) && (!e.TryGetProperty("quoteSide",out var quoteSide)||quoteSide.ValueKind==JsonValueKind.String && quoteSide.GetString() is "reference" or "bid" or "ask"),
             "edit-leg" => String(e, "id") && Guid.TryParse(e.GetProperty("id").GetString(), out _) && String(e, "field")
                 && (e.GetProperty("field").GetString() switch { "quantity" => Number(e, "quantity", 1, 1000000) && e.GetProperty("quantity").TryGetInt32(out _), "side" => String(e, "side"), "remove" => true, _ => false }),
             "clear-legs" => true,
@@ -67,6 +68,9 @@ public static class StrategyWorkbench
         static PositionSide? Side(JsonElement e) => e.GetProperty("side").GetString() switch { "Long" => PositionSide.Long, "Short" => PositionSide.Short, _ => null };
         switch (e.GetProperty("kind").GetString())
         {
+            case "toggle-contract":
+                if(Side(e) is {} toggleSide && e.TryGetProperty("quoteSide",out var toggleQuote))vm.ToggleWorkbenchContract(e.GetProperty("contract").GetString()!,toggleSide,e.GetProperty("quantity").GetInt32(),toggleQuote.GetString()!);
+                break;
             case "add-contract":
                 if (Side(e) is { } side) vm.AddWorkbenchContract(e.GetProperty("contract").GetString()!, side, e.GetProperty("quantity").GetInt32(),e.TryGetProperty("quoteSide",out var quoteSide)?quoteSide.GetString()!:"reference");
                 else vm.RejectWorkbench("Wb_Stale");

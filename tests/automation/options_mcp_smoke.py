@@ -17,7 +17,7 @@ with tempfile.TemporaryDirectory(prefix='options fixed host ')as temp:
  bookmarks=profiles[1]/'web-workspace.json';bookmarks.write_text('{"SchemaVersion":1,"Tabs":[]}');bookmark_hash=hashlib.sha256(bookmarks.read_bytes()).hexdigest()
  def install(version):
   archive=root/(version+'.espapp')
-  if not archive.exists():subprocess.run(['python3','build/pack-app.py','--app','options-strategy','--repository','test/source','--version',version,'--key',str(key),'--output',str(archive)],check=True,capture_output=True)
+  if not archive.exists():subprocess.run(['python3','build/pack-app.py','--app','options-strategy','--repository','test/source','--version',version,'--key',str(key),'--output',str(archive)],check=True)
   for p in profiles:subprocess.run([*command,'install',str(p),str(archive)],check=True,capture_output=True,timeout=25)
  install('1.0.0');reader=Mcp(command,str(profiles[1]));writer=Mcp(command,str(profiles[1]),writes=True,response_timeout=30)
  try:

@@ -65,6 +65,7 @@ public static class WebChartSnapshot
         var theme=Meili.Automation.Modules.AppThemeDefaults.Create(palette.Dark,DesignMotion.Reduced);
         theme["background"]=Css(palette.Background);theme["text"]=Css(palette.Text);theme["muted"]=Css(palette.Muted);
         theme["grid"]=$"{Css(palette.Grid)}{palette.Grid.A:X2}";theme["up"]=Css(palette.Up);theme["down"]=Css(palette.Down);
+        theme["healthy"]=$"#{((palette.Dark?ThemePalette.Dark:ThemePalette.Light).Healthy&0xFFFFFF):X6}";
         theme["colors"]=JsonSerializer.SerializeToNode(new[]{palette.Series1,palette.Series2,palette.Series3,palette.Series4,palette.Series5,palette.Series6}.Select(Css));
         return theme;
     }

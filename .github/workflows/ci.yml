@@ -130,6 +130,7 @@ jobs:
           python3 tests/automation/app_release_smoke.py --archive build/out/app-fixture/qqq-gex-test.espapp --key "$RUNNER_TEMP/app-fixture-key.pem" --public-key "$RUNNER_TEMP/app-fixture-public.pem" --repository "$GITHUB_REPOSITORY"
           python3 tests/automation/app_release_smoke.py --app market-liquidity --archive build/out/liquidity-fixture/liquidity.espapp --key "$RUNNER_TEMP/app-fixture-key.pem" --public-key "$RUNNER_TEMP/app-fixture-public.pem" --repository "$GITHUB_REPOSITORY"
           python3 tests/automation/app_release_smoke.py --app news-fundamentals --archive build/out/news-fixture/news.espapp --key "$RUNNER_TEMP/app-fixture-key.pem" --public-key "$RUNNER_TEMP/app-fixture-public.pem" --repository "$GITHUB_REPOSITORY"
+          python3 tests/automation/app_release_smoke.py --app options-strategy --archive build/out/options-fixture/options.espapp --key "$RUNNER_TEMP/app-fixture-key.pem" --public-key "$RUNNER_TEMP/app-fixture-public.pem" --repository "$GITHUB_REPOSITORY"
           rm "$RUNNER_TEMP/app-fixture-key.pem"
       - uses: actions/upload-artifact@v4
         with:
@@ -249,8 +250,12 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'News build failed' }
           python tests/automation/news_mcp_smoke.py
           if ($LASTEXITCODE -ne 0) { throw "Signed news app smoke failed" }
+      - name: Test options updates through CLI & MCP
+        run: |
+          node web/app-sdk/build-engine.mjs web/options-strategy/runtime/report.mjs web/options-strategy/runtime-dist/report.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Options core build failed' }
           python tests/automation/options_mcp_smoke.py
-          if ($LASTEXITCODE -ne 0) { throw 'News fixed-host update regression failed' }
+          if ($LASTEXITCODE -ne 0) { throw 'Options fixed-host CLI/MCP update regression failed' }
       - name: Test signed original GEX app operations
         run: |
           python build/pack-app.py --development --repository test/source --ui-dir web/qqq-gex/dist --output "$env:RUNNER_TEMP/gex-pilot.espapp"

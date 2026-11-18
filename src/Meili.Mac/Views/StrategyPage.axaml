@@ -18,11 +18,11 @@
         </Style>
     </UserControl.Styles>
     <Grid RowDefinitions="Auto,*">
-        <StackPanel x:Name="HeaderPanel" Grid.Row="0" Margin="32,16,32,4">
+        <StackPanel x:Name="HeaderPanel" Grid.Row="0" Margin="24,16,24,8">
             <ux:AppFormHeader Title="{DynamicResource St_Title}" HelpText="{DynamicResource St_Hint}" IsPageTitle="True" Margin="0,0,0,4"/>
             <DockPanel Margin="0,0,0,8">
-                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding RefreshCommand}" Content="{DynamicResource St_Refresh}"  IsEnabled="{Binding !IsBusy}"/>
-                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Content="{DynamicResource St_SavedMenu}">
+                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding RefreshCommand}" Width="36" Height="36" Padding="0" AutomationProperties.Name="{DynamicResource St_Refresh}" ToolTip.Tip="{DynamicResource St_Refresh}" IsEnabled="{Binding !IsBusy}"><ux:LucideIcon Kind="Refresh" Width="18" Height="18"/></Button>
+                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Width="36" Height="36" Padding="0" AutomationProperties.Name="{DynamicResource St_SavedMenu}" ToolTip.Tip="{DynamicResource St_SavedMenu}"><Button.Content><ux:LucideIcon Kind="Folder" Width="18" Height="18"/></Button.Content>
                     <Button.Flyout>
                         <Flyout Placement="BottomEdgeAlignedRight">
                             <StackPanel Width="320" Spacing="8">
@@ -41,13 +41,13 @@
                         </Flyout>
                     </Button.Flyout>
                 </Button>
-                <NumericUpDown DockPanel.Dock="Right" Value="{Binding Quantity}" Minimum="1" Maximum="1000" Increment="1"
-                               FormatString="0" Width="110" Margin="8,0,0,0" />
-                <TextBlock DockPanel.Dock="Right" Classes="Caption" VerticalAlignment="Center" Margin="8,0,0,0" Text="{DynamicResource St_Quantity}" />
-                <ds:AppSelect DockPanel.Dock="Right" MinWidth="180" Margin="8,0,0,0" ItemsSource="{Binding Presets}"
+                <NumericUpDown DockPanel.Dock="Right" AutomationProperties.Name="{DynamicResource St_Quantity}" ToolTip.Tip="{DynamicResource St_Quantity}" Value="{Binding Quantity}" Minimum="1" Maximum="1000" Increment="1"
+                               FormatString="0" Width="72" Margin="8,0,0,0" />
+
+                <ds:AppSelect DockPanel.Dock="Right" MinWidth="140" Margin="8,0,0,0" AutomationProperties.Name="{DynamicResource St_Preset}" ToolTip.Tip="{DynamicResource St_Preset}" ItemsSource="{Binding Presets}"
                           SelectedItem="{Binding SelectedPreset}" DisplayMemberBinding="{Binding Label, x:DataType=vm:PresetChoice}" />
-                <TextBlock DockPanel.Dock="Right" Classes="Caption" VerticalAlignment="Center" Margin="8,0,0,0" Text="{DynamicResource St_Preset}" />
-                <ds:AppSelect DockPanel.Dock="Right" MinWidth="180" Margin="8,0,0,0" IsVisible="{Binding NeedsFarExpiration}"
+
+                <ds:AppSelect DockPanel.Dock="Right" MinWidth="140" Margin="8,0,0,0" IsVisible="{Binding NeedsFarExpiration}"
                           ItemsSource="{Binding FarExpirations}" SelectedItem="{Binding SelectedFarExpiration}"
                           DisplayMemberBinding="{Binding Label, x:DataType=vm:ExpirationChoice}" />
                 <TextBlock DockPanel.Dock="Right" Classes="Caption" VerticalAlignment="Center" Margin="8,0,0,0"
@@ -58,7 +58,7 @@
                         IsVisible="{Binding IsExpirationToday}">
                     <TextBlock Classes="Caption" Foreground="{DynamicResource DownBrush}" Text="{DynamicResource St_ExpiresToday}" />
                 </Border>
-                <ds:AppSelect DockPanel.Dock="Right" MinWidth="200" Margin="8,0,0,0" ItemsSource="{Binding Expirations}"
+                <ds:AppSelect DockPanel.Dock="Right" MinWidth="150" Margin="8,0,0,0" ItemsSource="{Binding Expirations}"
                           SelectedItem="{Binding SelectedExpiration}" DisplayMemberBinding="{Binding Label, x:DataType=vm:ExpirationChoice}" />
                 <controls:SymbolBox x:Name="SymbolInput" MinWidth="160" Text="{Binding SymbolText}" WatchSymbols="{Binding WatchSymbols}"
                                     CommitCommand="{Binding LoadFromBoxCommand}" />
@@ -82,7 +82,7 @@
             </WrapPanel>
         </StackPanel>
 
-        <TabControl x:Name="SurfaceTabs" Grid.Row="1" Margin="16,0,16,12">
+        <TabControl x:Name="SurfaceTabs" Grid.Row="1" Margin="24,0,24,16">
             <TabItem x:Name="WorkbenchTab" Header="{DynamicResource Wb_Workbench}" IsSelected="True">
                 <platform:WebChartControl x:Name="Workspace" MinHeight="300" />
             </TabItem>
@@ -102,7 +102,7 @@
                     <DataGrid x:Name="LegsGrid" ItemsSource="{Binding Legs}" SelectedItem="{Binding SelectedLeg}"
                               SelectionMode="Single" GridLinesVisibility="Horizontal" CanUserSortColumns="False">
                         <DataGrid.Columns>
-                            <DataGridTemplateColumn local:Loc.Header="St_Type" Width="110">
+                            <DataGridTemplateColumn local:Loc.Header="St_Type" Width="72">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate x:DataType="vm:StrategyLegRow">
                                         <TextBlock Text="{Binding TypeLabel}" FontSize="14" VerticalAlignment="Center" Margin="8,0" />
@@ -177,7 +177,7 @@
             </Grid>
         </ScrollViewer>
 
-        <DockPanel Grid.Row="1" Margin="16,0,16,12">
+        <DockPanel Grid.Row="1" Margin="24,0,24,16">
             <WrapPanel DockPanel.Dock="Top" Margin="16,0,16,6">
                 <TextBlock Classes="Caption" VerticalAlignment="Center" Margin="0,0,10,0" Text="{DynamicResource St_Horizon}" />
                 <Button x:Name="Tn0" Classes="Chip" Padding="10,6" Margin="0,0,6,0" Content="{DynamicResource St_TnNow}" Command="{Binding SelectHorizonCommand}" />

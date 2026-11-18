@@ -132,6 +132,7 @@ public sealed class AutomationTests : IDisposable
         var one = new StrategyStore(_path); var two = new StrategyStore(_path);
         one.Save(new("one", "AAPL", Meili.Analytics.StrategyKind.Custom, [], DateTimeOffset.UtcNow));
         Assert.Throws<DataConflictException>(() => two.Save(new("two", "MSFT", Meili.Analytics.StrategyKind.Custom, [], DateTimeOffset.UtcNow)));
+        Assert.Empty(two.All);Assert.Equal("one",Assert.Single(new StrategyStore(_path).All).Name);
         b.Load(); b.Update(s => s.Theme = AppThemeMode.Dark); Assert.Equal("en-US", new SettingsStore(_path).Load().Language);
     }
 }

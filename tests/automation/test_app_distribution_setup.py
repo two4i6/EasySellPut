@@ -70,7 +70,7 @@ class AppDistributionSetupTests(unittest.TestCase):
             self.assertIn('easysellput.market-liquidity-v1.2.3',run.call_args.args[0][-1])
         with self.assertRaises(ValueError):source.resolve('owner/repo','auto',app='../foreign')
 
-    def test_news_joins_the_same_signed_catalog_without_mutating_prior_app_entries(self):
+    def test_four_apps_join_one_signed_catalog_without_mutating_prior_entries(self):
         from app_definitions import definition
         self.assertEqual(definition('news-fundamentals')['id'],'easysellput.news-fundamentals')
         self.assertEqual(definition('options-strategy')['id'],'easysellput.options-strategy')
@@ -80,8 +80,8 @@ class AppDistributionSetupTests(unittest.TestCase):
             old=copy.deepcopy(catalog)
             catalog=release.merge_catalog(catalog,dict(id=definition(app)['id'],version='1.0.0',dataFormat=1),'owner/repo',catalog_sequence(catalog,'1000'),now)
             if old:self.assertTrue(all(entry in catalog['apps'] for entry in old['apps']))
-        self.assertEqual(catalog['sequence'],1002)
-        self.assertEqual(len(catalog['apps']),3)
+        self.assertEqual(catalog['sequence'],1003)
+        self.assertEqual(len(catalog['apps']),4)
 
     def test_catalog_renewal_retains_all_package_identities_even_after_expiry(self):
         now = dt.datetime.now(dt.timezone.utc)

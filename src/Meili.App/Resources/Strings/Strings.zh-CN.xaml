@@ -1052,4 +1052,5 @@
     <sys:String x:Key="Nf_FinancialTrend">财务趋势</sys:String>
     <sys:String x:Key="St_SaveFailed">未保存：{0}</sys:String>
     <sys:String x:Key="St_DeleteFailed">未删除：{0}</sys:String>
+    <sys:String x:Key="Op_ToStrategy">加入策略</sys:String>
 </ResourceDictionary>
