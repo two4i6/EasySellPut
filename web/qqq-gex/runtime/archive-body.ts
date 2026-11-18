@@ -39,7 +39,8 @@ export function decodeArchiveBytes(value:unknown,maxBytes=128*1024*1024):Buffer{
   if(info.engine.bytesWritten!==encoded)throw Error('GEX v2 archive has trailing bytes');
   return decoded;
  }
- if(bytes.length>maxBytes||bytes.length<2||bytes[0]!==31||bytes[1]!==139)throw Error('Unsupported archive body encoding');
- return gunzipSync(bytes,{maxOutputLength:Math.max(1,maxBytes)});
+ if(bytes.length>maxBytes+65536||bytes.length<2||bytes[0]!==31||bytes[1]!==139)throw Error('Unsupported archive body encoding');
+ const decoded=gunzipSync(bytes,{maxOutputLength:Math.max(1,maxBytes)});
+ if(decoded.length>maxBytes)throw Error('Archive body exceeds decoded limit');return decoded;
 }
 export const decodeArchiveBody=(value:unknown,maxBytes=128*1024*1024)=>decodeArchiveBytes(value,maxBytes).toString('utf8');

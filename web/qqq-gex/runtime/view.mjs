@@ -1,3 +1,4 @@
+import {ArchiveDatabase} from './archive-database.ts';
 // App-owned view routing/projections. Shared providers remain in the host; original financial math stays in query.mjs.
 import {createHostEngine} from '../../app-sdk/engine-host.mjs';
 import {createFacade,InputError,dotnetJson} from './facade.mjs';
@@ -24,7 +25,7 @@ function chunks(resource,body,contentType='application/json'){
  const coverage={workspace:'Allowlisted saved UI preferences and timestamped last desktop observation; not guaranteed current screen or live quote.',partial:'Same native partial-capture projection; not a published complete day.',providerRaw:'Original hash-verified retained provider bytes, not a model reconstruction or arbitrary file.'}[resource]??'Exact retained UI-kernel response bytes; not full historical/input completeness.';
  return {available:true,complete:false,resource,contentType,sha256,totalBytes:bytes.length,offset,chunkBytes:count,encoding:'base64',bodyBase64:bytes.subarray(offset,next).toString('base64'),hasMore:next<bytes.length,nextOffset:next<bytes.length?next:null,coverage:coverage+' Concatenate decoded chunks and verify SHA256; changes restart. No remote fallback. Re-read exposure manifest after all windows.'};
 }
-function readDatabase(action){const database=new DatabaseSync(db,{readOnly:true});try{database.exec('PRAGMA busy_timeout=5000;BEGIN');return action(database);}finally{database.close();}}
+function readDatabase(action){const database=new ArchiveDatabase(db,{readOnly:true});try{database.exec('PRAGMA busy_timeout=5000;BEGIN');return action(database);}finally{database.close();}}
 
 async function workspace(){
  const preferencesBody=(await engine.call('read_app_snapshot',{key:'preferences'})).body;

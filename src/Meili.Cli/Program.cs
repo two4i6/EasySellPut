@@ -21,6 +21,12 @@ public static class Program
         Console.CancelKeyPress += (_, e) => { e.Cancel = true; stop.Cancel(); };
         try
         {
+            if(args.FirstOrDefault()=="gex-archive")
+            {
+                if(args.Skip(1).SequenceEqual(new[]{"--help"})){Console.WriteLine(GexArchiveCommand.Help);return 0;}
+                var migrated=await GexArchiveCommand.RunAsync(args,stop.Token);
+                if(json)Console.WriteLine(WireJson.Element(WireJson.Success(migrated)).GetRawText());else PrintHuman(WireJson.Element(migrated));return 0;
+            }
             if (args.FirstOrDefault() == "apps")
             {
                 if (args.Skip(1).SequenceEqual(new[] { "--help" }))

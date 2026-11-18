@@ -32,3 +32,16 @@ There is no automatic upgrade or production migration operation. See the
 [prototype evidence and compatibility limits](../../docs/gex-storage-research/codec-prototype-20261118.md)
 for synthetic-only byte counts, CPU/wall/RSS measurements and copy-only recovery
 rehearsals. No real six-capture sample or Mac/Windows validation is available.
+
+### Supported guarded copy migration
+
+The prototype-only limitation above is superseded by explicit host CLI
+`gex-archive migrate|downgrade|restore|status`. It creates a separate verified
+snapshot/working copy, retains the original and backup, checks disk reserves,
+commits resumable 32-row batches, validates all logical data and publishes only
+a ready new path. Legacy paths remain gzip; guarded migrated paths select v2
+from database version metadata in both Node and .NET. The old environment flag
+cannot enable an unguarded legacy path. SQLite triggers reject old-client DML.
+There is no automatic activation or in-place upgrade. See
+[safe migration](../../docs/gex-storage-research/safe-migration.md) for exact
+commands, cancellation/backup/downgrade semantics and compatibility limits.

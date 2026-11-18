@@ -1,8 +1,9 @@
+import {ArchiveDatabase} from './archive-database.ts';
 import {decodeArchiveBody} from './archive-body';
 import {DatabaseSync} from 'node:sqlite';import {createHash} from 'node:crypto';import {importInput} from './import';
 const [path,rawOptions]=process.argv.slice(2),options=JSON.parse(rawOptions??'{}'),limit=options.limit??100;
 if(!Number.isInteger(limit)||limit<1||limit>400)throw Error('History batch limit must be 1–400');
-const db=new DatabaseSync(path);db.exec('PRAGMA busy_timeout=5000; CREATE TABLE IF NOT EXISTS qqq_gex_observed_imports(identity TEXT PRIMARY KEY,status TEXT NOT NULL,error TEXT,updated_at INTEGER NOT NULL)');
+const db=new ArchiveDatabase(path);db.exec('PRAGMA busy_timeout=5000; CREATE TABLE IF NOT EXISTS qqq_gex_observed_imports(identity TEXT PRIMARY KEY,status TEXT NOT NULL,error TEXT,updated_at INTEGER NOT NULL)');
 try{
  if(!db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='qqq_gex_observed_inputs'").get()){console.log(JSON.stringify({status:'no_observed_inputs',complete:false,processed:0}));process.exitCode=0;}
  else {

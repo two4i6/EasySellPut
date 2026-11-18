@@ -1,0 +1,45 @@
+{
+  "sample": "synthetic 6 captures / 29 expiries / 183 strikes; not real CBOE or user data",
+  "operation": "real CLI guarded migration including backup, full validation and publication; one process/run",
+  "elapsedWallSeconds": 5.23217878899959,
+  "cpuUserSeconds": 3.310774,
+  "cpuSystemSeconds": 2.490351,
+  "peakRssBytes": 462487552,
+  "result": {
+    "status": "complete",
+    "destination": "/tmp/gex-production-large/cache/qqq-gex.db",
+    "backup": "/tmp/gex-production-large/cache/qqq-gex.db.backup.db",
+    "backupSha256": "A2241A416D7935DDE338CC7DB74ACA5862DF08EB8BEE7A49962247AF067E01ED",
+    "codec": "brotli-v2",
+    "processedRows": 192,
+    "snapshotDigest": "75082F911E112CCD6FD73609873CABD144585A47D7C50F68F00ED787990CBF79"
+  },
+  "sourceUnchanged": true,
+  "tables": [
+    {
+      "kind": "source",
+      "storedBodyBytes": {
+        "qqq_gex_local_rows": 6113193,
+        "qqq_gex_observed_inputs": 1629953,
+        "qqq_gex_provider_raw": 1771850,
+        "qqq_gex_raw": 462,
+        "qqq_gex_local_days": 549348
+      },
+      "total": 10064806,
+      "physicalBytes": 65384448
+    },
+    {
+      "kind": "migrated",
+      "storedBodyBytes": {
+        "qqq_gex_local_rows": 5030670,
+        "qqq_gex_observed_inputs": 452840,
+        "qqq_gex_provider_raw": 450043,
+        "qqq_gex_raw": 462,
+        "qqq_gex_local_days": 549348
+      },
+      "total": 6483363,
+      "physicalBytes": 65384448
+    }
+  ],
+  "replaySha256": "9b92cd721ed7916c5082b1bf0da750b21913141f40da0952fbf91892031e928b"
+}

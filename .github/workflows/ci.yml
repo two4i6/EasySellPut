@@ -78,10 +78,12 @@ jobs:
       - name: Test opt-in archive codec and cross-runtime recovery
         run: |
           dotnet build tests/Meili.GexCodec.Host/Meili.GexCodec.Host.csproj -m:3 -v minimal
-          dotnet test tests/Meili.Data.Tests/Meili.Data.Tests.csproj --filter FullyQualifiedName~QqqGexCodecV2
+          dotnet test tests/Meili.Data.Tests/Meili.Data.Tests.csproj --filter FullyQualifiedName~QqqGex
           cd web/qqq-gex
           GEX_CODEC_HOST=../../tests/Meili.GexCodec.Host/bin/Debug/net10.0/Meili.GexCodec.Host.dll node tests/archive-codec-v2.mjs
-          MEILI_GEX_ARCHIVE_CODEC=brotli-v2 npm run test:pipeline
+          cd ../..
+          dotnet build src/Meili.Cli/Meili.Cli.csproj -m:3 -v minimal
+          python3 tests/automation/gex_archive_migration.py --dll src/Meili.Cli/bin/Debug/net10.0/easysellput.dll --host tests/Meili.GexCodec.Host/bin/Debug/net10.0/Meili.GexCodec.Host.dll
       - name: Test private GEX session recovery and repeated rendering
         run: |
           dotnet build tests/Meili.Qqq.CloudHost/Meili.Qqq.CloudHost.csproj -m:3 -v minimal

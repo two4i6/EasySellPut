@@ -8,6 +8,16 @@ else if(operation=="provider")
     var hash=store.RecordProviderBody("synthetic-codec-test",bytes,now,now);
     File.WriteAllBytes(args[2],store.ReadProviderBody(hash));store.ReleaseIdleConnections();Console.WriteLine(hash);
 }
+else if(operation=="migration-wait")
+{
+    var count=0;var service=new QqqGexArchiveMigration(_=>long.MaxValue,(stage,_)=>{if(stage=="batch"&&++count==2){Console.WriteLine("migration-uncommitted");Console.Out.Flush();new ManualResetEventSlim(false).Wait();}});
+    var result=await service.RunAsync(args[3],args[4]);File.WriteAllText(args[2],System.Text.Json.JsonSerializer.Serialize(result));
+}
+else if(operation=="migrate")
+{
+    var result=await new QqqGexArchiveMigration().RunAsync(args[3],args[4]);
+    File.WriteAllText(args[2],System.Text.Json.JsonSerializer.Serialize(result));
+}
 else if(operation=="compact")
 {
     var store=new QqqGexResponseStore(args[3]);var result=store.Compact();

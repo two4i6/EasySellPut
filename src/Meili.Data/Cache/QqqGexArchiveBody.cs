@@ -41,7 +41,7 @@ internal static class QqqGexArchiveBody
             if(status!=OperationStatus.Done||consumed!=compressedLength||written!=length||!CryptographicOperations.FixedTimeEquals(SHA256.HashData(output.AsSpan(0,written)),bytes.AsSpan(16,32)))throw new InvalidDataException("GEX v2 archive integrity failed");
             return output.AsSpan(0,written).ToArray();
         }
-        if(bytes.Length>maximumBytes||bytes.Length<2||bytes[0]!=31||bytes[1]!=139)throw new InvalidDataException("Unsupported GEX archive encoding");
+        if(bytes.Length>(long)maximumBytes+65536||bytes.Length<2||bytes[0]!=31||bytes[1]!=139)throw new InvalidDataException("Unsupported GEX archive encoding");
         using var input=new MemoryStream(bytes,false);using var gzip=new GZipStream(input,CompressionMode.Decompress);using var decoded=new MemoryStream();var buffer=new byte[32768];int count;
         while((count=gzip.Read(buffer))>0){if(decoded.Length+count>maximumBytes)throw new InvalidDataException("GEX archive exceeds decoded limit");decoded.Write(buffer,0,count);}return decoded.ToArray();
     }

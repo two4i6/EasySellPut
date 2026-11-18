@@ -26,14 +26,14 @@ public sealed partial class QqqGexResponseStore
     }
     /// <summary>Release this store's idle SQLite handles after a document host drains; active consumers are not interrupted.</summary>
     public void ReleaseIdleConnections(){using var connection=new SqliteConnection(connectionString);SqliteConnection.ClearPool(connection);}
-    private SqliteConnection Open(){if(IsUnavailable)throw new InvalidDataException("GEX storage is unavailable; original file retained");var c=new SqliteConnection(connectionString);try{c.Open();return c;}catch{c.Dispose();throw;}}
+    private SqliteConnection Open(){if(IsUnavailable)throw new InvalidDataException("GEX storage is unavailable; original file retained");var c=new SqliteConnection(connectionString);try{c.Open();QqqGexArchiveGate.Configure(c);return c;}catch{c.Dispose();throw;}}
     public object? LatestPartial()
     {
         using var c=Open();return ReadLatestPartialCore(c);
     }
     public static object? ReadLatestPartialReadOnly(string path)
     {
-        using var c=new SqliteConnection(new SqliteConnectionStringBuilder{DataSource=path,Mode=SqliteOpenMode.ReadOnly}.ToString());c.Open();return ReadLatestPartialCore(c);
+        using var c=new SqliteConnection(new SqliteConnectionStringBuilder{DataSource=path,Mode=SqliteOpenMode.ReadOnly}.ToString());c.Open();QqqGexArchiveGate.Configure(c);return ReadLatestPartialCore(c);
     }
     private static object? ReadLatestPartialCore(SqliteConnection c)
     {

@@ -13,6 +13,7 @@ public sealed class QqqGexCodecV2Tests
             Assert.Equal(bytes,QqqGexArchiveBody.DecodeBytes(encoded,bytes.Length));
             if(bytes.Length>0)Assert.Equal(bytes,QqqGexArchiveBody.DecodeBytes(QqqGexArchiveBody.Encode(bytes,"gzip-v1"),128*1024*1024));
         }
+        var entropy=RandomNumberGenerator.GetBytes(32768);var legacy=QqqGexArchiveBody.Encode(entropy,"gzip-v1");Assert.True(legacy.Length>entropy.Length);Assert.Equal(entropy,QqqGexArchiveBody.DecodeBytes(legacy,entropy.Length));Assert.ThrowsAny<Exception>(()=>QqqGexArchiveBody.DecodeBytes(legacy,entropy.Length-1));
         Assert.Equal("legacy 中文",QqqGexArchiveBody.Decode("legacy 中文",128));
         Assert.Throws<InvalidDataException>(()=>QqqGexArchiveBody.Encode("x"u8,"unknown"));
     }
