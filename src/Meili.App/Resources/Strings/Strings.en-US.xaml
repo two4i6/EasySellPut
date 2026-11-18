@@ -1049,4 +1049,6 @@
     <sys:String x:Key="Nf_EarningsOutlook">Earnings and outlook</sys:String>
     <sys:String x:Key="Nf_StatementDetails">Statement details</sys:String>
     <sys:String x:Key="Nf_FinancialTrend">Financial trends</sys:String>
+    <sys:String x:Key="St_SaveFailed">Not saved: {0}</sys:String>
+    <sys:String x:Key="St_DeleteFailed">Not deleted: {0}</sys:String>
 </ResourceDictionary>

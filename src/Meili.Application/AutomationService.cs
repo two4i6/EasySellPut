@@ -40,25 +40,35 @@ public sealed partial class AutomationService(DataDirectoryInfo directory, IMark
         var op = (await GetCatalogAsync(ct)).Find(operation);
         OperationCatalog.Validate(op, args);
         if (op.Writes && !allowWrites) throw new UnauthorizedAccessException();
+        var module = (await Modules.ModuleOperations.ReadAsync(DirectoryInfo.Path, ct)).SingleOrDefault(o => o.Definition.Name == operation);
+        if (module is not null)
+        {
+            return WireJson.Element(WireJson.Success(await ExecuteModuleAsync(module,args,allowWrites,ct)));
+        }
+        using var legacyLease = Modules.ModuleAccess.OperationOwner(operation) is { } owner ? Modules.ModuleAccess.AcquireEnabled(DirectoryInfo.Path, owner) : null;
         if(operation is "calculate_option" or "calculate_indicators" or "analyze_strategy")
         {
             await PureCalculationGate.WaitAsync(ct);
             try { return await Task.Run(async () => WireJson.Element(WireJson.Success(await ExecuteCoreAsync(operation,new Input(args),ct))),ct); }
             finally { PureCalculationGate.Release(); }
         }
-        var module = (await Modules.ModuleOperations.ReadAsync(DirectoryInfo.Path, ct)).SingleOrDefault(o => o.Definition.Name == operation);
-        if (module is not null)
-        {
-            using var session=BeginModuleHostSession();
-            return WireJson.Element(WireJson.Success(await Modules.ModuleProcess.ExecuteAsync(DirectoryInfo.Path, module, args, allowWrites, ct, session.InvokeAsync)));
-        }
-        using var legacyLease = Modules.ModuleAccess.OperationOwner(operation) is { } owner ? Modules.ModuleAccess.AcquireEnabled(DirectoryInfo.Path, owner) : null;
         await _gate.WaitAsync(ct);
         try { ct.ThrowIfCancellationRequested(); return WireJson.Element(WireJson.Success(await ExecuteCoreAsync(operation, new Input(args), ct))); }
         finally { _gate.Release(); }
     }
 
-    internal Modules.ModuleMarketSession BeginModuleHostSession()=>new(OpenMarketSnapshotAsync,ExecuteHostOperationAsync);
+    internal async Task<JsonElement> ExecuteModuleAsync(Modules.BoundModuleOperation module,JsonElement args,bool allowWrites,CancellationToken ct,
+        Modules.ModuleInstaller? installer=null,Func<CancellationToken,Task<string?>>? runtime=null)
+    {
+        using var session=BeginModuleHostSession();
+        var grant=new Modules.ModuleWriteGrant(module.Definition.Name,args,allowWrites,session.InvokeAsync,
+            (name,arguments,token)=>ExecuteHostOperationAsync(name,arguments,token,allowWrites:true));
+        var result=await Modules.ModuleProcess.ExecuteAsync(DirectoryInfo.Path,module,args,allowWrites,
+            installer??new Modules.ModuleInstaller(DirectoryInfo.Path),runtime??(token=>Modules.PinnedNodeRuntime.ExtractNodeAsync(DirectoryInfo.Path,token)),ct,grant.InvokeAsync);
+        grant.RequireApplied();return result;
+    }
+
+    internal Modules.ModuleMarketSession BeginModuleHostSession()=>new(OpenMarketSnapshotAsync,(name,args,ct)=>ExecuteHostOperationAsync(name,args,ct));
     private async Task<Modules.ModuleMarketSnapshot> OpenMarketSnapshotAsync(JsonElement arguments,CancellationToken ct)
     {
         OperationCatalog.Validate(Modules.ModuleHostOperations.Definition("open_market_snapshot"),arguments);
@@ -115,9 +125,11 @@ public sealed partial class AutomationService(DataDirectoryInfo directory, IMark
     }
 
     /// <summary>Stable common read capabilities for signed app engines; never invokes another app or maintenance.</summary>
-    internal async Task<JsonElement> ExecuteHostOperationAsync(string name,JsonElement arguments,CancellationToken ct)
+    internal Task<JsonElement> ExecuteHostOperationAsync(string name,JsonElement arguments,CancellationToken ct)=>ExecuteHostOperationAsync(name,arguments,ct,false);
+    internal async Task<JsonElement> ExecuteHostOperationAsync(string name,JsonElement arguments,CancellationToken ct,bool allowWrites)
     {
         var definition=Modules.ModuleHostOperations.Definition(name);OperationCatalog.Validate(definition,arguments);
+        if(definition.Writes && !allowWrites)throw new UnauthorizedAccessException("Read host session cannot grant a write.");
         var pure=name is "calculate_option" or "calculate_indicators" or "analyze_strategy";
         var gate=pure?PureCalculationGate:_gate;
         await gate.WaitAsync(ct).ConfigureAwait(false);
@@ -211,7 +223,7 @@ public sealed partial class AutomationService(DataDirectoryInfo directory, IMark
                     var s = await (await Market(ct)).GetChainAsync(Symbol(a.Text("symbol")), a.Date("expiry"), ct);
                     var requestedExpiry = a.Date("expiry");
                     var filtered = s.Contracts.Where(c => (!requestedExpiry.HasValue || c.Expiration == requestedExpiry.Value) && (!a.Has("right") || c.Right.ToString().Equals(a.Text("right"), StringComparison.OrdinalIgnoreCase)) && (!min.HasValue || c.Strike >= min) && (!max.HasValue || c.Strike <= max)).OrderBy(c => c.Expiration).ThenBy(c => c.Strike).ThenBy(c => c.Right).ToArray();
-                    return new { s.Underlying, s.UnderlyingPrice, s.Expiration, s.Expirations, s.Source, s.AsOf, s.FetchedAt, s.IsRealtime, s.DelayMinutes, page = Page(filtered, a), entryReferences = Page(filtered.Select(c => new { c.ContractSymbol, reference = OptionEntryReference.From(c) }).ToArray(), a) };
+                    return new { s.Underlying, s.UnderlyingPrice, s.Expiration, s.Expirations, s.Source, s.AsOf, s.FetchedAt, s.IsRealtime, s.DelayMinutes, page = Page(filtered, a), entryReferences = Page(filtered.Select(c => new { c.ContractSymbol, reference = OptionEntryReference.From(c),bidReference=OptionEntryReference.FromQuoteSide(c,"bid"),askReference=OptionEntryReference.FromQuoteSide(c,"ask") }).ToArray(), a) };
                 }
             case "get_fundamentals": return await (await Market(ct)).GetFundamentalsAsync(Symbol(a.Text("symbol")), ct);
             case "get_financials": return await (await Market(ct)).GetFinancialsAsync(Symbol(a.Text("symbol")), ct);

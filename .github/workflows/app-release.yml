@@ -16,7 +16,7 @@ on:
       app:
         description: App to prepare or recover manually (automatic runs check every app)
         type: choice
-        options: [qqq-gex, market-liquidity, news-fundamentals]
+        options: [qqq-gex, market-liquidity, news-fundamentals, options-strategy]
         default: qqq-gex
         required: true
       version:
@@ -115,3 +115,23 @@ jobs:
       - name: Verify news draft and publish catalog
         if: steps.news.outputs.skip != 'true' && (steps.news.outputs.action == 'auto' || steps.news.outputs.action == 'publish')
         run: python3 build/release/app-release.py publish --app news-fundamentals --run-id "$RUN_ID" --version "$APP_VERSION"
+      - name: Resolve options version and verify current main CI
+        id: options
+        if: github.event_name != 'workflow_dispatch' || inputs.app == 'options-strategy'
+        run: python3 build/release/app-source.py --app options-strategy --output "$RUNNER_TEMP/options-release-source.json"
+      - name: Download tested options artifact
+        if: (steps.options.outputs.action == 'prepare' || steps.options.outputs.action == 'auto') && steps.options.outputs.skip != 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: OPTIONS-test-package
+          run-id: ${{ steps.options.outputs.run_id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/tested-options
+      - name: Sign tested options and prepare draft
+        if: (steps.options.outputs.action == 'prepare' || steps.options.outputs.action == 'auto') && steps.options.outputs.skip != 'true'
+        env:
+          UPDATE_SIGNING_KEY: ${{ secrets.UPDATE_SIGNING_KEY }}
+        run: python3 build/release/app-release.py prepare --app options-strategy --run-id "$RUN_ID" --version "$APP_VERSION" --artifact "$RUNNER_TEMP/tested-options/options.espapp"
+      - name: Verify options draft and publish catalog
+        if: steps.options.outputs.skip != 'true' && (steps.options.outputs.action == 'auto' || steps.options.outputs.action == 'publish')
+        run: python3 build/release/app-release.py publish --app options-strategy --run-id "$RUN_ID" --version "$APP_VERSION"

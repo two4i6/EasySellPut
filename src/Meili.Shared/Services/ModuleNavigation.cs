@@ -12,6 +12,7 @@ public static class ModuleNavigation
     }
     public static bool IsAvailable(string directory, AppPage page)
     {
+        if(page is AppPage.Options or AppPage.Strategy)return ModuleAccess.IsEnabled(directory,ModuleAccess.OptionsStrategy);
         if(page != AppPage.QqqGex)return true;
         try
         {

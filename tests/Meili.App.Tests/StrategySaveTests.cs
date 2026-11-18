@@ -27,7 +27,7 @@ public class StrategySaveTests
                 Assert.NotEqual("", vm.MarginText);
 
                 vm.SaveName = "put spread";
-                vm.SaveStrategyCommand.Execute(null);
+                await vm.SaveStrategyCommand.ExecuteAsync(null);
                 Assert.Equal("put spread", vm.Saved[0].Name);
                 Assert.Equal("put spread", new StrategyStore(Path.GetDirectoryName(store.FilePath)!).All[0].Name);
 
@@ -40,7 +40,7 @@ public class StrategySaveTests
                 Assert.Equal(spread, vm.Legs.Select(r => (r.Type, r.Side, r.StrikeText)).ToList());
                 Assert.Equal(StrategyKind.Custom, vm.SelectedPreset!.Kind);
 
-                vm.DeleteSavedCommand.Execute(null);
+                await vm.DeleteSavedCommand.ExecuteAsync(null);
                 Assert.Empty(vm.Saved);
                 Assert.Empty(new StrategyStore(Path.GetDirectoryName(store.FilePath)!).All);
             }

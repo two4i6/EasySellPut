@@ -1,0 +1,8 @@
+{
+  "id": "easysellput.options-strategy",
+  "version": "1.0.0",
+  "hostApi": 1,
+  "engineProtocol": 1,
+  "dataFormat": 1,
+  "runtime": "node24"
+}

@@ -110,10 +110,17 @@ public sealed class StrategyWorkbenchTests : IDisposable
         Assert.False(_vm.AddWorkbenchContract("call110",PositionSide.Long,1));
         using var json=JsonDocument.Parse(StrategyWorkbench.Serialize(_vm,_palette));
         Assert.Empty(json.RootElement.GetProperty("curve").EnumerateArray());
-        _vm.SaveName="old draft";_vm.SaveStrategyCommand.Execute(null);
+        _vm.SaveName="old draft";await _vm.SaveStrategyCommand.ExecuteAsync(null);
         Assert.Equal("AAPL",Assert.Single(new StrategyStore(_directory).All).Symbol);
         _vm.ClearWorkbench();Assert.True(_vm.AddWorkbenchContract("call110",PositionSide.Long,1));
         Assert.Equal("MSFT",_vm.WorkbenchDraftSymbol);
+    }
+    [Fact] public async Task Explicit_quote_side_keeps_observed_bid_ask_and_rejects_crossed_or_wrong_side()
+    {
+        await _vm.LoadAsync();Assert.True(_vm.AddWorkbenchContract("call100",PositionSide.Long,1,"ask"));
+        Assert.Equal(4,double.Parse(_vm.Legs[0].PremiumText,System.Globalization.CultureInfo.InvariantCulture));
+        Assert.True(_vm.AddWorkbenchContract("call110",PositionSide.Short,1,"bid"));Assert.Equal("1",_vm.Legs[1].PremiumText);
+        Assert.False(_vm.AddWorkbenchContract("crossed",PositionSide.Long,1,"ask"));Assert.False(_vm.AddWorkbenchContract("call100",PositionSide.Long,1,"bid"));
     }
     public void Dispose(){_vm.Deactivate();if(Directory.Exists(_directory))Directory.Delete(_directory,true);}
 }

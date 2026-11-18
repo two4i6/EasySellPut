@@ -1049,4 +1049,6 @@
     <sys:String x:Key="Nf_EarningsOutlook">财报表现与未来预期</sys:String>
     <sys:String x:Key="Nf_StatementDetails">查看原始报表</sys:String>
     <sys:String x:Key="Nf_FinancialTrend">财务趋势</sys:String>
+    <sys:String x:Key="St_SaveFailed">未保存：{0}</sys:String>
+    <sys:String x:Key="St_DeleteFailed">未删除：{0}</sys:String>
 </ResourceDictionary>

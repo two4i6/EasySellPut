@@ -31,7 +31,7 @@ public partial class StrategyViewModel
         if (_quotesByExpiry.ContainsKey(expiry)) return;
         if (!WatchlistStore.TryNormalizeSymbol(SymbolText, out var symbol, out _)) return;
         OptionChain? chain = null;
-        try { chain = await _data.GetChainAsync(symbol, expiry, ct); }
+        try { chain = await (_applications?.ChainAsync(symbol,expiry,ct)??_data.GetChainAsync(symbol,expiry,ct)); }
         catch (AllSourcesFailedException) { return; }
         catch (OperationCanceledException) { throw; }
         catch (Exception ex) { AppLog.Warn("strategy", "far-expiry chain failed", ex); return; }

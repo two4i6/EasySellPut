@@ -229,6 +229,30 @@ public sealed class ModulePackageTests : IDisposable
         await Assert.ThrowsAsync<InvalidDataException>(()=>installer.InstallAsync(Package(path:"engine/report.mjs",id:ModuleAccess.NewsFundamentals,operations:operations[..2],scriptText:script)));
     }
 
+    [Fact]
+    public async Task Options_core_keeps_all_contracts_and_native_writes_require_real_single_host_commit()
+    {
+        var directory=AppContext.BaseDirectory;while(!File.Exists(Path.Combine(directory,"MeiliTerminal.slnx")))directory=Path.GetDirectoryName(directory)!;
+        var ops=JsonSerializer.Deserialize<ModuleOperation[]>(await File.ReadAllTextAsync(Path.Combine(directory,"web/options-strategy/operations.json")),new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
+        Assert.Equal(12,ops.Length);Assert.All(ops,op=>{Assert.Equal(ModuleAccess.OptionsStrategy,ModuleAccess.OperationOwner(op.Name));Assert.Equal(OperationCatalog.Find(op.Name).Writes,op.Writes);Assert.True(JsonElement.DeepEquals(OperationCatalog.Find(op.Name).Schema,op.Schema));});
+        var profile=Path.Combine(root,"native-options");var installer=new ModuleInstaller(profile,(file,ct)=>Verify(file));
+        var facade=new ModuleFacadeClient(profile,ModuleAccess.OptionsStrategy,installer,_=>Task.FromResult<string?>("node"));
+        var script="import {createHostEngine} from "+HostSdkUri()+";const e=await createHostEngine();try{e.finish(await e.call(e.request.operation,e.request.arguments));}finally{e.close();}";
+        await installer.InstallAsync(Package(path:"engine/report.mjs",id:ModuleAccess.OptionsStrategy,operations:ops,scriptText:script));
+        var args=WireJson.Element(new{name="keep",symbol="AAPL",legs=new[]{new{type="Call",side="Long",quantity=1,strike=100,premium=3,expiry="2027-06-18"}}});
+        var calls=0;
+        var result=await facade.InvokeWriteAsync("save_strategy",args,_=>{calls++;return Task.FromResult(WireJson.Element(new{name="keep"}));});Assert.Equal("keep",result.GetProperty("name").GetString());Assert.Equal(1,calls);
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(()=>facade.InvokeAsync("save_strategy",args,_=>Task.FromResult(WireJson.Element(new{}))));
+        var fake="import {createHostEngine} from "+HostSdkUri()+";const e=await createHostEngine();try{e.finish({name:'fake'});}finally{e.close();}";
+        await installer.InstallAsync(Package(path:"engine/report.mjs",id:ModuleAccess.OptionsStrategy,version:"1.0.1",operations:ops,scriptText:fake));
+        await Assert.ThrowsAsync<InvalidDataException>(()=>facade.InvokeWriteAsync("save_strategy",args,_=>{calls++;return Task.FromResult(WireJson.Element(new{}));}));Assert.Equal(1,calls);
+        installer.Uninstall(ModuleAccess.OptionsStrategy);
+        await Assert.ThrowsAsync<AppUnavailableException>(()=>facade.InvokeWriteAsync("save_strategy",args,_=>Task.FromResult(WireJson.Element(new{}))));
+        await Assert.ThrowsAsync<InvalidDataException>(()=>installer.InstallAsync(Package(path:"engine/report.mjs",id:ModuleAccess.OptionsStrategy,operations:ops[..^1],scriptText:script)));
+        var foreign=ops.Select(op=>op.Name=="get_expirations"?op with{HostOperations=["save_strategy"]}:op).ToArray();
+        await Assert.ThrowsAsync<InvalidDataException>(()=>installer.InstallAsync(Package(path:"engine/report.mjs",id:ModuleAccess.OptionsStrategy,operations:foreign,scriptText:script)));
+    }
+
     private static string HostSdkUri()
     {
         var directory=AppContext.BaseDirectory;

@@ -73,9 +73,10 @@ class AppDistributionSetupTests(unittest.TestCase):
     def test_news_joins_the_same_signed_catalog_without_mutating_prior_app_entries(self):
         from app_definitions import definition
         self.assertEqual(definition('news-fundamentals')['id'],'easysellput.news-fundamentals')
+        self.assertEqual(definition('options-strategy')['id'],'easysellput.options-strategy')
         now=dt.datetime.now(dt.timezone.utc)
         catalog=None
-        for app in ('qqq-gex','market-liquidity','news-fundamentals'):
+        for app in ('qqq-gex','market-liquidity','news-fundamentals','options-strategy'):
             old=copy.deepcopy(catalog)
             catalog=release.merge_catalog(catalog,dict(id=definition(app)['id'],version='1.0.0',dataFormat=1),'owner/repo',catalog_sequence(catalog,'1000'),now)
             if old:self.assertTrue(all(entry in catalog['apps'] for entry in old['apps']))

@@ -28,6 +28,7 @@ public partial class OptionsViewModel : ObservableObject
     private readonly LocalizationService _loc;
     private readonly SymbolContext _context;
     private readonly PricingAssumptions _pricing;
+    private readonly OptionsStrategyAppClient? _applications;
     private PricingInputs _inputs;
     private readonly IUiTimer _timer = Ui.Timer(RefreshCadence.OptionChain); // C3
     private CancellationTokenSource? _cts;
@@ -89,9 +90,9 @@ public partial class OptionsViewModel : ObservableObject
     private readonly VolatilityInsights _insights;
 
     public OptionsViewModel(WatchlistStore watchlist, IMarketDataService data, LocalizationService loc, SymbolContext context,
-        PricingAssumptions pricing, SettingsStore settings, VolatilityInsights insights, Meili.Core.Quotes.QuoteHub? quotes=null)
+        PricingAssumptions pricing, SettingsStore settings, VolatilityInsights insights, Meili.Core.Quotes.QuoteHub? quotes=null, OptionsStrategyAppClient? applications=null)
     {
-        _watchlist = watchlist; _data = data; _loc = loc; _context = context; _pricing = pricing; _settings = settings; _insights = insights; LiveQuote=new(quotes,loc,"options-live"); LiveQuote.Updated+=(_,_)=>{LivePriceText=LiveQuote.Text;OnPropertyChanged(nameof(LivePriceTip));};
+        _applications=applications; _watchlist = watchlist; _data = data; _loc = loc; _context = context; _pricing = pricing; _settings = settings; _insights = insights; LiveQuote=new(quotes,loc,"options-live"); LiveQuote.Updated+=(_,_)=>{LivePriceText=LiveQuote.Text;OnPropertyChanged(nameof(LivePriceTip));};
         CompactColumns = settings.Current.Options.CompactColumns;
         _inputs = pricing.Initial;
         ModelText = PricingText.Model(_inputs.Rate, loc);
@@ -271,11 +272,12 @@ public partial class OptionsViewModel : ObservableObject
         var ct = request.Token;
         try
         {
+            using var appLease=_applications is null?null:await _applications.AcquireAsync(ct);
             // A different symbol's expiration list does not apply: start from its nearest expiry.
             var exp = string.Equals(symbol, _loadedSymbol, StringComparison.OrdinalIgnoreCase) ? SelectedExpiration?.Date : null;
-            var chainTask = _data.GetChainAsync(symbol, exp, ct);
+            var chainTask = (_applications?.ChainAsync(symbol,exp,ct)??_data.GetChainAsync(symbol,exp,ct));
             var quoteTask = SafeQuotes(symbol, ct);
-            var pricingTask = _pricing.ForAsync(symbol, "options", ct);
+            var pricingTask = (_applications?.PricingAsync(symbol,"options",ct)??_pricing.ForAsync(symbol,"options",ct));
             var chain = await chainTask;
             ct.ThrowIfCancellationRequested();
             _loadedSymbol = symbol;

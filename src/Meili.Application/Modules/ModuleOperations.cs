@@ -51,7 +51,7 @@ public static partial class ModuleOperations
         var metadata = app.Files.SingleOrDefault(f => f.Path == "operations.json");
         if (metadata is null)
         {
-            if(app.Id is ModuleAccess.MarketLiquidity or ModuleAccess.NewsFundamentals)throw new InvalidDataException("Facade app must declare its public operations.");
+            if(app.Id is ModuleAccess.MarketLiquidity or ModuleAccess.NewsFundamentals or ModuleAccess.OptionsStrategy)throw new InvalidDataException("Facade app must declare its public operations.");
             return result.AsReadOnly();
         }
         if (metadata.Size > 262144) throw new InvalidDataException("Module operation metadata exceeds bounds.");
@@ -78,7 +78,7 @@ public static partial class ModuleOperations
                     op.Schema.ValueKind != JsonValueKind.Object || !op.Schema.TryGetProperty("type", out var type) || type.GetString() != "object")
                     throw new InvalidDataException("Invalid module operation definition.");
                 ValidateSchema(op.Schema, 0);
-                ModuleHostOperations.Validate(op.HostOperations,op.Writes);
+                ModuleHostOperations.Validate(op.HostOperations,op.Writes,app.Id,op.Name);
                 if(op.EngineAssets is {} dependencies)
                 {
                     if(dependencies.Length>16||dependencies.Distinct(StringComparer.Ordinal).Count()!=dependencies.Length)throw new InvalidDataException("Invalid engine dependencies.");
@@ -109,6 +109,8 @@ public static partial class ModuleOperations
             throw new InvalidDataException("Liquidity app must preserve its public report operation.");
         if(app.Id==ModuleAccess.NewsFundamentals && new[]{"get_news","get_fundamentals","get_financials"}.Any(name=>!result.Any(operation=>operation.Definition.Name==name)))
             throw new InvalidDataException("News app must preserve all three public operations.");
+        if(app.Id==ModuleAccess.OptionsStrategy && OptionsStrategyContracts.Names.Any(name=>!result.Any(operation=>operation.Definition.Name==name)))
+            throw new InvalidDataException("Options/strategy app must preserve all twelve public operations.");
         return result.AsReadOnly();
     }
     public static IOperationCatalog Merge(IEnumerable<BoundModuleOperation> contributions,IEnumerable<OperationCatalogIssue>? issues=null)

@@ -27,7 +27,7 @@ public partial class StrategyViewModel
     }
 
     /// <summary>Append only a real contract in the current chain. Prices are selected in C#, never accepted from HTML.</summary>
-    public bool AddWorkbenchContract(string contractSymbol, PositionSide side, int quantity)
+    public bool AddWorkbenchContract(string contractSymbol, PositionSide side, int quantity, string quoteSide="reference")
     {
         var chain = _hdrChain;
         var contract = chain?.Contracts.FirstOrDefault(c => c.ContractSymbol == contractSymbol && c.Expiration == SelectedExpiration?.Date);
@@ -36,7 +36,8 @@ public partial class StrategyViewModel
             || quantity is < 1 or > 1000 || !Enum.IsDefined(side) || Legs.Count >= 32)
             return RejectWorkbench("Wb_Stale");
         // An observed mid/last is required for a click-to-add. Model-only estimates remain visible, never become a fabricated execution price.
-        var premium = OptionEntryReference.From(contract).Price;
+        if(quoteSide is not ("reference" or "bid" or "ask") || quoteSide=="bid" && side!=PositionSide.Short || quoteSide=="ask" && side!=PositionSide.Long)return RejectWorkbench("Wb_Stale");
+        var premium = (quoteSide=="reference"?OptionEntryReference.From(contract):OptionEntryReference.FromQuoteSide(contract,quoteSide)).Price;
         if (premium is not { } price || !double.IsFinite(price)) return RejectWorkbench("Wb_NoQuote");
         var enriched = ToListed(contract, Spot ?? 0, _inputs.Enrichment(DateTimeOffset.Now, chain));
         var leg = contract.Right == Meili.Core.Models.OptionRight.Call

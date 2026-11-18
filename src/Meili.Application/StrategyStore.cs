@@ -55,18 +55,19 @@ public sealed class StrategyStore
 
     public void Save(SavedStrategy s)
     {
-        _items.RemoveAll(x => x.Name.Equals(s.Name, StringComparison.OrdinalIgnoreCase));
-        _items.Insert(0, s);
-        Write();
+        var next=_items.Where(x=>!x.Name.Equals(s.Name,StringComparison.OrdinalIgnoreCase)).Prepend(s).ToList();
+        Write(next);
     }
 
     public void Delete(string name)
     {
-        if (_items.RemoveAll(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase)) > 0) Write();
+        var next=_items.Where(x=>!x.Name.Equals(name,StringComparison.OrdinalIgnoreCase)).ToList();
+        if(next.Count!=_items.Count)Write(next);
     }
 
-    private void Write()
+    private void Write(List<SavedStrategy> next)
     {
-        _snapshot.Write(JsonSerializer.Serialize(_items, Json));
+        _snapshot.Write(JsonSerializer.Serialize(next, Json));
+        _items=next;
     }
 }

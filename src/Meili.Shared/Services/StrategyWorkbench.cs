@@ -20,7 +20,9 @@ public static class StrategyWorkbench
                 id = c.ContractSymbol ?? "", strike = F(c.Strike), right = c.Right.ToString(), expiration = c.Expiration.ToString("yyyy-MM-dd"),
                 bid = F(c.Bid), ask = F(c.Ask), last = F(c.Last), iv = F(c.ImpliedVolatility), delta = F(c.Delta),
                 volume = F(c.Volume), oi = F(c.OpenInterest), lastTrade = c.LastTradeTime,
+                canSelect = !vm.IsBusy && vm.WorkbenchSymbolMatches && !string.IsNullOrWhiteSpace(c.ContractSymbol) && double.IsFinite(c.Strike) && c.Strike>0 && string.Equals(c.Underlying,chain?.Underlying,StringComparison.OrdinalIgnoreCase) && string.Equals(chain?.Underlying,vm.SymbolText,StringComparison.OrdinalIgnoreCase),
                 canAdd = !string.IsNullOrWhiteSpace(c.ContractSymbol) && double.IsFinite(c.Strike) && c.Strike > 0 && string.Equals(c.Underlying, chain?.Underlying, StringComparison.OrdinalIgnoreCase) && !vm.IsBusy && vm.WorkbenchSymbolMatches && string.Equals(chain?.Underlying, vm.SymbolText, StringComparison.OrdinalIgnoreCase) && OptionEntryReference.From(c).Price is not null,
+                bidReference=OptionEntryReference.FromQuoteSide(c,"bid"),askReference=OptionEntryReference.FromQuoteSide(c,"ask"),
                 basis = OptionEntryReference.From(c).Basis, entryPrice = OptionEntryReference.From(c).Price,
             }).ToArray();
         var loc = LocalizationService.Current;
@@ -50,7 +52,7 @@ public static class StrategyWorkbench
         if (e.ValueKind != JsonValueKind.Object || !String(e, "kind") || !String(e, "key")) return false;
         return e.GetProperty("kind").GetString() switch
         {
-            "add-contract" => String(e, "contract") && String(e, "side") && Number(e, "quantity", 1, 1000) && e.GetProperty("quantity").TryGetInt32(out _),
+            "add-contract" => String(e, "contract") && String(e, "side") && Number(e, "quantity", 1, 1000) && e.GetProperty("quantity").TryGetInt32(out _) && (!e.TryGetProperty("quoteSide",out var quoteSide)||quoteSide.ValueKind==JsonValueKind.String && quoteSide.GetString() is "reference" or "bid" or "ask"),
             "edit-leg" => String(e, "id") && Guid.TryParse(e.GetProperty("id").GetString(), out _) && String(e, "field")
                 && (e.GetProperty("field").GetString() switch { "quantity" => Number(e, "quantity", 1, 1000000) && e.GetProperty("quantity").TryGetInt32(out _), "side" => String(e, "side"), "remove" => true, _ => false }),
             "clear-legs" => true,
@@ -66,7 +68,7 @@ public static class StrategyWorkbench
         switch (e.GetProperty("kind").GetString())
         {
             case "add-contract":
-                if (Side(e) is { } side) vm.AddWorkbenchContract(e.GetProperty("contract").GetString()!, side, e.GetProperty("quantity").GetInt32());
+                if (Side(e) is { } side) vm.AddWorkbenchContract(e.GetProperty("contract").GetString()!, side, e.GetProperty("quantity").GetInt32(),e.TryGetProperty("quoteSide",out var quoteSide)?quoteSide.GetString()!:"reference");
                 else vm.RejectWorkbench("Wb_Stale");
                 break;
             case "edit-leg":

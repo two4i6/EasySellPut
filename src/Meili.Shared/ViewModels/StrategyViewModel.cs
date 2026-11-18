@@ -40,6 +40,7 @@ public partial class StrategyViewModel : ObservableObject
     private readonly LocalizationService _loc;
     private readonly SymbolContext _context;
     private readonly PricingAssumptions _pricing;
+    private readonly OptionsStrategyAppClient? _applications;
     private readonly StrategyStore _store;
     private readonly SettingsStore _settings;
     private PricingInputs _inputs;
@@ -99,9 +100,9 @@ public partial class StrategyViewModel : ObservableObject
     public event EventHandler? ChartChanged;
 
     public StrategyViewModel(WatchlistStore watchlist, IMarketDataService data, LocalizationService loc, SymbolContext context,
-        PricingAssumptions pricing, StrategyStore store, SettingsStore settings, Meili.Core.Quotes.QuoteHub? quotes=null)
+        PricingAssumptions pricing, StrategyStore store, SettingsStore settings, Meili.Core.Quotes.QuoteHub? quotes=null, OptionsStrategyAppClient? applications=null)
     {
-        _watchlist = watchlist; _data = data; _loc = loc; _context = context; _pricing = pricing; _store = store; _settings = settings; LiveQuote=new(quotes,loc,"strategy-live"); LiveQuote.Updated+=(_,_)=>{LivePriceText=LiveQuote.Text;OnPropertyChanged(nameof(LivePriceTip));};
+        _applications=applications; _watchlist = watchlist; _data = data; _loc = loc; _context = context; _pricing = pricing; _store = store; _settings = settings; LiveQuote=new(quotes,loc,"strategy-live"); LiveQuote.Updated+=(_,_)=>{LivePriceText=LiveQuote.Text;OnPropertyChanged(nameof(LivePriceTip));};
         ShowHint = !settings.Current.StrategyHintDismissed;
         foreach (var x in store.All) Saved.Add(x);
         _inputs = pricing.Initial;
@@ -261,12 +262,13 @@ public partial class StrategyViewModel : ObservableObject
         var ct = _cts.Token;
         try
         {
+            using var appLease=_applications is null?null:await _applications.AcquireAsync(ct);
             var seed = _pendingSeed is { } ps && ps.Symbol.Equals(symbol, StringComparison.OrdinalIgnoreCase) ? ps : null;
             var exp = seed?.Expiration
                 ?? (string.Equals(symbol, _loadedSymbol, StringComparison.OrdinalIgnoreCase) ? SelectedExpiration?.Date : null);
             OptionChain? chain = null;
             string? chainError = null;
-            try { chain = await _data.GetChainAsync(symbol, exp, ct); }
+            try { chain = await (_applications?.ChainAsync(symbol,exp,ct)??_data.GetChainAsync(symbol,exp,ct)); }
             catch (AllSourcesFailedException) { chainError = _loc["St_AllFailed"]; }
             catch (OperationCanceledException) when (_active && !refreshOnly) { chainError = _loc["St_Timeout"]; throw; }
             catch (OperationCanceledException) { throw; }
@@ -278,7 +280,7 @@ public partial class StrategyViewModel : ObservableObject
                     ClearQuoteCache();
                 _loadedSymbol = symbol;
             }
-            var pricingTask = _pricing.ForAsync(symbol, "strategy", ct);
+            var pricingTask = (_applications?.PricingAsync(symbol,"strategy",ct)??_pricing.ForAsync(symbol,"strategy",ct));
             var quotes = await SafeQuotes(symbol, ct);
             var q = quotes.FirstOrDefault(x => x.Symbol.Equals(symbol, StringComparison.OrdinalIgnoreCase));
             // F8: the chain's own underlying price (same moment as the option quotes) drives IV/Greeks.

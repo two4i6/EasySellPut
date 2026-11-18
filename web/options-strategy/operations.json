@@ -1,0 +1,756 @@
+[
+  {
+    "name": "get_expirations",
+    "description": "List option expiration dates.",
+    "writes": false,
+    "schema": {
+      "type": "object",
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "symbol"
+      ],
+      "additionalProperties": false
+    },
+    "entryPoint": "engine/report.mjs",
+    "hostOperations": [
+      "get_expirations"
+    ]
+  },
+  {
+    "name": "get_option_chain",
+    "description": "Paginated option contracts with source metadata and non-executable midpoint/last entry references (missing quotes stay null). Request expiry YYYY-MM-DD and optional right/strike filters.",
+    "writes": false,
+    "schema": {
+      "type": "object",
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        },
+        "expiry": {
+          "type": "string",
+          "description": "Listed option expiration YYYY-MM-DD; discover actual dates with get_expirations.",
+          "maxLength": 200
+        },
+        "right": {
+          "type": "string",
+          "description": "Option right; use the exact call/put enum spelling in this schema.",
+          "enum": [
+            "call",
+            "put"
+          ],
+          "maxLength": 200
+        },
+        "minStrike": {
+          "type": "number",
+          "description": "Inclusive strike filter in underlying quote currency; not an option premium."
+        },
+        "maxStrike": {
+          "type": "number",
+          "description": "Inclusive strike filter in underlying quote currency; not an option premium."
+        },
+        "offset": {
+          "type": "integer",
+          "description": "Zero-based offset, default 0.",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "description": "Page size 1..500, default 100.",
+          "minimum": 1,
+          "maximum": 500
+        }
+      },
+      "required": [
+        "symbol"
+      ],
+      "additionalProperties": false
+    },
+    "entryPoint": "engine/report.mjs",
+    "hostOperations": [
+      "get_option_chain"
+    ]
+  },
+  {
+    "name": "analyze_strategy",
+    "description": "Position expiry P/L, boundedness, breakevens, optional pre-expiry Greeks and Reg-T estimate. Mixed expiries require valuationTime and IV. No network.",
+    "writes": false,
+    "schema": {
+      "type": "object",
+      "properties": {
+        "legs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "description": "",
+                "enum": [
+                  "Call",
+                  "Put",
+                  "Stock"
+                ],
+                "maxLength": 200
+              },
+              "side": {
+                "type": "string",
+                "description": "",
+                "enum": [
+                  "Long",
+                  "Short"
+                ],
+                "maxLength": 200
+              },
+              "quantity": {
+                "type": "integer",
+                "description": ""
+              },
+              "strike": {
+                "type": "number",
+                "description": ""
+              },
+              "premium": {
+                "type": "number",
+                "description": ""
+              },
+              "expiry": {
+                "type": "string",
+                "description": "YYYY-MM-DD; required for options",
+                "maxLength": 200
+              },
+              "iv": {
+                "type": "number",
+                "description": "Optional decimal IV"
+              },
+              "multiplier": {
+                "type": "integer",
+                "description": "default 100; stock uses 1"
+              }
+            },
+            "required": [
+              "type",
+              "side",
+              "quantity",
+              "premium"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Explicit position legs. Preserve entry premiums, side, expiry, quantity and multiplier; never fabricate quotes."
+        },
+        "spot": {
+          "type": "number",
+          "description": "Underlying price per share. Use an observed quote or explicitly label a hypothetical scenario."
+        },
+        "valuationTime": {
+          "type": "string",
+          "description": "ISO-8601 instant",
+          "maxLength": 200
+        },
+        "rate": {
+          "type": "number",
+          "description": "Annual continuously compounded rate as a decimal fraction, e.g. 0.04 = 4%; obtain pricing assumptions before valuation."
+        },
+        "dividendYield": {
+          "type": "number",
+          "description": "Annual dividend yield as a decimal fraction, e.g. 0.02 = 2%; preserve provenance and unavailable-yield fallback."
+        },
+        "volatility": {
+          "type": "number",
+          "description": "Fallback decimal IV"
+        },
+        "low": {
+          "type": "number",
+          "description": "Underlying-price bound for the payoff/scenario plot, not an option premium."
+        },
+        "high": {
+          "type": "number",
+          "description": "Underlying-price bound for the payoff/scenario plot, not an option premium."
+        },
+        "points": {
+          "type": "integer",
+          "description": "2..1001, default 101"
+        }
+      },
+      "required": [
+        "legs",
+        "spot"
+      ],
+      "additionalProperties": false
+    },
+    "entryPoint": "engine/report.mjs",
+    "hostOperations": [
+      "analyze_strategy"
+    ]
+  },
+  {
+    "name": "get_saved_strategies",
+    "description": "Read saved local strategies.",
+    "writes": false,
+    "schema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    },
+    "entryPoint": "engine/report.mjs",
+    "hostOperations": [
+      "get_saved_strategies"
+    ]
+  },
+  {
+    "name": "save_strategy",
+    "description": "Save/replace a local strategy by name, using desktop-compatible JSON.",
+    "writes": true,
+    "schema": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Local strategy name; saving an existing name replaces it. Read saved strategies first.",
+          "maxLength": 200
+        },
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        },
+        "legs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "description": "",
+                "enum": [
+                  "Call",
+                  "Put",
+                  "Stock"
+                ],
+                "maxLength": 200
+              },
+              "side": {
+                "type": "string",
+                "description": "",
+                "enum": [
+                  "Long",
+                  "Short"
+                ],
+                "maxLength": 200
+              },
+              "quantity": {
+                "type": "integer",
+                "description": ""
+              },
+              "strike": {
+                "type": "number",
+                "description": ""
+              },
+              "premium": {
+                "type": "number",
+                "description": ""
+              },
+              "expiry": {
+                "type": "string",
+                "description": "YYYY-MM-DD; required for options",
+                "maxLength": 200
+              },
+              "iv": {
+                "type": "number",
+                "description": "Optional decimal IV"
+              },
+              "multiplier": {
+                "type": "integer",
+                "description": "default 100; stock uses 1"
+              }
+            },
+            "required": [
+              "type",
+              "side",
+              "quantity",
+              "premium"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Explicit position legs. Preserve entry premiums, side, expiry, quantity and multiplier; never fabricate quotes."
+        },
+        "kind": {
+          "type": "string",
+          "description": "default Custom",
+          "enum": [
+            "Custom",
+            "LongCall",
+            "LongPut",
+            "CoveredCall",
+            "ProtectivePut",
+            "BullCallSpread",
+            "BearCallSpread",
+            "BullPutSpread",
+            "BearPutSpread",
+            "LongStraddle",
+            "ShortStraddle",
+            "LongStrangle",
+            "ShortStrangle",
+            "IronCondor",
+            "LongCallButterfly",
+            "LongPutButterfly",
+            "Collar",
+            "IronButterfly",
+            "CalendarCall",
+            "CalendarPut",
+            "DiagonalCall"
+          ],
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "name",
+        "symbol",
+        "legs"
+      ],
+      "additionalProperties": false
+    },
+    "entryPoint": "engine/report.mjs",
+    "hostOperations": [
+      "save_strategy"
+    ]
+  },
+  {
+    "name": "delete_strategy",
+    "description": "Delete a saved strategy by name.",
+    "writes": true,
+    "schema": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Local strategy name; saving an existing name replaces it. Read saved strategies first.",
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "entryPoint": "engine/report.mjs",
+    "hostOperations": [
+      "delete_strategy"
+    ]
+  },
+  {
+    "name": "analyze_option_chain",
+    "description": "Desktop option enrichment, IV smile, Greeks, spread/distance and previous local OI. Missing spot/quotes stay missing. Uses configured pricing assumptions; optional valuationTime makes time deterministic.",
+    "writes": false,
+    "schema": {
+      "type": "object",
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        },
+        "expiry": {
+          "type": "string",
+          "description": "YYYY-MM-DD",
+          "maxLength": 200
+        },
+        "valuationTime": {
+          "type": "string",
+          "description": "ISO-8601 instant; default chain snapshot time",
+          "maxLength": 200
+        },
+        "offset": {
+          "type": "integer",
+          "description": "Zero-based offset, default 0.",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "description": "Page size 1..500, default 100.",
+          "minimum": 1,
+          "maximum": 500
+        }
+      },
+      "required": [
+        "symbol"
+      ],
+      "additionalProperties": false
+    },
+    "entryPoint": "engine/report.mjs",
+    "hostOperations": [
+      "analyze_option_chain"
+    ]
+  },
+  {
+    "name": "get_pricing_assumptions",
+    "description": "Configured/fetched risk-free rate with origin and symbol dividend yield. Unavailable yield falls back to zero explicitly.",
+    "writes": false,
+    "schema": {
+      "type": "object",
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "symbol"
+      ],
+      "additionalProperties": false
+    },
+    "entryPoint": "engine/report.mjs",
+    "hostOperations": [
+      "get_pricing_assumptions"
+    ]
+  },
+  {
+    "name": "get_volatility_insights",
+    "description": "Current IV, IV rank/percentile from existing local history, and up to eight ATM term expirations. Does not record new history; insufficient history is explicit.",
+    "writes": false,
+    "schema": {
+      "type": "object",
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        },
+        "valuationTime": {
+          "type": "string",
+          "description": "ISO-8601 instant; default now",
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "symbol"
+      ],
+      "additionalProperties": false
+    },
+    "entryPoint": "engine/report.mjs",
+    "hostOperations": [
+      "get_volatility_insights"
+    ]
+  },
+  {
+    "name": "record_option_snapshot",
+    "description": "Record current IV and OI into the shared local SQLite history. Explicit write; no background monitoring. Does not invent past observations.",
+    "writes": true,
+    "schema": {
+      "type": "object",
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        },
+        "expiry": {
+          "type": "string",
+          "description": "Optional OI expiration YYYY-MM-DD; IV remains IV30/ATM nearest 30 days",
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "symbol"
+      ],
+      "additionalProperties": false
+    },
+    "entryPoint": "engine/report.mjs",
+    "hostOperations": [
+      "record_option_snapshot"
+    ]
+  },
+  {
+    "name": "build_strategy",
+    "description": "Build any desktop preset from caller-supplied listed reference quotes using the shared Analytics strike selection. No network/save; reference premiums are not executable quotes.",
+    "writes": false,
+    "schema": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "description": "Strategy/drawing category; select the exact schema enum and required matching fields.",
+          "enum": [
+            "LongCall",
+            "LongPut",
+            "CoveredCall",
+            "ProtectivePut",
+            "BullCallSpread",
+            "BearCallSpread",
+            "BullPutSpread",
+            "BearPutSpread",
+            "LongStraddle",
+            "ShortStraddle",
+            "LongStrangle",
+            "ShortStrangle",
+            "IronCondor",
+            "LongCallButterfly",
+            "LongPutButterfly",
+            "Collar",
+            "IronButterfly",
+            "CalendarCall",
+            "CalendarPut",
+            "DiagonalCall"
+          ],
+          "maxLength": 200
+        },
+        "spot": {
+          "type": "number",
+          "description": "Underlying price per share. Use an observed quote or explicitly label a hypothetical scenario.",
+          "minimum": 1e-06,
+          "maximum": 1000000000
+        },
+        "expiry": {
+          "type": "string",
+          "description": "YYYY-MM-DD",
+          "maxLength": 200
+        },
+        "quotes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "right": {
+                "type": "string",
+                "description": "",
+                "enum": [
+                  "Call",
+                  "Put"
+                ],
+                "maxLength": 200
+              },
+              "strike": {
+                "type": "number",
+                "description": "",
+                "minimum": 1e-06,
+                "maximum": 1000000000
+              },
+              "premium": {
+                "type": "number",
+                "description": "",
+                "minimum": 0,
+                "maximum": 1000000000
+              },
+              "iv": {
+                "type": "number",
+                "description": "",
+                "minimum": 0,
+                "maximum": 20
+              }
+            },
+            "required": [
+              "right",
+              "strike",
+              "premium"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 1000,
+          "description": "quotes argument for build_strategy; observe this field's schema type, bounds and operation semantics."
+        },
+        "farExpiry": {
+          "type": "string",
+          "description": "YYYY-MM-DD, later than expiry",
+          "maxLength": 200
+        },
+        "farQuotes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "right": {
+                "type": "string",
+                "description": "",
+                "enum": [
+                  "Call",
+                  "Put"
+                ],
+                "maxLength": 200
+              },
+              "strike": {
+                "type": "number",
+                "description": "",
+                "minimum": 1e-06,
+                "maximum": 1000000000
+              },
+              "premium": {
+                "type": "number",
+                "description": "",
+                "minimum": 0,
+                "maximum": 1000000000
+              },
+              "iv": {
+                "type": "number",
+                "description": "",
+                "minimum": 0,
+                "maximum": 20
+              }
+            },
+            "required": [
+              "right",
+              "strike",
+              "premium"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 1000,
+          "description": "farQuotes argument for build_strategy; observe this field's schema type, bounds and operation semantics."
+        },
+        "quantity": {
+          "type": "integer",
+          "description": "Number of option contracts for a preset. Explicit stock legs use shares and multiplier 1.",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "wingSteps": {
+          "type": "integer",
+          "description": "Preset wing width in listed strike steps, not a raw dollar distance.",
+          "minimum": 1,
+          "maximum": 100
+        }
+      },
+      "required": [
+        "kind",
+        "spot",
+        "expiry",
+        "quotes"
+      ],
+      "additionalProperties": false
+    },
+    "entryPoint": "engine/report.mjs",
+    "hostOperations": [
+      "build_strategy"
+    ]
+  },
+  {
+    "name": "strategy_what_if",
+    "description": "Position and per-leg values/P&L/facts at an assumed price, with optional future horizon and IV shift. No GUI state/save. Mixed expiry requires valuationTime.",
+    "writes": false,
+    "schema": {
+      "type": "object",
+      "properties": {
+        "legs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "description": "",
+                "enum": [
+                  "Call",
+                  "Put",
+                  "Stock"
+                ],
+                "maxLength": 200
+              },
+              "side": {
+                "type": "string",
+                "description": "",
+                "enum": [
+                  "Long",
+                  "Short"
+                ],
+                "maxLength": 200
+              },
+              "quantity": {
+                "type": "integer",
+                "description": ""
+              },
+              "strike": {
+                "type": "number",
+                "description": ""
+              },
+              "premium": {
+                "type": "number",
+                "description": ""
+              },
+              "expiry": {
+                "type": "string",
+                "description": "YYYY-MM-DD; required for options",
+                "maxLength": 200
+              },
+              "iv": {
+                "type": "number",
+                "description": "Optional decimal IV"
+              },
+              "multiplier": {
+                "type": "integer",
+                "description": "default 100; stock uses 1"
+              }
+            },
+            "required": [
+              "type",
+              "side",
+              "quantity",
+              "premium"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Explicit position legs. Preserve entry premiums, side, expiry, quantity and multiplier; never fabricate quotes."
+        },
+        "spot": {
+          "type": "number",
+          "description": "Underlying price per share. Use an observed quote or explicitly label a hypothetical scenario.",
+          "minimum": 0,
+          "maximum": 1000000000
+        },
+        "valuationTime": {
+          "type": "string",
+          "description": "ISO-8601 instant; omitted means intrinsic settlement for same-expiry legs",
+          "maxLength": 200
+        },
+        "horizonDays": {
+          "type": "integer",
+          "description": "Calendar days forward from the explicit valuation time; see schema bounds.",
+          "minimum": 0,
+          "maximum": 3650
+        },
+        "rate": {
+          "type": "number",
+          "description": "Annual continuously compounded rate as a decimal fraction, e.g. 0.04 = 4%; obtain pricing assumptions before valuation."
+        },
+        "dividendYield": {
+          "type": "number",
+          "description": "Annual dividend yield as a decimal fraction, e.g. 0.02 = 2%; preserve provenance and unavailable-yield fallback."
+        },
+        "volatility": {
+          "type": "number",
+          "description": "Annualized IV as a decimal fraction, e.g. 0.25 = 25%; state observed versus assumed/model-derived origin.",
+          "minimum": 0,
+          "maximum": 20
+        },
+        "volatilityShift": {
+          "type": "number",
+          "description": "Additive decimal IV shift: 0.05 means five volatility points, not 5 percent relative change.",
+          "minimum": -20,
+          "maximum": 20
+        }
+      },
+      "required": [
+        "legs",
+        "spot"
+      ],
+      "additionalProperties": false
+    },
+    "entryPoint": "engine/report.mjs",
+    "hostOperations": [
+      "strategy_what_if"
+    ]
+  }
+]

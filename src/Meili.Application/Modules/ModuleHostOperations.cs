@@ -5,10 +5,12 @@ namespace Meili.Automation.Modules;
 public static class ModuleHostOperations
 {
     private static readonly HashSet<string> Names=new(StringComparer.Ordinal)
-    {"get_news","get_fundamentals","get_financials","get_market_liquidity","get_quotes","get_bars","get_expirations","get_option_chain","calculate_option","calculate_indicators","analyze_strategy"};
-    internal static void Validate(IReadOnlyList<string>? names,bool writes=false)
+    {"get_saved_strategies","save_strategy","delete_strategy","record_option_snapshot","get_pricing_assumptions","get_volatility_insights","analyze_option_chain","build_strategy","strategy_what_if","get_news","get_fundamentals","get_financials","get_market_liquidity","get_quotes","get_bars","get_expirations","get_option_chain","calculate_option","calculate_indicators","analyze_strategy"};
+    internal static void Validate(IReadOnlyList<string>? names,bool writes=false,string? appId=null,string? operation=null)
     {
         if(names is null)return;
+        if(names.Any(OptionsStrategyContracts.IsWrite) && (appId!=ModuleAccess.OptionsStrategy || !writes || names.Count!=1 || names[0]!=operation))
+            throw new InvalidDataException("Mutating host capabilities require their exact first-party write operation.");
         if(!writes&&names.Contains("write_app_input",StringComparer.Ordinal))throw new InvalidDataException("Read-only operation cannot publish input.");
         if((names.Count <1 || names.Count >Names.Count+4)||names.Distinct(StringComparer.Ordinal).Count()!=names.Count||names.Any(name=>!Names.Contains(name)&&name is not ("read_app_snapshot" or "open_market_snapshot" or "read_market_snapshot" or "write_app_input")))
             throw new InvalidDataException("Unsupported or duplicate host capability.");
@@ -20,7 +22,7 @@ public static class ModuleHostOperations
         if(name=="read_market_snapshot")return new(name,"Read bounded bytes from this request's source receipt",false,JsonSerializer.SerializeToElement(new{type="object",properties=new{receipt=new{type="string",maxLength=64},offset=new{type="integer",minimum=0,maximum=128*1024*1024},length=new{type="integer",minimum=1,maximum=1048576}},required=new[]{"receipt","offset"},additionalProperties=false}));
         if(name=="read_app_snapshot")return new(name,"Read an app-scoped logical presentation snapshot",false,JsonSerializer.SerializeToElement(new{type="object",properties=new{key=new{type="string",@enum=new[]{"preferences","desktop"}}},required=new[]{"key"},additionalProperties=false}));
         if(!Names.Contains(name))throw new UnauthorizedAccessException("Application host capability is not available.");
-        return OperationCatalog.All.Single(o=>o.Name==name&&!o.Writes);
+        return OperationCatalog.All.Single(o=>o.Name==name);
     }
     internal static bool Equivalent(IReadOnlyList<string>? left,IReadOnlyList<string>? right)=>
         (left??[]).Order(StringComparer.Ordinal).SequenceEqual((right??[]).Order(StringComparer.Ordinal));

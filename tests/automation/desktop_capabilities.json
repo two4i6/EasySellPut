@@ -446,7 +446,7 @@
       ],
       "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation.",
       "commands": {
-        "SaveStrategy": {
+        "SaveStrategyAsync": {
           "operations": [
             "save_strategy"
           ]
@@ -457,7 +457,7 @@
             "analyze_strategy"
           ]
         },
-        "DeleteSaved": {
+        "DeleteSavedAsync": {
           "operations": [
             "delete_strategy"
           ]
