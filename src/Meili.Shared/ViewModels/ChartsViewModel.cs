@@ -39,6 +39,8 @@ public partial class ChartsViewModel : ObservableObject
     private readonly ChartAppClient? _applications;
     private IDisposable? _domainLease;
     private CancellationTokenSource? _activation;
+    internal Task<IReadOnlyDictionary<string, byte[]>?> ReadRendererAsync(CancellationToken ct) =>
+        _applications?.ReadRendererAsync(ct) ?? Task.FromResult<IReadOnlyDictionary<string, byte[]>?>(null);
     private bool DomainReady => _applications is null || _domainLease is not null;
     private readonly LocalizationService _loc;
     private readonly SymbolContext _context;

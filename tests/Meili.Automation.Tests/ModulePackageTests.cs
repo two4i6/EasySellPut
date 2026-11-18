@@ -35,6 +35,33 @@ public sealed class ModulePackageTests : IDisposable
         if (extra) Add("unlisted.mjs", script);
         return filename;
     }
+    [Fact]
+    public async Task Chart_renderer_updates_on_a_fixed_host_and_missing_signed_assets_fail()
+    {
+        var profile = Path.Combine(root, "chart-renderer");
+        var installer = new ModuleInstaller(profile, (file, ct) => Verify(file));
+        var client = new Meili.Shared.Services.ChartAppClient(profile, installer);
+        var operations = ChartContracts.Names.Select(name =>
+        {
+            var definition = OperationCatalog.Find(name);
+            return new ModuleOperation(name, definition.Description, definition.Writes,
+                definition.Schema, "engine/main.mjs", [name]);
+        }).ToArray();
+
+        Assert.Null(await client.ReadRendererAsync(default));
+        await installer.InstallAsync(Package(id: ModuleAccess.Charts, operations: operations));
+        Assert.Null(await client.ReadRendererAsync(default));
+        foreach (var version in new[] { "1.1.0", "1.1.1" })
+        {
+            await installer.InstallAsync(Package(id: ModuleAccess.Charts, operations: operations,
+                version: version, ui: true, companions: new() { ["ui/chart.js"] = version, ["ui/chart.css"] = "body{}" }));
+            var assets = await client.ReadRendererAsync(default);
+            Assert.Equal(version, Encoding.UTF8.GetString(assets!["chart.js"]));
+        }
+        await installer.InstallAsync(Package(id: ModuleAccess.Charts, operations: operations, version: "1.1.2", ui: true));
+        await Assert.ThrowsAsync<InvalidDataException>(() => client.ReadRendererAsync(default));
+    }
+
     private Task<VerifiedModule> Verify(string file, string? publicKey = null) => ModulePackage.VerifyAsync(file,
         publicKey ?? key.ExportSubjectPublicKeyInfoPem(), "test/source", "linux-x64", CancellationToken.None);
 

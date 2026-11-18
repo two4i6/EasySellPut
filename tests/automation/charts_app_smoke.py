@@ -14,7 +14,9 @@ def check(archive,public_key,repository):
         root=pathlib.Path(folder)
         with zipfile.ZipFile(archive) as package:
             manifest=json.loads(package.read('app.json'))
-            assert manifest['id']=='easysellput.charts' and manifest['repository']==repository and manifest['ui'] is None
+            assert manifest['id']=='easysellput.charts' and manifest['repository']==repository and manifest['ui']=='ui/index.html'
+            for asset in ('index.html', 'chart.js', 'chart.css'):
+                assert package.read('ui/'+asset)==pathlib.Path('web/charts/ui',asset).read_bytes()
             assert set(package.namelist())=={f['path'] for f in manifest['files']}|{'app.json','app.sig'}
             for f in manifest['files']:
                 body=package.read(f['path']);assert len(body)==f['size'] and hashlib.sha256(body).hexdigest()==f['sha256']

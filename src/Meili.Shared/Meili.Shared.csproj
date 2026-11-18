@@ -17,15 +17,15 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Assets/NavigationIcons/LICENSE" LogicalName="NavigationIcons/LICENSE" />
-    <EmbeddedResource Include="WebCharts/index.html" LogicalName="WebCharts/index.html" />
+    <EmbeddedResource Include="../../web/charts/ui/index.html" LogicalName="WebCharts/index.html" />
     <EmbeddedResource Include="Assets/Fonts/*" LogicalName="WebCharts/fonts/%(Filename)%(Extension)" />
     <EmbeddedResource Include="WebCharts/design-tokens.css" LogicalName="WebCharts/design-tokens.css" />
     <EmbeddedResource Include="WebCharts/components.css" LogicalName="WebCharts/components.css" />
     <EmbeddedResource Include="WebCharts/components.js" LogicalName="WebCharts/components.js" />
     <EmbeddedResource Include="WebCharts/motion.js" LogicalName="WebCharts/motion.js" />
     <EmbeddedResource Include="WebCharts/icons.js" LogicalName="WebCharts/icons.js" />
-    <EmbeddedResource Include="WebCharts/chart.css" LogicalName="WebCharts/chart.css" />
-    <EmbeddedResource Include="WebCharts/chart.js" LogicalName="WebCharts/chart.js" />
+    <EmbeddedResource Include="../../web/charts/ui/chart.css" LogicalName="WebCharts/chart.css" />
+    <EmbeddedResource Include="../../web/charts/ui/chart.js" LogicalName="WebCharts/chart.js" />
     <EmbeddedResource Include="WebCharts/workbench.html" LogicalName="WebCharts/workbench.html" />
     <EmbeddedResource Include="WebCharts/workbench.css" LogicalName="WebCharts/workbench.css" />
     <EmbeddedResource Include="WebCharts/workbench.js" LogicalName="WebCharts/workbench.js" />

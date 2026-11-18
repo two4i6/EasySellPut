@@ -6,7 +6,7 @@ public static class ModuleNavigation
 {
     public static IReadOnlyList<InstalledModule> Entries(string directory)
     {
-        try{return new ModuleRegistry(directory).Read().State.Apps.Where(a=>a.Enabled&&a.HasUi==true&&a.Id!=ModuleAccess.QqqGex).ToArray();}
+        try{return new ModuleRegistry(directory).Read().State.Apps.Where(a=>a.Enabled&&a.HasUi==true&&a.Id!=ModuleAccess.QqqGex&&a.Id!=ModuleAccess.Charts).ToArray();}
         catch(Exception ex)when(ex is IOException or System.Text.Json.JsonException or UnauthorizedAccessException)
         {Meili.Core.Diagnostics.AppLog.Warn("apps","Application navigation metadata unavailable",ex);return [];}
     }

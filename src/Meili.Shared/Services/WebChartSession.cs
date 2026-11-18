@@ -20,6 +20,7 @@ public sealed class WebChartSession : IDisposable
     private readonly SemaphoreSlim _clients = new(8);
     private readonly string _token = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
     private readonly ChartsViewModel? _vm;
+    private readonly Lazy<Task<IReadOnlyDictionary<string, byte[]>?>>? _renderer;
     private readonly StrategyViewModel? _strategy;
     private State _state = new(0, "{}");
     private State _liveQuote = new(0,"null");
@@ -58,6 +59,8 @@ public sealed class WebChartSession : IDisposable
     private WebChartSession(ChartsViewModel? vm, StrategyViewModel? strategy)
     {
         _vm = vm; _strategy = strategy;
+        if (vm is not null)
+            _renderer = new(() => Task.Run(() => vm.ReadRendererAsync(_stop.Token), _stop.Token));
         if(vm is not null){vm.LiveQuote.Updated+=OnLiveQuote;if(vm.LiveQuote.Quote is not null)OnLiveQuote(null,EventArgs.Empty);}
         DesignMotion.Changed+=OnMotionChanged;
         _listener.Start();
@@ -142,7 +145,22 @@ public sealed class WebChartSession : IDisposable
                 var file = route switch { "index.html" => _strategy is null ? "index.html" : "workbench.html", "workbench.js" when _strategy is not null => "workbench.js", "workbench.css" when _strategy is not null => "workbench.css", "chart.js" when _strategy is null => "chart.js", "chart.css" when _strategy is null => "chart.css", "icons.js" => "icons.js", "components.js" => "components.js", "motion.js" => "motion.js", "design-tokens.css" => "design-tokens.css", "components.css" => "components.css", "fonts/SourceSans3-Regular.ttf" or "fonts/SourceSans3-Semibold.ttf" or "fonts/SourceSerif4-Regular.ttf" or "fonts/SourceCodePro-Regular.ttf" => route, "library.js" => "vendor/lightweight-charts.js", _ => null };
                 if (file is not null)
                 {
-                    await Reply(stream, 200, file.EndsWith(".ttf",StringComparison.Ordinal) ? "font/ttf" : file.EndsWith(".css",StringComparison.Ordinal) ? "text/css; charset=utf-8" : file.EndsWith("html", StringComparison.Ordinal) ? "text/html; charset=utf-8" : "text/javascript; charset=utf-8", Asset(file), ct); return;
+                    byte[]? rendererAsset = null;
+                    if (_renderer is not null && file is "index.html" or "chart.js" or "chart.css")
+                    {
+                        try
+                        {
+                            var renderer = await _renderer.Value.WaitAsync(ct);
+                            if (renderer is not null) rendererAsset = renderer[file];
+                        }
+                        catch (Exception ex) when (ex is IOException or InvalidDataException or InvalidOperationException or UnauthorizedAccessException or ArgumentException or JsonException)
+                        {
+                            AppLog.Warn("web-chart", "Installed chart renderer unavailable", ex);
+                            await Reply(stream, 503, "text/plain", [], ct);
+                            return;
+                        }
+                    }
+                    await Reply(stream, 200, file.EndsWith(".ttf",StringComparison.Ordinal) ? "font/ttf" : file.EndsWith(".css",StringComparison.Ordinal) ? "text/css; charset=utf-8" : file.EndsWith("html", StringComparison.Ordinal) ? "text/html; charset=utf-8" : "text/javascript; charset=utf-8", rendererAsset ?? Asset(file), ct); return;
                 }
             }
             if (request[0] == "POST" && route == "event" && origin == Origin

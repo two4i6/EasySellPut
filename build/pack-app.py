@@ -83,7 +83,13 @@ def facade_package(args):
                'notices/EasySellPut-LICENSE': (ROOT/'LICENSE').read_bytes(),
                'notices/README.md': (folder/'README.md').read_bytes(),
                'notices/node-runtime-lock.json': (ROOT/'web/qqq-gex/node-runtime-lock.json').read_bytes()}
-    return write_package(args, metadata, payload, 'engine/report.mjs', None, 'shared-liquidity-v1' if app=='market-liquidity' else ('shared-news-v1' if app=='news-fundamentals' else ('shared-charts-v1' if app=='charts' else 'shared-options-strategy-v1')))
+    ui = None
+    if app == 'charts':
+        source = folder/'ui'
+        for name in ('index.html', 'chart.js', 'chart.css'):
+            payload['ui/' + name] = (source/name).read_bytes()
+        ui = 'ui/index.html'
+    return write_package(args, metadata, payload, 'engine/report.mjs', ui, 'shared-liquidity-v1' if app=='market-liquidity' else ('shared-news-v1' if app=='news-fundamentals' else ('shared-charts-v1' if app=='charts' else 'shared-options-strategy-v1')))
 
 
 def write_package(args, metadata, payload, engine, ui, model_version):
