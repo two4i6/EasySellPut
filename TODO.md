@@ -120,6 +120,12 @@ Design: [architecture](docs/55-主程序与可独立更新子应用架构研究.
   - [x] S15b: shared native client, chain/pricing/save/delete integration, cancellation and draft/entry-price/store conflict protection; retain host-owned Analytics, quotes and private workbench UI.
   - [x] S15c: serial fourth-app release, four-platform app/process CI, signed A/B/permission/data-preservation tests and full native integration acceptance.
 
+## K-line migration — approved 2026-11-18
+
+- [ ] **S16a — Signed chart core and transport parity.** Package eight unchanged historical/analysis/event/drawing operations as `easysellput.charts`. Reuse host Analytics/providers/timeline/drawing stores; preserve exact single-use drawing writes, read-only MCP, revisions and retained data. Add fixed-host A/B and independent build/release coverage before native ownership changes.
+- [ ] **S16b — Native chart lifecycle.** Bind the existing native chart workspace to verified domain availability; preserve live-bar stitching, drawings, event buckets, splits and shared controls. No second market connection or frontend math. Verify native packages and current 1080p screenshots.
+- [ ] **S16c — Acceptance.** Record exact-code native CI, cross-entry contracts, uninstall/reinstall retention and independent update boundaries. UI independence is separate from a core-only delivery; do not claim a host-owned renderer independently updates.
+
 ## Optional follow-ups, after evidence supports them
 
 - [ ] Local broker only if cross-process connection/load measurements justify it; no mandatory daemon for basic CLI/MCP.
