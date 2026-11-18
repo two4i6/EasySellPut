@@ -95,4 +95,36 @@ public sealed class IntradaySparklineTests
         Assert.False(graph.Points[1].Break);Assert.False(graph.Points[1].GapGuide);
         Assert.True(graph.Points[2].Break);Assert.True(graph.Points[2].GapGuide);
     }
+    [Fact] public void Tooltip_selects_actual_samples_and_never_bridges_missing_or_future_intervals()
+    {
+        var first=new Bar(At(13,9,30),100,103,99,102,20);
+        var second=Bar.CloseOnly(At(13,10),105,1);
+        var graph=IntradaySparkline.Create(new BarSeries{Symbol="AAPL",Interval=BarInterval.Minute5,Bars=[first,second]},null,At(13,12));
+        Assert.Same(first,graph.HitTest(0)!.Bar);
+        Assert.Same(second,graph.HitTest(30d/390)!.Bar);
+        Assert.Null(graph.HitTest(15d/390));Assert.Null(graph.HitTest(1));
+        Assert.Null(graph.HitTest(double.NaN));Assert.Null(graph.HitTest(-.01));
+        Assert.Null(graph.HitTest(3d/390));
+        var loc=new LocalizationService();loc.Apply("en-US");
+        var tooltip=IntradaySparkline.Tooltip(graph.Points[0],loc);
+        Assert.Contains("2026-11-13 09:30:00 ET",tooltip);Assert.Contains("Open  100",tooltip);
+        Assert.Contains("High  103",tooltip);Assert.Contains("Low  99",tooltip);Assert.Contains("Close  102",tooltip);
+        var closeOnly=IntradaySparkline.Tooltip(graph.Points[1],loc);
+        Assert.DoesNotContain("Open",closeOnly);Assert.Contains("Close  105",closeOnly);
+        var partial=graph.Points[0] with{Bar=first with{Low=double.NaN,Incomplete=true}};
+        Assert.Contains("Low  —",IntradaySparkline.Tooltip(partial,loc));
+        loc.Apply("zh-CN");Assert.Contains("收盘",IntradaySparkline.Tooltip(graph.Points[1],loc));
+    }
+    [Fact] public void Tooltip_respects_premarket_and_received_only_overnight_axes_including_gap_guides()
+    {
+        var pre=IntradaySparkline.Create(new BarSeries{Symbol="QQQ",Interval=BarInterval.Minute5,Bars=[B(At(13,4),100),B(At(13,5),102)]},null,At(13,6),MarketSession.PreMarket);
+        Assert.Equal("04:00",pre.StartLabel);Assert.Equal(At(13,5),pre.HitTest(60d/330)!.Bar!.Time);
+        Assert.Null(pre.HitTest(30d/330));
+        var overnight=IntradaySparkline.Create(new BarSeries{Symbol="QQQ",Interval=BarInterval.Minute1,Bars=[B(At(13,23,50),100),B(At(14,0,10),102)]},null,At(14,1),MarketSession.Overnight,true);
+        Assert.True(overnight.HasGapGuides);Assert.Equal(At(13,23,50),overnight.HitTest(0)!.Bar!.Time);
+        Assert.Equal(At(14,0,10),overnight.HitTest(1)!.Bar!.Time);Assert.Null(overnight.HitTest(.5));
+        var loc=new LocalizationService();Assert.StartsWith("2026-11-14 00:10:00 ET",IntradaySparkline.Tooltip(overnight.Points[^1],loc));
+        var one=IntradaySparkline.Create(new BarSeries{Symbol="QQQ",Interval=BarInterval.Minute1,Bars=[B(At(14,0,10),102)]},null,At(14,1),MarketSession.Overnight,true);
+        Assert.NotNull(one.HitTest(.5));Assert.Null(one.HitTest(0));
+    }
 }

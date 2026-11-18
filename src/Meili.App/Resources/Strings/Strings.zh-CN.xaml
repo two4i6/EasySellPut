@@ -905,6 +905,7 @@
     <sys:String x:Key="QP_Refresh">刷新</sys:String>
     <sys:String x:Key="QP_Close">关闭</sys:String>
     <sys:String x:Key="QP_OpenPrice">开盘</sys:String>
+    <sys:String x:Key="QP_ClosePrice">收盘</sys:String>
     <sys:String x:Key="QP_High">最高</sys:String>
     <sys:String x:Key="QP_Low">最低</sys:String>
     <sys:String x:Key="QP_Volume">成交量</sys:String>
