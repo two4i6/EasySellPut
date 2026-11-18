@@ -2,7 +2,7 @@
 import {createHostEngine} from '../../app-sdk/engine-host.mjs';
 import {readSnapshotReceipt,openMarketSnapshot,publishAppInput} from '../../app-sdk/market.mjs';
 import {createFacade,dotnetJson} from './facade.mjs';
-import {encodeArchiveBody,decodeArchiveBody} from './archive-body.ts';
+import {encodeArchiveBody,decodeArchiveBody,encodeArchiveBytes,archiveEncoding,archiveWriteCodec} from './archive-body.ts';
 import {DatabaseSync} from 'node:sqlite';
 import {gzipSync} from 'node:zlib';
 import {createHash} from 'node:crypto';
@@ -29,6 +29,7 @@ function marketTime(chain){
  const lag=instantTicks(utc(chain.asOf))-instantTicks(utc(chain.underlyingLastTradeAt)),difference=lag-BigInt(chain.delayMinutes)*600000000n;return lag>=0n&&(difference<0n?-difference:difference)<=1200000000n&&date(trade)===date(publication)?chain.underlyingLastTradeAt:null;
 }
 async function capture(){
+ archiveWriteCodec();
  if(!request.context.allowWrites){const error=Error('Explicit write permission required');error.code='permission_denied';throw error;}
  const fresh=!existsSync(db);mkdirSync(dirname(db),{recursive:true});const database=new DatabaseSync(db);
  try{
@@ -46,7 +47,7 @@ async function capture(){
   if(chain.source!==selectedSource||utc(chain.asOf)!==utc(asOf)||chain.underlyingPrice!==spot)throw sourceError('Source, snapshot time or underlying spot changed across expiry reads');
   const sourceMarketAt=marketTime(chain);timingVerified=timingVerified&&sourceMarketAt!==null;marketAt??=sourceMarketAt;
   if((sourceMarketAt===null)!==(marketAt===null)||sourceMarketAt!==null&&utc(sourceMarketAt)!==utc(marketAt))throw sourceError('Source market event changed across expiry reads');
-  if(received.raw){const candidate=received.raw.sha256.toUpperCase();if(rawHash!==null&&rawHash!==candidate)throw sourceError('Provider raw revision changed across expiry reads');if(rawHash!==candidate){const body=await readSnapshotReceipt(engine,received.raw);availableSpace(body.length);database.exec('BEGIN IMMEDIATE');try{database.exec('CREATE TABLE IF NOT EXISTS qqq_gex_provider_raw(sha256 TEXT PRIMARY KEY,source TEXT NOT NULL,as_of INTEGER NOT NULL,fetched_at INTEGER NOT NULL,body BLOB NOT NULL)');if(!database.prepare('PRAGMA table_info(qqq_gex_provider_raw)').all().some(field=>field.name==='encoding'))database.exec("ALTER TABLE qqq_gex_provider_raw ADD COLUMN encoding TEXT NOT NULL DEFAULT 'identity'");database.prepare("INSERT OR IGNORE INTO qqq_gex_provider_raw(sha256,source,as_of,fetched_at,body,encoding) VALUES(?,?,?,?,?,'gzip-v1')").run(candidate,chain.source,Date.parse(chain.asOf),Date.parse(chain.fetchedAt),gzipSync(body,{level:1}));database.exec('COMMIT');rawHash=candidate;}catch(error){database.exec('ROLLBACK');throw error;}}}
+  if(received.raw){const candidate=received.raw.sha256.toUpperCase();if(rawHash!==null&&rawHash!==candidate)throw sourceError('Provider raw revision changed across expiry reads');if(rawHash!==candidate){const body=await readSnapshotReceipt(engine,received.raw);availableSpace(body.length);database.exec('BEGIN IMMEDIATE');try{database.exec('CREATE TABLE IF NOT EXISTS qqq_gex_provider_raw(sha256 TEXT PRIMARY KEY,source TEXT NOT NULL,as_of INTEGER NOT NULL,fetched_at INTEGER NOT NULL,body BLOB NOT NULL)');if(!database.prepare('PRAGMA table_info(qqq_gex_provider_raw)').all().some(field=>field.name==='encoding'))database.exec("ALTER TABLE qqq_gex_provider_raw ADD COLUMN encoding TEXT NOT NULL DEFAULT 'identity'");const encoded=archiveWriteCodec()==='gzip-v1'?gzipSync(body,{level:1}):encodeArchiveBytes(body);database.prepare("INSERT OR IGNORE INTO qqq_gex_provider_raw(sha256,source,as_of,fetched_at,body,encoding) VALUES(?,?,?,?,?,?)").run(candidate,chain.source,Date.parse(chain.asOf),Date.parse(chain.fetchedAt),encoded,archiveEncoding(encoded));database.exec('COMMIT');rawHash=candidate;}catch(error){database.exec('ROLLBACK');throw error;}}}
   const mapped=c=>({strike:c.strike,impliedVolatility:c.impliedVolatility,openInterest:c.openInterest,bid:c.bid,ask:c.ask,lastPrice:c.last,volume:c.volume,lastTradeDate:c.lastTradeTime===null?null:Math.floor(Date.parse(c.lastTradeTime)/1000),inTheMoney:c.inTheMoney});
   const oi=contracts.filter(c=>c.openInterest===null).length,iv=contracts.filter(c=>c.openInterest>0&&!(c.impliedVolatility>0)).length;missingOi+=oi;missingIv+=iv;
   const calls=contracts.filter(c=>c.right==='Call').map(mapped),puts=contracts.filter(c=>c.right==='Put').map(mapped);if(!calls.length||!puts.length)throw sourceError('One option side is absent');

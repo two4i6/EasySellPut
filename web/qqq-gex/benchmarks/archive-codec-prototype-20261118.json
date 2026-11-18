@@ -1,0 +1,308 @@
+{
+  "kind": "STRUCTURAL SYNTHETIC ONLY, no real user/CBOE bytes",
+  "environment": {
+    "node": "v24.22.1",
+    "zlib": "1.3.2.1-motley-285e94b",
+    "brotli": "1.2.0",
+    "os": "6.18.57",
+    "cpu": "INTEL(R) XEON(R) PLATINUM 8573C"
+  },
+  "method": "3 fresh child processes per codec. CPU user+system and monotonic wall exclude DB load/fixture generation/hash validation. RSS is whole-child high-water including source decode, encoded+decoded buffers and random reads; loaded RSS is after DB load, not a baseline to subtract. V2 includes 48-byte envelopes; plaintext day metadata and observed references unchanged; no custom chunk index.",
+  "sourceSha256": "09d05a946284a00d1a16dad5b057f2141fcd3cc183bce341acd9dba60acd2372",
+  "trials": [
+    {
+      "codec": "gzip-v1",
+      "records": 193,
+      "decodedBytes": 65737852,
+      "encodedBytes": 10033211,
+      "tableBytes": {
+        "qqq_gex_local_rows": 6113193,
+        "qqq_gex_observed_inputs": 1598358,
+        "qqq_gex_provider_raw": 1771850,
+        "qqq_gex_raw": 462,
+        "qqq_gex_local_days": 549348,
+        "qqq_gex_partial_days": 0
+      },
+      "encode": {
+        "wallMs": 406.99184,
+        "cpuMs": 421.899
+      },
+      "decode": {
+        "wallMs": 257.29849,
+        "cpuMs": 295.854
+      },
+      "randomPerRow": {
+        "wallMs": 0.8873908704663218,
+        "cpuMs": 1.00739896373057
+      },
+      "loadedRssBytes": 158699520,
+      "peakRssBytes": 268304384,
+      "allBytesEqual": true,
+      "trial": 0
+    },
+    {
+      "codec": "gzip-v1",
+      "records": 193,
+      "decodedBytes": 65737852,
+      "encodedBytes": 10033211,
+      "tableBytes": {
+        "qqq_gex_local_rows": 6113193,
+        "qqq_gex_observed_inputs": 1598358,
+        "qqq_gex_provider_raw": 1771850,
+        "qqq_gex_raw": 462,
+        "qqq_gex_local_days": 549348,
+        "qqq_gex_partial_days": 0
+      },
+      "encode": {
+        "wallMs": 342.73943,
+        "cpuMs": 359.367
+      },
+      "decode": {
+        "wallMs": 150.42453,
+        "cpuMs": 198.546
+      },
+      "randomPerRow": {
+        "wallMs": 0.8003280310880828,
+        "cpuMs": 0.9607150259067357
+      },
+      "loadedRssBytes": 157925376,
+      "peakRssBytes": 269365248,
+      "allBytesEqual": true,
+      "trial": 1
+    },
+    {
+      "codec": "gzip-v1",
+      "records": 193,
+      "decodedBytes": 65737852,
+      "encodedBytes": 10033211,
+      "tableBytes": {
+        "qqq_gex_local_rows": 6113193,
+        "qqq_gex_observed_inputs": 1598358,
+        "qqq_gex_provider_raw": 1771850,
+        "qqq_gex_raw": 462,
+        "qqq_gex_local_days": 549348,
+        "qqq_gex_partial_days": 0
+      },
+      "encode": {
+        "wallMs": 401.60170800000003,
+        "cpuMs": 421.574
+      },
+      "decode": {
+        "wallMs": 248.84206100000006,
+        "cpuMs": 287.879
+      },
+      "randomPerRow": {
+        "wallMs": 0.9901432797927469,
+        "cpuMs": 1.1063678756476685
+      },
+      "loadedRssBytes": 157421568,
+      "peakRssBytes": 265949184,
+      "allBytesEqual": true,
+      "trial": 2
+    },
+    {
+      "codec": "brotli-v2",
+      "records": 193,
+      "decodedBytes": 65737852,
+      "encodedBytes": 6483363,
+      "tableBytes": {
+        "qqq_gex_local_rows": 5030670,
+        "qqq_gex_observed_inputs": 452840,
+        "qqq_gex_provider_raw": 450043,
+        "qqq_gex_raw": 462,
+        "qqq_gex_local_days": 549348,
+        "qqq_gex_partial_days": 0
+      },
+      "encode": {
+        "wallMs": 526.6042150000001,
+        "cpuMs": 561.387
+      },
+      "decode": {
+        "wallMs": 251.78109499999994,
+        "cpuMs": 275.657
+      },
+      "randomPerRow": {
+        "wallMs": 1.3084715544041454,
+        "cpuMs": 1.437901554404145
+      },
+      "loadedRssBytes": 157483008,
+      "peakRssBytes": 273403904,
+      "allBytesEqual": true,
+      "trial": 0
+    },
+    {
+      "codec": "brotli-v2",
+      "records": 193,
+      "decodedBytes": 65737852,
+      "encodedBytes": 6483363,
+      "tableBytes": {
+        "qqq_gex_local_rows": 5030670,
+        "qqq_gex_observed_inputs": 452840,
+        "qqq_gex_provider_raw": 450043,
+        "qqq_gex_raw": 462,
+        "qqq_gex_local_days": 549348,
+        "qqq_gex_partial_days": 0
+      },
+      "encode": {
+        "wallMs": 523.553305,
+        "cpuMs": 557.94
+      },
+      "decode": {
+        "wallMs": 155.829112,
+        "cpuMs": 176.268
+      },
+      "randomPerRow": {
+        "wallMs": 0.9420633212435233,
+        "cpuMs": 1.07359585492228
+      },
+      "loadedRssBytes": 157409280,
+      "peakRssBytes": 275812352,
+      "allBytesEqual": true,
+      "trial": 1
+    },
+    {
+      "codec": "brotli-v2",
+      "records": 193,
+      "decodedBytes": 65737852,
+      "encodedBytes": 6483363,
+      "tableBytes": {
+        "qqq_gex_local_rows": 5030670,
+        "qqq_gex_observed_inputs": 452840,
+        "qqq_gex_provider_raw": 450043,
+        "qqq_gex_raw": 462,
+        "qqq_gex_local_days": 549348,
+        "qqq_gex_partial_days": 0
+      },
+      "encode": {
+        "wallMs": 579.596591,
+        "cpuMs": 626.833
+      },
+      "decode": {
+        "wallMs": 255.24380299999996,
+        "cpuMs": 278.283
+      },
+      "randomPerRow": {
+        "wallMs": 1.1388414818652859,
+        "cpuMs": 1.2787512953367877
+      },
+      "loadedRssBytes": 157519872,
+      "peakRssBytes": 265834496,
+      "allBytesEqual": true,
+      "trial": 2
+    }
+  ],
+  "migration": {
+    "updated": 186,
+    "batches": 9,
+    "paused": false,
+    "wallMs": 902.6603230000001,
+    "cpuMs": 968.568,
+    "sourceStoredBodyBytes": 10064806,
+    "migratedStoredBodyBytes": 6483363,
+    "tableBytes": {
+      "qqq_gex_local_rows": 5030670,
+      "qqq_gex_observed_inputs": 452840,
+      "qqq_gex_provider_raw": 450043,
+      "qqq_gex_raw": 462,
+      "qqq_gex_local_days": 549348,
+      "qqq_gex_partial_days": 0
+    },
+    "sourcePhysicalBytes": 65384448,
+    "unvacuumedBytes": 65384448,
+    "compactedBytes": 51343360,
+    "sourceUnchanged": true,
+    "replayBeforeSha256": "9b92cd721ed7916c5082b1bf0da750b21913141f40da0952fbf91892031e928b",
+    "replayAfterSha256": "9b92cd721ed7916c5082b1bf0da750b21913141f40da0952fbf91892031e928b",
+    "allDecodedSha256Equal": true,
+    "sourceCompactedCopyBytes": 55128064
+  },
+  "baselineCommit": "b712a943a54bd14486feda46f7b89a5fa6d50815",
+  "branch": "research/gex-lossless-prototype-20261118",
+  "dotnetSingleRecordBenchmarks": [
+    {
+      "runtime": ".NET 10.0.14",
+      "codec": "gzip-v1",
+      "loadedRssBytes": 19210240,
+      "peakRssBytes": 47747072,
+      "samples": [
+        {
+          "trial": 0,
+          "decodedBytes": 2279270,
+          "encodedBytes": 449731,
+          "encodeWallMs": 25.3317,
+          "encodeCpuMs": 25.826,
+          "decodeWallMs": 23.4062,
+          "decodeCpuMs": 23.43
+        },
+        {
+          "trial": 1,
+          "decodedBytes": 2279270,
+          "encodedBytes": 449731,
+          "encodeWallMs": 17.336,
+          "encodeCpuMs": 17.932,
+          "decodeWallMs": 9.7311,
+          "decodeCpuMs": 9.955
+        },
+        {
+          "trial": 2,
+          "decodedBytes": 2279270,
+          "encodedBytes": 449731,
+          "encodeWallMs": 10.9917,
+          "encodeCpuMs": 10.983,
+          "decodeWallMs": 16.8331,
+          "decodeCpuMs": 16.824
+        }
+      ]
+    },
+    {
+      "runtime": ".NET 10.0.14",
+      "codec": "brotli-v2",
+      "loadedRssBytes": 19218432,
+      "peakRssBytes": 45678592,
+      "samples": [
+        {
+          "trial": 0,
+          "decodedBytes": 2279270,
+          "encodedBytes": 75519,
+          "encodeWallMs": 86.9179,
+          "encodeCpuMs": 86.818,
+          "decodeWallMs": 25.3884,
+          "decodeCpuMs": 25.473
+        },
+        {
+          "trial": 1,
+          "decodedBytes": 2279270,
+          "encodedBytes": 75519,
+          "encodeWallMs": 40.0625,
+          "encodeCpuMs": 40.068,
+          "decodeWallMs": 14,
+          "decodeCpuMs": 14.489
+        },
+        {
+          "trial": 2,
+          "decodedBytes": 2279270,
+          "encodedBytes": 75519,
+          "encodeWallMs": 31.3317,
+          "encodeCpuMs": 31.365,
+          "decodeWallMs": 11.7585,
+          "decodeCpuMs": 11.763
+        }
+      ]
+    }
+  ],
+  "validation": {
+    "dataTests": {
+      "passed": 165,
+      "skippedLive": 15,
+      "failed": 0
+    },
+    "nodeCodecIntegration": "passed: 44-record synthetic fixture, capture/view, Node\u2194.NET day/provider, mixed archive, cold profile window, pause/resume, idempotence, explicit downgrade copy, transaction rollback, real child killed before commit",
+    "defaultAndOptInPipelines": "passed",
+    "storageFaultsBothCodecs": "passed",
+    "sourceVerification": "316 hashes unchanged plus 6 preexisting reviewed presentation patches",
+    "surfaceCheck": "passed",
+    "publicCI": "not triggered; not pushed",
+    "nativeMacWindows": "not run; Mac not connected",
+    "realCboeSample": "unavailable"
+  }
+}

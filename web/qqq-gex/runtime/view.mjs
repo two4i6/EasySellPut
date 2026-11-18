@@ -4,7 +4,7 @@ import {createFacade,InputError,dotnetJson} from './facade.mjs';
 import {existsSync} from 'node:fs';
 import {DatabaseSync} from 'node:sqlite';
 import {createHash} from 'node:crypto';
-import {gunzipSync} from 'node:zlib';
+import {decodeArchiveBytes,archiveEncoding} from './archive-body.ts';
 import {hydrateRow} from './local-rows.ts';
 const engine=await createHostEngine(),{request}=engine,{root,db,args,utc,day,query}=createFacade(request);
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -25,7 +25,7 @@ function chunks(resource,body,contentType='application/json'){
  return {available:true,complete:false,resource,contentType,sha256,totalBytes:bytes.length,offset,chunkBytes:count,encoding:'base64',bodyBase64:bytes.subarray(offset,next).toString('base64'),hasMore:next<bytes.length,nextOffset:next<bytes.length?next:null,coverage:coverage+' Concatenate decoded chunks and verify SHA256; changes restart. No remote fallback. Re-read exposure manifest after all windows.'};
 }
 function readDatabase(action){const database=new DatabaseSync(db,{readOnly:true});try{database.exec('PRAGMA busy_timeout=5000;BEGIN');return action(database);}finally{database.close();}}
-function bodyBytes(value,limit=134217728){let bytes=typeof value==='string'?Buffer.from(value):Buffer.from(value);if(bytes[0]===31&&bytes[1]===139)bytes=gunzipSync(bytes,{maxOutputLength:limit});if(bytes.length>limit)throw Error('Retained body exceeds bound');return bytes;}
+
 async function workspace(){
  const preferencesBody=(await engine.call('read_app_snapshot',{key:'preferences'})).body;
  let values={};if(preferencesBody!==null){values=JSON.parse(preferencesBody);if(!values||Array.isArray(values)||typeof values!=='object'||Object.values(values).some(value=>typeof value!=='string'))throw Error('Invalid GEX preferences');}
@@ -53,7 +53,7 @@ async function view(){
  case 'providerRaw':{
   permit('providerHash');applicable();const sourceHash=required('providerHash');if(!/^[0-9a-fA-F]{64}$/.test(sourceHash))throw new InputError('providerHash must be a hash from archive resource=providers');
   if(!existsSync(db))return {available:false,status:'cache_miss',complete:false};
-  return readDatabase(database=>{const fields=database.prepare('PRAGMA table_info(qqq_gex_provider_raw)').all();const row=database.prepare("SELECT body,"+(fields.some(field=>field.name==='encoding')?'encoding':"'identity' AS encoding")+' FROM qqq_gex_provider_raw WHERE sha256=?').get(sourceHash.toUpperCase());if(!row)throw Error('Original provider body is missing');const bytes=row.encoding==='identity'?Buffer.from(row.body):row.encoding==='gzip-v1'?bodyBytes(row.body):null;if(!bytes||hash(bytes)!==sourceHash.toLowerCase())throw Error('Original provider body integrity failed');return chunks(resource,bytes,'application/octet-stream');});
+  return readDatabase(database=>{const fields=database.prepare('PRAGMA table_info(qqq_gex_provider_raw)').all();const row=database.prepare("SELECT body,"+(fields.some(field=>field.name==='encoding')?'encoding':"'identity' AS encoding")+' FROM qqq_gex_provider_raw WHERE sha256=?').get(sourceHash.toUpperCase());if(!row)throw Error('Original provider body is missing');const bytes=row.encoding==='identity'?Buffer.from(row.body):['gzip-v1','brotli-v2'].includes(row.encoding)&&row.encoding===archiveEncoding(row.body)?decodeArchiveBytes(row.body):null;if(!bytes||bytes.length>134217728||hash(bytes)!==sourceHash.toLowerCase())throw Error('Original provider body integrity failed');return chunks(resource,bytes,'application/octet-stream');});
  }
  case 'display':case 'evidence':
   route='/api/analysis/qqq/pcs';permit('expiry','from','to','regimeMode');add('gexDisplay',1);add('gexOverview',1);if(present('expiry'))add('gexExpiry',date('expiry'));
