@@ -122,7 +122,7 @@ Design: [architecture](docs/55-主程序与可独立更新子应用架构研究.
 
 ## K-line migration — approved 2026-11-18
 
-- [ ] **S16a — Signed chart core and transport parity.** Package eight unchanged historical/analysis/event/drawing operations as `easysellput.charts`. Reuse host Analytics/providers/timeline/drawing stores; preserve exact single-use drawing writes, read-only MCP, revisions and retained data. Add fixed-host A/B and independent build/release coverage before native ownership changes.
+- [x] **S16a — Signed chart core and transport parity.** Package eight unchanged historical/analysis/event/drawing operations as `easysellput.charts`. Reuse host Analytics/providers/timeline/drawing stores; preserve exact single-use drawing writes, read-only MCP, revisions and retained data. Add fixed-host A/B and independent build/release coverage before native ownership changes.
 - [ ] **S16b — Native chart lifecycle.** Bind the existing native chart workspace to verified domain availability; preserve live-bar stitching, drawings, event buckets, splits and shared controls. No second market connection or frontend math. Verify native packages and current 1080p screenshots.
 - [ ] **S16c — Acceptance.** Record exact-code native CI, cross-entry contracts, uninstall/reinstall retention and independent update boundaries. UI independence is separate from a core-only delivery; do not claim a host-owned renderer independently updates.
 
@@ -502,3 +502,7 @@ The full-height news/fundamentals workspace and reusable financial charts are ac
 S14 remains a core-only independent package plus shared native UI/browser/provider capabilities. No main merge, public release or independently shipped news Web UI is implied. S15 is recorded separately below.
 
 S15 accepted: code `65a2336050b5ca6128fff00dea160ddf22bdfb15`, integrated CI [44297121634](https://github.com/two4i6/EasySellPut/actions/runs/44297121634), all eleven checks passed on the first attempt. Twelve original operations, exact single-use write grants, native receipts/saved state and compact Wealthsimple-inspired quote/leg/payoff UI are complete. Inactive Mac grid bindings are released and restored; the concurrent tooltip feature is preserved. Final combined local Mac/Shared suites passed 150/146; real Chromium journeys and signed A/B/permission/data-preservation checks passed. The engine core also passed four-platform App CI 44286770898 at unchanged `28720ac`. See docs/app-runtime-research/options-strategy-migration.md for boundaries, 1080p fixtures and verification history. This acceptance update changes documentation only; it cites the tested code above.
+
+### S16a — chart compatibility core checkpoint
+
+Eight original operations are packaged with the shared SDK/installer/catalog/release flow. Local Automation 205, Python 80, signed archive/engine framing, fixed-host real CLI/persistent-MCP A/B, exact drawing write grants, stale revision rejection, disable/uninstall/reinstall retention and intercepted release promotion passed. Native binding is still S16b; no UI independence or final native CI acceptance is claimed. See docs/app-runtime-research/charts-migration.md.

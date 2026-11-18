@@ -36,6 +36,8 @@ EasySellPut is a local .NET 10 app: Windows WPF, macOS Avalonia, cross-platform 
 
 - Options/strategy is one domain (`easysellput.options-strategy`). Keep Analytics, live quotes, full native chain receipts and drafts host-owned under verified domain leases. Native save/delete use the authenticated operation; fixed host writes require explicit, exact-request, single-use authority. Reuse quote chips and the shared workbench rather than adding frontend pricing.
 
+- Charts use `easysellput.charts` and the original eight bars/analysis/events/drawing contracts. Reuse providers, Analytics, MarketTimelineService, ChartDrawingStore and exact-request single-use write delegation. Keep live transport, candle stitching and native rendering shared; never fabricate candles or bypass drawing revisions. See [migration](docs/app-runtime-research/charts-migration.md).
+
 ## Business contracts and data
 
 - Evaluate desktop, CLI and MCP for every capability. Shared business operations need one application service, CLI command and MCP tool. Document specific presentation/ownership exceptions in PR notes and `tests/automation/desktop_capabilities.json`.

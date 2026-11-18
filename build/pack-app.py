@@ -13,7 +13,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 
 
 def package(args):
-    if getattr(args, 'app', 'qqq-gex') in ('market-liquidity','news-fundamentals','options-strategy'):
+    if getattr(args, 'app', 'qqq-gex') in ('market-liquidity','news-fundamentals','options-strategy','charts'):
         return facade_package(args)
     metadata = json.loads((ROOT / 'web/qqq-gex/app.json').read_text(encoding='utf-8'))
     if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9-]{0,38}/[A-Za-z0-9_.-]{1,100}', args.repository):
@@ -83,7 +83,7 @@ def facade_package(args):
                'notices/EasySellPut-LICENSE': (ROOT/'LICENSE').read_bytes(),
                'notices/README.md': (folder/'README.md').read_bytes(),
                'notices/node-runtime-lock.json': (ROOT/'web/qqq-gex/node-runtime-lock.json').read_bytes()}
-    return write_package(args, metadata, payload, 'engine/report.mjs', None, 'shared-liquidity-v1' if app=='market-liquidity' else ('shared-news-v1' if app=='news-fundamentals' else 'shared-options-strategy-v1'))
+    return write_package(args, metadata, payload, 'engine/report.mjs', None, 'shared-liquidity-v1' if app=='market-liquidity' else ('shared-news-v1' if app=='news-fundamentals' else ('shared-charts-v1' if app=='charts' else 'shared-options-strategy-v1')))
 
 
 def write_package(args, metadata, payload, engine, ui, model_version):
@@ -120,7 +120,7 @@ def write_package(args, metadata, payload, engine, ui, model_version):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--app', choices=('qqq-gex','market-liquidity','news-fundamentals','options-strategy'), default='qqq-gex')
+    parser.add_argument('--app', choices=('qqq-gex','market-liquidity','news-fundamentals','options-strategy','charts'), default='qqq-gex')
     parser.add_argument('--repository', required=True)
     parser.add_argument('--version')
     signing = parser.add_mutually_exclusive_group(required=True)

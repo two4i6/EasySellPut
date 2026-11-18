@@ -18,6 +18,28 @@ public sealed class OptionsAppGrantTests
         var reader=new ModuleWriteGrant("save_strategy",args,false,Deny,Apply);
         await Assert.ThrowsAsync<UnauthorizedAccessException>(()=>reader.InvokeAsync("save_strategy",args,default));Assert.Equal(1,calls);
     }
+    [Theory]
+    [InlineData("add_chart_drawing")]
+    [InlineData("update_chart_drawing")]
+    [InlineData("delete_chart_drawing")]
+    [InlineData("clear_chart_drawings")]
+    public async Task Chart_writes_keep_exact_single_use_and_cross_domain_boundaries(string operation)
+    {
+        var args=WireJson.Element(new{symbol="AAPL",revision="original"});var calls=0;
+        Task<JsonElement> Deny(string n,JsonElement a,CancellationToken ct)=>throw new UnauthorizedAccessException();
+        Task<JsonElement> Apply(string n,JsonElement a,CancellationToken ct){calls++;return Task.FromResult(WireJson.Element(new{written=true}));}
+        var grant=new ModuleWriteGrant(operation,args,true,Deny,Apply);
+        Assert.Throws<InvalidDataException>(grant.RequireApplied);
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(()=>grant.InvokeAsync("delete_strategy",args,default));
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(()=>grant.InvokeAsync(operation,WireJson.Element(new{symbol="MSFT",revision="original"}),default));
+        await grant.InvokeAsync(operation,args,default);grant.RequireApplied();
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(()=>grant.InvokeAsync(operation,args,default));
+        var reader=new ModuleWriteGrant(operation,args,false,Deny,Apply);
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(()=>reader.InvokeAsync(operation,args,default));Assert.Equal(1,calls);
+        var failed=new ModuleWriteGrant(operation,args,true,Deny,(_,_,_)=>throw new Meili.Core.Settings.DataConflictException("stale"));
+        await Assert.ThrowsAsync<Meili.Core.Settings.DataConflictException>(()=>failed.InvokeAsync(operation,args,default));
+        Assert.Throws<InvalidDataException>(failed.RequireApplied);
+    }
     [Fact] public async Task Failed_host_write_never_becomes_an_applied_success()
     {
         var args=WireJson.Element(new{name="original"});

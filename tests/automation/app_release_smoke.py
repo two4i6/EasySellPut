@@ -15,7 +15,7 @@ ROOT=pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/'build/release'))
 spec=importlib.util.spec_from_file_location('app_release_smoke_target',ROOT/'build/release/app-release.py')
 release=importlib.util.module_from_spec(spec);spec.loader.exec_module(release)
-parser=argparse.ArgumentParser();parser.add_argument('--app',choices=['qqq-gex','market-liquidity','news-fundamentals','options-strategy'],default='qqq-gex');parser.add_argument('--archive',type=pathlib.Path,required=True);parser.add_argument('--key',type=pathlib.Path,required=True);parser.add_argument('--public-key',type=pathlib.Path,required=True);parser.add_argument('--repository',required=True);args=parser.parse_args()
+parser=argparse.ArgumentParser();parser.add_argument('--app',choices=['qqq-gex','market-liquidity','news-fundamentals','options-strategy','charts'],default='qqq-gex');parser.add_argument('--archive',type=pathlib.Path,required=True);parser.add_argument('--key',type=pathlib.Path,required=True);parser.add_argument('--public-key',type=pathlib.Path,required=True);parser.add_argument('--repository',required=True);args=parser.parse_args()
 plan=dict(repository=args.repository,sourceCommit='a'*40,ciRunId=123)
 with tempfile.TemporaryDirectory(prefix='offline app release ') as directory:
     root=pathlib.Path(directory);prepared=root/'prepared';prepared.mkdir();published=root/'published';published.mkdir()

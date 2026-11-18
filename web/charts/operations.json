@@ -1,0 +1,485 @@
+[
+  {
+    "name": "get_bars",
+    "description": "Historical OHLCV with provenance, adjustment and offline-cache status. Missing OHLC is null, never fabricated.",
+    "writes": false,
+    "schema": {
+      "type": "object",
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        },
+        "interval": {
+          "type": "string",
+          "description": "default 1d",
+          "enum": [
+            "1m",
+            "5m",
+            "15m",
+            "30m",
+            "1h",
+            "1d",
+            "1w",
+            "1mo"
+          ],
+          "maxLength": 200
+        },
+        "from": {
+          "type": "string",
+          "description": "ISO-8601 instant",
+          "maxLength": 200
+        },
+        "to": {
+          "type": "string",
+          "description": "ISO-8601 instant",
+          "maxLength": 200
+        },
+        "adjust": {
+          "type": "string",
+          "description": "default split",
+          "enum": [
+            "split",
+            "total"
+          ],
+          "maxLength": 200
+        },
+        "offset": {
+          "type": "integer",
+          "description": "Zero-based offset, default 0.",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "description": "Page size 1..500, default 100.",
+          "minimum": 1,
+          "maximum": 500
+        }
+      },
+      "required": [
+        "symbol"
+      ],
+      "additionalProperties": false
+    },
+    "entryPoint": "engine/report.mjs",
+    "hostOperations": [
+      "get_bars"
+    ]
+  },
+  {
+    "name": "get_market_events",
+    "description": "Recent news and current earnings/ex-dividend calendar snapshot, with source, exact/date-only timing and estimate/confirmation metadata. Not a historical corporate-action archive.",
+    "writes": false,
+    "schema": {
+      "type": "object",
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        },
+        "type": {
+          "type": "string",
+          "description": "default all",
+          "enum": [
+            "all",
+            "news",
+            "earnings",
+            "ex_dividend"
+          ],
+          "maxLength": 200
+        },
+        "from": {
+          "type": "string",
+          "description": "YYYY-MM-DD, inclusive Eastern calendar date",
+          "maxLength": 200
+        },
+        "to": {
+          "type": "string",
+          "description": "YYYY-MM-DD, inclusive Eastern calendar date",
+          "maxLength": 200
+        },
+        "limit": {
+          "type": "integer",
+          "description": "1..100, default 50",
+          "minimum": 1,
+          "maximum": 100
+        }
+      },
+      "required": [
+        "symbol"
+      ],
+      "additionalProperties": false
+    },
+    "entryPoint": "engine/report.mjs",
+    "hostOperations": [
+      "get_market_events"
+    ]
+  },
+  {
+    "name": "get_chart_analysis",
+    "description": "All desktop K-line indicators (MA/EMA/BOLL/MACD/RSI/KDJ) and real volume on provider bars, computed before pagination; incomplete OHLC remains null. Optional comparison is rebased only on common timestamps.",
+    "writes": false,
+    "schema": {
+      "type": "object",
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        },
+        "interval": {
+          "type": "string",
+          "description": "default 1d",
+          "enum": [
+            "1m",
+            "5m",
+            "15m",
+            "30m",
+            "1h",
+            "1d",
+            "1w",
+            "1mo"
+          ],
+          "maxLength": 200
+        },
+        "from": {
+          "type": "string",
+          "description": "ISO-8601 instant",
+          "maxLength": 200
+        },
+        "to": {
+          "type": "string",
+          "description": "ISO-8601 instant",
+          "maxLength": 200
+        },
+        "adjust": {
+          "type": "string",
+          "description": "default split",
+          "enum": [
+            "split",
+            "total"
+          ],
+          "maxLength": 200
+        },
+        "indicators": {
+          "type": "object",
+          "properties": {
+            "maPeriod": {
+              "type": "integer",
+              "description": "",
+              "minimum": 1,
+              "maximum": 250
+            },
+            "emaPeriod": {
+              "type": "integer",
+              "description": "",
+              "minimum": 1,
+              "maximum": 250
+            },
+            "bollPeriod": {
+              "type": "integer",
+              "description": "",
+              "minimum": 2,
+              "maximum": 250
+            },
+            "bollWidth": {
+              "type": "number",
+              "description": "",
+              "minimum": 0.5,
+              "maximum": 5
+            },
+            "macdFast": {
+              "type": "integer",
+              "description": "",
+              "minimum": 1,
+              "maximum": 250
+            },
+            "macdSlow": {
+              "type": "integer",
+              "description": "",
+              "minimum": 2,
+              "maximum": 251
+            },
+            "macdSignal": {
+              "type": "integer",
+              "description": "",
+              "minimum": 1,
+              "maximum": 250
+            },
+            "rsiPeriod": {
+              "type": "integer",
+              "description": "",
+              "minimum": 1,
+              "maximum": 250
+            },
+            "kdjPeriod": {
+              "type": "integer",
+              "description": "",
+              "minimum": 1,
+              "maximum": 250
+            },
+            "kdjM1": {
+              "type": "integer",
+              "description": "",
+              "minimum": 1,
+              "maximum": 250
+            },
+            "kdjM2": {
+              "type": "integer",
+              "description": "",
+              "minimum": 1,
+              "maximum": 250
+            }
+          },
+          "required": [],
+          "additionalProperties": false,
+          "description": "Optional shared indicator parameter overrides; observe nested bounds and null warm-up values."
+        },
+        "compareSymbol": {
+          "type": "string",
+          "description": "Optional comparison ticker. Rebase only on shared timestamps and retain missing-basis uncertainty.",
+          "maxLength": 200
+        },
+        "offset": {
+          "type": "integer",
+          "description": "Zero-based offset, default 0.",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "description": "Page size 1..500, default 100.",
+          "minimum": 1,
+          "maximum": 500
+        }
+      },
+      "required": [
+        "symbol"
+      ],
+      "additionalProperties": false
+    },
+    "entryPoint": "engine/report.mjs",
+    "hostOperations": [
+      "get_chart_analysis"
+    ]
+  },
+  {
+    "name": "get_chart_drawings",
+    "description": "Read a symbol's persisted local horizontal/trend lines; does not control chart windows.",
+    "writes": false,
+    "schema": {
+      "type": "object",
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        },
+        "offset": {
+          "type": "integer",
+          "description": "Zero-based offset, default 0.",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "description": "Page size 1..500, default 100.",
+          "minimum": 1,
+          "maximum": 500
+        }
+      },
+      "required": [
+        "symbol"
+      ],
+      "additionalProperties": false
+    },
+    "entryPoint": "engine/report.mjs",
+    "hostOperations": [
+      "get_chart_drawings"
+    ]
+  },
+  {
+    "name": "add_chart_drawing",
+    "description": "Persist a bounded horizontal/trend line in the shared drawing store with conflict protection. Trend lines need distinct time1/time2.",
+    "writes": true,
+    "schema": {
+      "type": "object",
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        },
+        "kind": {
+          "type": "string",
+          "description": "Strategy/drawing category; select the exact schema enum and required matching fields.",
+          "enum": [
+            "HorizontalLine",
+            "TrendLine"
+          ],
+          "maxLength": 200
+        },
+        "price1": {
+          "type": "number",
+          "description": "Drawing anchor price in the underlying quote currency; not a screen coordinate.",
+          "minimum": 0,
+          "maximum": 1000000000000
+        },
+        "time1": {
+          "type": "string",
+          "description": "ISO-8601 instant",
+          "maxLength": 200
+        },
+        "price2": {
+          "type": "number",
+          "description": "Drawing anchor price in the underlying quote currency; not a screen coordinate.",
+          "minimum": 0,
+          "maximum": 1000000000000
+        },
+        "time2": {
+          "type": "string",
+          "description": "ISO-8601 instant",
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "symbol",
+        "kind",
+        "price1"
+      ],
+      "additionalProperties": false
+    },
+    "entryPoint": "engine/report.mjs",
+    "hostOperations": [
+      "add_chart_drawing"
+    ]
+  },
+  {
+    "name": "update_chart_drawing",
+    "description": "Replace one persisted drawing by absolute zero-based index (offset + row index) using the revision from get_chart_drawings. Stale revisions fail without overwriting.",
+    "writes": true,
+    "schema": {
+      "type": "object",
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        },
+        "index": {
+          "type": "integer",
+          "description": "index argument for update_chart_drawing; observe this field's schema type, bounds and operation semantics.",
+          "minimum": 0,
+          "maximum": 199
+        },
+        "revision": {
+          "type": "string",
+          "description": "Exact revision from get_chart_drawings",
+          "maxLength": 200
+        },
+        "kind": {
+          "type": "string",
+          "description": "Strategy/drawing category; select the exact schema enum and required matching fields.",
+          "enum": [
+            "HorizontalLine",
+            "TrendLine"
+          ],
+          "maxLength": 200
+        },
+        "price1": {
+          "type": "number",
+          "description": "Drawing anchor price in the underlying quote currency; not a screen coordinate.",
+          "minimum": 0,
+          "maximum": 1000000000000
+        },
+        "time1": {
+          "type": "string",
+          "description": "ISO-8601 instant",
+          "maxLength": 200
+        },
+        "price2": {
+          "type": "number",
+          "description": "Drawing anchor price in the underlying quote currency; not a screen coordinate.",
+          "minimum": 0,
+          "maximum": 1000000000000
+        },
+        "time2": {
+          "type": "string",
+          "description": "ISO-8601 instant",
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "symbol",
+        "index",
+        "revision",
+        "kind",
+        "price1"
+      ],
+      "additionalProperties": false
+    },
+    "entryPoint": "engine/report.mjs",
+    "hostOperations": [
+      "update_chart_drawing"
+    ]
+  },
+  {
+    "name": "delete_chart_drawing",
+    "description": "Delete one persisted drawing by absolute zero-based index (offset + row index) using the revision from get_chart_drawings. Other drawings remain; stale revisions fail.",
+    "writes": true,
+    "schema": {
+      "type": "object",
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        },
+        "index": {
+          "type": "integer",
+          "description": "index argument for delete_chart_drawing; observe this field's schema type, bounds and operation semantics.",
+          "minimum": 0,
+          "maximum": 199
+        },
+        "revision": {
+          "type": "string",
+          "description": "Exact revision from get_chart_drawings",
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "symbol",
+        "index",
+        "revision"
+      ],
+      "additionalProperties": false
+    },
+    "entryPoint": "engine/report.mjs",
+    "hostOperations": [
+      "delete_chart_drawing"
+    ]
+  },
+  {
+    "name": "clear_chart_drawings",
+    "description": "Clear persisted drawings for one symbol with conflict protection.",
+    "writes": true,
+    "schema": {
+      "type": "object",
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "symbol"
+      ],
+      "additionalProperties": false
+    },
+    "entryPoint": "engine/report.mjs",
+    "hostOperations": [
+      "clear_chart_drawings"
+    ]
+  }
+]

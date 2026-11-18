@@ -5,11 +5,11 @@ namespace Meili.Automation.Modules;
 public static class ModuleHostOperations
 {
     private static readonly HashSet<string> Names=new(StringComparer.Ordinal)
-    {"get_saved_strategies","save_strategy","delete_strategy","record_option_snapshot","get_pricing_assumptions","get_volatility_insights","analyze_option_chain","build_strategy","strategy_what_if","get_news","get_fundamentals","get_financials","get_market_liquidity","get_quotes","get_bars","get_expirations","get_option_chain","calculate_option","calculate_indicators","analyze_strategy"};
+    {"get_chart_analysis","get_market_events","get_chart_drawings","add_chart_drawing","update_chart_drawing","delete_chart_drawing","clear_chart_drawings","get_saved_strategies","save_strategy","delete_strategy","record_option_snapshot","get_pricing_assumptions","get_volatility_insights","analyze_option_chain","build_strategy","strategy_what_if","get_news","get_fundamentals","get_financials","get_market_liquidity","get_quotes","get_bars","get_expirations","get_option_chain","calculate_option","calculate_indicators","analyze_strategy"};
     internal static void Validate(IReadOnlyList<string>? names,bool writes=false,string? appId=null,string? operation=null)
     {
         if(names is null)return;
-        if(names.Any(OptionsStrategyContracts.IsWrite) && (appId!=ModuleAccess.OptionsStrategy || !writes || names.Count!=1 || names[0]!=operation))
+        if(names.Any(ModuleAccess.IsDelegatedWrite) && (ModuleAccess.OperationOwner(operation??"")!=appId || appId is not (ModuleAccess.OptionsStrategy or ModuleAccess.Charts) || !writes || names.Count!=1 || names[0]!=operation))
             throw new InvalidDataException("Mutating host capabilities require their exact first-party write operation.");
         if(!writes&&names.Contains("write_app_input",StringComparer.Ordinal))throw new InvalidDataException("Read-only operation cannot publish input.");
         if((names.Count <1 || names.Count >Names.Count+4)||names.Distinct(StringComparer.Ordinal).Count()!=names.Count||names.Any(name=>!Names.Contains(name)&&name is not ("read_app_snapshot" or "open_market_snapshot" or "read_market_snapshot" or "write_app_input")))

@@ -41,6 +41,10 @@ internal static class AppFixture
             try { Console.WriteLine(JsonSerializer.Serialize(await Installer(args[1]).InstallAsync(args[2]))); return 0; }
             catch(IOException e) { Console.Error.WriteLine(e.Message); return 1; }
         }
+        if(args.Length==3 && args[0]=="enable")
+        {
+            Console.WriteLine(JsonSerializer.Serialize(await Installer(args[1]).SetEnabledAsync(args[2],true)));return 0;
+        }
         async Task<IOperationCatalog> Catalog(string? path)
         {
             var directory = LocalPaths.Resolve(path,migrateLegacy:false);

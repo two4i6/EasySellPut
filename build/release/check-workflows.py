@@ -41,7 +41,7 @@ def check(workflows):
     require("github.ref == 'refs/heads/main'" in app_job.get('if','') and app_job.get('environment') == 'release', 'App signing/publication must be main-only and protected')
     app_commands = '\n'.join(step.get('run','') for step in app_job['steps'])
     require('app-source.py' in app_commands and 'app-release.py prepare' in app_commands and 'app-release.py publish' in app_commands, 'Apps must validate provenance and separate preparation/publication')
-    require(apps['on']['workflow_dispatch']['inputs']['app']['options'] == ['qqq-gex','market-liquidity','news-fundamentals','options-strategy'], 'Manual recovery must select one known app')
+    require(apps['on']['workflow_dispatch']['inputs']['app']['options'] == ['qqq-gex','market-liquidity','news-fundamentals','options-strategy','charts'], 'Manual recovery must select one known app')
     liquidity_steps=[step for step in app_job['steps'] if '--app market-liquidity' in step.get('run','')]
     require(len(liquidity_steps)==3 and any('app-source.py' in step.get('run','') for step in liquidity_steps), 'Liquidity must reuse source validation, preparation and publication')
     liquidity_publish=next(step for step in liquidity_steps if 'app-release.py publish' in step.get('run',''))
@@ -58,6 +58,11 @@ def check(workflows):
     options_publish=next(step for step in options_steps if 'app-release.py publish' in step.get('run',''))
     require("steps.options.outputs.skip != 'true'" in options_publish.get('if',''), 'Options publication needs version gating')
     require(any(step.get('with',{}).get('name')=='OPTIONS-test-package' for step in ci['jobs']['qqq-gex']['steps']), 'Required CI must retain the options artifact')
+    chart_steps=[step for step in app_job['steps'] if '--app charts' in step.get('run','')]
+    require(len(chart_steps)==3, 'Charts must reuse all release validation stages')
+    chart_publish=next(step for step in chart_steps if 'app-release.py publish' in step.get('run',''))
+    require("steps.charts.outputs.skip != 'true'" in chart_publish.get('if','') and "steps.charts.outputs.action == 'auto'" in chart_publish['if'], 'Chart publication needs version gating')
+    require(any(step.get('with',{}).get('name')=='CHARTS-test-package' for step in ci['jobs']['qqq-gex']['steps']), 'Required CI must retain the chart artifact')
     publish_step = next(step for step in app_job['steps'] if 'app-release.py publish' in step.get('run',''))
     require("steps.source.outputs.skip != 'true'" in publish_step.get('if','') and "steps.source.outputs.action == 'auto'" in publish_step['if'], 'App publication requires validated version gating')
     require("vars.APPS_AUTO_RELEASE == 'true'" in app_job['if'], 'Automatic drafts require explicit configuration')

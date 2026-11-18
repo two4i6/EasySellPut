@@ -89,6 +89,16 @@ jobs:
           node web/app-sdk/browser-gex-app.mjs
       - name: Test shared app engine SDK
         run: node --test web/app-sdk/engine.test.mjs web/app-sdk/client.test.mjs web/app-sdk/engine-host.test.mjs web/app-sdk/presentation.test.mjs
+      - name: Build & verify charts core fixture
+        run: |
+          node web/app-sdk/build-engine.mjs web/charts/runtime/report.mjs web/charts/runtime-dist/report.mjs
+          python3 build/pack-app.py --app charts --development --repository "$GITHUB_REPOSITORY" --output build/out/charts-fixture/charts.espapp
+          python3 tests/automation/charts_app_smoke.py --archive build/out/charts-fixture/charts.espapp --public-key build/out/charts-fixture/charts.espapp.public.pem --repository "$GITHUB_REPOSITORY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CHARTS-test-package
+          path: build/out/charts-fixture/
+          if-no-files-found: error
       - name: Build & verify options core fixture
         run: |
           node web/app-sdk/build-engine.mjs web/options-strategy/runtime/report.mjs web/options-strategy/runtime-dist/report.mjs
@@ -131,6 +141,7 @@ jobs:
           python3 tests/automation/app_release_smoke.py --app market-liquidity --archive build/out/liquidity-fixture/liquidity.espapp --key "$RUNNER_TEMP/app-fixture-key.pem" --public-key "$RUNNER_TEMP/app-fixture-public.pem" --repository "$GITHUB_REPOSITORY"
           python3 tests/automation/app_release_smoke.py --app news-fundamentals --archive build/out/news-fixture/news.espapp --key "$RUNNER_TEMP/app-fixture-key.pem" --public-key "$RUNNER_TEMP/app-fixture-public.pem" --repository "$GITHUB_REPOSITORY"
           python3 tests/automation/app_release_smoke.py --app options-strategy --archive build/out/options-fixture/options.espapp --key "$RUNNER_TEMP/app-fixture-key.pem" --public-key "$RUNNER_TEMP/app-fixture-public.pem" --repository "$GITHUB_REPOSITORY"
+          python3 tests/automation/app_release_smoke.py --app charts --archive build/out/charts-fixture/charts.espapp --key "$RUNNER_TEMP/app-fixture-key.pem" --public-key "$RUNNER_TEMP/app-fixture-public.pem" --repository "$GITHUB_REPOSITORY"
           rm "$RUNNER_TEMP/app-fixture-key.pem"
       - uses: actions/upload-artifact@v4
         with:
@@ -250,6 +261,12 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'News build failed' }
           python tests/automation/news_mcp_smoke.py
           if ($LASTEXITCODE -ne 0) { throw "Signed news app smoke failed" }
+      - name: Test charts updates through CLI & MCP
+        run: |
+          node web/app-sdk/build-engine.mjs web/charts/runtime/report.mjs web/charts/runtime-dist/report.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Charts core build failed' }
+          python tests/automation/charts_mcp_smoke.py
+          if ($LASTEXITCODE -ne 0) { throw 'Charts fixed-host CLI/MCP update regression failed' }
       - name: Test options updates through CLI & MCP
         run: |
           node web/app-sdk/build-engine.mjs web/options-strategy/runtime/report.mjs web/options-strategy/runtime-dist/report.mjs

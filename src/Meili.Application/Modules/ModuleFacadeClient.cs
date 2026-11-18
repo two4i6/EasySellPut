@@ -24,7 +24,7 @@ public sealed class ModuleFacadeClient
         if(ModuleAccess.OperationOwner(name)!=appId)throw new UnauthorizedAccessException("Foreign native facade operation.");
         var definition=OperationCatalog.Find(name);
         OperationCatalog.Validate(definition,arguments);
-        if(definition.Writes && (!allowWrites || appId!=ModuleAccess.OptionsStrategy))throw new UnauthorizedAccessException("Explicit native write authorization required.");
+        if(definition.Writes && (!allowWrites || appId is not (ModuleAccess.OptionsStrategy or ModuleAccess.Charts)))throw new UnauthorizedAccessException("Explicit native write authorization required.");
         var discovery=await ModuleOperations.ReadSnapshotAsync(directory,installer,ct).ConfigureAwait(false);
         discovery.RequireAvailable(appId);
         var app=discovery.State?.Apps.SingleOrDefault(app=>app.Id==appId);

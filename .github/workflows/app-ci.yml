@@ -3,9 +3,9 @@ run-name: "Apps · ${{ github.head_ref || github.ref_name }} · #${{ github.run_
 on:
   push:
     branches: [main, work]
-    paths: ['web/qqq-gex/**', 'web/market-liquidity/**', 'web/news-fundamentals/**', 'web/options-strategy/**', 'tests/automation/options_app_smoke.py', 'tests/automation/news_app_smoke.py', 'tests/automation/liquidity_app_smoke.py', 'web/app-sdk/**', 'build/pack-app.py', 'tests/automation/app_package_smoke.py', '.github/workflows/app-ci.yml']
+    paths: ['web/qqq-gex/**', 'web/market-liquidity/**', 'web/news-fundamentals/**', 'web/options-strategy/**', 'web/charts/**', 'tests/automation/charts_app_smoke.py', 'tests/automation/options_app_smoke.py', 'tests/automation/news_app_smoke.py', 'tests/automation/liquidity_app_smoke.py', 'web/app-sdk/**', 'build/pack-app.py', 'tests/automation/app_package_smoke.py', '.github/workflows/app-ci.yml']
   pull_request:
-    paths: ['web/qqq-gex/**', 'web/market-liquidity/**', 'web/news-fundamentals/**', 'web/options-strategy/**', 'tests/automation/options_app_smoke.py', 'tests/automation/news_app_smoke.py', 'tests/automation/liquidity_app_smoke.py', 'web/app-sdk/**', 'build/pack-app.py', 'tests/automation/app_package_smoke.py', '.github/workflows/app-ci.yml']
+    paths: ['web/qqq-gex/**', 'web/market-liquidity/**', 'web/news-fundamentals/**', 'web/options-strategy/**', 'web/charts/**', 'tests/automation/charts_app_smoke.py', 'tests/automation/options_app_smoke.py', 'tests/automation/news_app_smoke.py', 'tests/automation/liquidity_app_smoke.py', 'web/app-sdk/**', 'build/pack-app.py', 'tests/automation/app_package_smoke.py', '.github/workflows/app-ci.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -44,6 +44,11 @@ jobs:
       - name: Install app dependencies
         working-directory: web/qqq-gex
         run: npm ci --no-audit --no-fund
+      - name: Build and verify charts core
+        run: |
+          node web/app-sdk/build-engine.mjs web/charts/runtime/report.mjs web/charts/runtime-dist/report.mjs
+          python build/pack-app.py --app charts --development --repository "${{ github.repository }}" --output "build/out/app-core/charts-${{ matrix.rid }}.espapp"
+          python tests/automation/charts_app_smoke.py --archive "build/out/app-core/charts-${{ matrix.rid }}.espapp" --public-key "build/out/app-core/charts-${{ matrix.rid }}.espapp.public.pem" --repository "${{ github.repository }}"
       - name: Build and verify options core
         run: |
           node web/app-sdk/build-engine.mjs web/options-strategy/runtime/report.mjs web/options-strategy/runtime-dist/report.mjs
