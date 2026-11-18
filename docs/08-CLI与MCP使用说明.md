@@ -222,3 +222,11 @@ Only the compiled repository/key is trusted. Unconfigured local builds reject in
 ## 独立子应用更新
 
 `apps check` 检查独立签名目录；`apps download APP-ID` 下载并验证指定子应用；再显式执行 `apps update --package PATH` 或在设置的「子应用」卡片选择安装包。宿主 Latest 更新源与 apps 目录分离。生产信任不接受开发产物的临时签名，维护操作不属于 MCP 工具。详见 [独立应用分发](app-runtime-research/app-distribution.md)。
+
+## GEX 显式副本迁移
+
+`gex-archive migrate|downgrade|restore|status` 是本地维护命令，不暴露为 MCP 工具。
+只创建新目标，保留原库和经过校验的 SQLite 一致性备份，不自动切换数据目录。
+新版迁移目标有数据库级旧客户端 DML 阻挡；旧目录仍默认 gzip。
+具体命令、磁盘预算、Ctrl+C/断点恢复、WAL、备份恢复与降级边界见
+[GEX 安全迁移说明](gex-storage-research/safe-migration.md)。

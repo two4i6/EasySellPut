@@ -1,3 +1,4 @@
+import {ArchiveDatabase} from './archive-database.ts';
 import {prepareQqqOptionObservations,qqqObservationPrefix,qqqObservationSpotIndex} from '../upstream/src/lib/qqqOptionObservationHistory';
 import {wallTouchView} from 'source:qqq-wall-view';
 import {replayDay} from './day-replay';
@@ -33,7 +34,7 @@ export async function readMcpAnalysis(dbPath:string,url:URL){
  if(p.has('minutes')&&(!['activityResponse','structureEvents'].includes(analysis)||![2,10,30].includes(Number(p.get('minutes')))))throw Error('Unsupported observation window');if(p.has('strikes')&&!['exposure','heatmapField'].includes(analysis))throw Error('Strike selection requires exposure or heatmapField');if(qqqEasternDateKey(at)!==date)throw Error('Analysis cursor must belong to requested Eastern date');if(requestedExpiry)qqqMarketDateBounds(requestedExpiry);if(scope==='selected'&&!expiry)throw Error('Selected scope requires expiry');if(['pulse','spreadStudy','wallTouches'].includes(analysis)&&scope!=='selected')throw Error('This study requires a selected expiry');if(analysis!=='spreadStudy'&&['side','shortStrike','longStrike','ivShockPp','fees','basis','manualCredit'].some(k=>p.has(k)))throw Error('Spread parameters require spreadStudy');
  const wallHorizon=Number(p.get('wallHorizon')??30),wallGamma=p.get('wallGamma')??'all',wallPeriod=p.get('wallPeriod')??'all',wallSide=p.get('wallSide')??'all';
  if(['wallHorizon','wallGamma','wallPeriod','wallSide'].some(k=>p.has(k))&&analysis!=='wallTouches'||![10,30].includes(wallHorizon)||!['all','positive','negative','zero'].includes(wallGamma)||!['all','open','middle','late'].includes(wallPeriod)||!['all','put','call'].includes(wallSide))throw Error('Invalid wall-touch filter');
- const db=new DatabaseSync(dbPath,{readOnly:true});db.exec('PRAGMA busy_timeout=5000;BEGIN');try{
+ const db=new ArchiveDatabase(dbPath,{readOnly:true});db.exec('PRAGMA busy_timeout=5000;BEGIN');try{
  const record=db.prepare('SELECT d.revision,d.payload,h.sha256 FROM qqq_gex_local_days d JOIN qqq_gex_local_day_hashes h ON d.day=h.day WHERE d.day=?').get(date) as any;
  if(!record)return {available:false,status:'cache_miss',complete:false};if(Buffer.byteLength(record.payload)>128*1024*1024||createHash('sha256').update(record.payload).digest('hex')!==record.sha256)throw Error('Analysis day integrity failed');
  const envelope=(result:any)=>({available:true,complete:false,date,expiry,at:new Date(at).toISOString(),scope,analysis,revision:record.revision,source:'Pinned original UI kernels; retained local observations only',coverage:'Inspect per-row inputComplete, source timing and model versions. No missing history or prices synthesized.',result});

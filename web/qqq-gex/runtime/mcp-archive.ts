@@ -1,3 +1,4 @@
+import {ArchiveDatabase} from './archive-database.ts';
 import {DatabaseSync} from 'node:sqlite';
 import {createHash} from 'node:crypto';
 import {qqqMarketSession} from '../upstream/src/lib/qqqMarketSession';
@@ -10,7 +11,7 @@ export function readMcpArchive(dbPath:string,url:URL){
  if(!['published','partial'].includes(archiveState)||!['dates','snapshots','profile','bars','extendedBars','providers'].includes(resource)||!Number.isInteger(page)||page<1||page>100000||!Number.isInteger(pageSize)||pageSize<1||pageSize>200||[...p.keys()].some(k=>!['resource','date','expiry','capturedAt','page','pageSize','revision','archiveState','priceBasis'].includes(k))||[...new Set(p.keys())].some(k=>p.getAll(k).length!==1))throw Error('Invalid bounded archive query');
  if(!['valuation','display'].includes(priceBasis)||p.has('priceBasis')&&!['bars','extendedBars'].includes(resource))throw Error('Invalid price basis');
  if(page>1&&!expected)throw Error('Continuation requires revision from first page');
- const db=new DatabaseSync(dbPath,{readOnly:true});db.exec('PRAGMA busy_timeout=5000;BEGIN');try{
+ const db=new ArchiveDatabase(dbPath,{readOnly:true});db.exec('PRAGMA busy_timeout=5000;BEGIN');try{
  let revision:string,items:any[],scope:any,metadata:any={};
  if(resource==='providers'){
   if(['date','expiry','capturedAt','archiveState'].some(k=>p.has(k)))throw Error('Provider index has no date/expiry filter');

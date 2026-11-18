@@ -75,6 +75,15 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           global-json-file: global.json
+      - name: Test opt-in archive codec and cross-runtime recovery
+        run: |
+          dotnet build tests/Meili.GexCodec.Host/Meili.GexCodec.Host.csproj -m:3 -v minimal
+          dotnet test tests/Meili.Data.Tests/Meili.Data.Tests.csproj --filter FullyQualifiedName~QqqGex
+          cd web/qqq-gex
+          GEX_CODEC_HOST=../../tests/Meili.GexCodec.Host/bin/Debug/net10.0/Meili.GexCodec.Host.dll node tests/archive-codec-v2.mjs
+          cd ../..
+          dotnet build src/Meili.Cli/Meili.Cli.csproj -m:3 -v minimal
+          python3 tests/automation/gex_archive_migration.py --dll src/Meili.Cli/bin/Debug/net10.0/easysellput.dll --host tests/Meili.GexCodec.Host/bin/Debug/net10.0/Meili.GexCodec.Host.dll
       - name: Test private GEX session recovery and repeated rendering
         run: |
           dotnet build tests/Meili.Qqq.CloudHost/Meili.Qqq.CloudHost.csproj -m:3 -v minimal
@@ -343,7 +352,8 @@ jobs:
   ui:
     name: UI · Layout & Charts
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    # Cold font/browser installation can consume most of the old 15-minute budget.
+    timeout-minutes: 30
     steps:
       - name: Checkout source
         uses: actions/checkout@v4

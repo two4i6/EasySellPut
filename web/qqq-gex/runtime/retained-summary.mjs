@@ -1,3 +1,4 @@
+import {ArchiveDatabase} from './archive-database.ts';
 // App-owned operation: retained local evidence inventory, never inferred market coverage.
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -8,7 +9,7 @@ if(request.protocol!==1||request.operation!=='get_qqq_gex_retained_summary'||Obj
 const path=join(request.context.dataDirectory,'cache','qqq-gex.db');
 const result={status:'empty',appVersion:request.context.appVersion,storageAvailable:existsSync(path),publishedDays:0,partialDays:0,observedInputs:0,firstPublishedDate:null,lastPublishedDate:null,coverage:'Locally retained evidence only; counts do not certify complete market coverage or validate payload integrity.'};
 if(result.storageAvailable){
- const db=new DatabaseSync(path,{readOnly:true});
+ const db=new ArchiveDatabase(path,{readOnly:true});
  try{
   db.exec('PRAGMA busy_timeout=5000; BEGIN');
   const present=new Set(db.prepare("SELECT name FROM sqlite_master WHERE type='table'").all().map(r=>r.name));

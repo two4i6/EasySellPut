@@ -1,3 +1,4 @@
+import {ArchiveDatabase} from './archive-database.ts';
 // Shared app-owned facade validation and authenticated original-model execution.
 import {existsSync} from 'node:fs';
 import {join} from 'node:path';
@@ -9,13 +10,13 @@ export function createFacade(request){
 const root=request.context.dataDirectory,db=join(root,'cache','qqq-gex.db'),args=request.arguments;
 function hasRows(tables){
  if(!existsSync(db))return false;
- const database=new DatabaseSync(db,{readOnly:true});
+ const database=new ArchiveDatabase(db,{readOnly:true});
  try{database.exec('PRAGMA busy_timeout=5000;BEGIN');return tables.some(table=>!!database.prepare("SELECT 1 FROM sqlite_master WHERE name=?").get(table)&&!!database.prepare('SELECT 1 FROM '+table+' LIMIT 1').get());}
  finally{database.close();}
 }
 function hasHistory(){
  if(!existsSync(db))return false;
- const database=new DatabaseSync(db,{readOnly:true});
+ const database=new ArchiveDatabase(db,{readOnly:true});
  try{database.exec('PRAGMA busy_timeout=5000;BEGIN');return !!database.prepare("SELECT 1 FROM sqlite_master WHERE name='qqq_gex_local_days'").get()&&!!database.prepare('SELECT 1 FROM qqq_gex_local_days LIMIT 1').get();}
  finally{database.close();}
 }
@@ -54,7 +55,7 @@ function query(path){return execute('query.mjs',[db,path.length>8192?'--query-st
 function lifecycle(date){
  const result={available:true,storageAvailable:false,date,recorded:false,complete:false,points:[],coverage:'Only explicitly captured local PCS observations; missing historical blobs are not reconstructed'};
  if(!existsSync(db))return result;
- const database=new DatabaseSync(db,{readOnly:true});
+ const database=new ArchiveDatabase(db,{readOnly:true});
  try{
   database.exec('PRAGMA busy_timeout=5000;BEGIN');result.storageAvailable=!!database.prepare("SELECT name FROM sqlite_master WHERE name='qqq_gex_pcs_lifecycle'").get();
   if(result.storageAvailable)for(const row of database.prepare('SELECT body,sha256 FROM qqq_gex_pcs_lifecycle WHERE day=? ORDER BY time LIMIT 1001').iterate(date)){

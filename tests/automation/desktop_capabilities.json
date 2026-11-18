@@ -711,5 +711,15 @@
       "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation.",
       "commands": {}
     }
+  ],
+  "localMaintenanceExceptions": [
+    {
+      "command": "gex-archive migrate|downgrade|restore|status",
+      "applicationOwner": "Meili.Automation.GexArchiveMaintenance",
+      "dataOwner": "Meili.Data.Cache.QqqGexArchiveMigration",
+      "desktop": "Explicit CLI maintenance on a separately selected new archive; no automatic native cutover or in-place migration. Existing Compact retains legacy behavior.",
+      "mcp": "Intentionally unavailable, including allow-writes sessions: unrestricted backup/destination paths and archive format replacement are local administrative maintenance, like apps/update, not a business tool.",
+      "validation": "tests/automation/gex_archive_migration.py executes real CLI and original Node query processes against synthetic archives; QqqGexMigrationTests covers disk and cancellation."
+    }
   ]
 }

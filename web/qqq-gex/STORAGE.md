@@ -19,3 +19,29 @@ Read-only `node tests/archive-growth.mjs DATABASE` reports protected logical tab
 Keep the64MiB wire cap/48MiB target; use the1GiB archive threshold as an alert, not a deletion policy. The256MiB free-space reserve pauses new capture/import before mutation; a whole database compaction also requires temporary workspace. Existing legacy data can be re-encoded and compacted through the explicit CacheManager maintenance operation; clearing wire never removes historical inputs/profiles/signals. Backup first to separately verified storage when approaching a chosen disk budget; verify decoded hashes, record count, revision and a restored read before any user-authorized retirement of a local copy. There is no implemented automatic archive hard quota, automatic migration to another disk, or automatic deletion of the sole history. Runtime binaries (~122MiB on Linux), derived wire, SQLite free pages/WAL and protected history are separate capacity costs.
 
 Use SQLite's online backup API, or stop every desktop/CLI/MCP writer and complete a WAL checkpoint before making a filesystem backup. Copying only the main .db while a writer/WAL is active is not a verified backup. Treat qqq-gex.db as protected historical data even though it lives under cache/. The physical size comparison above also reflects previously clearing derived wire and compacting free pages; it must not be attributed to gzip alone. No backups or history deletion were executed by the read-only growth measurement.
+
+### Experimental independent-record codec (default off)
+
+The local prototype supports opt-in `MEILI_GEX_ARCHIVE_CODEC=brotli-v2` writes
+with a bounded, length- and SHA-256-verified QGEX v2 envelope in Node and .NET.
+Default writes and existing CacheManager compaction remain legacy gzip. Updated
+readers retain TEXT/gzip/observed-reference support. Old clients cannot read v2;
+only use coordinated updated runtimes with a separately verified experimental
+copy. Unsetting the variable does not convert existing v2 rows back to gzip.
+There is no automatic upgrade or production migration operation. See the
+[prototype evidence and compatibility limits](../../docs/gex-storage-research/codec-prototype-20261118.md)
+for synthetic-only byte counts, CPU/wall/RSS measurements and copy-only recovery
+rehearsals. No real six-capture sample or Mac/Windows validation is available.
+
+### Supported guarded copy migration
+
+The prototype-only limitation above is superseded by explicit host CLI
+`gex-archive migrate|downgrade|restore|status`. It creates a separate verified
+snapshot/working copy, retains the original and backup, checks disk reserves,
+commits resumable 32-row batches, validates all logical data and publishes only
+a ready new path. Legacy paths remain gzip; guarded migrated paths select v2
+from database version metadata in both Node and .NET. The old environment flag
+cannot enable an unguarded legacy path. SQLite triggers reject old-client DML.
+There is no automatic activation or in-place upgrade. See
+[safe migration](../../docs/gex-storage-research/safe-migration.md) for exact
+commands, cancellation/backup/downgrade semantics and compatibility limits.

@@ -21,7 +21,7 @@ class UxAuditTests(unittest.TestCase):
     def test_primary_variants_and_motion_assets_cannot_regress(self):
         for path in (ROOT/'src/Meili.Mac/Views').rglob('*.axaml'):
             self.assertNotIn('Classes="accent"',path.read_text(encoding="utf-8"));self.assertNotIn('Classes="Accent"',path.read_text(encoding="utf-8"))
-        for file in ['index.html','workbench.html']:self.assertIn('src="motion.js"',(ROOT/'src/Meili.Shared/WebCharts'/file).read_text(encoding="utf-8"))
+        for file in [ROOT/'web/charts/ui/index.html',ROOT/'src/Meili.Shared/WebCharts/workbench.html']:self.assertIn('src="motion.js"',file.read_text(encoding="utf-8"))
         motion=(ROOT/'src/Meili.Shared/WebCharts/motion.js').read_text(encoding="utf-8");self.assertIn('prefers-reduced-motion',motion);self.assertIn('data-reduced-motion',motion)
         workflow=(ROOT/'.github/workflows/ci.yml').read_text(encoding="utf-8")
         # Locate behavior, not the human-facing step title: labels may change without changing coverage.

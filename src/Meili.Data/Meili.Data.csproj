@@ -12,5 +12,6 @@
   <ItemGroup>
     <InternalsVisibleTo Include="MeiliTerminal" />
     <InternalsVisibleTo Include="Meili.Data.Tests" />
+    <InternalsVisibleTo Include="Meili.GexCodec.Host" />
   </ItemGroup>
 </Project>
