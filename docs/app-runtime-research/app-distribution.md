@@ -71,3 +71,9 @@ See [the pilot acceptance](pilot-acceptance.md), [GEX integration](gex-branch-in
 ## Activation status — 2026-11-18
 
 The administrator reports a main-only release Environment, an active main ruleset requiring `CI · Required checks`, and both automatic release variables set to `false`. All nine production signing secrets are missing. Keep the switches off until credentials, matching production public key and native release verification are ready. Existing environment reviewers can still require approval. Host and app releases are independently version-gated; only the host changes Latest.
+
+## Publisher signing deferred — 2026-11-18
+
+The user explicitly authorized automatic host/app distribution before Windows Authenticode and Apple Developer ID/notarization are available. Host preparation now selects `--platform-signing none` explicitly, preserves exact tested archive/checksum bytes and still runs native GUI/CLI/MCP and updater transaction checks. macOS retains its existing ad-hoc integrity signature; no quarantine removal, Gatekeeper bypass or system policy changes are performed. Release notes disclose missing publisher signatures and possible OS warnings/blocks. This does not guarantee a frictionless first installation.
+
+`UPDATE_SIGNING_KEY` remains required for both host indexes and independently installed app packages/catalogs. Its matching public key must be committed before CI builds the first trusted host. The eight Apple/Windows secrets are deferred, not required by the current path. Both auto-release switches remain false until this one-time trust setup and native CI succeed. Future OS signing must switch preparation and assembly together to `required` and re-enable notarization/Gatekeeper validation; missing credentials must never silently trigger an unsigned fallback. Browser installation may require platform-supported user approval; never automate bypasses.

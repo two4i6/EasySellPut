@@ -73,3 +73,9 @@ CI 通过 GitHub Actions 环境将当前 `github.repository` 编译进每个 GUI
 ## 自动发布启用状态（2026-11-18）
 
 管理员确认 GitHub release Environment 已限制 main，Ruleset 已要求 `CI · Required checks`，默认 Actions 权限保持只读。`HOST_AUTO_RELEASE=false`、`APPS_AUTO_RELEASE=false`；九项签名 Secrets 尚未提供。以上替代早期服务端未配置的状态记录。当前实现准备自动发布，不代表生产签名及安装已验收；须先补齐凭据与匹配的固定公钥，再开启相应开关。子应用独立发布不改变主程序 Latest。
+
+## Publisher signing deferred — 2026-11-18
+
+The user explicitly authorized automatic host/app distribution before Windows Authenticode and Apple Developer ID/notarization are available. Host preparation now selects `--platform-signing none` explicitly, preserves exact tested archive/checksum bytes and still runs native GUI/CLI/MCP and updater transaction checks. macOS retains its existing ad-hoc integrity signature; no quarantine removal, Gatekeeper bypass or system policy changes are performed. Release notes disclose missing publisher signatures and possible OS warnings/blocks. This does not guarantee a frictionless first installation.
+
+`UPDATE_SIGNING_KEY` remains required for both host indexes and independently installed app packages/catalogs. Its matching public key must be committed before CI builds the first trusted host. The eight Apple/Windows secrets are deferred, not required by the current path. Both auto-release switches remain false until this one-time trust setup and native CI succeed. Future OS signing must switch preparation and assembly together to `required` and re-enable notarization/Gatekeeper validation; missing credentials must never silently trigger an unsigned fallback. Browser installation may require platform-supported user approval; never automate bypasses.

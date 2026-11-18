@@ -433,3 +433,10 @@ Actual GitHub administration remains blocked: the connected App returns HTTP 403
 - [x] Use HOST_AUTO_RELEASE / APPS_AUTO_RELEASE; bootstrap preserves existing values and creates missing switches false. Administrator reports both false, main-only Environment and required CI ruleset configured; all nine signing secrets missing.
 - [x] Update engineering rules, delivery guides and executable workflow/version tests; Python automation suite and workflow guard passed locally (73 cases). CI already discovers test_*.py.
 - [ ] Production activation: supply real credentials and matching public pin, verify native distribution, then enable switches. No main merge, workflow dispatch or production release performed in this change.
+
+## Automatic distribution before OS publisher certificates — 2026-11-18
+
+- [x] User explicitly permits host release without Windows publisher certificate or Apple Developer ID/notarization. Explicit `none` mode preserves exact CI archives/checksums and existing macOS ad-hoc signatures; no silent credential fallback.
+- [x] Retain native package execution, architecture, source trust, GUI/CLI/MCP, updater/data-preservation checks, signed update indexes and independently signed app packages/catalogs. Release provenance/notes disclose missing OS publisher signatures.
+- [x] Add cross-target byte-preservation and corrupt/non-main rejection tests; document remaining one-time UPDATE_SIGNING_KEY setup. Eight OS certificate secrets are deferred.
+- [ ] Activate only after matching production public pin/Environment secret and successful native CI. Current GitHub App token still cannot administer Environment secrets (403); no production key or switches changed.

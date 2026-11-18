@@ -98,6 +98,10 @@ class ReleasePolicyTests(unittest.TestCase):
                 index = assemble.prepare(packages, output, '0.7.0', plan)
             self.assertEqual(len(index['assets']), 7)
             self.assertEqual(index['sourceCommit'], self.sha)
+            unsigned = assemble.prepare(packages, root/'unsigned', '0.7.0', plan, platform_signing='none')
+            self.assertIn('No Developer ID', unsigned['platformSigning'])
+            self.assertIn('ad-hoc', unsigned['platformSigning'])
+            self.assertEqual(unsigned['assets'], index['assets'])
             # The real publish verifier accepts only the complete attachment set.
             for name in ('EasySellPut-update.json.sig', 'EasySellPut-release.json.sig'):
                 (output / name).write_bytes(b'signature tested separately by openssl')

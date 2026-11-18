@@ -42,3 +42,9 @@
 ## 服务端配置状态（2026-11-18）
 
 管理员已确认 release Environment 仅允许 main，main Ruleset 要求 `CI · Required checks`，两个自动发布开关均为 false。九项正式签名凭据全部缺失，尚不能验收真实发布。补齐凭据及匹配公钥、完成原生验证后再启用；不要使用临时密钥或绕过系统签名。
+
+## Publisher signing deferred — 2026-11-18
+
+The user explicitly authorized automatic host/app distribution before Windows Authenticode and Apple Developer ID/notarization are available. Host preparation now selects `--platform-signing none` explicitly, preserves exact tested archive/checksum bytes and still runs native GUI/CLI/MCP and updater transaction checks. macOS retains its existing ad-hoc integrity signature; no quarantine removal, Gatekeeper bypass or system policy changes are performed. Release notes disclose missing publisher signatures and possible OS warnings/blocks. This does not guarantee a frictionless first installation.
+
+`UPDATE_SIGNING_KEY` remains required for both host indexes and independently installed app packages/catalogs. Its matching public key must be committed before CI builds the first trusted host. The eight Apple/Windows secrets are deferred, not required by the current path. Both auto-release switches remain false until this one-time trust setup and native CI succeed. Future OS signing must switch preparation and assembly together to `required` and re-enable notarization/Gatekeeper validation; missing credentials must never silently trigger an unsigned fallback. Browser installation may require platform-supported user approval; never automate bypasses.

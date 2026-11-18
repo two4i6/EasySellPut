@@ -63,6 +63,8 @@ def check(workflows):
     require("github.ref == 'refs/heads/main'" in prepare['jobs']['packages'].get('if', ''), 'Signing must explicitly require main')
     commands = '\n'.join(step.get('run', '') for step in prepare['jobs']['packages']['steps'])
     require('dotnet publish' not in commands and 'pack-desktop.py' not in commands and 'pack-cli.' not in commands, 'Release cannot rebuild application packages')
+    require('--platform-signing none' in commands and prepare['jobs']['packages']['env'].get('PLATFORM_SIGNING') == 'none', 'Publisher signing is explicitly deferred, never inferred from missing secrets')
+    require(any('assemble.py' in step.get('run', '') and '--platform-signing none' in step['run'] for step in prepare['jobs']['draft']['steps']), 'Release provenance must disclose the selected publisher-signing policy')
     require('check_desktop_package.py' in commands and 'cli_mcp_smoke.py' in commands and 'stapler validate' in commands, 'Final signed packages need native execution and notarization checks')
     require(set(ci['jobs']['required']['needs']) == {'cli', 'ui', 'desktop', 'release-policy', 'qqq-gex'}, 'All job families must remain required')
     require(ci['jobs']['required']['name'] == GATE_NAME, 'Aggregate check name differs from release policy')

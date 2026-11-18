@@ -182,6 +182,7 @@ def main():
     parser.add_argument('--output', type=pathlib.Path, required=True)
     parser.add_argument('--rid', required=True, choices=('linux-x64', 'win-x64', 'osx-x64', 'osx-arm64'))
     parser.add_argument('--version', required=True)
+    parser.add_argument('--platform-signing', choices=('required', 'none'), default='required', help='Explicit distribution policy; never inferred from missing credentials')
     args = parser.parse_args()
     if os.environ.get('GITHUB_REF') != 'refs/heads/main':
         raise ValueError('Signing is restricted to main')
@@ -197,8 +198,9 @@ def main():
     with tempfile.TemporaryDirectory(prefix='release signing ') as temp:
         scratch = pathlib.Path(temp)
         packages = [verified_package(args.packages, name) for name in names]
-        if args.rid == 'linux-x64':
-            # Linux artifacts stay byte-for-byte identical; the release index authenticates them.
+        if args.rid == 'linux-x64' or args.platform_signing == 'none':
+            # Preserve tested bytes, including macOS ad-hoc integrity signatures.
+            # No Developer ID, notarization or Authenticode claim is made in none mode.
             for p in packages:
                 shutil.copy2(p, args.output / p.name)
                 shutil.copy2(p.with_suffix(p.suffix + '.sha256'), args.output)

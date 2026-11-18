@@ -56,7 +56,7 @@ jobs:
           if-no-files-found: error
 
   packages:
-    name: ${{ matrix.label }} · Sign & Verify
+    name: ${{ matrix.label }} · Verify package
     if: github.ref == 'refs/heads/main' && needs.source.outputs.skip != 'true'
     needs: source
     runs-on: ${{ matrix.os }}
@@ -90,6 +90,7 @@ jobs:
       RUN_ID: ${{ needs.source.outputs.run_id }}
       RID: ${{ matrix.rid }}
       DESKTOP_ARTIFACT: ${{ matrix.desktop }}
+      PLATFORM_SIGNING: none
     steps:
       - name: Checkout tested source
         uses: actions/checkout@v4
@@ -112,7 +113,7 @@ jobs:
             gh run download $env:RUN_ID --repo $env:GITHUB_REPOSITORY --name $env:DESKTOP_ARTIFACT --dir "$env:RUNNER_TEMP/input/desktop"
             if ($LASTEXITCODE -ne 0) { throw 'Desktop artifact download failed' }
           }
-      - name: Sign & notarize packages
+      - name: Prepare packages (publisher signing deferred)
         env:
           APPLE_CERTIFICATE_P12_BASE64: ${{ runner.os == 'macOS' && secrets.APPLE_CERTIFICATE_P12_BASE64 || '' }}
           APPLE_CERTIFICATE_PASSWORD: ${{ runner.os == 'macOS' && secrets.APPLE_CERTIFICATE_PASSWORD || '' }}
@@ -124,9 +125,9 @@ jobs:
           WINDOWS_CERTIFICATE_PASSWORD: ${{ runner.os == 'Windows' && secrets.WINDOWS_CERTIFICATE_PASSWORD || '' }}
         run: |
           $version = ([xml](Get-Content Directory.Build.props -Raw)).Project.PropertyGroup.Version
-          python build/release/sign-packages.py --packages "$env:RUNNER_TEMP/input" --output build/out/release --rid $env:RID --version $version
-          if ($LASTEXITCODE -ne 0) { throw 'Platform signing/notarization failed; unsigned fallback is prohibited' }
-      - name: Test final signed packages
+          python build/release/sign-packages.py --packages "$env:RUNNER_TEMP/input" --output build/out/release --rid $env:RID --version $version --platform-signing none
+          if ($LASTEXITCODE -ne 0) { throw 'Explicit package preparation failed' }
+      - name: Test final packages
         run: |
           $hostRid = if ($IsWindows) { 'win' } elseif ($IsMacOS) { 'osx' } else { 'linux' }
           $hostRid += '-' + [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant()
@@ -145,7 +146,7 @@ jobs:
             python tests/automation/check_desktop_package.py --archive "build/out/release/EasySellPut-Desktop-$version-$env:RID.zip" --rid $env:RID --extract-to 'build/out/release desktop extracted with spaces'
             if ($LASTEXITCODE -ne 0) { throw 'Signed GUI, updater or bundled automation failed' }
           }
-          if ($IsMacOS) {
+          if ($IsMacOS -and $env:PLATFORM_SIGNING -eq 'required') {
             $app = (Get-ChildItem 'build/out/release desktop extracted with spaces' -Recurse -Filter EasySellPut.app -Directory | Select-Object -First 1).FullName
             xcrun stapler validate $app
             if ($LASTEXITCODE -ne 0) { throw 'Extracted app lost its notarization ticket' }
@@ -197,7 +198,7 @@ jobs:
           path: ${{ runner.temp }}/release-packages
       - name: Assemble release assets
         id: manifest
-        run: python3 build/release/assemble.py --packages "$RUNNER_TEMP/release-packages" --plan "$RUNNER_TEMP/release-source.json" --output "$RUNNER_TEMP/release-assets"
+        run: python3 build/release/assemble.py --packages "$RUNNER_TEMP/release-packages" --plan "$RUNNER_TEMP/release-source.json" --output "$RUNNER_TEMP/release-assets" --platform-signing none
       - name: Sign update & release indexes
         env:
           UPDATE_SIGNING_KEY: ${{ secrets.UPDATE_SIGNING_KEY }}
@@ -221,7 +222,7 @@ jobs:
           from policy import current_main, require
           require(current_main(os.environ['GITHUB_REPOSITORY'])==os.environ['TESTED_SHA'],'main advanced before draft creation')
           notes=os.environ['RELEASE_NOTES'] or subprocess.check_output(['gh','api','repos/'+os.environ['GITHUB_REPOSITORY']+'/commits/'+os.environ['TESTED_SHA'],'--jq','.commit.message'],text=True)
-          pathlib.Path(os.environ['RUNNER_TEMP'],'release-notes.md').write_text(notes+'\n\nSource: '+os.environ['TESTED_SHA']+'\nCI run: '+os.environ['RUN_ID']+'\n',encoding='utf-8')
+          pathlib.Path(os.environ['RUNNER_TEMP'],'release-notes.md').write_text(notes+'\n\nDistribution: Windows publisher signing and Apple Developer ID/notarization are not included. macOS retains ad-hoc integrity signing. Operating systems may warn or block opening. Update indexes and app packages remain cryptographically signed.\n\nSource: '+os.environ['TESTED_SHA']+'\nCI run: '+os.environ['RUN_ID']+'\n',encoding='utf-8')
           PY
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then echo 'Version already exists; bump Version for a new release. No overwrite.'; exit 1; fi
           existing=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG" --jq .object.sha 2>/dev/null || true)
