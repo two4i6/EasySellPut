@@ -259,6 +259,7 @@ public sealed record Fundamentals : SourcedData
 /// <summary>One source period. Actual and consensus are separate; a future estimate is not a reported result.</summary>
 public sealed record EarningsObservation
 {
+    public string? Currency { get; init; } // Only when the estimate/history source declares it.
     public required string Metric { get; init; } // EPS or Revenue
     public required string Period { get; init; } // source label, never a fabricated fiscal quarter
     public DateOnly? PeriodEnd { get; init; }

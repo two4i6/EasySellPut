@@ -43,3 +43,11 @@ The visual captures deliberately use labelled synthetic periods and amounts, not
 A deliberate live AAPL CLI check on 2026-11-18 returned Yahoo/USD, four EPS history comparisons and eight EPS/revenue consensus rows covering current/next quarter and fiscal year (twelve rows total). This demonstrates one successful free-source request, not a coverage guarantee. Quarter and fiscal-year charts are separated, with source period-end dates; no annual/quarterly magnitude comparison is implied.
 
 Local visual follow-up checks: Data 162 passed (15 opt-in live checks skipped), Shared 138 passed, full Avalonia 145 passed (one opt-in live check skipped), updated split/personal-session journeys 4 passed, WPF cross-build passed and workflow policy validation passed. One concurrent Shared run hit an existing source-health timing deadline; the complete Shared suite passed on the isolated rerun. Actual signed A/B CLI/persistent-MCP forecast parity passed. WPF native execution is still delegated to full Windows CI, not inferred from cross-build.
+
+### Final integrated evidence
+
+Code revision `8f8b87b` completed the local offline suite `run-9mFGAUY5`: 1,072 .NET cases passed (two additional Windows-only cases skipped on Linux), SDK/Python guards and all 58 real CLI/MCP capability cases, plus cache maintenance, signed news/liquidity/GEX A/B, isolated development, persistent MCP and cross-process maintenance journeys. This clean run supersedes the intermediate logging/inventory failures recorded during development.
+
+Windows x64, macOS Intel and macOS Apple Silicon desktop/package/updater jobs passed at the same revision. [Actual Windows WebView2 reader, 1920×1080 desktop capture](screenshots/news-native-windows-reader-1920.png) uses a local fixture publisher; the native browser is real, while article/quote content is synthetic. It demonstrates the full-height outer split, minimal browser actions and safe caption-button spacing.
+
+Consensus/history currencies are now taken only from each source observation. Charts split further by declared currency; a company’s financial-reporting currency is never substituted for an undeclared estimate currency. Mixed USD/CNY and unknown-currency regressions protect ADR/foreign-reporting cases. The existing complete WPF suite passed all 165 cases in the native Windows evidence above.

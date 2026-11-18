@@ -7,7 +7,6 @@ public partial class NewsViewModel
     {
         var old=SelectedFinancialChart?.Title;
         FinancialCharts.Clear();EstimateCharts.Clear();
-        var currency=_lastFundamentals?.FinancialCurrency;
         FinancialBasis=$"{_loc["Nf_Actual"]} · {_financials?.Source ?? "—"} · {_loc["Nf_ProviderUnits"]}";
         var selected=(_financials?.Lines??[]).Where(x=>x.Annual==Annual && double.IsFinite(x.Value)).ToArray();
         foreach(var item in Enum.GetValues<FinancialStatementKind>().SelectMany(StatementTable.ItemsFor))
@@ -24,8 +23,9 @@ public partial class NewsViewModel
         var earnings=_lastFundamentals?.Earnings??[];
         foreach(var metric in new[]{"EPS","Revenue"})
         foreach(var annual in new[]{false,true})
+        foreach(var currency in earnings.Where(x=>x.Metric==metric && x.Annual==annual).Select(x=>x.Currency).Distinct())
         {
-            var rows=earnings.Where(x=>x.Metric==metric && x.Annual==annual).ToArray();if(rows.Length==0)continue;
+            var rows=earnings.Where(x=>x.Metric==metric && x.Annual==annual && x.Currency==currency).ToArray();if(rows.Length==0)continue;
             var title=(metric=="EPS"?_loc["Nf_EPS"]:_loc["Nf_TotalRevenue"])+" · "+_loc[annual?"Nf_Annual":"Nf_Quarterly"];
             var unit=string.IsNullOrWhiteSpace(currency)?_loc["Nf_CurrencyUnknown"]:currency;
             EstimateCharts.Add(FinancialChart.Build(title,$"{unit} · {_loc["Nf_Consensus"]}",rows.Select(x=>

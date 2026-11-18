@@ -153,7 +153,7 @@ public partial class NewsViewModel : ObservableObject
                 Rows=outlook.Select(x=>(IReadOnlyList<string>)[x.Metric,x.Period,x.PeriodEnd?.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture)??"",x.Annual.ToString(),x.IsForecast.ToString(),
                     x.Actual?.ToString("R",CultureInfo.InvariantCulture)??"",x.Estimate?.ToString("R",CultureInfo.InvariantCulture)??"",
                     x.Low?.ToString("R",CultureInfo.InvariantCulture)??"",x.High?.ToString("R",CultureInfo.InvariantCulture)??"",x.Analysts?.ToString(CultureInfo.InvariantCulture)??"",
-                    x.Source,x.FetchedAt?.ToString("u",CultureInfo.InvariantCulture)??"",_lastFundamentals.FinancialCurrency??""]).ToList()
+                    x.Source,x.FetchedAt?.ToString("u",CultureInfo.InvariantCulture)??"",x.Currency??""]).ToList()
             });
         if (News.Count > 0)
             tables.Add(new ExportTable

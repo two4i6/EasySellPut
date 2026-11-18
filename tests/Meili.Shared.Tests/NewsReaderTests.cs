@@ -23,14 +23,17 @@ public sealed class NewsReaderTests
     {
         Ui.Platform=new FakeUiPlatform();var directory=Path.Combine(Path.GetTempPath(),"news-outlook-"+Guid.NewGuid().ToString("N"));
         var data=new PricingSnapshotTests.SnapshotData{Fundamentals=new Meili.Core.Models.Fundamentals{Symbol="AAPL",Source="yahoo",FinancialCurrency="USD",Earnings=[
-            new(){Metric="EPS",Period="2025-12-31",Actual=-1,Estimate=0,Source="yahoo"},
-            new(){Metric="EPS",Period="+1q",PeriodEnd=new(2026,3,31),IsForecast=true,Estimate=2,Low=1,High=3,Analysts=10,Source="yahoo"},
+            new(){Currency="USD",Metric="EPS",Period="2025-12-31",Actual=-1,Estimate=0,Source="yahoo"},
+            new(){Currency="USD",Metric="EPS",Period="+1q",PeriodEnd=new(2026,3,31),IsForecast=true,Estimate=2,Low=1,High=3,Analysts=10,Source="yahoo"},
             new(){Metric="Revenue",Period="+1y",Annual=true,IsForecast=true,Estimate=123e9,Source="yahoo"},
-            new(){Metric="EPS",Period="+1y",Annual=true,IsForecast=true,Estimate=8,Source="yahoo"}]}};
+            new(){Metric="EPS",Period="+1y",Annual=true,IsForecast=true,Estimate=8,Source="yahoo"},
+            new(){Currency="CNY",Metric="EPS",Period="+1q",IsForecast=true,Estimate=33,Source="yahoo"}]}};
         var model=new NewsViewModel(new WatchlistStore(new SettingsStore(directory)),data,new LocalizationService(),new SymbolContext());
         try
         {
-            await model.LoadAsync();Assert.Equal(3,model.EstimateCharts.Count);
+            await model.LoadAsync();Assert.Equal(4,model.EstimateCharts.Count);
+            Assert.Equal(33,Assert.Single(model.EstimateCharts.Single(c=>c.Subtitle.StartsWith("CNY")).Points).Estimate);
+            Assert.DoesNotContain("USD",model.EstimateCharts.Single(c=>c.Points.Count==1&&c.Points[0].Estimate==8).Subtitle);
             Assert.DoesNotContain(model.EstimateCharts[0].Points,p=>p.Estimate==8);
             var eps=model.EstimateCharts[0];Assert.Equal(-1,eps.Points[0].Actual);Assert.Equal(0,eps.Points[0].Estimate);Assert.Null(eps.Points[1].Actual);Assert.Contains("USD",eps.Subtitle);Assert.Contains("yahoo",eps.Points[1].Detail);
             data.Fundamentals=new(){Symbol="SPY",Source="yahoo"};model.SymbolText="SPY";await model.LoadAsync();

@@ -21,7 +21,7 @@ public sealed partial class YahooProvider
             var actual=Number(h,"epsActual");var estimate=Number(h,"epsEstimate");
             if(date is null || (actual is null && estimate is null))continue;
             rows.Add(new(){Metric="EPS",Period=date.Value.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture),PeriodEnd=date,
-                Actual=actual,Estimate=estimate,Source="yahoo",FetchedAt=fetchedAt});
+                Currency=h.Str("currency"),Actual=actual,Estimate=estimate,Source="yahoo",FetchedAt=fetchedAt});
         }
         foreach(var t in r.Path("earningsTrend","trend").Items().Take(12))
         {
@@ -32,7 +32,7 @@ public sealed partial class YahooProvider
                 if(avg is null && low is null && high is null)continue;
                 var analysts=Number(estimate,"numberOfAnalysts");
                 rows.Add(new(){Metric=metric,Period=period,PeriodEnd=Date(t.Str("endDate")),IsForecast=true,Annual=period.EndsWith("y",StringComparison.Ordinal),
-                    Estimate=avg,Low=low,High=high,Analysts=analysts is >=0 and <=100000?(int)analysts.Value:null,Source="yahoo",FetchedAt=fetchedAt});
+                    Currency=estimate?.Str("currency"),Estimate=avg,Low=low,High=high,Analysts=analysts is >=0 and <=100000?(int)analysts.Value:null,Source="yahoo",FetchedAt=fetchedAt});
             }
         }
         return rows.DistinctBy(r=>(r.Metric,r.Period,r.IsForecast)).OrderBy(r=>r.IsForecast).ThenBy(r=>r.PeriodEnd).ThenBy(r=>r.Period,StringComparer.Ordinal).ToArray();

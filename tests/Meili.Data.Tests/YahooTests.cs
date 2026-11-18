@@ -25,10 +25,10 @@ public class YahooTests
     {
         using var json=System.Text.Json.JsonDocument.Parse("""
         {"quoteSummary":{"result":[{"earningsHistory":{"history":[
-          {"quarter":{"fmt":"2025-09-30"},"epsActual":{"raw":0},"epsEstimate":{"raw":-0.2}},
+          {"currency":"USD","quarter":{"fmt":"2025-09-30"},"epsActual":{"raw":0},"epsEstimate":{"raw":-0.2}},
           {"quarter":{"fmt":"2025-06-30"},"epsActual":{"raw":-0.5}},
           {"epsActual":{"raw":1}}]},"earningsTrend":{"trend":[
-          {"period":"+1q","endDate":"2026-03-31","earningsEstimate":{"avg":{"raw":2.5},"low":{"raw":2},"high":{"raw":3},"numberOfAnalysts":{"raw":12}},"revenueEstimate":{"avg":{"raw":2000000000}}},
+          {"period":"+1q","endDate":"2026-03-31","earningsEstimate":{"currency":"USD","avg":{"raw":2.5},"low":{"raw":2},"high":{"raw":3},"numberOfAnalysts":{"raw":12}},"revenueEstimate":{"avg":{"raw":2000000000}}},
           {"period":"+1y","earningsEstimate":{"avg":null,"low":{"raw":3}}}]}}]}}
         """);
         var fetched=DateTimeOffset.Parse("2026-11-18T00:00:00Z");
@@ -37,6 +37,7 @@ public class YahooTests
         var zero=Assert.Single(rows.Where(r=>r.Actual==0));Assert.Equal(-.2,zero.Estimate);Assert.False(zero.IsForecast);
         var missing=Assert.Single(rows.Where(r=>r.Actual==-.5));Assert.Null(missing.Estimate);
         var future=Assert.Single(rows.Where(r=>r.Metric=="EPS"&&r.Period=="+1q"));
+        Assert.Equal("USD",future.Currency);Assert.Null(Assert.Single(rows.Where(r=>r.Metric=="Revenue")).Currency);
         Assert.Null(future.Actual);Assert.True(future.IsForecast);Assert.Equal(2.5,future.Estimate);Assert.Equal(12,future.Analysts);Assert.Equal(2,future.Low);Assert.Equal(3,future.High);
         Assert.All(rows,r=>{Assert.Equal("yahoo",r.Source);Assert.Equal(fetched,r.FetchedAt);});
         var annual=Assert.Single(rows.Where(r=>r.Period=="+1y"));Assert.Null(annual.Estimate);Assert.True(annual.Annual);Assert.False(future.Annual);
