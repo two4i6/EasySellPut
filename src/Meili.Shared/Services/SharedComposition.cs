@@ -46,6 +46,7 @@ public static class SharedComposition
         s.AddTransient<DashboardViewModel>();
         s.AddTransient<QuotePanelViewModel>();
         s.AddSingleton<WatchlistViewModel>();
+        s.AddSingleton<MarketWorkspaceViewModel>();
         s.AddSingleton<ChartsViewModel>();
         s.AddSingleton<OptionsViewModel>();
         s.AddSingleton<StrategyViewModel>();

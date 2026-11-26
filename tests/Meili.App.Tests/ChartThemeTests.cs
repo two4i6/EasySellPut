@@ -7,6 +7,7 @@ using ScottPlot.WPF;
 using Meili.App.Services;
 using Meili.App.Views.Pages;
 using Meili.Core.Settings;
+using Meili.Shared.Services;
 using MColor = System.Windows.Media.Color;
 
 namespace Meili.App.Tests;
@@ -95,7 +96,7 @@ public class ChartThemeTests
                     reader.OpenArticle("file:///blocked", "Blocked");
                     Assert.Equal(System.Windows.Visibility.Visible, status.Visibility);
                     Assert.Equal(loc["Reader_Blocked"], status.Text);
-                    Assert.All(toolbar.Children.OfType<Wpf.Ui.Controls.Button>(), b => Assert.True(b.FontSize >= 14 && b.MinHeight >= 32));
+                    Assert.All(toolbar.Children.OfType<Wpf.Ui.Controls.Button>(), b => Assert.True(b.FontSize >= DesignTypography.Size(14) && b.MinHeight >= 32));
                 }
                 loc.Apply("en-US");
                 Assert.Equal(loc["Reader_Blocked"], status.Text);

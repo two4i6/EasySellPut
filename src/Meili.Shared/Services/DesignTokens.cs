@@ -71,6 +71,12 @@ public static class DesignTokens
         Series6: 0xFFC2C0B6,
         PreMarketTint: 0x22CBCADB,
         AfterHoursTint: 0x22EBC9B7);
+    public const double FontSize13 = 13;
+    public const double FontSize14 = 14;
+    public const double FontSize18 = 18;
+    public const double FontSize22 = 22;
+    public const double FontSize26 = 26;
+    public const double FontSize32 = 32;
     public const double CaptionFontSize = 12;
     public const double BodyFontSize = 15;
     public const double SubtitleFontSize = 16;
@@ -92,6 +98,20 @@ public static class DesignTokens
     public const double MotionEnterMs = 220;
     public const double FormFieldWidth = 260;
     public const double WindowHeaderHeight = 36;
+    internal static IEnumerable<(string Key, double Size)> FontSizes { get; } = new (string, double)[]
+    {
+        (nameof(FontSize13), FontSize13),
+        (nameof(FontSize14), FontSize14),
+        (nameof(FontSize18), FontSize18),
+        (nameof(FontSize22), FontSize22),
+        (nameof(FontSize26), FontSize26),
+        (nameof(FontSize32), FontSize32),
+        (nameof(CaptionFontSize), CaptionFontSize),
+        (nameof(BodyFontSize), BodyFontSize),
+        (nameof(SubtitleFontSize), SubtitleFontSize),
+        (nameof(TitleFontSize), TitleFontSize),
+        (nameof(DisplayFontSize), DisplayFontSize),
+    };
     public static IEnumerable<(string Key,uint Argb)> ComponentBrushes(bool dark) => dark ? DarkBrushes : LightBrushes;
     private static readonly (string Key,uint Argb)[] LightBrushes =
     [

@@ -42,6 +42,7 @@ public partial class App : Application
         foreach(var (key,family) in new[]{("AppFont","Anthropic Sans"),("NumberFont","Anthropic Sans"),("HeadingFont","Anthropic Serif"),("CodeFont","Anthropic Mono")})
             if(System.Windows.Media.Fonts.SystemFontFamilies.Any(f=>f.Source==family))Resources[key]=new System.Windows.Media.FontFamily(family);
         var settings = AppServices.Get<SettingsStore>().Load();
+        NativeTypography.Initialize(settings.TextSizePercent);
         AppServices.Get<LocalizationService>().Apply(settings.Language);
         ThemeService.ApplyUpDownColors(settings.EffectiveUpDownColors());
         // E1: until the user picks colours, they follow the interface language.

@@ -117,7 +117,7 @@ public partial class OptionsViewModel : ObservableObject
     {
         _active = true;
         if (_context.ShouldAdopt(SymbolText)) { await AdoptContextAsync(); return; }
-        if (Rows.Count == 0) await LoadAsync();
+        if (Rows.Count == 0 || _loadedSymbol != SymbolText) await LoadAsync();
         else _timer.Start();
     }
 
@@ -132,7 +132,7 @@ public partial class OptionsViewModel : ObservableObject
     {
         _active = false;
         _timer.Stop();
-        _cts?.Cancel();
+        CancelLoad();
     }
 
     private void RebuildWatchSymbols()
@@ -244,12 +244,22 @@ public partial class OptionsViewModel : ObservableObject
         TableChanged?.Invoke(this, EventArgs.Empty);
     }
 
+    private void CancelLoad()
+    {
+        var previous = _cts;
+        _cts = null;
+        previous?.Cancel();
+        previous?.Dispose();
+        IsBusy = false;
+    }
+
     public async Task LoadAsync(bool refreshOnly = false)
     {
         if (!WatchlistStore.TryNormalizeSymbol(SymbolText, out var symbol, out _))
         {
             if (!refreshOnly)
             {
+                CancelLoad();
                 _lastError = _loc["Op_InvalidSymbol"];
                 ClearTable();
                 UpdateStatus();
@@ -258,9 +268,21 @@ public partial class OptionsViewModel : ObservableObject
         }
         SymbolText = symbol;
         _context.Set(symbol);
+        CancelLoad();
+        if (_loadedSymbol is { } previous && previous != symbol)
+        {
+            ClearTable();
+            Expirations.Clear();
+            SelectedExpiration = null;
+            TermPoints = [];
+            _ivRank = null;
+            RelabelIvRank();
+            _lastChain = null;
+            _loadedSymbol = null;
+            Spot = null;
+        }
         IsBusy = true;
         if (!refreshOnly || Rows.Count == 0) StatusText = _loc["Op_Loading"];
-        _cts?.Cancel();
         _cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
         var request = _cts;
         var ct = request.Token;
@@ -371,6 +393,7 @@ public partial class OptionsViewModel : ObservableObject
     private void ClearTable()
     {
         _allRows = [];
+        SelectedRow = null;
         Rows.Clear();
         SmilePoints = [];
         HasRows = false;

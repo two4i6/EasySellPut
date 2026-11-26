@@ -16,7 +16,7 @@ public sealed class NewsReaderWindow : Window
     public NewsReaderWindow()
     {
         Width = 1050; Height = 760; MinWidth = 640; MinHeight = 400;
-        FontSize = 14;
+        this.WithFontSize(14);
         this.Bind(BackgroundProperty, new DynamicResourceExtension("ApplicationBackgroundBrush"));
         this.Bind(ForegroundProperty, new DynamicResourceExtension("TextFillColorPrimaryBrush"));
         this.Bind(FontFamilyProperty, new DynamicResourceExtension("AppFont"));
@@ -28,7 +28,7 @@ public sealed class NewsReaderWindow : Window
         _address.Bind(TextBox.BorderBrushProperty, new DynamicResourceExtension("ControlStrokeColorDefaultBrush"));
         _status.Margin = new Thickness(12, 0, 12, 8);
         _status.Padding = new Thickness(12, 8);
-        _status.FontSize = 12;
+        _status.WithFontSize(12);
         _status.Bind(TextBlock.ForegroundProperty, new DynamicResourceExtension("TextFillColorSecondaryBrush"));
         _status.Bind(TextBlock.BackgroundProperty, new DynamicResourceExtension("InfoBarBrush"));
         _status.IsVisible = false;
@@ -37,7 +37,7 @@ public sealed class NewsReaderWindow : Window
         foreach (var button in new[] { _back, _forward, _reload, _external })
         {
             button.Margin = new Thickness(0, 0, 6, 6); button.Padding = new Thickness(12, 6);
-            button.FontSize = 14; button.MinHeight = 32; button.CornerRadius = new CornerRadius(6);
+            button.WithFontSize(14); button.MinHeight = 32; button.CornerRadius = new CornerRadius(6);
             toolbar.Children.Add(button);
         }
         DockPanel.SetDock(toolbar, Dock.Top); root.Children.Add(toolbar);

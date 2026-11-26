@@ -157,7 +157,7 @@ public sealed class SmokeRunner
         });
         await CheckAsync("quote-panel",async()=>
         {
-            using var model=new QuotePanelViewModel(AppServices.Get<Meili.Core.Quotes.QuoteHub>(),AppServices.Get<Meili.Core.Abstractions.IMarketDataService>(),AppServices.Get<WatchlistStore>(),AppServices.Get<SymbolContext>(),AppServices.Get<LocalizationService>());
+            using var model=new QuotePanelViewModel(AppServices.Get<Meili.Core.Quotes.QuoteHub>(),AppServices.Get<Meili.Core.Abstractions.IMarketDataService>(),AppServices.Get<WatchlistStore>(),AppServices.Get<SymbolContext>(),AppServices.Get<LocalizationService>(),AppServices.Get<SettingsStore>());
             var panel=new Meili.App.Views.QuotePanelWindow(model,_=>{},()=>{},()=>{});
             var pending=panel.ShowPanelAsync();await Task.Delay(150);
             if(!panel.IsVisible || model.Rows.Count==0)throw new InvalidOperationException("Native quote panel unavailable");

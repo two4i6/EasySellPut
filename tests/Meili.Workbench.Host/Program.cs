@@ -14,7 +14,14 @@ var chartVm=chartMode?await WorkbenchFixture.CreateChartAsync(directory,args.Con
 var palette=WorkbenchFixture.Palette(true);
 using var session=chartMode?new WebChartSession(chartVm!):new WebChartSession(vm!);
 if(vm is not null){vm.ChartChanged+=(_,_)=>session.Update(palette);vm.WhatIfChanged+=(_,_)=>session.Update(palette);}
-if(chartVm is not null)chartVm.PlotChanged+=(_,_)=>session.Update(palette);
+if (chartVm is not null)
+{
+    chartVm.PlotChanged += (_, _) => session.Update(palette);
+    chartVm.PropertyChanged += (_, args) =>
+    {
+        if (args.PropertyName == nameof(ChartsViewModel.DrawMode)) session.Update(palette);
+    };
+}
 session.Update(palette);
 Console.WriteLine(JsonSerializer.Serialize(new{url=session.PageUri.AbsoluteUri}));
 var pump=Pump();
@@ -24,6 +31,8 @@ while(await Console.In.ReadLineAsync() is { } line)
     var command=line;
     if(command is "draw-horizontal" or "draw-trend" && chartVm is not null)queue.Writer.TryWrite(()=>{chartVm.StartDrawingCommand.Execute(command=="draw-horizontal"?Meili.Core.Settings.DrawingKind.HorizontalLine:Meili.Core.Settings.DrawingKind.TrendLine);session.Update(palette);});
     if(command=="opened")queue.Writer.TryWrite(()=>Console.WriteLine(JsonSerializer.Serialize(((QueuedUi)Ui.Platform).OpenedArticles)));
+    if (command.StartsWith("text-size ", StringComparison.Ordinal) && int.TryParse(command.AsSpan(10), out var size))
+        queue.Writer.TryWrite(() => DesignTypography.Apply(size));
     if(command is "light" or "dark")queue.Writer.TryWrite(()=>{palette=WorkbenchFixture.Palette(command=="dark");session.Update(palette);});
     if(command is "en-US" or "zh-CN")queue.Writer.TryWrite(()=>LocalizationService.Current.Apply(command));
 }

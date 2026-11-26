@@ -64,7 +64,8 @@
     const plot=$('payoff'),points=state.curve.filter(p=>finite(p.price)&&finite(p.expiry));plot.replaceChildren();
     $('emptyCurve').hidden=points.length>1;text('emptyCurve',state.legs.length?label('Unavailable'):label('Empty'));plot.style.display=points.length>1?'block':'none';$('priceSlider').disabled=points.length<2;
     if(points.length<2){domain=null;return;}
-    const width=Math.max(plot.clientWidth,360),height=Math.max(plot.clientHeight,180),left=62,right=14,top=18,bottom=34;
+    const textScale = state.theme.textScale ?? 1, fontSize = 12 * textScale;
+    const width=Math.max(plot.clientWidth,360),height=Math.max(plot.clientHeight,180),left=62*textScale,right=14,top=18*textScale,bottom=34*textScale;
     plot.setAttribute('viewBox',`0 0 ${width} ${height}`);plot.setAttribute('aria-label',label('Curve'));
     const fullLow=points[0].price,fullHigh=points.at(-1).price;
     if(!viewport||viewport.high-viewport.low>=fullHigh-fullLow)viewport={low:fullLow,high:fullHigh};
@@ -78,8 +79,8 @@
     for(let i=0;i<=4;i++){
       const price=low+(high-low)*i/4,pnl=min+(max-min)*i/4;
       plot.append(svg('line',{x1:left,y1:y(pnl),x2:width-right,y2:y(pnl),stroke:state.theme.grid}));
-      plot.append(svg('text',{x:left-6,y:y(pnl)+4,'text-anchor':'end',fill:state.theme.muted,'font-size':12},number(pnl,0)));
-      plot.append(svg('text',{x:x(price),y:height-10,'text-anchor':i===0?'start':i===4?'end':'middle',fill:state.theme.muted,'font-size':12},number(price,1)));
+      plot.append(svg('text',{x:left-6,y:y(pnl)+fontSize/3,'text-anchor':'end',fill:state.theme.muted,'font-size':fontSize},number(pnl,0)));
+      plot.append(svg('text',{x:x(price),y:height-10,'text-anchor':i===0?'start':i===4?'end':'middle',fill:state.theme.muted,'font-size':fontSize},number(price,1)));
     }
     const data=field=>points.filter(p=>finite(p[field])).map((p,i)=>(i?'L':'M')+x(p.price)+','+y(p[field])).join(' ');
     plot.append(svg('line',{x1:left,y1:y(0),x2:width-right,y2:y(0),stroke:state.theme.muted,'stroke-dasharray':'4 4'}));
@@ -92,7 +93,8 @@
   function render(next){
     if(state?.symbol!==next.symbol||!next.curve.length)viewport=null;
     state=next;clearTimeout(pendingTimer);lock(false);document.documentElement.lang=state.language;document.documentElement.dataset.reducedMotion=String(state.theme.reducedMotion===true);document.documentElement.style.colorScheme=state.theme.dark?'dark':'light';
-    const t=state.theme;for(const [k,v]of Object.entries({brand:t.brand,focus:t.focus,link:t.link,input:t.input,hover:t.hover,pressed:t.pressed,danger:t.danger,background:t.background,text:t.text,muted:t.muted,control:t.control,border:t.border,accent:t.accent,up:t.up,down:t.down,'error-background':t.errorBackground,'error-text':t.errorText}))document.documentElement.style.setProperty('--'+k,v);
+    const t=state.theme;document.documentElement.style.setProperty('--text-scale', t.textScale ?? 1);
+    for(const [k,v]of Object.entries({brand:t.brand,focus:t.focus,link:t.link,input:t.input,hover:t.hover,pressed:t.pressed,danger:t.danger,background:t.background,text:t.text,muted:t.muted,control:t.control,border:t.border,accent:t.accent,up:t.up,down:t.down,'error-background':t.errorBackground,'error-text':t.errorText}))document.documentElement.style.setProperty('--'+k,v);
     text('context',[state.headline,state.sourceText,state.delayText,state.model].filter(Boolean).join(' · '));message(state.message||'');
     for(const [id,k]of Object.entries({chainTitle:'Chain',legsTitle:'Legs',nearLabel:'Near',clear:'Clear',draft:'Draft',curveTitle:'Curve',fit:'Fit'}))text(id,label(k));
     text('draft',label('Draft')+(state.draftSymbol?' · '+state.draftSymbol:''));

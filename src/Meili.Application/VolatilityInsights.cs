@@ -43,6 +43,20 @@ public sealed class VolatilityInsights(IIvSource iv, IMarketDataService data, Ri
         }, ct).ConfigureAwait(false);
     }
 
+    /// <summary>Aligns observed daily IV to daily candles without mixing volatility bases or filling missing dates.</summary>
+    public static (string Basis, double[] Percent)? RecordedDailyIv(MarketDb db, BarSeries series, DateTimeOffset now)
+    {
+        if (series.Interval != BarInterval.Day1 || series.Bars.Count == 0) return null;
+        var samples = db.LoadIvSamples(series.Symbol, series.Bars[0].Time.AddDays(-1))
+            .Where(sample => sample.T <= now && double.IsFinite(sample.Iv) && sample.Iv > 0).ToArray();
+        var basis = samples.Any(sample => sample.Kind == nameof(IvBasis.Iv30)) ? nameof(IvBasis.Iv30) : nameof(IvBasis.AtmNearest30);
+        var daily = samples.Where(sample => sample.Kind == basis)
+            .GroupBy(sample => DateOnly.FromDateTime(MarketClock.ToEastern(sample.T)))
+            .ToDictionary(day => day.Key, day => day.MaxBy(sample => sample.T).Iv * 100);
+        var aligned = series.Bars.Select(bar => daily.GetValueOrDefault(DateOnly.FromDateTime(MarketClock.ToEastern(bar.Time)), double.NaN)).ToArray();
+        return aligned.Any(double.IsFinite) ? (basis, aligned) : null;
+    }
+
     /// <summary>ATM IV of the nearest <see cref="TermExpirations"/> expirations.</summary>
     public async Task<IReadOnlyList<TermPoint>> TermStructureAsync(string symbol, IReadOnlyList<DateOnly> expirations, double spot, DateTimeOffset now, CancellationToken ct)
     {

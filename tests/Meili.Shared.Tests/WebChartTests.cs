@@ -3,7 +3,10 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using Meili.Core.Models;
+using Meili.Core.Quotes;
 using Meili.Core.Settings;
+using Meili.Core.Time;
+using Meili.Data.Cache;
 using Meili.Shared.ViewModels;
 
 namespace Meili.Shared.Tests;
@@ -87,6 +90,136 @@ public sealed class WebChartTests : IDisposable
         Assert.True(session.IsPageUrl(session.PageUri.AbsoluteUri));
         Assert.False(session.IsPageUrl("https://untrusted.example/"));
         Assert.False(session.IsPageUrl(new Uri(root, "state").AbsoluteUri));
+    }
+    [Fact]
+    public async Task Sidebar_width_is_validated_and_reopened_from_desktop_settings()
+    {
+        await _vm.LoadAsync();
+        using var session = new WebChartSession(_vm);
+        session.Update(_palette);
+        using var client = new HttpClient(new HttpClientHandler { UseProxy = false });
+
+        async Task<HttpStatusCode> Resize(double width)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(session.PageUri, "event"))
+            { Content = new ByteArrayContent(JsonSerializer.SerializeToUtf8Bytes(new { kind = "resize-sidebar", width })) };
+            request.Content.Headers.ContentType = new("application/json");
+            request.Headers.Add("Origin", session.Origin);
+            using var response = await client.SendAsync(request);
+            return response.StatusCode;
+        }
+
+        Assert.Equal(HttpStatusCode.BadRequest, await Resize(199));
+        Assert.Equal(HttpStatusCode.BadRequest, await Resize(621));
+        Assert.Equal(HttpStatusCode.BadRequest, await Resize(414.5));
+        Assert.Null(_vm.RightSidebarWidth);
+        Assert.Equal(HttpStatusCode.NoContent, await Resize(414));
+        Assert.Equal(414, new SettingsStore(_directory).Load().Charts.RightSidebarWidth);
+
+        using var reopened = new WebChartSession(_vm);
+        reopened.Update(_palette);
+        using var state = JsonDocument.Parse(await client.GetStringAsync(new Uri(reopened.PageUri, "state")));
+        Assert.Equal(414, state.RootElement.GetProperty("data").GetProperty("sidebarWidth").GetInt32());
+    }
+
+    [Fact]
+    public void Two_hour_period_anchors_to_each_extended_and_regular_session()
+    {
+        DateTimeOffset At(int hour, int minute) => MarketClock.FromEastern(new DateTime(2025, 1, 6, hour, minute, 0));
+        var source = new BarSeries { Symbol = "AAPL", Source = "fixture", Interval = BarInterval.Minute30,
+            Adjustment = PriceAdjustment.Split,
+            Bars = [Bar.CloseOnly(At(9, 0), 100, 1), Bar.CloseOnly(At(9, 30), 101, 2),
+                    Bar.CloseOnly(At(10, 0), 102, 3), Bar.CloseOnly(At(11, 30), 103, 4),
+                    Bar.CloseOnly(At(15, 30), 104, 5), Bar.CloseOnly(At(16, 0), 105, 6)] };
+        var target = ChartsViewModel.ProjectRange(source, ChartRangeKind.Hour2);
+        Assert.Equal(BarInterval.Minute30, ChartsViewModel.BuildRequest("AAPL", ChartRangeKind.Hour2).Interval);
+        Assert.Equal(BarInterval.Hour2, target.Interval);
+        Assert.Equal(new[] { At(8, 0), At(9, 30), At(11, 30), At(15, 30), At(16, 0) }, target.Bars.Select(bar => bar.Time));
+        Assert.Equal(102, target.Bars[1].Close);
+        Assert.Equal(5, target.Bars[1].Volume);
+        Assert.True(target.Bars[1].Incomplete);
+        Assert.Equal(source.Adjustment, target.Adjustment);
+    }
+
+    [Fact]
+    public void Daily_iv_keeps_data_gaps_and_does_not_mix_option_volatility_bases()
+    {
+        DateTimeOffset Date(int day, int hour) => MarketClock.FromEastern(new DateTime(2025, 1, day, hour, 0, 0));
+        var db = new MarketDb(Path.Combine(_directory, "chart-iv.db"));
+        db.AddIvSample("AAPL", Date(6, 14), "Iv30", .20, "cboe");
+        db.AddIvSample("AAPL", Date(6, 15), "Iv30", .21, "cboe");
+        db.AddIvSample("AAPL", Date(7, 15), "AtmNearest30", .26, "derived");
+        db.AddIvSample("AAPL", Date(8, 15), "Iv30", .30, "cboe");
+        var series = new BarSeries { Symbol = "AAPL", Interval = BarInterval.Day1,
+            Bars = Enumerable.Range(6, 3).Select(day => Bar.CloseOnly(Date(day, 9), 100, 1)).ToArray() };
+        var iv = VolatilityInsights.RecordedDailyIv(db, series, Date(8, 12));
+        Assert.NotNull(iv);
+        Assert.Equal("Iv30", iv.Value.Basis);
+        Assert.Equal(21, iv.Value.Percent[0], 7);
+        Assert.All(iv.Value.Percent.Skip(1), value => Assert.True(double.IsNaN(value)));
+    }
+
+    [Fact]
+    public async Task Sidebar_indicators_use_aligned_calculations_and_typed_toggles()
+    {
+        await _vm.LoadAsync();
+        using var session = new WebChartSession(_vm);
+        session.Update(_palette);
+        using var client = new HttpClient(new HttpClientHandler { UseProxy = false });
+        async Task<HttpStatusCode> Toggle(string id, string key)
+        {
+            using var message = new HttpRequestMessage(HttpMethod.Post, new Uri(session.PageUri, "event"))
+            { Content = new ByteArrayContent(JsonSerializer.SerializeToUtf8Bytes(new { kind = "toggle-study", id, key })) };
+            message.Content.Headers.ContentType = new("application/json");
+            message.Headers.Add("Origin", session.Origin);
+            using var response = await client.SendAsync(message);
+            return response.StatusCode;
+        }
+
+        Assert.Equal(HttpStatusCode.BadRequest, await Toggle("unsupported", _vm.ChartKey));
+        Assert.Equal(HttpStatusCode.NoContent, await Toggle("dma", "old"));
+        Assert.False(_vm.StudyEnabled("dma"));
+        Assert.Equal(HttpStatusCode.NoContent, await Toggle("dma", _vm.ChartKey));
+        Assert.True(_vm.StudyEnabled("dma"));
+        using var snapshot = JsonDocument.Parse(WebChartSnapshot.Serialize(_vm, _palette));
+        var dma = snapshot.RootElement.GetProperty("studies").EnumerateArray().Single(study => study.GetProperty("id").GetString() == "dma");
+        Assert.False(dma.GetProperty("overlay").GetBoolean());
+        var line = dma.GetProperty("lines")[0].GetProperty("values");
+        Assert.Equal(JsonValueKind.Null, line[48].ValueKind);
+        Assert.Equal(20, line[49].GetDouble(), 7);
+        Assert.Equal(120, line.GetArrayLength());
+    }
+
+    [Fact]
+    public async Task Chart_quote_channel_tracks_the_selected_symbol_without_revising_the_candles()
+    {
+        await _vm.LoadAsync();
+        var loc = new LocalizationService();
+        var data = new PricingSnapshotTests.SnapshotData();
+        var context = new SymbolContext();
+        context.Set("AAPL");
+        var workspace = new MarketWorkspaceViewModel(context, new WatchlistStore(new SettingsStore(_directory)),
+            new QuoteHub(data), loc, data);
+        using var session = new WebChartSession(_vm, workspace);
+        session.Update(_palette);
+        using var client = new HttpClient(new HttpClientHandler { UseProxy = false });
+        var owner = new object();
+        workspace.Activate(owner, watchlistVisible: false);
+        try
+        {
+            using var first = JsonDocument.Parse(await client.GetStringAsync(new Uri(session.PageUri, "quote")));
+            Assert.Equal("AAPL", first.RootElement.GetProperty("symbol").GetString());
+            Assert.Equal(workspace.Current!.Price, first.RootElement.GetProperty("price").GetString());
+
+            context.Set("NVDA");
+            await workspace.RefreshAsync();
+            using var next = JsonDocument.Parse(await client.GetStringAsync(new Uri(session.PageUri, "quote")));
+            Assert.Equal("NVDA", next.RootElement.GetProperty("symbol").GetString());
+            Assert.Equal(workspace.Current!.Source, next.RootElement.GetProperty("source").GetString());
+            using var state = await client.GetAsync(new Uri(session.PageUri, "state?after=1"));
+            Assert.Equal(HttpStatusCode.NoContent, state.StatusCode);
+        }
+        finally { workspace.Deactivate(owner); }
     }
     [Fact]
     public async Task Only_current_chart_typed_drawing_gestures_reach_existing_drawing_store()

@@ -733,12 +733,16 @@
       "operation": "add_chart_drawing",
       "arguments": {
         "symbol": "AAPL",
-        "kind": "HorizontalLine",
-        "price1": 123.45
+        "kind": "PriceRange",
+        "price1": 123.45,
+        "price2": 131.5
       },
       "expect": {
         "/data/drawings/0/price1": {
           "equals": 123.45
+        },
+        "/data/drawings/0/kind": {
+          "equals": "PriceRange"
         }
       },
       "compare": [
@@ -771,8 +775,12 @@
         "symbol": "AAPL",
         "index": 0,
         "revision": "${drawingRevision}",
-        "kind": "HorizontalLine",
-        "price1": 125.5
+        "kind": "LongPosition",
+        "price1": 125.5,
+        "time1": "2025-01-06T14:30:00Z",
+        "price2": 132,
+        "time2": "2025-01-08T14:30:00Z",
+        "stopPrice": 120
       },
       "expect": {
         "/data/drawings/0/price1": {
@@ -780,6 +788,12 @@
         },
         "/data/total": {
           "equals": 1
+        },
+        "/data/drawings/0/kind": {
+          "equals": "LongPosition"
+        },
+        "/data/drawings/0/stopPrice": {
+          "equals": 120
         }
       },
       "compare": [
@@ -825,6 +839,7 @@
     {
       "operation": "update_preferences",
       "arguments": {
+        "textSizePercent": 125,
         "language": "en-US",
         "pricing": {
           "rateMode": "Fixed",
@@ -838,6 +853,9 @@
         "closeAction": "MinimizeToTray"
       },
       "expect": {
+        "/data/textSizePercent": {
+          "equals": 125
+        },
         "/data/language": {
           "equals": "en-US"
         },
@@ -855,6 +873,7 @@
         }
       },
       "compare": [
+        "/data/textSizePercent",
         "/data/language",
         "/data/pricing",
         "/data/charts",

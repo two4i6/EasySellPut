@@ -14,6 +14,9 @@ class SessionTests(unittest.TestCase):
                 browser=browser_tool.chromium.launch(headless=True,**({'executable_path':os.environ['MEILI_CHROMIUM']} if os.environ.get('MEILI_CHROMIUM') else {}))
                 page=browser.new_page(viewport=dict(width=1320,height=850));errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
                 page.goto(url);page.wait_for_function('()=>meiliChart?.inspect().state?.rows.length===192 && meiliChart.inspect().sessionLayers.length===5')
+                self.assertEqual(page.evaluate('meiliChart.inspect().state.theme.textScale'), 0.9)
+                self.assertAlmostEqual(page.evaluate('meiliChart.inspect().chart.options().layout.fontSize'), 10.8)
+                self.assertGreaterEqual(page.locator('#toolbar').bounding_box()['height'], 44)
                 sessions=page.evaluate('meiliChart.inspect().state.rows.map(r=>r.session)')
                 self.assertEqual(sessions.count('PreMarket'),66);self.assertEqual(sessions.count('Regular'),78);self.assertEqual(sessions.count('AfterHours'),48)
                 self.assertEqual(page.evaluate('meiliChart.inspect().sessionBands.length'),2)
@@ -26,14 +29,14 @@ class SessionTests(unittest.TestCase):
                     if directory:
                         pathlib.Path(directory).mkdir(parents=True,exist_ok=True);page.screenshot(path=str(pathlib.Path(directory)/(name+'.png')))
                 page.wait_for_timeout(180);capture('sessions-dark')
-                pixels=page.evaluate("""()=>{const {chart,state}=meiliChart.inspect(),context=chart.takeScreenshot().getContext('2d');return [65,101,149].map(index=>[...context.getImageData(Math.round(chart.timeScale().timeToCoordinate(state.rows[index].time)),15,1,1).data])}""")
+                pixels=page.evaluate("""()=>{const {chart,state}=meiliChart.inspect(),context=chart.takeScreenshot().getContext('2d');return [65,101,149].map(index=>[...context.getImageData(Math.round(chart.timeScale().timeToCoordinate(state.rows[index].time)),72,1,1).data])}""")
                 self.assertEqual(len({tuple(pixel) for pixel in pixels}),3,pixels)
 
                 # Verify the primitive draws a pane-wide vertical band at actual bar coordinates.
                 result=page.evaluate('''()=>{const {sessionLayers,sessionBands,state}=meiliChart.inspect();return sessionLayers.map(layer=>{const fills=[];layer.primitive.paneViews()[0].renderer().draw({useBitmapCoordinateSpace:draw=>draw({horizontalPixelRatio:2,bitmapSize:{width:2400,height:160},context:{set fillStyle(v){this.color=v},fillRect(x,y,w,h){fills.push({x,y,w,h,color:this.color})}}})});return fills})}''')
                 self.assertTrue(all(len(fills)==2 and all(f['h']==160 and f['w']>0 for f in fills) for fills in result),result)
                 page.mouse.move(600,250);page.mouse.wheel(0,-120);page.wait_for_timeout(160)
-                zoomed=page.evaluate("""()=>{const {chart,state}=meiliChart.inspect(),context=chart.takeScreenshot().getContext('2d');return [65,101,149].map(index=>[...context.getImageData(Math.round(chart.timeScale().timeToCoordinate(state.rows[index].time)),15,1,1).data])}""")
+                zoomed=page.evaluate("""()=>{const {chart,state}=meiliChart.inspect(),context=chart.takeScreenshot().getContext('2d');return [65,101,149].map(index=>[...context.getImageData(Math.round(chart.timeScale().timeToCoordinate(state.rows[index].time)),72,1,1).data])}""")
                 self.assertEqual(zoomed,pixels)
                 process.stdin.write('light\nen-US\n');process.stdin.flush()
                 page.wait_for_function('()=>!meiliChart.inspect().state.theme.dark && meiliChart.inspect().state.language==="en-US"')

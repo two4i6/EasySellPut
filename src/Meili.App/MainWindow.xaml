@@ -13,7 +13,7 @@
                  Background="{DynamicResource ApplicationBackgroundBrush}"
                  WindowCornerPreference="Round"
                  FontFamily="{DynamicResource AppFont}"
-                 FontSize="{StaticResource BodyFontSize}"
+                 FontSize="{DynamicResource BodyFontSize}"
                  Typography.NumeralAlignment="Tabular"
                  Icon="pack://application:,,,/MeiliTerminal;component/Assets/app.ico">
     <Grid>
@@ -27,7 +27,7 @@
                      Background="{DynamicResource ApplicationBackgroundBrush}"
                      Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                      ButtonsForeground="{DynamicResource TextFillColorPrimaryBrush}"
-                     FontFamily="{DynamicResource AppFont}" FontSize="{StaticResource CaptionFontSize}">
+                     FontFamily="{DynamicResource AppFont}" FontSize="{DynamicResource CaptionFontSize}">
         </ui:TitleBar>
 
         <Grid Grid.Row="1" x:Name="WorkspaceGrid"><Grid.ColumnDefinitions><ColumnDefinition Width="64"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
@@ -107,8 +107,13 @@
         <Border x:Name="StatusBarSurface" Grid.Row="2" Padding="16,6" BorderThickness="0,1,0,0"
                 BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
                 Background="{DynamicResource LayerFillColorDefaultBrush}">
-            <DockPanel LastChildFill="False">
-                <StackPanel x:Name="ShellUtilities" DockPanel.Dock="Right" Orientation="Horizontal" Margin="12,0,0,0" VerticalAlignment="Center">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel x:Name="ShellUtilities" Grid.Column="2" Orientation="Horizontal" Margin="12,0,0,0" VerticalAlignment="Center">
                     <ToggleButton x:Name="SettingsButton" Style="{StaticResource StatusToggle}" Click="OnSettings" ToolTip="{DynamicResource Nav_Settings}" AutomationProperties.Name="{DynamicResource Nav_Settings}"/>
                     <Button x:Name="LanguageButton" Style="{StaticResource StatusAction}" Click="OnToggleLanguage" ToolTip="{DynamicResource Title_ToggleLanguage}" AutomationProperties.Name="{DynamicResource Title_ToggleLanguage}"/>
                     <Button x:Name="ThemeButton" Style="{StaticResource StatusAction}" Click="OnToggleTheme" ToolTip="{DynamicResource Title_ToggleTheme}" AutomationProperties.Name="{DynamicResource Title_ToggleTheme}"/>
@@ -116,13 +121,13 @@
                     <ToggleButton x:Name="MotionButton" Style="{StaticResource StatusToggle}" Click="OnToggleMotion" ToolTip="{DynamicResource Web_Motion}" AutomationProperties.Name="{DynamicResource Web_Motion}"/>
                 </StackPanel>
 
-                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Ellipse Width="8" Height="8" Margin="0,0,8,0" Fill="{Binding SessionBrush}" />
-                    <TextBlock Style="{StaticResource Caption}" Text="{Binding SessionText}" FontWeight="SemiBold" Margin="0,0,14,0" />
-                    <TextBlock Style="{StaticResource Caption}" Text="{Binding ClockText}" />
-                </StackPanel>
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button x:Name="McpStatusIndicator" Command="{Binding CopyMcpSetupCommand}" Height="20" MinHeight="0" MinWidth="0" Padding="4,0" Margin="0,0,12,0" Background="Transparent" BorderThickness="0" ToolTip="{Binding McpStatusTip}" AutomationProperties.AutomationId="McpStatusIndicator" AutomationProperties.Name="{DynamicResource Set_AiUniversal}" Cursor="Hand">
+                <DockPanel VerticalAlignment="Center" Margin="0,0,12,0">
+                    <Ellipse DockPanel.Dock="Left" Width="8" Height="8" Margin="0,0,8,0" Fill="{Binding SessionBrush}" />
+                    <TextBlock DockPanel.Dock="Left" Style="{StaticResource Caption}" Text="{Binding SessionText}" FontWeight="SemiBold" Margin="0,0,14,0" />
+                    <TextBlock Style="{StaticResource Caption}" Text="{Binding ClockText}" TextTrimming="CharacterEllipsis" ToolTip="{Binding ClockText}" />
+                </DockPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button x:Name="McpStatusIndicator" Command="{Binding CopyMcpSetupCommand}" MinHeight="20" MinWidth="0" Padding="4,0" Margin="0,0,12,0" Background="Transparent" BorderThickness="0" ToolTip="{Binding McpStatusTip}" AutomationProperties.AutomationId="McpStatusIndicator" AutomationProperties.Name="{DynamicResource Set_AiUniversal}" Cursor="Hand">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center"><Ellipse Width="6" Height="6" Margin="0,0,6,0" Fill="{Binding McpStatusBrush}"/><TextBlock Style="{StaticResource Caption}" Text="{Binding McpStatusText}" TextWrapping="NoWrap"/><lucide:LucideIcon Kind="Copy" Width="10" Height="10" Margin="6,0,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}"/></StackPanel>
                     </Button>
                     <Ellipse Width="8" Height="8" Margin="0,0,6,0" Fill="{Binding SourcesBrush}" />
@@ -130,7 +135,7 @@
 
 
                 </StackPanel>
-            </DockPanel>
+            </Grid>
         </Border>
     </Grid>
 </ui:FluentWindow>

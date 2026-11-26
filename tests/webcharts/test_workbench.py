@@ -91,6 +91,18 @@ class WorkbenchTests(unittest.TestCase):
         p.set_viewport_size(dict(width=480,height=900))
         self.assertEqual(p.locator('#workspace').evaluate('(e)=>getComputedStyle(e).gridTemplateColumns').count(' '),0)
         self.assertLessEqual(p.locator('body').evaluate('(e)=>e.scrollWidth'),480)
+        self.command('text-size 150')
+        try:
+            self.wait(p, 'meiliWorkbench.inspect().state.theme.textScale === 1.35')
+            self.assertEqual(p.locator('#chain th').first.evaluate('(e)=>getComputedStyle(e).fontSize'), '16.2px')
+            self.assertAlmostEqual(float(p.locator('#payoff text').first.get_attribute('font-size')), 16.2)
+            self.assertLessEqual(p.locator('body').evaluate('(e)=>e.scrollWidth'),480)
+            output=os.environ.get('MEILI_RENDER_DIR')
+            if output:
+                p.screenshot(path=str(pathlib.Path(output)/'workbench-text-150.png'))
+        finally:
+            self.command('text-size 100')
+            self.wait(p, 'meiliWorkbench.inspect().state.theme.textScale === 0.9')
         p.set_viewport_size(dict(width=1440,height=900));self.command('zh-CN');self.command('dark');self.wait(p,'meiliWorkbench.inspect().state.language === "zh-CN"')
         self.assertFalse(self.errors)
 

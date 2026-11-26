@@ -19,6 +19,21 @@ public class SettingsTests : IDisposable
         Assert.Equal(s.Watchlist, s.WatchlistGroups.Single().Symbols);
     }
 
+    [Theory]
+    [InlineData(110, 110)]
+    [InlineData(125, 125)]
+    [InlineData(150, 150)]
+    [InlineData(160, 100)]
+    public void TextSizeUsesSupportedChoicesAndPersists(int input, int expected)
+    {
+        Directory.CreateDirectory(_dir);
+        File.WriteAllText(Path.Combine(_dir, "settings.json"), "{}");
+        var store = new SettingsStore(_dir);
+        Assert.Equal(100, store.Load().TextSizePercent);
+        store.Update(settings => settings.TextSizePercent = input);
+        Assert.Equal(expected, new SettingsStore(_dir).Load().TextSizePercent);
+    }
+
     [Fact]
     public void SaveThenLoad_RoundTrips()
     {

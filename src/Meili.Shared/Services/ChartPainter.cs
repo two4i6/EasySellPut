@@ -13,7 +13,7 @@ namespace Meili.Shared.Services;
 /// <summary>Themes the remaining ScottPlot option/strategy plots. K-lines use TradingView in WebView.</summary>
 public sealed class ChartPainter
 {
-    private const float FontSize = 12f;
+    private static float FontSize => (float)DesignTypography.Size(DesignTokens.CaptionFontSize);
 
     /// <summary>A font with CJK glyphs, set by each front end ("Microsoft YaHei UI" on Windows, "PingFang SC" on macOS).</summary>
     public static string FontName { get; set; } = "Microsoft YaHei UI";
@@ -38,7 +38,7 @@ public sealed class ChartPainter
         p.Axes.Left.Label.FontName = FontName;
         p.Axes.Left.Label.FontSize = FontSize;
         p.Axes.Title.Label.FontName = FontName; // E4: the default title font has no CJK glyphs ("IV 微笑" drew as boxes)
-        p.Axes.Title.Label.FontSize = FontSize + 1;
+        p.Axes.Title.Label.FontSize = (float)DesignTypography.Size(DesignTokens.FontSize13);
         p.Legend.FontName = FontName;
         p.Legend.FontSize = FontSize;
         p.Legend.BackgroundColor = dataBg;

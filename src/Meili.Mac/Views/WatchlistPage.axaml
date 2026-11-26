@@ -24,7 +24,7 @@
                                     CommandParameter="{Binding Id}">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
-                                    <TextBlock Text="{Binding Count, StringFormat='({0})'}" FontSize="12" Margin="8,0,0,0" Opacity="0.85" VerticalAlignment="Center" />
+                                    <TextBlock Text="{Binding Count, StringFormat='({0})'}" FontSize="{DynamicResource CaptionFontSize}" Margin="8,0,0,0" Opacity="0.85" VerticalAlignment="Center" />
                                 </StackPanel>
                             </Button>
                         </DataTemplate>
@@ -70,7 +70,7 @@
                                             <StackPanel Orientation="Horizontal" Margin="4,2">
                                                 <TextBlock Text="{Binding Symbol}" FontWeight="SemiBold" Width="88" />
                                                 <TextBlock Text="{Binding Name}" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextTrimming="CharacterEllipsis" MaxWidth="200" />
-                                                <TextBlock Text="{Binding Exchange}" FontSize="12" Margin="12,0,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                                <TextBlock Text="{Binding Exchange}" FontSize="{DynamicResource CaptionFontSize}" Margin="12,0,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                                             </StackPanel>
                                         </DataTemplate>
                                     </ListBox.ItemTemplate>
@@ -119,7 +119,7 @@
                 <DataGridTemplateColumn local:Loc.Header="Wl_ColPrice" Width="110">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:WatchlistRowViewModel">
-                            <TextBlock Classes="Num" Text="{Binding PriceText}" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="8,0" />
+                            <TextBlock Classes="Num" Text="{Binding PriceText}" FontSize="{DynamicResource SubtitleFontSize}" FontWeight="SemiBold" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="8,0" />
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
@@ -127,7 +127,7 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:WatchlistRowViewModel">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0">
-                                <TextBlock Text="{Binding PriceTimeText}" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" ToolTip.Tip="{Binding TimingTip}" />
+                                <TextBlock Text="{Binding PriceTimeText}" FontSize="{DynamicResource CaptionFontSize}" Foreground="{DynamicResource TextFillColorSecondaryBrush}" ToolTip.Tip="{Binding TimingTip}" />
                                 <Border Classes="Stale" Margin="6,0,0,0" IsVisible="{Binding IsStale}" ToolTip.Tip="{Binding StaleTip}">
                                     <TextBlock Text="{DynamicResource Quote_Stale}" />
                                 </Border>

@@ -56,7 +56,7 @@
         "update_chart_drawing",
         "delete_chart_drawing"
       ],
-      "scope": "Business data and calculations are mapped; transient selection, the chart inspector, drawing-tool selection, responsive event panels, window layout, theme rendering and native navigation are presentation.",
+      "scope": "Business data and calculations are mapped; transient selection, chart display, historical bar replay, indicator visibility, drawing-tool selection, right sidebar tab selection and sizing, window layout, theme rendering and native navigation are presentation.",
       "commands": {
         "SelectRange": {
           "operations": [
@@ -190,6 +190,29 @@
         },
         "OpenWebsite": {
           "uiOnly": "Opening an external website is desktop-only; get_fundamentals provides the website."
+        }
+      }
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/MarketWorkspaceViewModel.cs",
+      "scope": "Shared desktop layout for Charts and Option chain. Watchlist groups, chart sidebar quotes and price history use existing operations. The persisted divider width, session metrics shown in the watchlist, and indicator overlays are desktop projections of existing bars.",
+      "operations": [
+        "get_quotes",
+        "get_watchlists",
+        "get_bars"
+      ],
+      "commands": {
+        "ApplyMiniIndicators": {
+          "uiOnly": "Saves moving-average and VWAP display preferences for the shared watchlist mini charts."
+        },
+        "SubmitSymbol": {
+          "uiOnly": "Commits the selected symbol to the desktop navigation context."
+        },
+        "Previous": {
+          "uiOnly": "Moves to the previous page of visible watchlist rows."
+        },
+        "Next": {
+          "uiOnly": "Moves to the next page of visible watchlist rows."
         }
       }
     },

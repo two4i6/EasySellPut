@@ -116,7 +116,7 @@ Discover the live schema before calling any tool; this guide does not replace ar
 | `build_strategy` | read | Build any desktop preset from caller-supplied listed reference quotes using the shared Analytics strike selection. No network/save; reference premiums are not executable quotes. |
 | `strategy_what_if` | read | Position and per-leg values/P&L/facts at an assumed price, with optional future horizon and IV shift. No GUI state/save. Mixed expiry requires valuationTime. |
 | `get_chart_drawings` | read | Read a symbol's persisted local horizontal/trend lines; does not control chart windows. |
-| `add_chart_drawing` | write | Persist a bounded horizontal/trend line in the shared drawing store with conflict protection. Trend lines need distinct time1/time2. |
+| `add_chart_drawing` | write | Persist a drawing per symbol. Timed tools use time1/time2. PriceRange uses only price1/price2. Positions use entry price1, target price2 and stopPrice. |
 | `update_chart_drawing` | write | Read get_chart_drawings first; use its revision and zero-based index to replace one line. Stale revisions fail; re-read and confirm before retrying. |
 | `delete_chart_drawing` | write | Read get_chart_drawings first; use its revision and zero-based index to remove only the intended line. Other lines remain; stale revisions fail. |
 | `clear_chart_drawings` | write | Clear persisted drawings for one symbol with conflict protection. |

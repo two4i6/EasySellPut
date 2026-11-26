@@ -20,7 +20,7 @@ public sealed class FormAlignmentTests
             foreach(var language in new[]{"zh-CN","en-US"})foreach(var dark in new[]{false,true})foreach(var width in new[]{980,1440})
             {
                 ScreenRenderTests.Apply(language,dark);var page=new SettingsPage();using var host=new OffscreenHost(page,width,980);await ScreenRenderTests.Settle();
-                var headers=UiAudit.Descendants<AppFormHeader>(page).ToList();Assert.Equal(10,headers.Count);
+                var headers=UiAudit.Descendants<AppFormHeader>(page).ToList();Assert.Equal(11,headers.Count);
                 foreach(var header in headers)
                 {
                     var title=UiAudit.Descendants<TextBlock>(header).First(t=>t.Text==header.Title);var help=UiAudit.Descendants<AppHelp>(header).Single();
@@ -47,6 +47,39 @@ public sealed class FormAlignmentTests
                 {
                     var title=UiAudit.Descendants<TextBlock>(header).First(t=>t.Text==header.Title);var help=UiAudit.Descendants<AppHelp>(header).Single();Assert.InRange(Math.Abs(Center(title,host.Root)-Center(help,host.Root)),0,1);
                 }
+            }
+        });
+    }
+
+    [Fact]
+    public void TextSizeSelectionUpdatesTheOpenWindowAndPersists()
+    {
+        WpfHost.Run(async () =>
+        {
+            var page = new SettingsPage();
+            using var host = new OffscreenHost(page, 980, 620, asMainWindow: true);
+            await ScreenRenderTests.Settle();
+            var picker = UiAudit.Descendants<AppSelect>(page).Single(control =>
+                System.Windows.Automation.AutomationProperties.GetAutomationId(control) == "SettingsTextSize");
+            var original = picker.SelectedIndex;
+            try
+            {
+                picker.SetCurrentValue(ComboBox.SelectedIndexProperty, 0);
+                await ScreenRenderTests.Settle();
+                Assert.Equal(13.5, picker.FontSize);
+                picker.SetCurrentValue(ComboBox.SelectedIndexProperty, 3);
+                await ScreenRenderTests.Settle();
+                Assert.Equal(20.25, picker.FontSize);
+                var store = AppServices.Get<Meili.Core.Settings.SettingsStore>();
+                Assert.Equal(150, new Meili.Core.Settings.SettingsStore(System.IO.Path.GetDirectoryName(store.FilePath)!).Load().TextSizePercent);
+                var header = UiAudit.Descendants<AppFormHeader>(Ancestor<AppCard>(picker)).Single();
+                var title = UiAudit.Descendants<TextBlock>(header).Single(text => text.Text == header.Title);
+                Assert.InRange(Math.Abs(Center(title, host.Root) - Center(picker, host.Root)), 0, 1);
+            }
+            finally
+            {
+                picker.SetCurrentValue(ComboBox.SelectedIndexProperty, original);
+                await ScreenRenderTests.Settle();
             }
         });
     }

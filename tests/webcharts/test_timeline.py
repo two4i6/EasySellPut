@@ -58,7 +58,10 @@ class TimelineTests(unittest.TestCase):
                 p.mouse.move(bounds['x']+point['x'],bounds['y']+point['y']);p.wait_for_timeout(100)
                 self.assertIn('28',p.locator('.tooltip-heading').inner_text())
                 p.mouse.click(bounds['x']+point['x'],bounds['y']+point['y']);p.wait_for_timeout(100)
+            p.locator('[data-view="quote"]').click()
+            self.assertTrue(p.locator('#quote-panel').is_visible())
             click_bucket()
+            self.assertFalse(p.locator('#quote-panel').is_visible())
             self.assertIn('28',p.locator('#event-group-label').inner_text())
             self.assertEqual(p.locator('#event-list [data-event-id]').count(),28)
             self.assertFalse(p.locator('#event-detail').is_visible())
@@ -161,7 +164,7 @@ class TimelineTests(unittest.TestCase):
             self.assertEqual(p.locator('#event-history').get_attribute('aria-label'),'History by date')
             p.set_viewport_size(dict(width=480,height=800));p.wait_for_timeout(100)
             self.assertLessEqual(p.locator('body').evaluate('(e)=>e.scrollWidth'),480)
-            self.assertTrue(p.locator('#attribution').is_visible())
+            self.assertFalse(p.locator('#attribution').is_visible())
             p.locator('#event-history button').nth(6).click();p.wait_for_timeout(80)
             self.assertEqual(p.locator('#event-history [aria-current]').get_attribute('data-day'),p.locator('#event-history button').nth(6).get_attribute('data-day'))
             self.capture('news-history-compact')
@@ -171,6 +174,31 @@ class TimelineTests(unittest.TestCase):
             self.process.stdin.write('dark\nzh-CN\n');self.process.stdin.flush()
             self.wait('meiliChart.inspect().state.language === "zh-CN" && meiliChart.inspect().state.theme.dark')
             p.set_viewport_size(dict(width=1280,height=900))
+
+    def test_indicator_bar_can_add_price_overlays_and_independent_panes(self):
+        page = self.browser.new_page(viewport=dict(width=1440,height=900))
+        enabled = ['bbi', 'sar', 'vwap', 'mavol', 'dma']
+        try:
+            page.goto(self.url)
+            page.wait_for_function("window.meiliChart?.inspect().state?.studies?.length >= 19")
+            page.locator('[data-study="dma"]').scroll_into_view_if_needed()
+            for study in enabled:
+                button = page.locator('[data-study="' + study + '"]')
+                button.click()
+                page.wait_for_function("id=>document.querySelector('[data-study='+id+']').getAttribute('aria-pressed')==='true'",arg=study)
+            self.assertTrue(page.evaluate("meiliChart.inspect().series['study-vwap-0'].data().some(p=>Number.isFinite(p.value))"))
+            self.assertTrue(page.evaluate("meiliChart.inspect().series['study-dma-0'].data().some(p=>Number.isFinite(p.value))"))
+            self.assertGreaterEqual(page.evaluate("meiliChart.inspect().chart.panes().length"), 3)
+            if directory := os.environ.get('MEILI_RENDER_DIR'):
+                page.locator('#study-strip').evaluate('(e)=>e.scrollLeft=0')
+                page.screenshot(path=str(pathlib.Path(directory)/'chart-study-workspace.png'))
+        finally:
+            for study in reversed(enabled):
+                button = page.locator('[data-study="' + study + '"]')
+                if button.count() and button.get_attribute('aria-pressed') == 'true':
+                    button.click()
+                    page.wait_for_function("id=>document.querySelector('[data-study='+id+']').getAttribute('aria-pressed')==='false'",arg=study)
+            page.close()
 
     def test_timeline_filters_marker_click_metadata_reader_theme_and_compact_layout(self):
         p=self.page
@@ -276,7 +304,7 @@ class TimelineTests(unittest.TestCase):
 
         p.set_viewport_size(dict(width=480,height=800));p.wait_for_timeout(150)
         self.assertLessEqual(p.locator('body').evaluate('(e)=>e.scrollWidth'),480)
-        self.assertTrue(p.locator('#attribution').is_visible());self.assertFalse(self.errors)
+        self.assertFalse(p.locator('#attribution').is_visible());self.assertFalse(self.errors)
         self.assertGreaterEqual(p.locator('#timeline').bounding_box()['x'],p.locator('#chart').bounding_box()['x']+p.locator('#chart').bounding_box()['width']-1)
         self.assertTrue(p.locator('#event-close').is_visible())
         self.capture('timeline-compact')

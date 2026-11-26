@@ -13,7 +13,7 @@ namespace Meili.Automation;
 
 public sealed partial class AutomationService
 {
-    private object PreferencesSnapshot(AppSettings s) => new { dataDirectory = DirectoryInfo, s.Language, s.Theme, s.UpDownColors, s.UpDownColorsChosen, s.CloseAction, s.GuideDismissed, s.StrategyHintDismissed, s.Pricing, s.Alerts, s.Charts, s.Options, proxyMode = s.Network.ProxyMode, network = new { s.Network.ProxyMode, s.Network.RequestTimeoutSeconds, s.Network.MaxRetries }, externalChanges = "Desktop reload/restart required; proxy URLs and credentials are excluded." };
+    private object PreferencesSnapshot(AppSettings s) => new { dataDirectory = DirectoryInfo, s.Language, s.Theme, s.TextSizePercent, s.UpDownColors, s.UpDownColorsChosen, s.CloseAction, s.GuideDismissed, s.StrategyHintDismissed, s.Pricing, s.Alerts, s.Charts, s.Options, proxyMode = s.Network.ProxyMode, network = new { s.Network.ProxyMode, s.Network.RequestTimeoutSeconds, s.Network.MaxRetries }, externalChanges = "Desktop reload/restart required; proxy URLs and credentials are excluded." };
     private static KlineIndicatorOptions IndicatorOptions(IndicatorSettings p) => new() { SmaPeriod = p.MaPeriod, EmaPeriod = p.EmaPeriod, BollingerPeriod = p.BollPeriod, BollingerMultiplier = p.BollWidth, MacdFast = p.MacdFast, MacdSlow = p.MacdSlow, MacdSignal = p.MacdSignal, RsiPeriod = p.RsiPeriod, KdjPeriod = p.KdjPeriod, KdjM1 = p.KdjM1, KdjM2 = p.KdjM2 };
     private static void ValidateIndicators(IndicatorSettings p) { if (p.MacdFast >= p.MacdSlow) throw new ArgumentException("MACD fast must be below slow."); }
     private static void Merge(JsonObject target, JsonObject patch)
@@ -49,6 +49,7 @@ public sealed partial class AutomationService
                     var store = Settings(); var node = JsonSerializer.SerializeToNode(store.Current, WireJson.Options)!.AsObject();
                     Merge(node, JsonNode.Parse(a.Value.GetRawText())!.AsObject());
                     var updated = node.Deserialize<AppSettings>(WireJson.Options)!; ValidateIndicators(updated.Charts.Indicators);
+                    if (!AppSettings.TextSizeChoices.Contains(updated.TextSizePercent)) throw new ArgumentException("Unsupported text size percentage.");
                     if (a.Has("upDownColors")) updated.UpDownColorsChosen = true;
                     store.Save(updated); return PreferencesSnapshot(store.Current);
                 }
@@ -83,12 +84,17 @@ public sealed partial class AutomationService
                     if (operation == "add_chart_drawing")
                     {
                         if (store.For(symbol).Count >= 200) throw new ArgumentException("At most 200 drawings per symbol.");
-                        var kind = Enum.Parse<DrawingKind>(a.Text("kind")); var first = a.Instant("time1"); var last = a.Instant("time2");
-                        if (kind == DrawingKind.TrendLine && (first is null || last is null || first == last || !a.Has("price2"))) throw new ArgumentException("Trend lines need time1, time2 and price2; timestamps must differ.");
-                        store.Add(symbol, new(kind, a.Number("price1"), first, a.Number("price2", 0), last));
+                        store.Add(symbol, ReadDrawing());
                     }
                     if (operation is "update_chart_drawing" or "delete_chart_drawing")
-                        store.Edit(symbol, a.Int("index", 0, 0, 199), operation == "delete_chart_drawing" ? null : new ChartDrawing(Enum.Parse<DrawingKind>(a.Text("kind")), a.Number("price1"), a.Instant("time1"), a.Number("price2", 0), a.Instant("time2")), a.Text("revision"));
+                        store.Edit(symbol, a.Int("index", 0, 0, 199), operation == "delete_chart_drawing" ? null : ReadDrawing(), a.Text("revision"));
+                    ChartDrawing ReadDrawing()
+                    {
+                        var kind = Enum.Parse<DrawingKind>(a.Text("kind"));
+                        if (kind.NeedsSecondAnchor() && !a.Has("price2"))
+                            throw new ArgumentException("Two-point drawings need price2.");
+                        return new ChartDrawing(kind, a.Number("price1"), a.Instant("time1"), a.Number("price2", 0), a.Instant("time2")) { StopPrice = a.OptionalNumber("stopPrice") };
+                    }
                     var revision = store.Revision(symbol);
                     var drawings = store.For(symbol);
                     var offset = a.Int("offset", 0, 0, int.MaxValue); var limit = a.Int("limit", operation == "get_chart_drawings" ? 100 : 200, 1, 500);

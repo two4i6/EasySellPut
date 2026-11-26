@@ -9,21 +9,21 @@
       xmlns:controls="clr-namespace:Meili.App.Views.Controls">
     <Page.Resources>
         <Style x:Key="StatValue" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="16" />
+            <Setter Property="FontSize" Value="{DynamicResource SubtitleFontSize}" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="FontFamily" Value="{DynamicResource NumberFont}" />
             <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
             <Setter Property="TextWrapping" Value="Wrap" />
         </Style>
         <Style x:Key="FinCell" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontSize" Value="{DynamicResource FontSize13}" />
             <Setter Property="FontFamily" Value="{DynamicResource NumberFont}" />
             <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
             <Setter Property="TextAlignment" Value="Right" />
         </Style>
         <DataTemplate x:Key="StatementTemplate">
             <StackPanel Visibility="{Binding HasData, Converter={StaticResource BoolToVis}}" Margin="0,0,0,4">
-                <TextBlock Style="{StaticResource CardTitle}" FontSize="15" Text="{Binding Title}" Margin="0,0,0,6" />
+                <TextBlock Style="{StaticResource CardTitle}" FontSize="{DynamicResource BodyFontSize}" Text="{Binding Title}" Margin="0,0,0,6" />
                 <Grid Margin="0,0,0,4">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="1.6*" />
@@ -49,7 +49,7 @@
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock FontSize="13" Text="{Binding Label}" TextWrapping="Wrap"
+                                <TextBlock FontSize="{DynamicResource FontSize13}" Text="{Binding Label}" TextWrapping="Wrap"
                                            Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                                 <TextBlock Grid.Column="1" Style="{StaticResource FinCell}" Text="{Binding V0}" />
                                 <TextBlock Grid.Column="2" Style="{StaticResource FinCell}" Text="{Binding V1}" />
@@ -70,13 +70,13 @@
                 <ui:Button DockPanel.Dock="Right" Appearance="Secondary" Padding="12,6" Margin="8,0,0,0" Command="{Binding ExportCommand}" ToolTip="{DynamicResource Nf_Export}">
                     <StackPanel Orientation="Horizontal">
                         <lucide:LucideIcon Kind="Download" Width="16" Height="16" Margin="0,0,6,0" />
-                        <TextBlock Text="{DynamicResource Nf_Export}" FontSize="14" />
+                        <TextBlock Text="{DynamicResource Nf_Export}" FontSize="{DynamicResource FontSize14}" />
                     </StackPanel>
                 </ui:Button>
                 <ui:Button DockPanel.Dock="Right" Appearance="Secondary" Padding="12,6" Margin="8,0,0,0" Command="{Binding RefreshCommand}" IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}">
                     <StackPanel Orientation="Horizontal">
                         <lucide:LucideIcon Kind="Refresh" Width="16" Height="16" Margin="0,0,6,0" />
-                        <TextBlock Text="{DynamicResource Nf_Refresh}" FontSize="14" />
+                        <TextBlock Text="{DynamicResource Nf_Refresh}" FontSize="{DynamicResource FontSize14}" />
                     </StackPanel>
                 </ui:Button>
                 <ui:Button DockPanel.Dock="Right" Appearance="Primary" Padding="14,6" Margin="8,0,0,0"
@@ -85,8 +85,8 @@
                           Text="{Binding SymbolText}" WatchSymbols="{Binding WatchSymbols}" CommitCommand="{Binding LoadFromBoxCommand}" />
             </DockPanel>
             <DockPanel Margin="0,0,0,6" LastChildFill="True">
-                <TextBlock Style="{StaticResource CardTitle}" FontSize="18" Text="{Binding Headline}" VerticalAlignment="Center" TextWrapping="Wrap" />
-                <TextBlock DockPanel.Dock="Right" FontSize="16" FontWeight="SemiBold" FontFamily="{DynamicResource NumberFont}"
+                <TextBlock Style="{StaticResource CardTitle}" FontSize="{DynamicResource FontSize18}" Text="{Binding Headline}" VerticalAlignment="Center" TextWrapping="Wrap" />
+                <TextBlock DockPanel.Dock="Right" FontSize="{DynamicResource SubtitleFontSize}" FontWeight="SemiBold" FontFamily="{DynamicResource NumberFont}"
                            Text="{Binding ChangeText}" Foreground="{Binding ChangeBrush}" VerticalAlignment="Center" Margin="16,0,0,0" />
             </DockPanel>
             <TextBlock Style="{StaticResource Caption}" Text="{Binding MetaText}" Margin="0,0,0,6" />
@@ -135,7 +135,7 @@
                                 <Run Text="{Binding WebsiteText}" />
                             </Hyperlink>
                         </TextBlock>
-                        <TextBlock Style="{StaticResource Body}" Text="{Binding Description}" TextWrapping="Wrap" FontSize="14" />
+                        <TextBlock Style="{StaticResource Body}" Text="{Binding Description}" TextWrapping="Wrap" FontSize="{DynamicResource FontSize14}" />
                     </StackPanel></ux:AppDisclosure>
 
                     <DockPanel Margin="0,16,0,8">
@@ -180,9 +180,9 @@
                                 <Button DockPanel.Dock="Right" Margin="8,0,0,0" VerticalAlignment="Top"
                                         Command="{Binding DataContext.OpenArticleCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
                                         CommandParameter="{Binding}"
-                                        FontSize="13"  Width="32" Height="32" MinWidth="32" MinHeight="32" Padding="0" AutomationProperties.Name="{DynamicResource Nf_OpenArticle}" ToolTip="{Binding Title}"><ux:LucideIcon Kind="ExternalLink" Width="18" Height="18"/></Button>
+                                        FontSize="{DynamicResource FontSize13}"  Width="32" Height="32" MinWidth="32" MinHeight="32" Padding="0" AutomationProperties.Name="{DynamicResource Nf_OpenArticle}" ToolTip="{Binding Title}"><ux:LucideIcon Kind="ExternalLink" Width="18" Height="18"/></Button>
                                 <StackPanel>
-                                    <TextBlock Text="{Binding Title}" FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap"
+                                    <TextBlock Text="{Binding Title}" FontSize="{DynamicResource FontSize14}" FontWeight="SemiBold" TextWrapping="Wrap"
                                                Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                                     <TextBlock Style="{StaticResource Caption}" Margin="0,4,0,0" ToolTip="{Binding TimeTip}">
                                         <Run Text="{Binding Publisher}" />

@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 using ScottPlot;
 using ScottPlot.WPF;
 using Meili.App.Services;
@@ -15,29 +16,47 @@ public partial class OptionsPage : Page
 {
     private readonly ThemeService _theme = AppServices.Get<ThemeService>();
     private readonly ChartPainter _themePaint = new();
+    private OptionColumnSet? _builtFor;
+    private string? _columnLanguage;
+    private int _columnTextSize;
+    private bool _showStrike = true;
 
     public OptionsPage()
     {
         InitializeComponent();
+        WorkspaceRoot.Children.Remove(WorkspaceSurface);
+        Workspace.WorkspaceContent = WorkspaceSurface;
         var vm = AppServices.Get<OptionsViewModel>();
         DataContext = vm;
         Loaded += async (_, _) =>
         {
-            RebuildColumns();
-            HighlightWindowButtons();
+            _showStrike = true;
+            vm.TableChanged += OnTableChanged;
+            ThemeService.ColorsChanged += OnColorsChanged;
+            DesignTypography.Changed += OnTextSizeChanged;
+            RefreshTable();
             await vm.ActivateAsync();
-            RenderSmile();
-            ScrollAtm();
+            if (IsLoaded) RefreshTable();
         };
-        Unloaded += (_, _) => vm.Deactivate();
-        vm.TableChanged += (_, _) => Dispatcher.Invoke(() =>
+        Unloaded += (_, _) =>
         {
-            RebuildColumns();
-            HighlightWindowButtons();
-            RenderSmile();
-            ScrollAtm();
-        });
-        ThemeService.ColorsChanged += (_, _) => Dispatcher.Invoke(RenderSmile);   // E5
+            vm.TableChanged -= OnTableChanged;
+            ThemeService.ColorsChanged -= OnColorsChanged;
+            DesignTypography.Changed -= OnTextSizeChanged;
+            vm.Deactivate();
+        };
+    }
+
+    private void OnTableChanged(object? sender, EventArgs e) => Dispatcher.Invoke(RefreshTable);
+    private void OnTextSizeChanged(object? sender, EventArgs e) => Dispatcher.Invoke(RefreshTable);
+    private void OnColorsChanged(object? sender, EventArgs e) => Dispatcher.Invoke(RenderSmile);
+
+    private void RefreshTable()
+    {
+        RebuildColumns();
+        HighlightWindowButtons();
+        RenderSmile();
+        ScrollAtm();
     }
 
     private OptionsViewModel Vm => (OptionsViewModel)DataContext;
@@ -73,14 +92,39 @@ public partial class OptionsPage : Page
 
     private void ScrollAtm()
     {
-        if (Vm.AtmRow is { } row)
-            ChainList.ScrollIntoView(row);
+        if (Vm.AtmRow is not { } row) return;
+        ChainList.ScrollIntoView(row);
+        if (!_showStrike) return;
+        Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () =>
+        {
+            if (!_showStrike || !IsLoaded || Vm.AtmRow != row) return;
+            if (FindScrollViewer(ChainList) is not { } scroll) return;
+            scroll.ScrollToHorizontalOffset(scroll.ScrollableWidth / 2);
+            _showStrike = false;
+        });
+    }
+
+    private static ScrollViewer? FindScrollViewer(DependencyObject parent)
+    {
+        for (var i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, i);
+            if (child is ScrollViewer scroll) return scroll;
+            if (FindScrollViewer(child) is { } descendant) return descendant;
+        }
+        return null;
     }
 
     /// <summary>H1/G4: columns come from <see cref="OptionColumns"/>; this method only turns definitions into cells.</summary>
     private void RebuildColumns()
     {
         var set = Vm.ColumnSet;
+        var language = LocalizationService.Current.Language;
+        if (_builtFor == set && _columnLanguage == language && _columnTextSize == DesignTypography.Percent) return;
+        _showStrike |= _builtFor != set || _columnTextSize != DesignTypography.Percent;
+        _columnTextSize = DesignTypography.Percent;
+        _builtFor = set;
+        _columnLanguage = language;
         var view = new GridView { AllowsColumnReorder = false };
         foreach (var c in OptionColumns.Side(call: true, set)) view.Columns.Add(Column(c, set, "Call", "CallItm", call: true));
         foreach (var c in OptionColumns.Middle(set)) view.Columns.Add(Column(c, set, null, null, call: true));
@@ -124,7 +168,7 @@ public partial class OptionsPage : Page
         }
         var tb = new FrameworkElementFactory(typeof(TextBlock));
         tb.SetBinding(TextBlock.TextProperty, new Binding(path));
-        tb.SetValue(TextBlock.FontSizeProperty, strike ? 14.0 : 12.0);
+        tb.SetResourceReference(TextBlock.FontSizeProperty, DesignTypography.ResourceKey(strike ? 14.0 : 12.0));
         if (strike) tb.SetValue(TextBlock.FontWeightProperty, FontWeights.SemiBold);
         tb.SetValue(TextBlock.TextAlignmentProperty, side is null ? TextAlignment.Center : TextAlignment.Right);
         tb.SetValue(TextBlock.FontFamilyProperty, (FontFamily)FindResource("NumberFont"));
@@ -146,7 +190,7 @@ public partial class OptionsPage : Page
         return new GridViewColumn
         {
             Header = Find(def.HeaderKey),
-            Width = OptionColumns.WidthOf(def, set),
+            Width = DesignTypography.Size(OptionColumns.WidthOf(def, set)),
             CellTemplate = new DataTemplate { VisualTree = factory },
         };
     }

@@ -27,7 +27,7 @@
                         <ui:Button Appearance="Transparent" Width="24" Height="24" MinWidth="24" MinHeight="24" Padding="0" DockPanel.Dock="Right" Content="{lucide:Lucide Close}" Command="{Binding CancelUpdateCommand}" AutomationProperties.Name="{DynamicResource Upd_Cancel}" ToolTip="{DynamicResource Upd_Cancel}" Margin="8,0,0,0"/>
                         <ProgressBar Minimum="0" Maximum="100" Value="{Binding UpdateProgress}" IsIndeterminate="{Binding IsUpdateIndeterminate}" Height="4" MinHeight="0" VerticalAlignment="Center"/>
                     </DockPanel>
-                    <Expander Background="{DynamicResource ControlFillColorSecondaryBrush}" Foreground="{DynamicResource TextFillColorPrimaryBrush}" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" Header="{DynamicResource Upd_Notes}" Visibility="{Binding HasUpdateNotes,Converter={StaticResource BoolToVis}}" HorizontalAlignment="Stretch" Margin="0,8,0,0"><TextBlock Text="{Binding UpdateNotes}" FontSize="14" FontWeight="Normal" TextWrapping="Wrap" Margin="0,8,0,0"/></Expander>
+                    <Expander Background="{DynamicResource ControlFillColorSecondaryBrush}" Foreground="{DynamicResource TextFillColorPrimaryBrush}" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" Header="{DynamicResource Upd_Notes}" Visibility="{Binding HasUpdateNotes,Converter={StaticResource BoolToVis}}" HorizontalAlignment="Stretch" Margin="0,8,0,0"><TextBlock Text="{Binding UpdateNotes}" FontSize="{DynamicResource FontSize14}" FontWeight="Normal" TextWrapping="Wrap" Margin="0,8,0,0"/></Expander>
                 </StackPanel>
             </Border>
 
@@ -55,6 +55,14 @@
                     <ComboBoxItem Content="{DynamicResource Set_ThemeLight}" />
                     <ComboBoxItem Content="{DynamicResource Set_ThemeDark}" />
                 </ds:AppSelect>
+            </ds:AppCard>
+            <ds:AppCard Margin="0,0,0,4">
+                <ds:AppCard.Header>
+                    <ux:AppFormHeader Title="{DynamicResource Set_TextSize}" HelpText="{DynamicResource Set_TextSizeDesc}"/>
+                </ds:AppCard.Header>
+                <ds:AppSelect Width="{StaticResource FormFieldWidth}" ItemsSource="{Binding TextSizeOptions}"
+                              SelectedIndex="{Binding TextSizeIndex, Mode=TwoWay}" AutomationProperties.AutomationId="SettingsTextSize"
+                              AutomationProperties.Name="{DynamicResource Set_TextSize}"/>
             </ds:AppCard>
             <ds:AppCard Margin="0,0,0,4" Icon="{lucide:Lucide ArrowUpDown}">
                 <ds:AppCard.Header>
@@ -163,7 +171,7 @@
                     <WrapPanel>
                         <Border Width="280" Padding="12" Margin="0,0,12,8" CornerRadius="6" BorderThickness="1" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" Background="{DynamicResource ControlFillColorSecondaryBrush}">
                             <StackPanel>
-                                <DockPanel Margin="0,0,0,12"><Button DockPanel.Dock="Right" Content="{lucide:Lucide Help}" Padding="0" Width="24" Height="24" MinWidth="24" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Command="{Binding OpenAiHelpCommand}" CommandParameter="codex" AutomationProperties.Name="{DynamicResource Set_AiHelp}" ToolTip="{DynamicResource Set_AiHelp}" Margin="8,0,0,0"/><TextBlock DockPanel.Dock="Right" Style="{StaticResource Caption}" Text="{Binding CodexAvailability}" VerticalAlignment="Center"/><TextBlock Style="{StaticResource CardTitle}" FontSize="16" Text="Codex" VerticalAlignment="Center"/></DockPanel>
+                                <DockPanel Margin="0,0,0,12"><Button DockPanel.Dock="Right" Content="{lucide:Lucide Help}" Padding="0" Width="24" Height="24" MinWidth="24" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Command="{Binding OpenAiHelpCommand}" CommandParameter="codex" AutomationProperties.Name="{DynamicResource Set_AiHelp}" ToolTip="{DynamicResource Set_AiHelp}" Margin="8,0,0,0"/><TextBlock DockPanel.Dock="Right" Style="{StaticResource Caption}" Text="{Binding CodexAvailability}" VerticalAlignment="Center"/><TextBlock Style="{StaticResource CardTitle}" FontSize="{DynamicResource SubtitleFontSize}" Text="Codex" VerticalAlignment="Center"/></DockPanel>
                                 <WrapPanel>
                                     <Button x:Name="ConnectCodex" Content="{DynamicResource Set_AiCodex}" Command="{Binding CopyCodexCommand}" IsEnabled="{Binding CanConnectAi}" AutomationProperties.AutomationId="ConnectCodex" Margin="0,0,8,0"/>
                                     <Button Content="{DynamicResource Set_AiPrompt}" Command="{Binding CopyAiPromptCommand}" CommandParameter="codex" IsEnabled="{Binding CanConnectAi}"/>
@@ -172,7 +180,7 @@
                         </Border>
                         <Border Width="280" Padding="12" Margin="0,0,12,8" CornerRadius="6" BorderThickness="1" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" Background="{DynamicResource ControlFillColorSecondaryBrush}">
                             <StackPanel>
-                                <DockPanel Margin="0,0,0,12"><Button DockPanel.Dock="Right" Content="{lucide:Lucide Help}" Padding="0" Width="24" Height="24" MinWidth="24" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Command="{Binding OpenAiHelpCommand}" CommandParameter="claude-code" AutomationProperties.Name="{DynamicResource Set_AiHelp}" ToolTip="{DynamicResource Set_AiHelp}" Margin="8,0,0,0"/><TextBlock DockPanel.Dock="Right" Style="{StaticResource Caption}" Text="{Binding ClaudeAvailability}" VerticalAlignment="Center"/><TextBlock Style="{StaticResource CardTitle}" FontSize="16" Text="Claude Code" VerticalAlignment="Center"/></DockPanel>
+                                <DockPanel Margin="0,0,0,12"><Button DockPanel.Dock="Right" Content="{lucide:Lucide Help}" Padding="0" Width="24" Height="24" MinWidth="24" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Command="{Binding OpenAiHelpCommand}" CommandParameter="claude-code" AutomationProperties.Name="{DynamicResource Set_AiHelp}" ToolTip="{DynamicResource Set_AiHelp}" Margin="8,0,0,0"/><TextBlock DockPanel.Dock="Right" Style="{StaticResource Caption}" Text="{Binding ClaudeAvailability}" VerticalAlignment="Center"/><TextBlock Style="{StaticResource CardTitle}" FontSize="{DynamicResource SubtitleFontSize}" Text="Claude Code" VerticalAlignment="Center"/></DockPanel>
                                 <WrapPanel>
                                     <Button x:Name="ConnectClaude" Content="{DynamicResource Set_AiClaude}" Command="{Binding CopyClaudeCommand}" IsEnabled="{Binding CanConnectAi}" AutomationProperties.AutomationId="ConnectClaude" Margin="0,0,8,0"/>
                                     <Button Content="{DynamicResource Set_AiPrompt}" Command="{Binding CopyAiPromptCommand}" CommandParameter="claude-code" IsEnabled="{Binding CanConnectAi}"/>
@@ -191,7 +199,7 @@
                             <TextBox Text="{Binding McpToml, Mode=OneWay}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" />
                             <Button Content="{DynamicResource Set_AiJson}" Command="{Binding CopyMcpJsonCommand}" IsEnabled="{Binding CanConnectAi}" HorizontalAlignment="Left" Margin="0,8" />
                             <TextBox Text="{Binding McpJson, Mode=OneWay}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" />
-                            <TextBlock FontSize="12" Text="{DynamicResource Set_AiPrivacy}" TextWrapping="Wrap" Margin="0,8" />
+                            <TextBlock FontSize="{DynamicResource CaptionFontSize}" Text="{DynamicResource Set_AiPrivacy}" TextWrapping="Wrap" Margin="0,8" />
                         </StackPanel>
                     </Expander>
                 </StackPanel>
@@ -216,7 +224,7 @@
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                         <Image Source="pack://application:,,,/MeiliTerminal;component/Assets/app-64.png" Width="40" Height="40" Margin="0,0,12,0" />
                         <StackPanel VerticalAlignment="Center">
-                            <TextBlock Style="{StaticResource CardTitle}" FontSize="16" Text="{DynamicResource App_Title}" />
+                            <TextBlock Style="{StaticResource CardTitle}" FontSize="{DynamicResource SubtitleFontSize}" Text="{DynamicResource App_Title}" />
                             <TextBlock Style="{StaticResource Caption}">
                                 <Run Text="{DynamicResource Set_Company}" />
                                 <Run Text="  ·  " />

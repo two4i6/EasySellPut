@@ -1,5 +1,6 @@
 using System.Text.Json.Nodes;
 using Meili.Analytics;
+using Meili.Core.Settings;
 
 namespace Meili.Automation;
 
@@ -40,13 +41,14 @@ public static partial class OperationCatalog
         Op("strategy_what_if","Position and per-leg values/P&L/facts at an assumed price, with optional future horizon and IV shift. No GUI state/save. Mixed expiry requires valuationTime.",false,
             ("legs!",Legs()),("spot!",Range(false,0,1e9)),("valuationTime",S("ISO-8601 instant; omitted means intrinsic settlement for same-expiry legs")),("horizonDays",Range(true,0,3650)),("rate",N()),("dividendYield",N()),("volatility",Range(false,0,20)),("volatilityShift",Range(false,-20,20))),
         Op("get_chart_drawings","Read a symbol's persisted local horizontal/trend lines; does not control chart windows.",false,[("symbol!",S()),..Page]),
-        Op("add_chart_drawing","Persist a bounded horizontal/trend line in the shared drawing store with conflict protection. Trend lines need distinct time1/time2.",true,("symbol!",S()),("kind!",Field("string","","HorizontalLine","TrendLine")),("price1!",Range(false,0,1e12)),("time1",S("ISO-8601 instant")),("price2",Range(false,0,1e12)),("time2",S("ISO-8601 instant"))),
-        Op("update_chart_drawing","Replace one persisted drawing by absolute zero-based index (offset + row index) using the revision from get_chart_drawings. Stale revisions fail without overwriting.",true,("symbol!",S()),("index!",Range(true,0,199)),("revision!",S("Exact revision from get_chart_drawings")),("kind!",Field("string","","HorizontalLine","TrendLine")),("price1!",Range(false,0,1e12)),("time1",S("ISO-8601 instant")),("price2",Range(false,0,1e12)),("time2",S("ISO-8601 instant"))),
+        Op("add_chart_drawing","Persist a drawing per symbol. Timed tools use time1/time2. PriceRange uses only price1/price2. Positions use entry price1, target price2 and stopPrice.",true,("symbol!",S()),("kind!",Field("string","Drawing tool.",Enum.GetNames<DrawingKind>())),("price1!",Range(false,0,1e12)),("time1",S("ISO-8601 instant")),("price2",Range(false,0,1e12)),("time2",S("ISO-8601 instant")),("stopPrice",Range(false,0,1e12))),
+        Op("update_chart_drawing","Replace one persisted drawing by absolute zero-based index (offset + row index) using the revision from get_chart_drawings. Stale revisions fail without overwriting.",true,("symbol!",S()),("index!",Range(true,0,199)),("revision!",S("Exact revision from get_chart_drawings")),("kind!",Field("string","Drawing tool.",Enum.GetNames<DrawingKind>())),("price1!",Range(false,0,1e12)),("time1",S("ISO-8601 instant")),("price2",Range(false,0,1e12)),("time2",S("ISO-8601 instant")),("stopPrice",Range(false,0,1e12))),
         Op("delete_chart_drawing","Delete one persisted drawing by absolute zero-based index (offset + row index) using the revision from get_chart_drawings. Other drawings remain; stale revisions fail.",true,("symbol!",S()),("index!",Range(true,0,199)),("revision!",S("Exact revision from get_chart_drawings"))),
         Op("clear_chart_drawings","Clear persisted drawings for one symbol with conflict protection.",true,("symbol!",S())),
         Op("update_preferences","Patch allowlisted local preferences; omitted fields remain unchanged. No proxy URL/credentials, arbitrary paths or window control. Desktop reload/restart required after external changes.",true,
             ("language",Field("string","","zh-CN","en-US")),("theme",Field("string","","System","Light","Dark")),("upDownColors",Field("string","","RedUp","GreenUp")),
             ("closeAction",Field("string","","Ask","MinimizeToTray","Exit")),("guideDismissed",B()),("strategyHintDismissed",B()),
+            ("textSizePercent", new JsonObject { ["type"] = "integer", ["description"] = "Desktop text size percentage.", ["enum"] = new JsonArray(AppSettings.TextSizeChoices.Select(value => (JsonNode?)JsonValue.Create(value)).ToArray()) }),
             ("pricing",Obj(("rateMode",Field("string","","Treasury13Week","Fixed")),("fixedRatePercent",Range(false,-1,20)))),
             ("alerts",Obj(("maxQuoteDelayMinutes",Range(true,1,240)),("failureThreshold",Range(true,1,20)))),
             ("charts",Obj(("dividendAdjusted",B()),("indicators",IndicatorSchema()))),("options",Obj(("compactColumns",B()))),

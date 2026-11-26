@@ -31,6 +31,7 @@ public partial class StrategyPage : Page
             AttachWhatIf(vm);
             vm.ChartChanged += OnChartChanged; vm.PropertyChanged += OnVmPropertyChanged;
             ThemeService.ColorsChanged += OnChartChanged;
+            DesignTypography.Changed += OnChartChanged;
             RefreshSurface();
             await vm.ActivateAsync(); RefreshSurface();
         };
@@ -39,6 +40,7 @@ public partial class StrategyPage : Page
             _active = false;
             DetachWhatIf(vm); vm.ChartChanged -= OnChartChanged; vm.PropertyChanged -= OnVmPropertyChanged;
             ThemeService.ColorsChanged -= OnChartChanged;
+            DesignTypography.Changed -= OnChartChanged;
             Workspace.Stop(); vm.Deactivate();
         };
         SurfaceTabs.SelectionChanged += (_, _) => { if (_active) RefreshSurface(); };

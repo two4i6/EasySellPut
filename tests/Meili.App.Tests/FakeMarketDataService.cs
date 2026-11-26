@@ -31,12 +31,14 @@ public sealed class FakeMarketDataService : IMarketDataService
     /// <summary>F7: source and adjustment basis of returned bars (default: yahoo, honouring the requested mode).</summary>
     public Func<BarRequest, (string Source, PriceAdjustment Basis)>? BarMeta { get; set; }
     public List<BarRequest> BarRequests { get; } = [];
+    public Func<BarRequest, BarSeries?>? BarOverride { get; set; }
     /// <summary>C5: override the chain's strikes (e.g. 400 strikes for the render-time baseline).</summary>
     public double[]? ChainStrikes { get; set; }
 
     public Task<BarSeries> GetBarsAsync(BarRequest request, CancellationToken ct = default)
     {
         lock (BarRequests) BarRequests.Add(request);
+        if (BarOverride?.Invoke(request) is { } overridden) return Task.FromResult(overridden);
         var (src, basis) = BarMeta?.Invoke(request)
             ?? ("yahoo", request.Adjust == AdjustMode.Total && !request.Interval.IsIntraday() ? PriceAdjustment.SplitDividend : PriceAdjustment.Split);
         var bars = new List<Bar>();

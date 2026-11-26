@@ -123,15 +123,15 @@ public partial class MainWindow
     internal async Task EditWebsite(WebWorkspaceTab? tab)
     {
         if (_workspace is null) return;
-        var dialog = new Meili.Mac.Views.Controls.AppDialog { Title = _loc[tab is null ? "Web_Add" : "Web_Edit"], Width = 440, MinWidth = 400, SizeToContent = SizeToContent.Height, CanResize = false, WindowStartupLocation = WindowStartupLocation.CenterOwner, FontSize = 14 };
+        var dialog = new Meili.Mac.Views.Controls.AppDialog { Title = _loc[tab is null ? "Web_Add" : "Web_Edit"], Width = 440, MinWidth = 400, SizeToContent = SizeToContent.Height, CanResize = false, WindowStartupLocation = WindowStartupLocation.CenterOwner }.WithFontSize(14);
         dialog.Bind(BackgroundProperty, new DynamicResourceExtension("ApplicationBackgroundBrush")); dialog.Bind(ForegroundProperty, new DynamicResourceExtension("TextFillColorPrimaryBrush"));
         var body = new StackPanel { Margin = new Thickness(24), Spacing = 12 };
         var name = new TextBox { Text = tab?.Name ?? "", MaxLength = 40, Name = "WebsiteName" };
         var url = new TextBox { Text = tab?.Url ?? "", PlaceholderText = "https://", MaxLength = 2048, Name = "WebsiteAddress" };
-        var error = new TextBlock { IsVisible = false, TextWrapping = Avalonia.Media.TextWrapping.Wrap, FontSize = 12 };
+        var error = new TextBlock { IsVisible = false, TextWrapping = Avalonia.Media.TextWrapping.Wrap }.WithFontSize(12);
         body.Children.Add(new TextBlock { Text = _loc["Web_Name"] }); body.Children.Add(name); body.Children.Add(new TextBlock { Text = _loc["Web_Address"] }); body.Children.Add(url);
         AutomationProperties.SetName(name, _loc["Web_Name"]); AutomationProperties.SetName(url, _loc["Web_Address"]);
-        body.Children.Add(new TextBlock { Text = _loc["Web_Privacy"], TextWrapping = Avalonia.Media.TextWrapping.Wrap, FontSize = 12 }); body.Children.Add(error);
+        body.Children.Add(new TextBlock { Text = _loc["Web_Privacy"], TextWrapping = Avalonia.Media.TextWrapping.Wrap }.WithFontSize(12)); body.Children.Add(error);
         var actions = new WrapPanel { Orientation = Orientation.Horizontal }; body.Children.Add(actions);
         Button Button(string key, Action action) { var button = new Button { Content = _loc[key], Margin = new Thickness(0, 0, 8, 8) }; button.Click += (_, _) => action(); actions.Children.Add(button); return button; }
         void Fail(string key) { error.Text = _loc[key]; error.IsVisible = true; }

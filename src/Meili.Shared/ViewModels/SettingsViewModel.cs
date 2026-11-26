@@ -19,6 +19,8 @@ public partial class SettingsViewModel : ObservableObject
 
     [ObservableProperty] public partial int LanguageIndex { get; set; }
     [ObservableProperty] public partial int ThemeIndex { get; set; }
+    [ObservableProperty] public partial int TextSizeIndex { get; set; }
+    public IReadOnlyList<string> TextSizeOptions { get; } = AppSettings.TextSizeChoices.Select(percent => $"{percent}%").ToArray();
     [ObservableProperty] public partial int UpDownIndex { get; set; }
     [ObservableProperty] [NotifyPropertyChangedFor(nameof(IsManualProxy))] public partial int ProxyModeIndex { get; set; }
     [ObservableProperty] public partial string ManualProxy { get; set; } = "";
@@ -93,6 +95,7 @@ public partial class SettingsViewModel : ObservableObject
         var s = store.Current;
         LanguageIndex = s.Language == "en-US" ? 1 : 0;
         ThemeIndex = (int)s.Theme;
+        TextSizeIndex = AppSettings.TextSizeChoices.ToList().IndexOf(AppSettings.NormalizeTextSize(s.TextSizePercent));
         UpDownIndex = (int)s.EffectiveUpDownColors();
         ProxyModeIndex = Math.Max(0, Array.IndexOf(ProxyModes, s.Network.ProxyMode));
         ManualProxy = s.Network.ManualProxy;
@@ -119,6 +122,15 @@ public partial class SettingsViewModel : ObservableObject
         var mode = (AppThemeMode)Math.Clamp(value, 0, 2);
         _theme.Apply(mode);
         _store.Update(s => s.Theme = mode);
+    }
+
+    partial void OnTextSizeIndexChanged(int value)
+    {
+        if (!_ready || value < 0 || value >= AppSettings.TextSizeChoices.Count) return;
+        var percent = AppSettings.TextSizeChoices[value];
+        if (percent == _store.Current.TextSizePercent) return;
+        _store.Update(s => s.TextSizePercent = percent);
+        DesignTypography.Apply(percent);
     }
 
     partial void OnUpDownIndexChanged(int value)

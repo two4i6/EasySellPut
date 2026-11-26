@@ -69,6 +69,7 @@ public static class WpfHost
         services.AddSingleton<INetworkController>(Network);
         AppServices.Provider = services.BuildServiceProvider();
         var settings = AppServices.Get<SettingsStore>().Load();
+        NativeTypography.Initialize(settings.TextSizePercent);
         AppServices.Get<LocalizationService>().Apply(settings.Language);
         ThemeService.ApplyUpDownColors(settings.UpDownColors);
     }

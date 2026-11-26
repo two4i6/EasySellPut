@@ -1,6 +1,6 @@
 /* Shared embedded components. Layout/data visualization stays in each renderer. */
 html,body{font-family:var(--font-sans);font-variant-numeric:tabular-nums}
-button,input,select{font-family:inherit;font-size:14px;border-radius:var(--control-radius);min-height:var(--control-height);transition:background-color var(--motion-fast-ms) ease-out,border-color var(--motion-fast-ms) ease-out,box-shadow var(--motion-fast-ms) ease-out;box-shadow:none}
+button,input,select{font-family:inherit;font-size:calc(14px * var(--text-scale, 1));border-radius:var(--control-radius);min-height:var(--control-height);transition:background-color var(--motion-fast-ms) ease-out,border-color var(--motion-fast-ms) ease-out,box-shadow var(--motion-fast-ms) ease-out;box-shadow:none}
 button{background:var(--control);border:1px solid var(--border);color:var(--text);cursor:pointer}
 button:hover:not(:disabled){background:var(--hover,var(--control));border-color:var(--muted)}
 button:active:not(:disabled){background:var(--pressed,var(--control))}

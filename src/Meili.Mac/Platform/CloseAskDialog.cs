@@ -28,7 +28,7 @@ internal sealed class CloseAskDialog : Meili.Mac.Views.Controls.AppDialog
             Spacing = 16,
             Children =
             {
-                new TextBlock { Text = loc["Close_AskBody"], TextWrapping = Avalonia.Media.TextWrapping.Wrap, FontSize = 14 },
+                new TextBlock { Text = loc["Close_AskBody"], TextWrapping = Avalonia.Media.TextWrapping.Wrap }.WithFontSize(14),
                 new StackPanel
                 {
                     Orientation = Orientation.Horizontal,

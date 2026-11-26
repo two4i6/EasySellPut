@@ -17,14 +17,20 @@ public enum DataCapability
 
 public enum MarketState { Unknown, PreMarket, Regular, AfterHours, Closed }
 
-public enum BarInterval { Minute1, Minute5, Minute15, Minute30, Hour1, Day1, Week1, Month1 }
+public enum BarInterval { Minute1, Minute5, Minute15, Minute30, Hour1, Day1, Week1, Month1, Minute3, Minute10, Hour2, Quarter1, Year1 }
 
 public static class BarIntervalExtensions
 {
-    public static bool IsIntraday(this BarInterval i) => i < BarInterval.Day1;
+    public static bool IsIntraday(this BarInterval i) => i is BarInterval.Minute1 or BarInterval.Minute3 or BarInterval.Minute5
+        or BarInterval.Minute10 or BarInterval.Minute15 or BarInterval.Minute30 or BarInterval.Hour1 or BarInterval.Hour2;
     public static TimeSpan Duration(this BarInterval i) => i switch
     {
         BarInterval.Minute1 => TimeSpan.FromMinutes(1),
+        BarInterval.Minute3 => TimeSpan.FromMinutes(3),
+        BarInterval.Minute10 => TimeSpan.FromMinutes(10),
+        BarInterval.Hour2 => TimeSpan.FromHours(2),
+        BarInterval.Quarter1 => TimeSpan.FromDays(91),
+        BarInterval.Year1 => TimeSpan.FromDays(365),
         BarInterval.Minute5 => TimeSpan.FromMinutes(5),
         BarInterval.Minute15 => TimeSpan.FromMinutes(15),
         BarInterval.Minute30 => TimeSpan.FromMinutes(30),

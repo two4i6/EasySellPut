@@ -20,7 +20,7 @@ public partial class ChartsPage : UserControl
             _active = true;
             vm.PlotChanged += OnPlotChanged; vm.PropertyChanged += OnPropertyChanged;
             Ui.Platform.ColorsChanged += OnPlotChanged;
-            Chart.Start(vm, MacChartPalette.Current(_theme.IsDark));
+            Chart.Start(vm, MacChartPalette.Current(_theme.IsDark), Workspace.Model);
             await vm.ActivateAsync(); Render();
         };
         DetachedFromVisualTree += (_, _) =>

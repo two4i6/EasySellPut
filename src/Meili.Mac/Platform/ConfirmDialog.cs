@@ -25,7 +25,7 @@ internal sealed class ConfirmDialog : Meili.Mac.Views.Controls.AppDialog
             Spacing = 16,
             Children =
             {
-                new TextBlock { Text = message, TextWrapping = Avalonia.Media.TextWrapping.Wrap, FontSize = 14 },
+                new TextBlock { Text = message, TextWrapping = Avalonia.Media.TextWrapping.Wrap }.WithFontSize(14),
                 new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Children = { cancel, ok } },
             },
         };

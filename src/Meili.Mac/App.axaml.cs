@@ -33,6 +33,7 @@ public partial class App : Application
         foreach(var (key,family) in new[]{("AppFont","Anthropic Sans"),("NumberFont","Anthropic Sans"),("HeadingFont","Anthropic Serif"),("CodeFont","Anthropic Mono")})
             if(Avalonia.Media.FontManager.Current.SystemFonts.Any(f=>f.Name==family))Application.Current!.Resources[key]=new Avalonia.Media.FontFamily(family);
         var settings = AppServices.Get<SettingsStore>().Load();
+        NativeTypography.Initialize(settings.TextSizePercent);
         var loc = AppServices.Get<LocalizationService>();
         loc.Apply(settings.Language);
         var theme = AppServices.Get<MacTheme>();

@@ -45,7 +45,8 @@ public sealed class SymbolBox : UserControl
 
     public SymbolBox()
     {
-        _box = new Wpf.Ui.Controls.TextBox { FontSize = 14, MinHeight = 32, Height = 32, VerticalContentAlignment = VerticalAlignment.Center, Padding = new Thickness(8, 4, 8, 4) };
+        _box = new Wpf.Ui.Controls.TextBox { MinHeight = 32, VerticalContentAlignment = VerticalAlignment.Center, Padding = new Thickness(8, 4, 8, 4) }.WithFontSize(14);
+        _box.SetResourceReference(HeightProperty, "SymbolInputHeight");
         _box.SetResourceReference(Wpf.Ui.Controls.TextBox.PlaceholderTextProperty, "Sb_Placeholder");
         _box.TextChanged += OnBoxTextChanged;
         _box.PreviewKeyDown += OnBoxKeyDown;
@@ -67,7 +68,7 @@ public sealed class SymbolBox : UserControl
         _list.MouseLeftButtonUp += (_, _) => { if (_list.SelectedItem is SymbolSuggestion s) Pick(s); };
         AutomationProperties.SetAutomationId(_list, "SymbolBoxList");
 
-        _empty = new TextBlock { Margin = new Thickness(12, 6, 12, 6), FontSize = 12, TextWrapping = TextWrapping.Wrap, Visibility = Visibility.Collapsed };
+        _empty = new TextBlock { Margin = new Thickness(12, 6, 12, 6), TextWrapping = TextWrapping.Wrap, Visibility = Visibility.Collapsed }.WithFontSize(12);
         _empty.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorSecondaryBrush");
 
         var panel = new DockPanel();
@@ -118,24 +119,24 @@ public sealed class SymbolBox : UserControl
         panel.SetValue(MarginProperty, new Thickness(4, 2, 4, 2));
         var sym = new FrameworkElementFactory(typeof(TextBlock));
         sym.SetBinding(TextBlock.TextProperty, new System.Windows.Data.Binding(nameof(SymbolSuggestion.Symbol)));
-        sym.SetValue(TextBlock.FontSizeProperty, 14.0);
+        sym.SetResourceReference(TextBlock.FontSizeProperty, DesignTypography.ResourceKey(14.0));
         sym.SetValue(TextBlock.FontWeightProperty, FontWeights.SemiBold);
         sym.SetValue(WidthProperty, 88.0);
         var name = new FrameworkElementFactory(typeof(TextBlock));
         name.SetBinding(TextBlock.TextProperty, new System.Windows.Data.Binding(nameof(SymbolSuggestion.Name)));
-        name.SetValue(TextBlock.FontSizeProperty, 14.0);
+        name.SetResourceReference(TextBlock.FontSizeProperty, DesignTypography.ResourceKey(14.0));
         name.SetValue(MaxWidthProperty, 200.0);
         name.SetValue(TextBlock.TextTrimmingProperty, TextTrimming.CharacterEllipsis);
         name.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorSecondaryBrush");
         var tag = new FrameworkElementFactory(typeof(TextBlock));
         tag.SetResourceReference(TextBlock.TextProperty, "Sb_WatchTag");
-        tag.SetValue(TextBlock.FontSizeProperty, 12.0);
+        tag.SetResourceReference(TextBlock.FontSizeProperty, DesignTypography.ResourceKey(12.0));
         tag.SetValue(MarginProperty, new Thickness(12, 0, 0, 0));
         tag.SetResourceReference(TextBlock.ForegroundProperty, "AccentTextFillColorPrimaryBrush");
         tag.SetBinding(VisibilityProperty, new System.Windows.Data.Binding(nameof(SymbolSuggestion.FromWatchlist)) { Converter = new BooleanToVisibilityConverter() });
         var exch = new FrameworkElementFactory(typeof(TextBlock));
         exch.SetBinding(TextBlock.TextProperty, new System.Windows.Data.Binding(nameof(SymbolSuggestion.Exchange)));
-        exch.SetValue(TextBlock.FontSizeProperty, 12.0);
+        exch.SetResourceReference(TextBlock.FontSizeProperty, DesignTypography.ResourceKey(12.0));
         exch.SetValue(MarginProperty, new Thickness(12, 0, 0, 0));
         exch.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorSecondaryBrush");
         panel.AppendChild(sym);
