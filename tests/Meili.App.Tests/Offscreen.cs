@@ -29,7 +29,7 @@ public sealed class OffscreenHost : IDisposable
     /// main window, like the real app. Application-level resource changes (theme, strings) reach windows only, so
     /// runtime-switch tests need this; a bare HwndSource tree never hears about them.
     /// </param>
-    public OffscreenHost(UIElement content, double width, double height, bool asMainWindow = false)
+    public OffscreenHost(UIElement content, double width, double height, bool asMainWindow = false, bool displayForLayout = false)
     {
         Width = width; Height = height;
         if (asMainWindow)
@@ -43,7 +43,14 @@ public sealed class OffscreenHost : IDisposable
             _window.SetResourceReference(Window.BackgroundProperty, "ApplicationBackgroundBrush");
             _window.SetResourceReference(TextElement.ForegroundProperty, "TextFillColorPrimaryBrush");
             Application.Current.MainWindow = _window;
-            new WindowInteropHelper(_window).EnsureHandle();   // HWND without WS_VISIBLE: Loaded fires, nothing is shown
+            if (displayForLayout)
+            {
+                // WPF skips descendant layout in some never-shown windows. Use a transparent,
+                // non-activating window parked offscreen for tests that require real layout.
+                _window.Opacity = 0;
+                _window.Show();
+            }
+            else new WindowInteropHelper(_window).EnsureHandle();
             Root = _window;
             Layout();
             return;

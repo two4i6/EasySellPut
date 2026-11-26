@@ -57,7 +57,7 @@ public sealed class FormAlignmentTests
         WpfHost.Run(async () =>
         {
             var page = new SettingsPage();
-            using var host = new OffscreenHost(page, 980, 620, asMainWindow: true);
+            using var host = new OffscreenHost(page, 980, 620, asMainWindow: true, displayForLayout: true);
             await ScreenRenderTests.Settle();
             host.Layout();
             var picker = Assert.IsType<AppSelect>(page.FindName("TextSizePicker"));
