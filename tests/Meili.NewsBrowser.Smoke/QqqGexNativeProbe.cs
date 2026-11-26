@@ -74,10 +74,33 @@ internal static partial class Program
             async Task Check(string condition,string label)
             {
                 var marker="gex-native-"+(++serial);
-                await Eval("(()=>{const end=Date.now()+25000;const poll=()=>{try{if("+condition+"){document.title="+JsonSerializer.Serialize(marker)+";return;}}catch(e){}if(Date.now()<end)setTimeout(poll,100);};poll();})()");
-                try{await Until(()=>Title()==marker,label);}
+                var token=JsonSerializer.Serialize(marker);
+                // The app can update its title as requests complete. Keep reporting a satisfied
+                // check until the native host observes it, including across a single overwritten title.
+                await Eval($$"""
+                    (() => {
+                        const marker = {{token}};
+                        window.__gexProbeMarker = marker;
+                        const deadline = Date.now() + 45000;
+                        let satisfied = false;
+                        function poll() {
+                            if (window.__gexProbeMarker !== marker || Date.now() >= deadline) return;
+                            if (!satisfied) {
+                                try { satisfied = Boolean({{condition}}); } catch {}
+                            }
+                            if (satisfied && document.title !== marker) document.title = marker;
+                            setTimeout(poll, 100);
+                        }
+                        poll();
+                    })()
+                    """);
+                try
+                {
+                    await Until(()=>Title()==marker,label);
+                    await Eval("delete window.__gexProbeMarker");
+                }
                 catch{
-                    await Eval("document.title='GEX_DIAGNOSTIC '+JSON.stringify({visibility:document.visibilityState,focus:document.hasFocus(),ready:document.readyState,nativePointer:window.__gexNativePointer,scope:[...document.querySelectorAll('select[aria-label=\"到期日范围\"]')].map(s=>({value:s.value,disabled:s.disabled})),observedExposure:localStorage.getItem('qqq-local:observed-exposure:v1'),body:document.body.innerText.slice(0,5000),errors:window.__gexProbeErrors,fetches:window.__gexProbeFetch,resources:performance.getEntriesByType('resource').slice(-20).map(e=>({asset:e.name.split('/').pop(),duration:Math.round(e.duration),bytes:e.transferSize}))})");
+                    await Eval("delete window.__gexProbeMarker;document.title='GEX_DIAGNOSTIC '+JSON.stringify({rows:document.querySelectorAll('section[aria-label=\"回放 GEX 快照表\"] tbody tr:not([aria-hidden])').length,visibility:document.visibilityState,focus:document.hasFocus(),ready:document.readyState,nativePointer:window.__gexNativePointer,scope:[...document.querySelectorAll('select[aria-label=\"到期日范围\"]')].map(s=>({value:s.value,disabled:s.disabled})),errors:window.__gexProbeErrors?.slice(-2),fetches:window.__gexProbeFetch?.slice(-4),body:document.body.innerText.slice(0,300),observedExposure:localStorage.getItem('qqq-local:observed-exposure:v1')})");
                     await Task.Delay(500);Console.Error.WriteLine(Title());throw;
                 }
             }
