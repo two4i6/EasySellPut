@@ -1,0 +1,35 @@
+{
+  "evidence": "Temporary official ModelContextProtocol 2.4.0 SDK fixture only; not production package activation and not real harness acceptance.",
+  "cases": [
+    {
+      "requestedProtocol": "2025-06-18",
+      "negotiatedProtocol": "2025-06-18",
+      "listChanged": true,
+      "notificationReceived": true,
+      "initialTools": 2,
+      "updatedTools": 3,
+      "inFlightCapturedGeneration": 1,
+      "nextCallGeneration": 2,
+      "shutdown": {
+        "exit": 0,
+        "stdoutJsonLines": 7,
+        "stderrLines": 0
+      }
+    },
+    {
+      "requestedProtocol": "2025-11-25",
+      "negotiatedProtocol": "2025-11-25",
+      "listChanged": true,
+      "notificationReceived": true,
+      "initialTools": 2,
+      "updatedTools": 3,
+      "inFlightCapturedGeneration": 1,
+      "nextCallGeneration": 2,
+      "shutdown": {
+        "exit": 0,
+        "stdoutJsonLines": 7,
+        "stderrLines": 0
+      }
+    }
+  ]
+}

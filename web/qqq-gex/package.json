@@ -1,0 +1,29 @@
+{
+  "name": "easysellput-qqq-gex",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "build:runtime": "node build-runtime.mjs",
+    "test:pipeline": "node tests/local-pipeline.mjs"
+  },
+  "dependencies": {
+    "@base-ui/react": "1.9.0",
+    "clsx": "2.1.1",
+    "klinecharts": "10.1.0",
+    "lightweight-charts": "5.2.1",
+    "lucide-react": "1.61.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "swr": "2.5.1",
+    "tailwind-merge": "3.7.0",
+    "zustand": "5.0.16"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.1",
+    "@supabase/supabase-js": "^2.117.3",
+    "esbuild": "0.25.12",
+    "ioredis": "^6.0.0",
+    "typescript": "5.9.3"
+  }
+}

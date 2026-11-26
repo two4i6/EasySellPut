@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text.Json;
@@ -7,7 +8,7 @@ using Meili.Data.Http;
 namespace Meili.Automation;
 
 public sealed record UpdateAsset(string Rid, string FileName, string Sha256, long Size);
-public sealed record UpdateManifest(int SchemaVersion, string Version, UpdateAsset[] Assets);
+public sealed record UpdateManifest(int SchemaVersion, string Version, UpdateAsset[] Assets, string? Repository = null);
 public sealed record UpdateRelease(UpdateManifest Manifest, UpdateAsset Asset, string Notes, string Page, string Download, string SignedManifest, string Signature);
 public sealed record UpdateCheck(string Status, string CurrentVersion, string? LatestVersion = null, UpdateRelease? Release = null);
 
@@ -15,7 +16,22 @@ public sealed record UpdateCheck(string Status, string CurrentVersion, string? L
 public sealed class UpdateClient(HttpClient http, string rid, Version current)
 {
     internal string VerificationKey { get; init; } = PublicKey;
-    public const string Repository = "two4i6/EasySellPut";
+    public static string Repository { get; } = typeof(UpdateClient).Assembly.GetCustomAttributes<System.Reflection.AssemblyMetadataAttribute>()
+        .SingleOrDefault(a => a.Key == "EasySellPut.UpdateRepository")?.Value ?? "";
+    internal string SourceRepository { get; init; } = Repository;
+    public static bool IsConfigured => IsValidRepository(Repository);
+    public static string? ReleaseHistoryUrl => IsConfigured ? $"https://github.com/{Repository}/releases" : null;
+    public static bool IsValidRepository(string value) => System.Text.RegularExpressions.Regex.IsMatch(value,
+        @"\A[A-Za-z0-9][A-Za-z0-9-]{0,38}/[A-Za-z0-9_.-]{1,100}\z") && value.Split('/')[1] is not ("." or "..");
+    public static string PublicKeyFingerprint
+    {
+        get { using var key = ECDsa.Create(); key.ImportFromPem(PublicKey); return Convert.ToHexString(SHA256.HashData(key.ExportSubjectPublicKeyInfo())).ToLowerInvariant(); }
+    }
+    internal static void VerifyRepository(UpdateManifest manifest, string repository)
+    {
+        if (!IsValidRepository(repository) || manifest.Repository != repository) throw new InvalidDataException("Update repository does not match this installation.");
+    }
+    public static object SourceConfiguration => new { enabled = IsConfigured, repository = Repository, publicKeySha256 = PublicKeyFingerprint, historyUrl = ReleaseHistoryUrl };
     public const string ManifestName = "EasySellPut-update.json";
     public const long MaxPackageBytes = 768L * 1024 * 1024;
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
@@ -44,9 +60,11 @@ public sealed class UpdateClient(HttpClient http, string rid, Version current)
     }
     public async Task<UpdateCheck> CheckAsync(CancellationToken ct)
     {
-        if (rid is not ("win-x64" or "win-arm64" or "osx-x64" or "osx-arm64")) throw new PlatformNotSupportedException("No desktop updates for this platform.");
         var version = new Version(current.Major, current.Minor, Math.Max(0, current.Build)).ToString();
-        using var response = await GetAsync(new Uri($"https://api.github.com/repos/{Repository}/releases/latest"), ct);
+        if (string.IsNullOrEmpty(SourceRepository)) return new("disabled", version);
+        if (!IsValidRepository(SourceRepository)) throw new InvalidDataException("Invalid compiled update repository.");
+        if (rid is not ("win-x64" or "osx-x64" or "osx-arm64")) throw new PlatformNotSupportedException("No desktop updates for this platform.");
+        using var response = await GetAsync(new Uri($"https://api.github.com/repos/{SourceRepository}/releases/latest"), ct);
         if (response.StatusCode == HttpStatusCode.NotFound) return new("no_release", version);
         response.EnsureSuccessStatusCode();
         using var release = JsonDocument.Parse(await ReadBoundedAsync(response.Content, 2 * 1024 * 1024, ct));
@@ -61,7 +79,7 @@ public sealed class UpdateClient(HttpClient http, string rid, Version current)
             var asset = assets.SingleOrDefault(a => a.GetProperty("name").GetString() == name);
             if (asset.ValueKind == JsonValueKind.Undefined) throw new InvalidDataException("The release does not contain a signed desktop update.");
             var url = asset.GetProperty("browser_download_url").GetString()!;
-            if (url != $"https://github.com/{Repository}/releases/download/{tag}/{name}") throw new InvalidDataException("Unexpected release asset URL.");
+            if (url != $"https://github.com/{SourceRepository}/releases/download/{tag}/{name}") throw new InvalidDataException("Unexpected release asset URL.");
             return url;
         }
         async Task<byte[]> ReadAsset(string name, int limit)
@@ -73,22 +91,29 @@ public sealed class UpdateClient(HttpClient http, string rid, Version current)
         var signature = await ReadAsset(ManifestName + ".sig", 1024);
         VerifyManifest(manifestBytes, signature, VerificationKey);
         var manifest = JsonSerializer.Deserialize<UpdateManifest>(manifestBytes, Json) ?? throw new InvalidDataException("Empty manifest.");
+        VerifyRepository(manifest, SourceRepository);
         if (manifest.SchemaVersion != 1 || manifest.Version != tag[1..] || manifest.Assets is null) throw new InvalidDataException("Manifest version mismatch.");
         var package = manifest.Assets.SingleOrDefault(a => a.Rid == rid) ?? throw new InvalidDataException("This architecture is missing from the release.");
         if (package.FileName != $"EasySellPut-Desktop-{manifest.Version}-{rid}.zip" || package.Size is <= 0 or > MaxPackageBytes
             || package.Sha256 is null || !System.Text.RegularExpressions.Regex.IsMatch(package.Sha256, "^[0-9a-fA-F]{64}$")) throw new InvalidDataException("Invalid package metadata.");
         var notes = root.TryGetProperty("body", out var body) ? body.GetString() ?? "" : "";
-        return new("available", version, manifest.Version, new(manifest, package, notes[..Math.Min(notes.Length, 20000)], $"https://github.com/{Repository}/releases/tag/{tag}", Url(package.FileName), Convert.ToBase64String(manifestBytes), Convert.ToBase64String(signature)));
+        return new("available", version, manifest.Version, new(manifest, package, notes[..Math.Min(notes.Length, 20000)], $"https://github.com/{SourceRepository}/releases/tag/{tag}", Url(package.FileName), Convert.ToBase64String(manifestBytes), Convert.ToBase64String(signature)));
     }
-    public async Task<string> DownloadAsync(UpdateRelease release, string folder, IProgress<double>? progress, CancellationToken ct)
+    public Task<string> DownloadAsync(UpdateRelease release, string folder, IProgress<double>? progress, CancellationToken ct) =>
+        DownloadVerifiedAsync(new Uri(release.Download),release.Asset.FileName,release.Asset.Size,release.Asset.Sha256,folder,progress,ct);
+
+    internal async Task<string> DownloadVerifiedAsync(Uri download,string fileName,long size,string sha256,string folder,IProgress<double>? progress,CancellationToken ct)
     {
+        if (Path.GetFileName(fileName) != fileName || fileName.IndexOfAny(['/', '\\', ':']) >= 0 || fileName is "." or ".." ||
+            size <= 0 || size > MaxPackageBytes || sha256.Length != 64 || sha256.Any(c => !char.IsAsciiHexDigit(c)))
+            throw new InvalidDataException("Invalid signed package identity.");
         Directory.CreateDirectory(folder);
-        var destination = Path.Combine(folder, release.Asset.FileName);
+        var destination = Path.Combine(folder, fileName);
         var temporary = destination + ".partial-" + Guid.NewGuid().ToString("N");
         try
         {
-            using var response = await GetAsync(new Uri(release.Download), ct).ConfigureAwait(false); response.EnsureSuccessStatusCode();
-            if (response.Content.Headers.ContentLength is { } length && length != release.Asset.Size) throw new InvalidDataException("Package size mismatch.");
+            using var response = await GetAsync(new Uri(download.AbsoluteUri), ct).ConfigureAwait(false); response.EnsureSuccessStatusCode();
+            if (response.Content.Headers.ContentLength is { } length && length != size) throw new InvalidDataException("Package size mismatch.");
             await using (var input = await response.Content.ReadAsStreamAsync(ct))
             await using (var output = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
             {
@@ -96,16 +121,16 @@ public sealed class UpdateClient(HttpClient http, string rid, Version current)
                 var buffer = new byte[65536]; long total = 0; var lastProgress = Environment.TickCount64; int count;
                 while ((count = await input.ReadAsync(buffer, ct)) > 0)
                 {
-                    total += count; if (total > release.Asset.Size) throw new InvalidDataException("Package exceeds signed size.");
-                    digest.AppendData(buffer, 0, count); await output.WriteAsync(buffer.AsMemory(0, count), ct); if (total == release.Asset.Size || Environment.TickCount64 - lastProgress >= 100) { progress?.Report(total * 100.0 / release.Asset.Size); lastProgress = Environment.TickCount64; }
+                    total += count; if (total > size) throw new InvalidDataException("Package exceeds signed size.");
+                    digest.AppendData(buffer, 0, count); await output.WriteAsync(buffer.AsMemory(0, count), ct); if (total == size || Environment.TickCount64 - lastProgress >= 100) { progress?.Report(total * 100.0 / size); lastProgress = Environment.TickCount64; }
                 }
-                if (total != release.Asset.Size || !Convert.ToHexString(digest.GetHashAndReset()).Equals(release.Asset.Sha256, StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("Package checksum mismatch.");
+                if (total != size || !Convert.ToHexString(digest.GetHashAndReset()).Equals(sha256, StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("Package checksum mismatch.");
             }
             File.Move(temporary, destination, true); return destination;
         }
         finally { if (File.Exists(temporary)) File.Delete(temporary); }
     }
-    private async Task<HttpResponseMessage> GetAsync(Uri uri, CancellationToken ct)
+    internal async Task<HttpResponseMessage> GetAsync(Uri uri, CancellationToken ct)
     {
         for (var redirect = 0; redirect <= 5; redirect++)
         {
@@ -121,7 +146,7 @@ public sealed class UpdateClient(HttpClient http, string rid, Version current)
         }
         throw new HttpRequestException("Too many update redirects.");
     }
-    private static async Task<byte[]> ReadBoundedAsync(HttpContent content, int limit, CancellationToken ct)
+    internal static async Task<byte[]> ReadBoundedAsync(HttpContent content, int limit, CancellationToken ct)
     {
         await using var input = await content.ReadAsStreamAsync(ct); using var output = new MemoryStream(); var buffer = new byte[8192]; int count;
         while ((count = await input.ReadAsync(buffer, ct)) > 0) { if (output.Length + count > limit) throw new InvalidDataException("Update metadata is too large."); output.Write(buffer, 0, count); }

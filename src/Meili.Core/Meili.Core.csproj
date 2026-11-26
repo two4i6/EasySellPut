@@ -4,6 +4,7 @@
     <RootNamespace>Meili.Core</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="Meili.Core.Tests" />
     <PackageReference Include="ClosedXML" />
   </ItemGroup>
 </Project>

@@ -19,6 +19,12 @@ public static class ChartEventAlignment
         return timeline.Events.Select(e =>
         {
             if (e.Date is not { } day || bars.Length == 0) return new ChartEvent(e, null, "outside_chart");
+            if (range is ChartRangeKind.Quarter1 or ChartRangeKind.Year1)
+            {
+                var bucket = BarAggregator.Bucket(day.ToDateTime(TimeOnly.MinValue), series.Interval);
+                var bucketBar = bars.FirstOrDefault(item => MarketClock.ToEastern(item.Time).Date == bucket);
+                return new ChartEvent(e, bucketBar?.Time.ToUnixTimeSeconds(), bucketBar is null ? "outside_chart" : "period_bucket");
+            }
             var first = DateOnly.FromDateTime(MarketClock.ToEastern(bars[0].Time));
             var last = DateOnly.FromDateTime(MarketClock.ToEastern(bars[^1].Time));
             if (day < first || day > last) return new ChartEvent(e, null, "outside_chart");

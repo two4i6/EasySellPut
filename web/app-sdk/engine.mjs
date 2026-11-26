@@ -1,0 +1,28 @@
+/** Shared engine protocol v1. No stdout diagnostics, network client, timer or market connection. */
+export async function readRequest(input = process.stdin) {
+  const chunks = []; let length = 0;
+  for await (const chunk of input) {
+    const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+    length += bytes.length;
+    if (length > 1048576) throw Error('App request exceeds 1 MiB');
+    chunks.push(bytes);
+  }
+  const request = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(Buffer.concat(chunks)));
+  if (request.protocol !== 1 || typeof request.operation !== 'string' ||
+      !request.arguments || Array.isArray(request.arguments) || typeof request.arguments !== 'object' ||
+      !request.context || typeof request.context.dataDirectory !== 'string' || typeof request.context.appVersion !== 'string')
+    throw Error('Unsupported app request');
+  return request;
+}
+
+export function writeResult(value, output = process.stdout) {
+  const body = JSON.stringify(value);
+  if (body === undefined || Buffer.byteLength(body) > 16 * 1024 * 1024) throw Error('App result exceeds protocol bounds');
+  output.write(body);
+}
+
+/** Reserved typed error envelope; the host maps it to existing public CLI/MCP error semantics. */
+export function writeError(code,message,output=process.stdout){
+ if(!['invalid_arguments','permission_denied','cancelled','invalid_data','data_conflict','data_source_error','io_error'].includes(code)||typeof message!=='string'||message.length>1000)throw Error('Invalid app error');
+ writeResult({$appError:{code,message}},output);
+}

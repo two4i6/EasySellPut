@@ -4,9 +4,15 @@ import argparse, json, os, pathlib, queue, subprocess, tempfile, threading, time
 from connection_smoke import check_connections
 
 
+def local_diagnostics(data):
+    # Test profiles only; keep an actionable bounded stack before TemporaryDirectory cleanup.
+    files=sorted((pathlib.Path(data)/'logs').glob('app-*.log'))[-2:]
+    return '\n'.join(path.read_text(encoding='utf-8',errors='replace')[-16000:]for path in files)
+
+
 def run(command, data, *args, code=0):
     result = subprocess.run([*command, *args, '--data-dir', data, '--json'], capture_output=True, text=True, timeout=20)
-    assert result.returncode == code, (args, result.returncode, result.stderr, result.stdout)
+    assert result.returncode == code, (args, result.returncode, result.stderr, result.stdout,local_diagnostics(data))
     body = json.loads(result.stdout)
     assert body['schemaVersion'] == 1 and body['success'] == (code == 0), body
     return body
@@ -20,6 +26,7 @@ class Mcp:
         self.messages = queue.Queue()
         self.errors = []
         self.next_id = 0
+        self.notifications = []
         def read():
             try:
                 for line in self.process.stdout:
@@ -32,7 +39,7 @@ class Mcp:
         threading.Thread(target=read, daemon=True).start()
         threading.Thread(target=errors, daemon=True).start()
         initialized = self.request('initialize', {'protocolVersion': '2025-06-18', 'capabilities': {}, 'clientInfo': {'name': 'EasySellPut smoke', 'version': '1.0'}})
-        assert initialized['result']['serverInfo']['name'] == 'EasySellPut', initialized
+        assert 'result' in initialized and initialized['result']['serverInfo']['name'] == 'EasySellPut', initialized
         assert 'tools' in initialized['result']['capabilities']
         self.send({'jsonrpc': '2.0', 'method': 'notifications/initialized'})
 
@@ -53,6 +60,8 @@ class Mcp:
                 raise message
             if message.get('id') == ident:
                 return message
+            if 'id' not in message:
+                self.notifications.append(message)
 
     def call(self, name, arguments):
         response = self.request('tools/call', {'name': name, 'arguments': arguments})
@@ -84,6 +93,24 @@ class Mcp:
             raise AssertionError('MCP server did not exit on stdin EOF')
 
 
+def check_cold_writer_profiles(command,root):
+    for epoch in range(3):
+        data=str(pathlib.Path(root)/('cold writer '+str(epoch)))
+        created=run(command,data,'watchlist','create-group','--name','before')['data']
+        group=created['group']['id']
+        writer=Mcp(command,data,writes=True)
+        try:
+            writer.request('tools/list');writer.check_live_status(True)
+            renamed=writer.call('rename_watchlist_group',{'groupId':group,'name':'after'})
+            assert not renamed.get('isError',False),(epoch,renamed,local_diagnostics(data),''.join(writer.errors)[-4000:])
+            run(command,data,'watchlist','add','MSFT','--group-id',group)
+            groups=writer.call('get_watchlists',{})['structuredContent']['data']
+            selected=next(item for item in groups if item['id']==group)
+            assert selected['name']=='after' and 'MSFT'in selected['symbols'],selected
+        finally:writer.close()
+        assert next(item for item in run(command,data,'watchlist','list')['data']if item['id']==group)['name']=='after'
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--dll', default='src/Meili.Cli/bin/Debug/net10.0/easysellput.dll')
@@ -106,8 +133,22 @@ def main():
             assert skill.read_text(encoding='utf-8')=='user custom skill'
         check_connections(command,data)
         catalog = run(command, data, '--help')['data']
+        # Discovery uses global options regardless of position and must not create a profile.
+        discovery_dir = pathlib.Path(data) / 'discovery only'
+        before = run(command, str(discovery_dir), '--help')['data']
+        after = subprocess.run([*command, '--data-dir', str(discovery_dir), '--help', '--json'], capture_output=True, text=True, timeout=20)
+        assert after.returncode == 0, after.stderr
+        assert json.loads(after.stdout)['data'] == before == catalog
+        assert not discovery_dir.exists(), 'Help must not initialize storage or engines'
+        installed = run(command, str(discovery_dir), 'apps', 'list')['data']
+        assert installed['state']['apps'] == [] and installed['state']['generation'] == 0
+        doctor = run(command, str(discovery_dir), 'apps', 'doctor')['data']
+        assert doctor['registry'] == installed
+        assert not discovery_dir.exists(), 'Module metadata discovery must not initialize a profile'
+        assert run(command, str(discovery_dir), 'apps', 'info', 'easysellput.missing', code=2)['error']['code'] == 'invalid_arguments'
         assert 'install-skill' not in {op['name'] for op in catalog['operations']}
         operations = {op['name']: op for op in catalog['operations']}
+        assert not any(name.startswith(('install_app', 'update_app', 'uninstall_app')) for name in operations)
         readonly = {name for name, op in operations.items() if not op['writes']}
         sources = run(command, data, 'sources')['data']
         assert sources['scope'] == 'current_process' and sources['sources']
@@ -152,6 +193,12 @@ def main():
             actual = server.call('calculate_option', {'right': 'call', 'spot': 100, 'strike': 100, 'years': 1, 'rate': 0.05, 'volatility': 0.2})
             assert actual['structuredContent']['data'] == price['data']
             assert server.call('calculate_indicators', {'closes': [1, 2, 3, 4], 'period': 3})['structuredContent']['data']['sma'] == [None, None, 2, 3]
+            for tool, arguments in [('get_qqq_gex_archive', {'resource':'dates'}), ('get_qqq_gex_view', {'resource':'context','date':'2026-11-16','at':'2026-11-16T15:00:00Z'})]:
+                result=server.call(tool,arguments)
+                assert not result.get('isError') and result['structuredContent']['data']['status']=='cache_miss',result
+            assert server.call('get_qqq_gex_view', {'resource':'exposureManifest','date':'2026-11-16','from':'2026-11-16T15:00:00Z'})['isError']
+            assert server.call('capture_qqq_gex_input', {})['structuredContent']['error']['code']=='permission_denied'
+            assert not (pathlib.Path(data)/'cache'/'qqq-gex.db').exists()
             prompts=server.request('prompts/list')['result']['prompts']
             assert {p['name'] for p in prompts}=={'market_brief','option_research','strategy_review','connection_check'}
             for prompt in prompts:
@@ -182,7 +229,10 @@ def main():
             write_tools = writer.request('tools/list')['result']['tools']
             writer.check_live_status(True)
             assert {tool['name'] for tool in write_tools} == set(operations)
-            assert not writer.call('rename_watchlist_group', {'groupId': group, 'name': 'MCP'}).get('isError', False)
+            for revision in range(5):
+                name='MCP'if revision==4 else 'MCP '+str(revision)
+                renamed=writer.call('rename_watchlist_group', {'groupId': group, 'name': name})
+                assert not renamed.get('isError', False),(renamed,local_diagnostics(data),''.join(writer.errors)[-4000:])
             # A second process writes, then the long-running MCP host must read the new snapshot.
             run(command, data, 'watchlist', 'add', 'MSFT', '--group-id', group)
             groups = writer.call('get_watchlists', {})['structuredContent']['data']
@@ -190,7 +240,8 @@ def main():
         finally:
             writer.close()
         assert next(g for g in run(command, data, 'watchlist', 'list')['data'] if g['id'] == group)['name'] == 'MCP'
-    print('PASS: native SQLite/provider composition, catalog/discovery parity, real CLI processes, official SDK MCP stdio handshake/discovery/calls/errors/read-only/write mode/EOF, shared local data and pricing parity')
+        check_cold_writer_profiles(command,data)
+    print('PASS: native SQLite/provider composition, catalog/discovery parity, real CLI processes, official SDK MCP stdio handshake/discovery/calls/errors/read-only/write mode/EOF, three isolated cold writer profiles, shared local data and pricing parity')
 
 
 if __name__ == '__main__':

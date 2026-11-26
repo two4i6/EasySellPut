@@ -24,4 +24,6 @@
   </ItemGroup>
   <ItemGroup><Compile Include="../Meili.Shared.Tests/FakeUpdates.cs" Link="FakeUpdates.cs" /></ItemGroup>
   <ItemGroup><Compile Include="../Fixtures/QuotePanelMarketData.cs" Link="QuotePanelMarketData.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="../Fixtures/LiquidityFixture.cs" Link="LiquidityFixture.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="../Fixtures/QuoteStreamFixture.cs" Link="QuoteStreamFixture.cs" /></ItemGroup>
 </Project>

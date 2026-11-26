@@ -43,6 +43,45 @@ class TimelineTests(unittest.TestCase):
             self.page.screenshot(path=str(pathlib.Path(output)/(name+'.png')))
             if name.startswith('news-history'):
                 self.page.locator('#timeline').screenshot(path=str(pathlib.Path(output)/(name+'-panel.png')))
+    def test_workspace_sidebar_retains_filters_zoom_and_ohlc_with_keyboard_and_compact_layout(self):
+        p=self.browser.new_page(viewport=dict(width=1920,height=1080));errors=[];p.on('pageerror',lambda e:errors.append(str(e)))
+        try:
+            self.process.stdin.write('dark\nzh-CN\n');self.process.stdin.flush()
+            p.goto(self.url);p.wait_for_function('()=>meiliChart?.inspect().state?.events.length===4')
+            self.assertEqual(p.locator('#legend .legend-price').count(),4)
+            self.assertIn('开盘',p.locator('#legend .legend-value').first.get_attribute('aria-label'))
+            p.locator('[data-view=news]').click();count=p.locator('#event-list button').count()
+            p.evaluate('()=>meiliChart.inspect().chart.timeScale().setVisibleLogicalRange({from:20,to:80})')
+            p.wait_for_function('()=>Math.abs(meiliChart.inspect().chart.timeScale().getVisibleLogicalRange().from-20)<.01')
+            width=p.locator('#chart').bounding_box()['width']
+            p.locator('#collapse-events').click();p.wait_for_function('()=>!document.querySelector("#event-panel").checkVisibility()')
+            self.assertGreater(p.locator('#chart').bounding_box()['width'],width+200)
+            p.wait_for_function('()=>Math.abs(meiliChart.inspect().chart.timeScale().getVisibleLogicalRange().from-20)<.01')
+            self.assertEqual(p.locator('[data-view=news]').get_attribute('aria-expanded'),'false')
+            self.assertTrue(p.locator('[data-view=news]').evaluate('(e)=>e===document.activeElement'))
+            p.keyboard.press('Enter');self.assertTrue(p.locator('#event-panel').is_visible());self.assertEqual(count,p.locator('#event-list button').count())
+            p.locator('#event-info-heading').click();self.assertTrue(p.locator('#event-scope').is_visible())
+            bounds=p.locator('#event-info .app-popover-panel').bounding_box();self.assertGreaterEqual(bounds['x'],0);self.assertLessEqual(bounds['x']+bounds['width'],1920)
+            p.keyboard.press('Escape');self.assertFalse(p.locator('#event-scope').is_visible())
+            p.locator('#fit').click();p.locator('#symbol').click();p.wait_for_timeout(120)
+            if output:=os.environ.get('MEILI_RENDER_DIR'):
+                pathlib.Path(output).mkdir(parents=True,exist_ok=True);p.screenshot(path=str(pathlib.Path(output)/'charts-dark-1920.png'))
+            self.process.stdin.write('light\nen-US\n');self.process.stdin.flush()
+            p.wait_for_function('()=>meiliChart.inspect().state.language==="en-US"&&!meiliChart.inspect().state.theme.dark')
+            self.assertIn('Open',p.locator('#legend .legend-value').first.get_attribute('aria-label'))
+            panel=p.locator('#event-panel').bounding_box()
+            for selector in ['#event-filters','#event-info-heading','#collapse-events']:
+                control=p.locator(selector).bounding_box();self.assertLessEqual(control['x']+control['width'],panel['x']+panel['width'])
+            self.assertEqual(count,p.locator('#event-list button').count())
+            if output:p.screenshot(path=str(pathlib.Path(output)/'charts-light-1920.png'))
+            p.emulate_media(reduced_motion='reduce');p.set_viewport_size(dict(width=560,height=720));p.reload();p.wait_for_function('()=>meiliChart?.inspect().state?.rows.length===120')
+            self.assertFalse(p.locator('#event-panel').is_visible());self.assertGreater(p.locator('#chart').bounding_box()['width'],500)
+            p.locator('[data-view=all]').focus();p.keyboard.press('Enter');self.assertTrue(p.locator('#event-panel').is_visible())
+            self.assertEqual('0s',p.locator('#timeline').evaluate('(e)=>getComputedStyle(e).transitionDuration'))
+            self.assertFalse(errors)
+        finally:
+            p.close();self.process.stdin.write('dark\nzh-CN\n');self.process.stdin.flush()
+
     def test_aggregated_marker_opens_all_28_events_with_matching_filters(self):
         p=self.page
         original=p.evaluate('structuredClone(meiliChart.inspect().state)')
@@ -58,7 +97,10 @@ class TimelineTests(unittest.TestCase):
                 p.mouse.move(bounds['x']+point['x'],bounds['y']+point['y']);p.wait_for_timeout(100)
                 self.assertIn('28',p.locator('.tooltip-heading').inner_text())
                 p.mouse.click(bounds['x']+point['x'],bounds['y']+point['y']);p.wait_for_timeout(100)
+            p.locator('[data-view="quote"]').click()
+            self.assertTrue(p.locator('#quote-panel').is_visible())
             click_bucket()
+            self.assertFalse(p.locator('#quote-panel').is_visible())
             self.assertIn('28',p.locator('#event-group-label').inner_text())
             self.assertEqual(p.locator('#event-list [data-event-id]').count(),28)
             self.assertFalse(p.locator('#event-detail').is_visible())
@@ -87,22 +129,31 @@ class TimelineTests(unittest.TestCase):
 
     def test_local_detail_motion_reduced_motion_and_refresh_focus(self):
         p=self.page
-        p.emulate_media(reduced_motion='no-preference')
-        p.evaluate("document.documentElement.dataset.reducedMotion='false'")
-        p.locator('#event-list button[data-event-id]').first.click()
-        self.assertTrue(p.locator('#event-detail').is_visible())
-        p.locator('#event-close').focus()
-        p.evaluate('meiliChart.render(structuredClone(meiliChart.inspect().state))')
-        self.assertEqual(p.evaluate('document.activeElement.id'),'event-close')
-        p.evaluate("meiliMotion.enter(document.querySelector('#event-detail'))")
-        self.assertTrue(p.locator('#event-detail').evaluate('(e)=>e.getAnimations().length>0'))
-        p.evaluate("document.documentElement.dataset.reducedMotion='true'")
-        self.wait("document.querySelector('#event-detail').getAnimations().length === 0")
-        p.evaluate("meiliMotion.enter(document.querySelector('#event-detail'))")
-        self.assertEqual(p.locator('#event-detail').evaluate('(e)=>e.getAnimations().length'),0)
-        self.assertEqual(p.locator('canvas').first.evaluate('(e)=>e.getAnimations().length'),0)
-        self.capture('ux-event-detail-reduced')
-        p.locator('#event-close').click();p.evaluate("document.documentElement.dataset.reducedMotion='false'")
+        try:
+            p.emulate_media(reduced_motion='no-preference')
+            p.evaluate("document.documentElement.dataset.reducedMotion='false'")
+            p.locator('#event-list button[data-event-id]').first.click()
+            self.assertTrue(p.locator('#event-detail').is_visible())
+            p.locator('#event-close').focus()
+            p.evaluate('meiliChart.render(structuredClone(meiliChart.inspect().state))')
+            self.assertEqual(p.evaluate('document.activeElement.id'),'event-close')
+            # Observe startup in the same browser task: a separate protocol round trip
+            # can outlive the short animation on a busy CI runner.
+            self.assertTrue(p.locator('#event-detail').evaluate('(e)=>{meiliMotion.enter(e);return e.getAnimations().length>0;}'))
+            self.process.stdin.write('reduced-on\n');self.process.stdin.flush()
+            self.wait('meiliChart.inspect().state.theme.reducedMotion && document.documentElement.dataset.reducedMotion === "true"')
+            self.wait("document.querySelector('#event-detail').getAnimations().length === 0")
+            p.evaluate("meiliMotion.enter(document.querySelector('#event-detail'))")
+            self.assertEqual(p.locator('#event-detail').evaluate('(e)=>e.getAnimations().length'),0)
+            self.assertEqual(p.locator('canvas').first.evaluate('(e)=>e.getAnimations().length'),0)
+            self.capture('ux-event-detail-reduced')
+
+        finally:
+            self.process.stdin.write('reduced-off\n');self.process.stdin.flush()
+            self.wait('!meiliChart.inspect().state.theme.reducedMotion')
+            if p.locator('#event-detail').is_visible(): p.locator('#event-close').click()
+            p.locator('#event-detail').wait_for(state='hidden')
+            p.emulate_media(reduced_motion='no-preference')
 
     def test_history_groups_original_dates_scroll_navigation_and_live_updates(self):
         p=self.page
@@ -161,7 +212,7 @@ class TimelineTests(unittest.TestCase):
             self.assertEqual(p.locator('#event-history').get_attribute('aria-label'),'History by date')
             p.set_viewport_size(dict(width=480,height=800));p.wait_for_timeout(100)
             self.assertLessEqual(p.locator('body').evaluate('(e)=>e.scrollWidth'),480)
-            self.assertTrue(p.locator('#attribution').is_visible())
+            self.assertEqual(p.locator('footer #attribution').count(),0)
             p.locator('#event-history button').nth(6).click();p.wait_for_timeout(80)
             self.assertEqual(p.locator('#event-history [aria-current]').get_attribute('data-day'),p.locator('#event-history button').nth(6).get_attribute('data-day'))
             self.capture('news-history-compact')
@@ -171,6 +222,31 @@ class TimelineTests(unittest.TestCase):
             self.process.stdin.write('dark\nzh-CN\n');self.process.stdin.flush()
             self.wait('meiliChart.inspect().state.language === "zh-CN" && meiliChart.inspect().state.theme.dark')
             p.set_viewport_size(dict(width=1280,height=900))
+
+    def test_indicator_bar_can_add_price_overlays_and_independent_panes(self):
+        page = self.browser.new_page(viewport=dict(width=1440,height=900))
+        enabled = ['bbi', 'sar', 'vwap', 'mavol', 'dma']
+        try:
+            page.goto(self.url)
+            page.wait_for_function("window.meiliChart?.inspect().state?.studies?.length >= 19")
+            page.locator('[data-study="dma"]').scroll_into_view_if_needed()
+            for study in enabled:
+                button = page.locator('[data-study="' + study + '"]')
+                button.click()
+                page.wait_for_function("id=>document.querySelector('[data-study='+id+']').getAttribute('aria-pressed')==='true'",arg=study)
+            self.assertTrue(page.evaluate("meiliChart.inspect().series['study-vwap-0'].data().some(p=>Number.isFinite(p.value))"))
+            self.assertTrue(page.evaluate("meiliChart.inspect().series['study-dma-0'].data().some(p=>Number.isFinite(p.value))"))
+            self.assertGreaterEqual(page.evaluate("meiliChart.inspect().chart.panes().length"), 3)
+            if directory := os.environ.get('MEILI_RENDER_DIR'):
+                page.locator('#study-strip').evaluate('(e)=>e.scrollLeft=0')
+                page.screenshot(path=str(pathlib.Path(directory)/'chart-study-workspace.png'))
+        finally:
+            for study in reversed(enabled):
+                button = page.locator('[data-study="' + study + '"]')
+                if button.count() and button.get_attribute('aria-pressed') == 'true':
+                    button.click()
+                    page.wait_for_function("id=>document.querySelector('[data-study='+id+']').getAttribute('aria-pressed')==='false'",arg=study)
+            page.close()
 
     def test_timeline_filters_marker_click_metadata_reader_theme_and_compact_layout(self):
         p=self.page
@@ -276,7 +352,7 @@ class TimelineTests(unittest.TestCase):
 
         p.set_viewport_size(dict(width=480,height=800));p.wait_for_timeout(150)
         self.assertLessEqual(p.locator('body').evaluate('(e)=>e.scrollWidth'),480)
-        self.assertTrue(p.locator('#attribution').is_visible());self.assertFalse(self.errors)
+        self.assertEqual(p.locator('footer #attribution').count(),0);self.assertFalse(self.errors)
         self.assertGreaterEqual(p.locator('#timeline').bounding_box()['x'],p.locator('#chart').bounding_box()['x']+p.locator('#chart').bounding_box()['width']-1)
         self.assertTrue(p.locator('#event-close').is_visible())
         self.capture('timeline-compact')

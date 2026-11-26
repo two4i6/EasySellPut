@@ -24,7 +24,7 @@ public static partial class OperationCatalog
             var k = key.TrimEnd('!'); var copy = (JsonObject)schema.DeepClone();
             if (k == "offset") copy["minimum"] = 0;
             if (k == "limit") { copy["minimum"] = 1; copy["maximum"] = name == "search_symbols" || name == "get_news" ? 50 : name == "get_market_events" ? 100 : 500; }
-            if (k == "symbols") { copy["minItems"] = 1; copy["maxItems"] = 100; }
+            if (k == "symbols") { copy["minItems"] = 1; copy["maxItems"] = name=="get_live_quotes"?50:100; }
             if(string.IsNullOrWhiteSpace(copy["description"]?.GetValue<string>()))copy["description"]=k switch
             {
                 "symbol"=>"US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
@@ -70,7 +70,9 @@ public static partial class OperationCatalog
     private static Operation[] Build() =>
     [
         Op("search_symbols", "Search symbols across configured providers.", false, ("query!", S()), ("limit", I("1..50, default 10"))),
-        Op("get_quotes", "Batch quotes with source, market time, download time and declared delay. Missing symbols are reported.", false, ("symbols!", Field("array", "1..100 ticker symbols"))),
+        Op("get_live_bars", "Join source historical bars and a bounded Yahoo WebSocket observed-price tail. Refreshes overlapping historical bars before publishing; reports repairing/waiting_history with explicit missing interval instead of fabricating candles. Observed tail is incomplete close-only with unknown OHLC/volume, not a full trade tape. Overnight observed_partial retains actual received source points when history is unavailable, with explicit missing coverage. Closed canonical provider candles replace overlaps; no observed ticks are written to history. Historical adjusted basis and source remain distinct. 1..20 seconds, 1..500 updates.",false,("symbol!",S()),("interval",Field("string","default 1m","1m","5m","15m","30m","1h","1d","1w","1mo")),("seconds",new JsonObject{["type"]="integer",["minimum"]=1,["maximum"]=20,["description"]="Sampling window, default 5 seconds."}),("maxUpdates",new JsonObject{["type"]="integer",["minimum"]=1,["maximum"]=500,["description"]="Maximum observed updates, default 100."})),
+        Op("get_live_quotes", "Sample genuine Yahoo WebSocket last-price updates for a bounded window (default 5 seconds). This is not an HTTP snapshot, not guaranteed exchange-consolidated/NBBO realtime coverage, and starts no alert monitor or persistent subscriber. Retains source timestamps and regular/pre/post/overnight session. Transport interruptions are reported and are not backfilled as a complete trade tape. Missing symbols/no_updates are normal during quiet/closed periods; unavailable reports transport failure. No updates never means price zero. 1..50 symbols, 1..20 seconds, 1..500 updates; cancellation disconnects.", false, ("symbols!",new JsonObject{["type"]="array",["items"]=new JsonObject{["type"]="string"},["minItems"]=1,["maxItems"]=50}), ("seconds",new JsonObject{["type"]="integer",["minimum"]=1,["maximum"]=20,["description"]="Sampling window in seconds, default 5."}), ("maxUpdates",new JsonObject{["type"]="integer",["minimum"]=1,["maximum"]=500,["description"]="Bounded collected updates, default 100."})),
+        Op("get_quotes", "HTTP snapshot quotes with source, market time, receive time and declared delay. This operation is not a push subscription; use get_live_quotes for Yahoo WebSocket updates. Missing symbols are reported.", false, ("symbols!", Field("array", "1..100 ticker symbols"))),
         Op("get_bars", "Historical OHLCV with provenance, adjustment and offline-cache status. Missing OHLC is null, never fabricated.", false, [("symbol!", S()), ("interval", Field("string", "default 1d", "1m","5m","15m","30m","1h","1d","1w","1mo")), ("from", S("ISO-8601 instant")), ("to", S("ISO-8601 instant")), ("adjust", Field("string", "default split", "split","total")), ..Page]),
         Op("get_expirations", "List option expiration dates.", false, ("symbol!", S())),
         Op("get_option_chain", "Paginated option contracts with source metadata and non-executable midpoint/last entry references (missing quotes stay null). Request expiry YYYY-MM-DD and optional right/strike filters.", false, [("symbol!", S()), ("expiry", S()), ("right", Field("string", "", "call","put")), ("minStrike", N()), ("maxStrike", N()), ..Page]),
@@ -79,6 +81,7 @@ public static partial class OperationCatalog
         Op("get_news", "Recent provider news, retaining publisher, URL and publication time.", false, ("symbol!", S()), ("limit", I("1..50, default 20"))),
         Op("get_market_events", "Recent news and current earnings/ex-dividend calendar snapshot, with source, exact/date-only timing and estimate/confirmation metadata. Not a historical corporate-action archive.", false,
             ("symbol!", S()), ("type", Field("string", "default all", "all", "news", "earnings", "ex_dividend")), ("from", S("YYYY-MM-DD, inclusive Eastern calendar date")), ("to", S("YYYY-MM-DD, inclusive Eastern calendar date")), ("limit", I("1..100, default 50"))),
+        Op("get_market_liquidity", "US market liquidity with experimental 0..100 funding-pressure-v1 index (not VIX/official panic or a calibrated prediction), transparent formula/weights/input dates and no score for missing/stale inputs: six dated macro indicators (SOFR-IORB/EFFR-IORB in basis points, ON RRP, reserves, weekly TGA and Fed assets in USD billions) with exact-date spread joins and raw FRED provenance. Eleven sector ETF activity proxies use prior completed daily bars and 20-observation baselines; Amihud is percent price change per USD million. This is NOT intraday depth, money flows or real-time sector liquidity. Partial/missing/offline data are explicit; no interpolation or saving user data."),
         Op("get_source_health", "Source health observed in THIS process only; unknown is not a successful connectivity check."),
         Op("calculate_option", "European Black-Scholes price/Greeks and optional solved IV; decimal units (0.25=25%). No network.", false,
             ("right!", Field("string", "", "call","put")), ("spot!", N()), ("strike!", N()), ("years!", N()), ("rate", N("Continuously compounded, default 0")), ("dividendYield", N("default 0")), ("volatility!", N()), ("price", N("Optional observed per-share price for IV solving"))),
@@ -99,6 +102,10 @@ public static partial class OperationCatalog
         Op("save_alert", "Create a rule, or update an existing id while retaining monitor bookkeeping. Does not start monitoring.", true, ("symbol!", S()), ("kind!", Field("string", "", "PriceAbove","PriceBelow","PercentUp","PercentDown","VolumeAbove","IvAbove","IvBelow")), ("threshold!", N()), ("id", S()), ("enabled", B()), ("repeat", Field("string", "", "Once","Repeat")), ("cooldownMinutes", I("1..1440")), ("includeExtendedHours", B()), ("note", S())),
         Op("delete_alert", "Delete an alert rule; history is retained.", true, ("id!", S())),
         Op("set_alert_enabled", "Enable/disable and re-arm a local alert rule.", true, ("id!", S()), ("enabled!", B())),
+        Op("get_cache_status", "Inspect registered caches, process/data-directory scope, TTL/capacity policy, protected data and bounded local-storage byte categories. Storage excludes links and marks incomplete scans; file sizes are not whole-disk capacity. Memory counts describe this process, not another desktop/MCP process. Browser profiles and historical IV/OI are excluded."),
+        Op("clear_cache", "Explicitly clear or invalidate allowlisted caches. Preserves IV/OI history and all user data. Memory affects this process only; bars affect the shared data directory. Expired mode leaves TTL-free bars intact; quotes retain last-known display values. Symbol filter only for bars. No arbitrary filesystem deletion.", true,
+            ("category!", Field("string", "Cache category registered in this process; inspect get_cache_status first.", "all", "responses", "bars", "quotes", "search", "rates", "qqq_gex_wire")),
+            ("mode", Field("string", "Default all; expired evicts expired entries; compact atomically reclaims SQLite pages only for qqq_gex_wire without deleting history and requires temporary free space.", "all", "expired", "compact")), ("symbol", S("Optional ticker; category must be bars."))),
         ..CoverageOperations(),
         Op("get_settings", "Read non-secret preferences and resolved data directory; proxy credentials/URLs are omitted.")
     ];
@@ -108,6 +115,7 @@ public static partial class OperationCatalog
         return new JsonObject { ["type"] = "array", ["minItems"] = 1, ["maxItems"] = 32, ["items"] = new JsonObject { ["type"] = "object", ["properties"] = fields, ["required"] = new JsonArray("type", "side", "quantity", "premium"), ["additionalProperties"] = false } };
     }
     public static Operation Find(string name) => All.FirstOrDefault(x => x.Name == name) ?? throw new ArgumentException($"Unknown operation: {name}");
+    public static IOperationCatalog Snapshot { get; } = new OperationSnapshot(All);
     public static void Validate(Operation op, JsonElement args) => ValidateSchema(op.Schema, args, "arguments");
     private static void ValidateSchema(JsonElement schema, JsonElement value, string path)
     {
@@ -120,7 +128,7 @@ public static partial class OperationCatalog
             var n = value.GetDouble();
             if ((schema.TryGetProperty("minimum", out var minN) && n < minN.GetDouble()) || (schema.TryGetProperty("maximum", out var maxN) && n > maxN.GetDouble())) throw new ArgumentException($"{path} is out of range.");
         }
-        if (schema.TryGetProperty("enum", out var choices) && !choices.EnumerateArray().Any(x => x.GetString() == value.GetString())) throw new ArgumentException($"Invalid value for {path}.");
+        if (schema.TryGetProperty("enum", out var choices) && !choices.EnumerateArray().Any(x => JsonElement.DeepEquals(x, value))) throw new ArgumentException($"Invalid value for {path}.");
         if (type == "object")
         {
             var props = schema.GetProperty("properties");

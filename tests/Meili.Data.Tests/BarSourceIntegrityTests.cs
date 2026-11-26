@@ -10,6 +10,19 @@ namespace Meili.Data.Tests;
 public class BarSourceIntegrityTests
 {
     [Fact]
+    public void Yahoo_quote_time_tail_is_not_misreported_as_an_interval_candle()
+    {
+        using var d = JsonDocument.Parse("""
+        {"chart":{"result":[{"timestamp":[1794849540,1794849600,1794849616],
+          "indicators":{"quote":[{"open":[10,11,12],"high":[11,12,12],"low":[9,10,12],"close":[10,11,12],"volume":[50,60,0]}]}}]}}
+        """);
+        var series = YahooProvider.ParseChart(d.RootElement, "QQQ", BarInterval.Minute1);
+        Assert.Equal(2, series.Bars.Count);
+        Assert.Equal(1794849600, series.Bars[^1].Time.ToUnixTimeSeconds());
+        Assert.Equal(11, series.Bars[^1].Close);
+    }
+
+    [Fact]
     public void Yahoo_missing_open_high_low_stay_missing()
     {
         using var d = JsonDocument.Parse("""

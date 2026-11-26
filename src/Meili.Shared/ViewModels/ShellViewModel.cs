@@ -14,25 +14,36 @@ public partial class ShellViewModel : ObservableObject, IDisposable
     private bool _presentationVisible=true,_disposed;
     private readonly LocalizationService _loc;
     private readonly DataDirectoryInfo _dataDir;
+    private readonly NavigationHub? _navigation;
+    private readonly DataSourceHealthMonitor? _monitor;
 
     [ObservableProperty] public partial string ClockText { get; set; } = "";
-    [ObservableProperty] public partial string SessionText { get; set; } = "";
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(MarketStatusText), nameof(MarketStatusTip))] public partial string SessionText { get; set; } = "";
     [ObservableProperty] public partial object? SessionBrush { get; set; }
-    [ObservableProperty] public partial string NetworkText { get; set; } = "";
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(MarketStatusTip))] public partial string NetworkText { get; set; } = "";
     [ObservableProperty] public partial string DataDirText { get; set; } = "";
-    [ObservableProperty] public partial string SourcesText { get; set; } = "";
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(MarketStatusTip))] public partial string SourcesText { get; set; } = "";
     [ObservableProperty] public partial object? SourcesBrush { get; set; }
     [ObservableProperty] public partial string McpStatusText { get; set; } = "";
     [ObservableProperty] public partial string McpStatusTip { get; set; } = "";
     [ObservableProperty] public partial object? McpStatusBrush { get; set; }
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(MarketStatusText))] public partial string SourceCountText { get; set; } = "";
+    public string MarketStatusText => SessionText + " · " + SourceCountText + (_monitor?.IsTesting == true ? " · …" : "");
+    public string MarketStatusTip => string.Join("\n", new[] { SessionText, SourcesText, _monitor?.IsTesting == true ? _loc["Ds_Testing"] : "", NetworkText }.Where(text => !string.IsNullOrWhiteSpace(text)));
     private DateTimeOffset _nextMcpScan;
     private readonly McpConnectionSetup _connection;
+    private McpSessionStatus _lastMcpStatus=new(false,[]);
+    private bool _mcpScanRunning;
+    private Task _mcpScanTask=Task.CompletedTask;
+    private int _mcpScanEpoch;
     private int _mcpCopyState;
     private DateTimeOffset _mcpCopyUntil;
     private readonly Meili.Data.Routing.HealthTracker _health;
 
-    public ShellViewModel(LocalizationService loc, DataDirectoryInfo dataDir, Meili.Data.DataServices data, McpConnectionSetup? connection = null)
+    public ShellViewModel(LocalizationService loc, DataDirectoryInfo dataDir, Meili.Data.DataServices data, McpConnectionSetup? connection = null, NavigationHub? navigation = null, DataSourceHealthMonitor? monitor = null)
     {
+        _navigation = navigation; _monitor = monitor;
+        if (_monitor is not null) _monitor.Changed += OnHealthSweep;
         _loc = loc; _connection = connection ?? McpConnectionSetup.Bundled(AppContext.BaseDirectory, dataDir.Path);
         _health = data.Health;
         _dataDir = dataDir;
@@ -47,9 +58,12 @@ public partial class ShellViewModel : ObservableObject, IDisposable
     internal int McpScanCount{get;private set;}
     public bool IsClockRunning=>_clock.IsEnabled;
     private void ClockTick(object? sender,EventArgs e)=>Tick();
-    private void OnLabels(object? sender,EventArgs e){if(_presentationVisible){RefreshMcpStatus();Tick();}}
-    public void SetPresentationVisible(bool visible){if(_disposed)return;_presentationVisible=visible;if(visible){_nextMcpScan=default;Tick();if(!_clock.IsEnabled)_clock.Start();}else _clock.Stop();}
-    public void Dispose(){if(_disposed)return;_disposed=true;_clock.Stop();_clock.Tick-=ClockTick;_loc.LanguageChanged-=OnLabels;Ui.Platform.ColorsChanged-=OnLabels;}
+    private void OnLabels(object? sender,EventArgs e){if(_presentationVisible){RenderMcpStatus(_lastMcpStatus);Tick();}}
+    public void SetPresentationVisible(bool visible){if(_disposed)return;_presentationVisible=visible;if(visible){_nextMcpScan=default;Tick();if(!_clock.IsEnabled)_clock.Start();}else {_mcpScanEpoch++;_clock.Stop();}}
+    public void Dispose(){if(_disposed)return;if(_monitor is not null)_monitor.Changed-=OnHealthSweep;_disposed=true;_mcpScanEpoch++;_clock.Stop();_clock.Tick-=ClockTick;_loc.LanguageChanged-=OnLabels;Ui.Platform.ColorsChanged-=OnLabels;}
+
+    private void OnHealthSweep(object? sender, EventArgs e) { Tick(); OnPropertyChanged(nameof(MarketStatusText)); OnPropertyChanged(nameof(MarketStatusTip)); }
+    [RelayCommand] private void OpenDataSources() => _navigation?.Go(AppPage.DataSources);
 
     /// <summary>Set by <see cref="NetworkController"/> to describe the effective proxy.</summary>
     public string NetworkDescription { get => _networkDescription; set { _networkDescription = value; Tick(); } }
@@ -77,14 +91,47 @@ public partial class ShellViewModel : ObservableObject, IDisposable
         var states = _health.All.Select(h => h.State(hnow)).ToList();
         var ok = states.Count(s => s == Meili.Data.Routing.HealthState.Healthy);
         var bad = states.Count(s => s == Meili.Data.Routing.HealthState.Down);
+        SourceCountText = $"{ok}/{states.Count}";
         SourcesText = string.Format(_loc["Status_Sources"], ok, states.Count);
-        SourcesBrush = Ui.Platform.Resource(bad > 0 ? "DegradedBrush" : ok > 0 ? "HealthyBrush" : "UnknownBrush");
+        SourcesBrush = Ui.Platform.Resource(bad > 0 || states.Contains(Meili.Data.Routing.HealthState.Degraded) ? "DegradedBrush" : ok > 0 ? "HealthyBrush" : "UnknownBrush");
     }
 
     public void RefreshMcpStatus()
     {
-        McpScanCount++;
-        var status = McpSessions.Read(_dataDir.Path);
+        RenderMcpStatus(_lastMcpStatus);
+        if(_disposed||!_presentationVisible||_mcpScanRunning)return;
+        _mcpScanRunning=true;McpScanCount++;_mcpScanTask=ReadMcpStatusAsync(_mcpScanEpoch);
+    }
+    public async Task RefreshMcpStatusAsync()
+    {
+        if(_mcpScanRunning)await _mcpScanTask;
+        RefreshMcpStatus();await _mcpScanTask;
+    }
+    private async Task ReadMcpStatusAsync(int epoch)
+    {
+        McpSessionStatus status;
+        try{status=await Task.Run(()=>McpSessions.Read(_dataDir.Path)).ConfigureAwait(false);}
+        catch(Exception ex){Meili.Core.Diagnostics.AppLog.Warn("mcp-status","Could not inspect local sessions",ex);status=new(false,[]);}
+        var applied=new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        try
+        {
+            Ui.Platform.Run(()=>
+            {
+                try
+                {
+                    _mcpScanRunning=false;
+                    if(_disposed||!_presentationVisible)return;
+                    if(epoch!=_mcpScanEpoch){RefreshMcpStatus();return;}
+                    _lastMcpStatus=status;RenderMcpStatus(status);
+                }
+                finally{applied.TrySetResult();}
+            });
+        }
+        catch(Exception ex){if(!_disposed)Meili.Core.Diagnostics.AppLog.Warn("mcp-status","Session status UI update failed",ex);applied.TrySetResult();}
+        await applied.Task.ConfigureAwait(false);
+    }
+    private void RenderMcpStatus(McpSessionStatus status)
+    {
         var count = status.Connections.Count; var writable = status.Connections.Any(c => !c.ReadOnly);
         McpStatusText = !status.Available ? _loc["Status_McpUnknown"] : count == 0 ? _loc["Status_McpIdle"] : string.Format(_loc[writable ? "Status_McpWritable" : "Status_McpConnected"], count);
         McpStatusTip = count == 0 ? _loc["Status_McpHint"] : string.Join("\n", status.Connections.Select(c => c.Client + " · " + _loc[c.ReadOnly ? "Status_McpReadOnly" : "Status_McpWriteMode"]));
@@ -98,7 +145,7 @@ public partial class ShellViewModel : ObservableObject, IDisposable
         if (!File.Exists(_connection.Executable) || (!_connection.Windows && _connection.Executable.Contains("/AppTranslocation/", StringComparison.Ordinal))) _mcpCopyState = 3;
         else try { await Ui.Platform.CopyTextAsync(_connection.ConfigurationPrompt(_loc.Language == "zh-CN")); _mcpCopyState = 1; }
             catch (Exception ex) { Meili.Core.Diagnostics.AppLog.Warn("mcp-setup", "Clipboard unavailable", ex); _mcpCopyState = 2; }
-        _mcpCopyUntil = DateTimeOffset.UtcNow.AddSeconds(5); RefreshMcpStatus();
+        _mcpCopyUntil = DateTimeOffset.UtcNow.AddSeconds(5); RenderMcpStatus(_lastMcpStatus);
     }
 
     private static TimeZoneInfo FindBeijing()

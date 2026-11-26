@@ -1,0 +1,42 @@
+{
+  "symbol": "QQQ",
+  "source": "synthetic package fixture",
+  "bars": [
+    {
+      "timestamp": "2026-01-02T14:30:00Z",
+      "open": 600,
+      "high": 601,
+      "low": 599,
+      "close": 600,
+      "volume": 100
+    }
+  ],
+  "captures": [
+    {
+      "valuationAt": "2026-01-02T14:32:00Z",
+      "expiry": 1767571200,
+      "spot": 600,
+      "result": {
+        "receivedAt": "2026-01-02T14:32:01Z",
+        "options": [
+          {
+            "calls": [
+              {
+                "strike": 600,
+                "impliedVolatility": 0.2,
+                "openInterest": 100
+              }
+            ],
+            "puts": [
+              {
+                "strike": 600,
+                "impliedVolatility": 0.2,
+                "openInterest": 50
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,157 @@
+name: Apps · Release
+run-name: "Apps · ${{ inputs.action || 'auto publish' }} ${{ inputs.app || 'all apps' }} ${{ inputs.version || 'current versions' }} · ${{ github.ref_name }}"
+on:
+  workflow_run:
+    workflows: ['CI · Test & Package']
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      action:
+        description: Prepare a signed draft or explicitly publish it
+        type: choice
+        options: [prepare, publish]
+        default: prepare
+        required: true
+      app:
+        description: App to prepare or recover manually (automatic runs check every app)
+        type: choice
+        options: [qqq-gex, market-liquidity, news-fundamentals, options-strategy, charts]
+        default: qqq-gex
+        required: true
+      version:
+        description: Optional app version (empty uses the selected app manifest)
+        type: string
+        required: false
+      ci_run_id:
+        description: Optional current-main CI run (auto-detected when empty)
+        type: string
+        required: false
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: official-app-release
+  cancel-in-progress: false
+jobs:
+  release:
+    name: Verify & release app
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'workflow_dispatch' ||
+       (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && vars.APPS_AUTO_RELEASE == 'true'))
+    runs-on: ubuntu-24.04
+    environment: release
+    permissions:
+      contents: write
+      actions: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      CI_RUN_INPUT: ${{ inputs.ci_run_id || github.event.workflow_run.id }}
+      APP_VERSION_INPUT: ${{ inputs.version }}
+      APP_ACTION: ${{ inputs.action || 'prepare' }}
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Resolve version and verify current main CI
+        id: source
+        if: github.event_name != 'workflow_dispatch' || inputs.app == 'qqq-gex'
+        run: python3 build/release/app-source.py --output "$RUNNER_TEMP/app-release-source.json"
+      - name: Download tested app artifact
+        if: (steps.source.outputs.action == 'prepare' || steps.source.outputs.action == 'auto') && steps.source.outputs.skip != 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: QQQ-GEX-test-package
+          run-id: ${{ steps.source.outputs.run_id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/tested-app
+      - name: Sign tested app and prepare draft
+        if: (steps.source.outputs.action == 'prepare' || steps.source.outputs.action == 'auto') && steps.source.outputs.skip != 'true'
+        env:
+          UPDATE_SIGNING_KEY: ${{ secrets.UPDATE_SIGNING_KEY }}
+        run: python3 build/release/app-release.py prepare --run-id "$RUN_ID" --version "$APP_VERSION" --artifact "$RUNNER_TEMP/tested-app/qqq-gex-test.espapp"
+      - name: Verify draft and publish app catalog
+        if: steps.source.outputs.skip != 'true' && (steps.source.outputs.action == 'auto' || steps.source.outputs.action == 'publish')
+        run: python3 build/release/app-release.py publish --run-id "$RUN_ID" --version "$APP_VERSION"
+      - name: Resolve liquidity version and verify current main CI
+        id: liquidity
+        if: github.event_name != 'workflow_dispatch' || inputs.app == 'market-liquidity'
+        run: python3 build/release/app-source.py --app market-liquidity --output "$RUNNER_TEMP/liquidity-release-source.json"
+      - name: Download tested liquidity artifact
+        if: (steps.liquidity.outputs.action == 'prepare' || steps.liquidity.outputs.action == 'auto') && steps.liquidity.outputs.skip != 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: LIQUIDITY-test-package
+          run-id: ${{ steps.liquidity.outputs.run_id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/tested-liquidity
+      - name: Sign tested liquidity and prepare draft
+        if: (steps.liquidity.outputs.action == 'prepare' || steps.liquidity.outputs.action == 'auto') && steps.liquidity.outputs.skip != 'true'
+        env:
+          UPDATE_SIGNING_KEY: ${{ secrets.UPDATE_SIGNING_KEY }}
+        run: python3 build/release/app-release.py prepare --app market-liquidity --run-id "$RUN_ID" --version "$APP_VERSION" --artifact "$RUNNER_TEMP/tested-liquidity/liquidity.espapp"
+      - name: Verify liquidity draft and publish catalog
+        if: steps.liquidity.outputs.skip != 'true' && (steps.liquidity.outputs.action == 'auto' || steps.liquidity.outputs.action == 'publish')
+        run: python3 build/release/app-release.py publish --app market-liquidity --run-id "$RUN_ID" --version "$APP_VERSION"
+      - name: Resolve news version and verify current main CI
+        id: news
+        if: github.event_name != 'workflow_dispatch' || inputs.app == 'news-fundamentals'
+        run: python3 build/release/app-source.py --app news-fundamentals --output "$RUNNER_TEMP/news-release-source.json"
+      - name: Download tested news artifact
+        if: (steps.news.outputs.action == 'prepare' || steps.news.outputs.action == 'auto') && steps.news.outputs.skip != 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: NEWS-test-package
+          run-id: ${{ steps.news.outputs.run_id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/tested-news
+      - name: Sign tested news and prepare draft
+        if: (steps.news.outputs.action == 'prepare' || steps.news.outputs.action == 'auto') && steps.news.outputs.skip != 'true'
+        env:
+          UPDATE_SIGNING_KEY: ${{ secrets.UPDATE_SIGNING_KEY }}
+        run: python3 build/release/app-release.py prepare --app news-fundamentals --run-id "$RUN_ID" --version "$APP_VERSION" --artifact "$RUNNER_TEMP/tested-news/news.espapp"
+      - name: Verify news draft and publish catalog
+        if: steps.news.outputs.skip != 'true' && (steps.news.outputs.action == 'auto' || steps.news.outputs.action == 'publish')
+        run: python3 build/release/app-release.py publish --app news-fundamentals --run-id "$RUN_ID" --version "$APP_VERSION"
+      - name: Resolve options version and verify current main CI
+        id: options
+        if: github.event_name != 'workflow_dispatch' || inputs.app == 'options-strategy'
+        run: python3 build/release/app-source.py --app options-strategy --output "$RUNNER_TEMP/options-release-source.json"
+      - name: Download tested options artifact
+        if: (steps.options.outputs.action == 'prepare' || steps.options.outputs.action == 'auto') && steps.options.outputs.skip != 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: OPTIONS-test-package
+          run-id: ${{ steps.options.outputs.run_id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/tested-options
+      - name: Sign tested options and prepare draft
+        if: (steps.options.outputs.action == 'prepare' || steps.options.outputs.action == 'auto') && steps.options.outputs.skip != 'true'
+        env:
+          UPDATE_SIGNING_KEY: ${{ secrets.UPDATE_SIGNING_KEY }}
+        run: python3 build/release/app-release.py prepare --app options-strategy --run-id "$RUN_ID" --version "$APP_VERSION" --artifact "$RUNNER_TEMP/tested-options/options.espapp"
+      - name: Verify options draft and publish catalog
+        if: steps.options.outputs.skip != 'true' && (steps.options.outputs.action == 'auto' || steps.options.outputs.action == 'publish')
+        run: python3 build/release/app-release.py publish --app options-strategy --run-id "$RUN_ID" --version "$APP_VERSION"
+      - name: Resolve charts version and verify current main CI
+        id: charts
+        if: github.event_name != 'workflow_dispatch' || inputs.app == 'charts'
+        run: python3 build/release/app-source.py --app charts --output "$RUNNER_TEMP/charts-release-source.json"
+      - name: Download tested charts artifact
+        if: (steps.charts.outputs.action == 'prepare' || steps.charts.outputs.action == 'auto') && steps.charts.outputs.skip != 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: CHARTS-test-package
+          run-id: ${{ steps.charts.outputs.run_id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/tested-charts
+      - name: Sign tested charts and prepare draft
+        if: (steps.charts.outputs.action == 'prepare' || steps.charts.outputs.action == 'auto') && steps.charts.outputs.skip != 'true'
+        env:
+          UPDATE_SIGNING_KEY: ${{ secrets.UPDATE_SIGNING_KEY }}
+        run: python3 build/release/app-release.py prepare --app charts --run-id "$RUN_ID" --version "$APP_VERSION" --artifact "$RUNNER_TEMP/tested-charts/charts.espapp"
+      - name: Verify charts draft and publish catalog
+        if: steps.charts.outputs.skip != 'true' && (steps.charts.outputs.action == 'auto' || steps.charts.outputs.action == 'publish')
+        run: python3 build/release/app-release.py publish --app charts --run-id "$RUN_ID" --version "$APP_VERSION"

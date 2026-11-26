@@ -13,7 +13,7 @@ public sealed class WebTabPane : UserControl, IDisposable
 {
     private readonly WebView2 _web = new();
     private readonly TextBox _address = new() { MinWidth = 80, VerticalContentAlignment = VerticalAlignment.Center };
-    private readonly TextBlock _status = new() { Margin = new Thickness(12, 4, 12, 4), FontSize = 12, Visibility = Visibility.Collapsed };
+    private readonly TextBlock _status = new TextBlock { Margin = new Thickness(12, 4, 12, 4), Visibility = Visibility.Collapsed }.WithFontSize(12);
     private readonly Button _back = new(), _forward = new(), _reload = new(), _external = new(), _edit = new();
     private readonly LocalizationService _loc = LocalizationService.Current;
     private string _pending;
@@ -40,7 +40,7 @@ public sealed class WebTabPane : UserControl, IDisposable
         {
             toolbar.Children.Clear();toolbar.ColumnDefinitions.Clear();
             toolbar.ColumnDefinitions.Add(new ColumnDefinition{Width=new GridLength(1,GridUnitType.Star)});for(var i=0;i<3;i++)toolbar.ColumnDefinitions.Add(new ColumnDefinition{Width=GridLength.Auto});
-            _source.FontSize=12;_source.VerticalAlignment=VerticalAlignment.Center;_source.TextTrimming=TextTrimming.CharacterEllipsis;
+            _source.WithFontSize(12);_source.VerticalAlignment=VerticalAlignment.Center;_source.TextTrimming=TextTrimming.CharacterEllipsis;
             var items=new FrameworkElement[]{_source,_reload,_external,_edit};
             for(var i=0;i<items.Length;i++){Grid.SetColumn(items[i],i);toolbar.Children.Add(items[i]);}
             _edit.Content=new Meili.App.Views.Controls.LucideIcon {Kind="Close"};

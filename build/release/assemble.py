@@ -16,10 +16,12 @@ update = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(update)
 
 
-def prepare(packages, output, version, plan):
+def prepare(packages, output, version, plan, platform_signing='required'):
+    if platform_signing not in ('required', 'none'):
+        raise ValueError('Unknown platform signing policy')
     if not re.fullmatch('[0-9a-f]{40}', plan['sourceCommit']) or plan.get('schemaVersion') != 1:
         raise ValueError('Invalid release provenance')
-    manifest = update.prepare(packages, output, version)
+    manifest = update.prepare(packages, output, version, plan["repository"])
     assets = [dict(a, kind='desktop') for a in manifest['assets']]
     for rid in CLI_RIDS:
         extension = '.zip' if rid.startswith('win-') else '.tar.gz'
@@ -40,7 +42,7 @@ def prepare(packages, output, version, plan):
     provenance = dict(schemaVersion=1, version=version, sourceCommit=plan['sourceCommit'],
                       repository=plan['repository'], ciRunId=plan['ciRunId'],
                       ciArtifacts=plan['artifacts'], assets=assets,
-                      platformSigning='Developer ID + Apple notarization / Windows Authenticode; native package checks passed')
+                      platformSigning=('Developer ID + Apple notarization / Windows Authenticode; native package checks passed' if platform_signing == 'required' else 'No Developer ID, Apple notarization or Windows Authenticode; macOS ad-hoc integrity signature only; native package checks passed'))
     (output / 'EasySellPut-release.json').write_text(json.dumps(provenance, sort_keys=True, separators=(',', ':')), encoding='utf-8')
     return provenance
 
@@ -50,9 +52,10 @@ if __name__ == '__main__':
     parser.add_argument('--packages', type=pathlib.Path, required=True)
     parser.add_argument('--plan', type=pathlib.Path, required=True)
     parser.add_argument('--output', type=pathlib.Path, required=True)
+    parser.add_argument('--platform-signing', choices=('required', 'none'), default='required')
     args = parser.parse_args()
     version = ET.parse(ROOT / 'Directory.Build.props').find('.//Version').text
-    prepare(args.packages, args.output, version, json.loads(args.plan.read_text(encoding='utf-8')))
+    prepare(args.packages, args.output, version, json.loads(args.plan.read_text(encoding='utf-8')), args.platform_signing)
     import os
     with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
         f.write('version=' + version + '\n')

@@ -8,7 +8,7 @@
     <UserControl.Resources>
         <DataTemplate x:Key="StatementTemplate" x:DataType="vm:StatementBlock">
             <StackPanel IsVisible="{Binding HasData}" Margin="0,0,0,4">
-                <TextBlock Classes="CardTitle" FontSize="15" Text="{Binding Title}" Margin="0,0,0,6" />
+                <TextBlock Classes="CardTitle" FontSize="{DynamicResource BodyFontSize}" Text="{Binding Title}" Margin="0,0,0,6" />
                 <Grid ColumnDefinitions="1.6*,*,*,*,*" Margin="0,0,0,4">
                     <TextBlock Classes="Caption" Text="{DynamicResource Nf_Item}" />
                     <TextBlock Grid.Column="1" Classes="Caption" Text="{Binding H0}" TextAlignment="Right" />
@@ -20,7 +20,7 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="vm:StatementLine">
                             <Grid ColumnDefinitions="1.6*,*,*,*,*" Margin="0,3">
-                                <TextBlock FontSize="13" Text="{Binding Label}" TextWrapping="Wrap" />
+                                <TextBlock FontSize="{DynamicResource FontSize13}" Text="{Binding Label}" TextWrapping="Wrap" />
                                 <TextBlock Grid.Column="1" Classes="FinCell" Text="{Binding V0}" />
                                 <TextBlock Grid.Column="2" Classes="FinCell" Text="{Binding V1}" />
                                 <TextBlock Grid.Column="3" Classes="FinCell" Text="{Binding V2}" />
@@ -34,46 +34,50 @@
     </UserControl.Resources>
     <UserControl.Styles>
         <Style Selector="TextBlock.FinCell">
-            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontSize" Value="{DynamicResource FontSize13}" />
             <Setter Property="FontFamily" Value="{DynamicResource NumberFont}" />
             <Setter Property="TextAlignment" Value="Right" />
         </Style>
         <Style Selector="TextBlock.StatValue">
-            <Setter Property="FontSize" Value="16" />
+            <Setter Property="FontSize" Value="{DynamicResource SubtitleFontSize}" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="FontFamily" Value="{DynamicResource NumberFont}" />
             <Setter Property="TextWrapping" Value="Wrap" />
         </Style>
         <Style Selector="ListBox#NewsList ListBoxItem">
-            <Setter Property="Padding" Value="10,8" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
         </Style>
     </UserControl.Styles>
-    <DockPanel>
-        <StackPanel DockPanel.Dock="Top" Margin="32,20,32,8">
+    <DockPanel x:Name="NewsPageLayout" MaxWidth="1248" HorizontalAlignment="Stretch">
+        <StackPanel DockPanel.Dock="Top" Margin="24,16,24,12">
             <ux:AppFormHeader Title="{DynamicResource Nf_Title}" HelpText="{DynamicResource Nf_Desc}" IsPageTitle="True" Margin="0,0,0,12"/>
             <DockPanel Margin="0,0,0,10">
-                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding ExportCommand}" Content="{DynamicResource Nf_Export}" />
-                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding RefreshCommand}" Content="{DynamicResource Nf_Refresh}"  IsEnabled="{Binding !IsBusy}"/>
+                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding ExportCommand}" Width="36" Height="36" Padding="0" AutomationProperties.Name="{DynamicResource Nf_Export}" ToolTip.Tip="{DynamicResource Nf_Export}"><ux:LucideIcon Kind="Download" Width="18" Height="18"/></Button>
+                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding RefreshCommand}" Width="36" Height="36" Padding="0" AutomationProperties.Name="{DynamicResource Nf_Refresh}" ToolTip.Tip="{DynamicResource Nf_Refresh}" IsEnabled="{Binding !IsBusy}"><ux:LucideIcon Kind="Refresh" Width="18" Height="18"/></Button>
                 <Button DockPanel.Dock="Right" Margin="8,0,0,0" Classes="Primary" Command="{Binding LoadFromBoxCommand}" Content="{DynamicResource Nf_Load}"  IsEnabled="{Binding !IsBusy}"/>
                 <controls:SymbolBox x:Name="SymbolInput" MinWidth="200" Text="{Binding SymbolText}" WatchSymbols="{Binding WatchSymbols}"
                                     CommitCommand="{Binding LoadFromBoxCommand}" />
             </DockPanel>
             <DockPanel Margin="0,0,0,6">
-                <TextBlock DockPanel.Dock="Right" FontSize="16" FontWeight="SemiBold" FontFamily="{DynamicResource NumberFont}"
+                <TextBlock DockPanel.Dock="Right" FontSize="{DynamicResource SubtitleFontSize}" FontWeight="SemiBold" FontFamily="{DynamicResource NumberFont}"
                            Text="{Binding ChangeText}" Foreground="{Binding ChangeBrush}" VerticalAlignment="Center" Margin="16,0,0,0" />
-                <TextBlock Classes="CardTitle" FontSize="18" Text="{Binding Headline}" VerticalAlignment="Center" TextWrapping="Wrap" />
+                <TextBlock Classes="CardTitle" FontSize="{DynamicResource FontSize18}" Text="{Binding Headline}" VerticalAlignment="Center" TextWrapping="Wrap" />
             </DockPanel>
-            <TextBlock Classes="Caption" Text="{Binding MetaText}" Margin="0,0,0,6" />
+            <TextBlock Classes="Caption" Text="{Binding LiveQuote.Text}" ToolTip.Tip="{Binding LiveQuote.Tooltip}" VerticalAlignment="Center" Margin="0,0,0,6"/>
+            <TextBlock Classes="Caption" Text="{Binding MetaText}" IsVisible="{Binding HasMetaText}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding MetaText}" Margin="0,0,0,6" />
             <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                 <ux:AppLoading Margin="0,0,8,0" IsVisible="{Binding IsBusy}" />
                 <TextBlock Classes="Caption" Text="{Binding StatusText}" VerticalAlignment="Center" />
             </StackPanel>
         </StackPanel>
 
-        <Grid Margin="16,0,16,16" ColumnDefinitions="1.25*,16,*">
-            <ScrollViewer Grid.Column="0" MinWidth="420">
-                <StackPanel Margin="16,0,8,8">
-                    <TextBlock Classes="CardTitle" Text="{DynamicResource Nf_Stats}" Margin="0,0,0,8" />
+        <Grid x:Name="NewsWorkspace" Margin="24,0,24,24" MaxWidth="1200" HorizontalAlignment="Stretch">
+            <ScrollViewer x:Name="FundamentalsPane">
+                <ux:AppCard Padding="20">
+                <StackPanel>
+                    <TextBlock Classes="CardTitle" Text="{DynamicResource Nf_Fundamentals}" Margin="0,0,0,8" />
                     <ItemsControl ItemsSource="{Binding Stats}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
@@ -97,7 +101,7 @@
                             <TextBlock Classes="Caption" Text="{DynamicResource Nf_Website}" VerticalAlignment="Center" Margin="0,0,8,0" />
                             <HyperlinkButton Padding="0" Command="{Binding OpenWebsiteCommand}" Content="{Binding WebsiteText}" />
                         </StackPanel>
-                        <TextBlock Classes="Body" Text="{Binding Description}" TextWrapping="Wrap" FontSize="14" />
+                        <TextBlock Classes="Body" Text="{Binding Description}" TextWrapping="Wrap" FontSize="{DynamicResource FontSize14}" />
                     </StackPanel></ux:AppDisclosure>
 
                     <DockPanel Margin="0,16,0,8">
@@ -107,37 +111,40 @@
                             <Button x:Name="QuarterlyChip" Classes="Chip" Padding="10,6" Content="{DynamicResource Nf_Quarterly}"
                                     Classes.Selected="{Binding !Annual}" Command="{Binding SelectAnnualCommand}" />
                         </StackPanel>
-                        <TextBlock Classes="CardTitle" Text="{DynamicResource Nf_Financials}" VerticalAlignment="Center" />
+                        <TextBlock Classes="CardTitle" Text="{DynamicResource Nf_FinancialTrend}" VerticalAlignment="Center" />
                     </DockPanel>
                     <TextBlock Classes="Secondary" Text="{DynamicResource Nf_NoFinancials}" IsVisible="{Binding !HasFinancials}" />
-                    <StackPanel IsVisible="{Binding HasFinancials}">
+                    <StackPanel IsVisible="{Binding HasFinancials}"><ux:AppSelect ItemsSource="{Binding FinancialCharts}" SelectedItem="{Binding SelectedFinancialChart, Mode=TwoWay}" HorizontalAlignment="Stretch" Margin="0,0,0,12">
+                        <ux:AppSelect.ItemTemplate><DataTemplate x:DataType="vm:FinancialChart"><TextBlock Text="{Binding Title}"/></DataTemplate></ux:AppSelect.ItemTemplate>
+                    </ux:AppSelect><ContentControl Content="{Binding SelectedFinancialChart}" Margin="0,0,0,12"><ContentControl.ContentTemplate><DataTemplate x:DataType="vm:FinancialChart"><ux:AppFinancialChart/></DataTemplate></ContentControl.ContentTemplate></ContentControl></StackPanel>
+<TextBlock Classes="CardTitle" Text="{DynamicResource Nf_EarningsOutlook}" Margin="0,20,0,8"/>
+                    <TextBlock Classes="Caption" Text="{Binding EarningsStatus}" TextWrapping="Wrap" Margin="0,0,0,12"/>
+                    <ItemsControl ItemsSource="{Binding EstimateCharts}"><ItemsControl.ItemTemplate><DataTemplate x:DataType="vm:FinancialChart"><ux:AppCard Padding="16" Margin="0,0,0,12"><ux:AppFinancialChart/></ux:AppCard></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+                    <ux:AppDisclosure Header="{DynamicResource Nf_StatementDetails}" HorizontalAlignment="Stretch">                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" IsVisible="{Binding HasFinancials}"><StackPanel IsVisible="{Binding HasFinancials}" MinWidth="460">
                         <ContentControl Content="{Binding Income}" ContentTemplate="{StaticResource StatementTemplate}" Margin="0,0,0,12" />
                         <ContentControl Content="{Binding Balance}" ContentTemplate="{StaticResource StatementTemplate}" Margin="0,0,0,12" />
                         <ContentControl Content="{Binding CashFlow}" ContentTemplate="{StaticResource StatementTemplate}" />
-                    </StackPanel>
+                    </StackPanel></ScrollViewer></ux:AppDisclosure>
                 </StackPanel>
+                </ux:AppCard>
             </ScrollViewer>
 
-            <DockPanel Grid.Column="2" MinWidth="320">
+            <DockPanel x:Name="NewsFeedPane">
                 <TextBlock DockPanel.Dock="Top" Classes="CardTitle" Text="{DynamicResource Nf_News}" Margin="0,0,0,8" />
                 <TextBlock DockPanel.Dock="Top" Classes="Secondary" Text="{DynamicResource Nf_NoNews}" IsVisible="{Binding !HasNews}" />
-                <ListBox x:Name="NewsList" ItemsSource="{Binding News}" IsVisible="{Binding HasNews}" Background="Transparent"
+                <ListBox Classes="ActionList" x:Name="NewsList" ItemsSource="{Binding News}" SelectedItem="{Binding SelectedNews, Mode=TwoWay}" IsVisible="{Binding HasNews}" Background="Transparent"
                          ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                     <ListBox.ItemTemplate>
                         <DataTemplate x:DataType="vm:NewsEntry">
-                            <DockPanel>
-                                <Button DockPanel.Dock="Right" Margin="8,0,0,0" VerticalAlignment="Top" FontSize="13"
-                                        Command="{Binding $parent[UserControl].((vm:NewsViewModel)DataContext).OpenArticleCommand}"
-                                        CommandParameter="{Binding}"  Width="32" Height="32" MinWidth="32" MinHeight="32" Padding="0" AutomationProperties.Name="{DynamicResource Nf_OpenArticle}" ToolTip.Tip="{Binding Title}"><ux:LucideIcon Kind="ExternalLink" Width="18" Height="18"/></Button>
-                                <StackPanel>
-                                    <TextBlock Text="{Binding Title}" FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap" />
-                                    <TextBlock Classes="Caption" Margin="0,4,0,0" ToolTip.Tip="{Binding TimeTip}">
-                                        <Run Text="{Binding Publisher}" />
-                                        <Run Text="  ·  " />
-                                        <Run Text="{Binding TimeText}" />
-                                    </TextBlock>
-                                </StackPanel>
-                            </DockPanel>
+                            <ux:AppActionCard Padding="16" Command="{Binding $parent[UserControl].((vm:NewsViewModel)DataContext).OpenArticleCommand}" CommandParameter="{Binding}" AutomationProperties.Name="{Binding Title}">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <StackPanel Spacing="8">
+                                        <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                                        <TextBlock Classes="Caption" ToolTip.Tip="{Binding TimeTip}"><Run Text="{Binding Publisher}"/><Run Text="  ·  "/><Run Text="{Binding TimeText}"/></TextBlock>
+                                    </StackPanel>
+                                    <ux:LucideIcon Grid.Column="1" Kind="ChevronRight" Width="18" Height="18" Margin="16,0,0,0" VerticalAlignment="Center"/>
+                                </Grid>
+                            </ux:AppActionCard>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>

@@ -2,6 +2,50 @@
   "schemaVersion": 1,
   "cases": [
     {
+      "operation": "get_qqq_gex_archive",
+      "arguments": {
+        "resource": "dates",
+        "pageSize": 1
+      },
+      "expect": {
+        "/data/status": {
+          "equals": "cache_miss"
+        },
+        "/data/available": {
+          "equals": false
+        },
+        "/data/complete": {
+          "equals": false
+        }
+      },
+      "compare": [
+        "/data"
+      ]
+    },
+    {
+      "operation": "get_qqq_gex_view",
+      "arguments": {
+        "resource": "workspace"
+      },
+      "expect": {
+        "/data/available": {
+          "equals": true
+        },
+        "/data/resource": {
+          "equals": "workspace"
+        },
+        "/data/encoding": {
+          "equals": "base64"
+        },
+        "/data/hasMore": {
+          "equals": false
+        }
+      },
+      "compare": [
+        "/data"
+      ]
+    },
+    {
       "operation": "search_symbols",
       "arguments": {
         "query": "apple"
@@ -911,6 +955,237 @@
       "expect": {
         "/data/groups/0/symbols/0": {
           "equals": "AAPL"
+        }
+      },
+      "compare": [
+        "/data"
+      ]
+    },
+    {
+      "operation": "get_cache_status",
+      "arguments": {},
+      "expect": {
+        "/data/caches/1/id": {
+          "equals": "bars"
+        },
+        "/data/protectedData/0": {
+          "equals": "iv_samples"
+        },
+        "/data/storage/basis": {
+          "equals": "logical-file-bytes-in-data-directory"
+        }
+      },
+      "compare": [
+        "/data/caches/1/id",
+        "/data/protectedData",
+        "/data/excluded"
+      ]
+    },
+    {
+      "operation": "clear_cache",
+      "arguments": {
+        "category": "bars",
+        "symbol": "CACHEEMPTY"
+      },
+      "expect": {
+        "/data/0/id": {
+          "equals": "bars"
+        },
+        "/data/0/removed": {
+          "equals": 0
+        }
+      },
+      "compare": [
+        "/data"
+      ]
+    },
+    {
+      "operation": "capture_qqq_gex_input",
+      "arguments": {},
+      "expect": {
+        "/data/symbol": {
+          "equals": "QQQ"
+        },
+        "/data/basis": {
+          "equals": "normalized-provider-input"
+        },
+        "/data/calculated": {
+          "equals": false
+        }
+      },
+      "compare": [
+        "/data/symbol",
+        "/data/basis",
+        "/data/calculated"
+      ]
+    },
+    {
+      "operation": "calculate_qqq_gex_local",
+      "arguments": {},
+      "expect": {
+        "/data/complete": {
+          "equals": false
+        }
+      },
+      "compare": [
+        "/data/complete"
+      ]
+    },
+    {
+      "operation": "get_qqq_gex_replay",
+      "arguments": {
+        "from": "2026-01-02T05:00:00Z",
+        "to": "2026-01-03T05:00:00Z"
+      },
+      "expect": {
+        "/data/status": {
+          "equals": "cache_miss"
+        },
+        "/data/available": {
+          "equals": false
+        }
+      },
+      "compare": [
+        "/data/status",
+        "/data/available"
+      ]
+    },
+    {
+      "operation": "rebuild_qqq_gex_history",
+      "arguments": {
+        "limit": 2
+      },
+      "expect": {
+        "/data/status": {
+          "equals": "no_observed_inputs"
+        },
+        "/data/processed": {
+          "equals": 0
+        }
+      },
+      "compare": [
+        "/data/status",
+        "/data/processed"
+      ]
+    },
+    {
+      "operation": "get_qqq_gex_live_decision",
+      "arguments": {},
+      "expect": {
+        "/data/status": {
+          "equals": "cache_miss"
+        }
+      },
+      "compare": [
+        "/data/status"
+      ]
+    },
+    {
+      "operation": "get_market_liquidity",
+      "arguments": {},
+      "expect": {
+        "/data/metrics/0/id": {
+          "equals": "sofr_iorb"
+        },
+        "/data/metrics/0/latest/value": {
+          "approx": 1
+        },
+        "/data/metrics/3/latest/value": {
+          "equals": 3100
+        },
+        "/data/sectors/0/baselineDays": {
+          "equals": 20
+        },
+        "/data/pressureIndex/score": {
+          "approx": 49.8
+        },
+        "/data/pressureIndex/band": {
+          "equals": "normal"
+        }
+      },
+      "compare": [
+        "/data/metrics",
+        "/data/sectors",
+        "/data/heatmapBasis",
+        "/data/pressureIndex"
+      ]
+    },
+    {
+      "operation": "get_qqq_gex_lifecycle",
+      "arguments": {
+        "date": "2026-01-02"
+      },
+      "expect": {
+        "/data/date": {
+          "equals": "2026-01-02"
+        },
+        "/data/recorded": {
+          "equals": false
+        },
+        "/data/complete": {
+          "equals": false
+        }
+      },
+      "compare": [
+        "/data"
+      ]
+    },
+    {
+      "operation": "get_live_quotes",
+      "arguments": {
+        "symbols": [
+          "AAPL"
+        ],
+        "seconds": 1,
+        "maxUpdates": 1
+      },
+      "expect": {
+        "/data/transport": {
+          "equals": "websocket"
+        },
+        "/data/status": {
+          "equals": "received"
+        },
+        "/data/ticks/0/price": {
+          "equals": 101
+        },
+        "/data/ticks/0/session": {
+          "equals": "Regular"
+        },
+        "/data/missingSymbols": {
+          "equals": []
+        }
+      },
+      "compare": [
+        "/data"
+      ]
+    },
+    {
+      "operation": "get_live_bars",
+      "arguments": {
+        "symbol": "AAPL",
+        "interval": "1m",
+        "seconds": 1,
+        "maxUpdates": 1
+      },
+      "expect": {
+        "/data/view/status": {
+          "equals": "joined"
+        },
+        "/data/view/observedTail/0/incomplete": {
+          "equals": true
+        },
+        "/data/view/observedTail/0/close": {
+          "equals": 101
+        },
+        "/data/view/observedTail/0/open": {
+          "equals": null
+        },
+        "/data/view/observedTail/0/volume": {
+          "equals": null
+        },
+        "/data/stream/transport": {
+          "equals": "websocket"
         }
       },
       "compare": [

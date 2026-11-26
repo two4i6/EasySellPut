@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EasySellPut Charts</title>
+<link rel="stylesheet" href="chart.css"><script src="components.js" defer></script>
+<script src="icons.js" defer></script><script src="motion.js" defer></script><script src="library.js" defer></script><script src="chart.js" defer></script>
+<link rel="stylesheet" href="design-tokens.css"><link rel="stylesheet" href="components.css"></head>
+<body><div id="toolbar"><span id="symbol"></span><details id="session-key" hidden></details><details id="draw-tools"><summary id="draw-tools-label"></summary><div id="draw-tool-options"></div></details><details id="chart-display" hidden><summary id="display-label"></summary><div id="display-options">
+<label><span id="chart-style-label"></span><select id="chart-style"><option value="candles"></option><option value="line"></option><option value="area"></option><option value="bars"></option></select></label>
+<label><span id="chart-scale-label"></span><select id="chart-scale"><option value="price"></option><option value="percent"></option><option value="log"></option></select></label>
+<button id="chart-focus" type="button"></button><button id="chart-image" type="button"></button>
+<button id="replay-toggle" type="button"></button>
+<div id="replay-controls" hidden>
+<label><span id="replay-position-label"></span><input id="replay-position" type="range" min="0" step="1"/></label>
+<label><span id="replay-speed-label"></span><select id="replay-speed"><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></label>
+<button id="replay-play" type="button"></button><button id="replay-step" type="button"></button>
+</div></div></details><button id="fit" type="button"><span data-lucide="Fit"></span></button><a id="attribution" href="https://www.tradingview.com/" target="_blank" rel="noopener" aria-label="Chart component information" title="TradingView Lightweight Charts™"><span data-lucide="Info"></span></a></div><div id="error" role="alert"></div><div id="chart"><div id="legend" class="sr-only"></div><div id="empty"></div><svg id="drawing-overlay" aria-hidden="true"></svg><div id="drawing-hint" role="status" hidden></div><div id="drawing-panel" hidden><select id="drawing-select" aria-label="Drawings"></select><label id="drawing-first-field"><span id="drawing-first-label"></span><input id="drawing-first" type="number" min="0" max="1000000000000" step="any"></label><label id="drawing-second-field"><span id="drawing-second-label"></span><input id="drawing-second" type="number" min="0" max="1000000000000" step="any"></label><label id="drawing-stop-field" hidden><span id="drawing-stop-label"></span><input id="drawing-stop" type="number" min="0" max="1000000000000" step="any"></label><label id="drawing-time1-field" hidden><span id="drawing-time1-label"></span><select id="drawing-time1"></select></label><label id="drawing-time2-field" hidden><span id="drawing-time2-label"></span><select id="drawing-time2"></select></label><button id="drawing-save" type="button"></button><button id="drawing-delete" type="button"></button><span id="drawing-error" role="status"></span><button id="drawing-close" type="button"><span data-lucide="Close"></span></button></div><div id="event-tooltip" role="tooltip" hidden></div></div><div id="sidebar-splitter" role="separator" tabindex="0" aria-orientation="vertical" aria-controls="timeline"></div><aside id="timeline" aria-label="Market sidebar"><section id="event-panel"><header id="event-header"><h2 id="event-heading" tabindex="-1">Activity</h2><span id="event-symbol"></span><details id="event-info" class="app-popover" data-app-popover><summary id="event-info-heading" aria-label="Data coverage"><span data-lucide="Help"></span></summary><div class="app-popover-panel" role="dialog" aria-label="Data coverage"><p id="event-coverage"></p><p id="event-scope"></p></div></details><button id="collapse-events" type="button" aria-controls="event-panel"><span data-lucide="PanelRight"></span></button></header><div id="event-tools"><div id="event-filters"></div></div><div id="event-status" role="status"></div><div id="event-content"><div id="event-group" hidden><span id="event-group-label" role="status"></span><button id="event-group-clear" type="button"></button></div><div id="event-feed"><nav id="event-history" aria-label="Event history" hidden></nav><div id="event-list"></div></div><div id="event-detail" aria-live="polite" hidden></div></div></section><section id="quote-panel" aria-labelledby="quote-heading" hidden>
+  <h2 id="quote-heading"></h2>
+  <p id="quote-empty"></p>
+  <div id="quote-body" hidden>
+    <p id="quote-symbol"></p><p id="quote-name"></p>
+    <div id="quote-prices"><strong id="quote-price"></strong><span id="quote-change"></span></div>
+    <p id="quote-source"></p><p id="quote-time"></p>
+    <dl id="quote-stats">
+      <div><dt></dt><dd data-stat="open"></dd></div>
+      <div><dt></dt><dd data-stat="high"></dd></div>
+      <div><dt></dt><dd data-stat="low"></dd></div>
+      <div><dt></dt><dd data-stat="previousClose"></dd></div>
+      <div><dt></dt><dd data-stat="volume"></dd></div>
+    </dl>
+    <p id="quote-extended" hidden></p>
+  </div>
+</section><nav id="right-tools" aria-label="Sidebar views"><button type="button" data-view="all" aria-pressed="true"><i data-lucide="List"></i><span></span></button><button type="button" data-view="news" aria-pressed="false"><i data-lucide="News"></i><span></span></button><button type="button" data-view="calendar" aria-pressed="false"><i data-lucide="Calendar"></i><span></span></button><button type="button" data-view="quote" aria-controls="quote-panel" aria-pressed="false"><i data-lucide="Info"></i><span></span></button></nav></aside><footer><div id="study-strip" hidden></div><details id="chart-help"><summary id="help-heading">? Controls</summary><div id="chart-help-content"><span id="hint"></span></div></details></footer></body>
+</html>

@@ -1,0 +1,101 @@
+{
+  "dataset": {
+    "kind": "six actual CBOE QQQ observations, 2026-11-16; 15-minute delayed, incomplete IV, not a full trading day",
+    "observations": 6,
+    "expiriesPerObservation": 29,
+    "retainedProfileRows": 174,
+    "originalDatabaseBytes": 162975744
+  },
+  "environment": {
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+    "node": "v24.22.1",
+    "nodeSqlite": "3.53.4",
+    "dotnet": "10.0.403",
+    "method": "SQLite backup copy; source untouched; one measured run, not a statistical performance claim"
+  },
+  "losslessCompaction": {
+    "databaseBytes": 73142272,
+    "seconds": 2.066256414000236,
+    "peakRssKiB": 163556,
+    "exitCode": 0,
+    "allDecodedTableDigestsEqual": true
+  },
+  "clearDerivedAndCompact": {
+    "seconds": 0.49116035100087174,
+    "peakRssKiB": 49376,
+    "databaseBytes": 22949888,
+    "protectedTableDigestsEqual": true,
+    "cacheGenerationAndReceipts": "intentionally invalidated by derived clear"
+  },
+  "readParity": [
+    {
+      "route": "/api/analysis/qqq/pcs?gexWindow=latest&gexDisplay=1&gexOverview=1",
+      "parity": true,
+      "beforeSeconds": 0.7626373560015054,
+      "afterSeconds": 0.507321122000576,
+      "responseBytes": 3692355,
+      "childrenPeakRssKiB": 123008,
+      "requestClock": "fixed identically for volatile context asOf; stored source times unchanged"
+    },
+    {
+      "route": "/api/analysis/qqq/gex/exposure?date=2026-11-16&format=manifest-v2",
+      "parity": true,
+      "beforeSeconds": 0.1441464880008425,
+      "afterSeconds": 0.1643516109979828,
+      "responseBytes": 2473,
+      "childrenPeakRssKiB": 123008,
+      "requestClock": "fixed identically for volatile context asOf; stored source times unchanged"
+    },
+    {
+      "route": "/api/analysis/qqq/pcs/backtest?stream=signals&from=2026-11-16T05:00:00Z&to=2026-11-17T05:00:00Z&page=1&pageSize=1",
+      "parity": true,
+      "beforeSeconds": 0.16003380099937203,
+      "afterSeconds": 0.11857953700018697,
+      "responseBytes": 3061,
+      "childrenPeakRssKiB": 123008,
+      "requestClock": "fixed identically for volatile context asOf; stored source times unchanged"
+    },
+    {
+      "route": "/api/analysis/qqq/gex/intraday-context?date=2026-11-16&dte=2&include=volume",
+      "parity": true,
+      "beforeSeconds": 0.08861490299750585,
+      "afterSeconds": 0.08476880899979733,
+      "responseBytes": 2576,
+      "childrenPeakRssKiB": 123008,
+      "requestClock": "fixed identically for volatile context asOf; stored source times unchanged"
+    }
+  ],
+  "fullProfileWindows": [
+    {
+      "from": "2026-11-16T14:00:00.000Z",
+      "to": "2026-11-16T14:48:18.000Z",
+      "bytes": 14800179,
+      "sha256": "756312baeac1eb97b1f1103f57a4e7ace233bc21529f032cfd33f5c8765f4ea9",
+      "beforeSeconds": 1.6363655959976313,
+      "afterSeconds": 2.050352816000668,
+      "peakChildRssKiB": 318208,
+      "parity": true
+    }
+  ],
+  "crashRecovery": {
+    "result": "PASS",
+    "killedAfterCompressedRows": 32,
+    "protectedDigestUnchanged": true,
+    "resumeAndIntegrity": "passed",
+    "fixture": "copied supplied source"
+  },
+  "growthModel": {
+    "assumption": "linear extrapolation from short six-observation encoded archive sample; 195 two-minute observations in regular trading hours, no future entropy guarantee",
+    "approxProtectedGiBPerDay": 0.6946468353271484,
+    "uniqueHistoryAutomaticEviction": false
+  },
+  "limits": {
+    "derivedWireLogicalDefaultBytes": 67108864,
+    "derivedWireImportTargetBytes": 50331648,
+    "archiveWarningBytes": 1073741824,
+    "diskReserveBytes": 268435456,
+    "importTransactionHeadroomBytes": 134217728,
+    "archiveDecodedRecordLimitBytes": 134217728,
+    "profileRowDecodedLimitBytes": 16777216
+  }
+}

@@ -16,8 +16,8 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 def verify_assets(directory, index):
     version = index['version']
     require(re.fullmatch(r'\d+\.\d+\.\d+', version) is not None, 'Invalid stable version')
-    expected = {(kind, rid) for kind, rids in [('desktop', ('win-x64', 'win-arm64', 'osx-x64', 'osx-arm64')),
-                                             ('cli', ('linux-x64', 'win-x64', 'win-arm64', 'osx-x64', 'osx-arm64'))] for rid in rids}
+    expected = {(kind, rid) for kind, rids in [('desktop', ('win-x64', 'osx-x64', 'osx-arm64')),
+                                             ('cli', ('linux-x64', 'win-x64', 'osx-x64', 'osx-arm64'))] for rid in rids}
     found = set()
     for asset in index['assets']:
         pair = (asset['kind'], asset['rid'])
@@ -34,7 +34,7 @@ def verify_assets(directory, index):
         require(package.with_suffix(package.suffix + '.sha256').read_text(encoding='ascii').strip() == actual + '  ' + name, 'Checksum file mismatch')
     require(found == expected, 'Missing release targets')
     update = json.loads((directory / 'EasySellPut-update.json').read_text(encoding='utf-8'))
-    require(update.get('schemaVersion') == 1 and update.get('version') == version, 'Update index differs')
+    require(update.get('schemaVersion') == 1 and update.get('version') == version and update.get('repository') == index['repository'], 'Update index differs')
     desktop = [{k: a[k] for k in ('rid', 'fileName', 'sha256', 'size')} for a in index['assets'] if a['kind'] == 'desktop']
     require(update['assets'] == desktop, 'Update asset list differs from signed release')
     expected_files = {a['fileName'] for a in index['assets']}

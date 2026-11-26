@@ -42,6 +42,9 @@ function Write-Utf8([string]$Path, [string]$Content, [bool]$Bom = $true) {
     [System.IO.File]::WriteAllText($Path, $Content, $enc)
 }
 
+python (Join-Path $Root 'build/prepare-app-seed.py') --if-current
+if ($LASTEXITCODE -ne 0) { throw 'App compatibility seed build failed' }
+
 if (-not $SkipTests) {
     Write-Host "=== tests ==="
     dotnet test $Sln -c Release -nologo --verbosity minimal --filter "Category!=Live"
@@ -71,6 +74,9 @@ Get-ChildItem $PayloadDir -Force -ErrorAction SilentlyContinue | Remove-Item -Re
 New-Item -ItemType Directory -Force -Path $PayloadDir | Out-Null
 Copy-Item $published (Join-Path $PayloadDir $ExeFileName) -Force
 
+python (Join-Path $Root 'build/bundle-qqq-runtime.py') 'win-x64' $PayloadDir
+if ($LASTEXITCODE -ne 0) { throw 'QQQ runtime bundling failed' }
+
 # Verify user-visible file metadata contains no "tyu".
 $info = [System.Diagnostics.FileVersionInfo]::GetVersionInfo((Join-Path $PayloadDir $ExeFileName))
 Write-Host "FileDescription=$($info.FileDescription)"
@@ -86,6 +92,7 @@ if ($info.ProductName -ne $ProductName) { Write-Warning "ProductName is '$($info
 if (Test-Path $PortableDir) { Remove-Item $PortableDir -Recurse -Force }
 New-Item -ItemType Directory -Force -Path $PortableDir | Out-Null
 Copy-Item (Join-Path $PayloadDir $ExeFileName) (Join-Path $PortableDir $ExeFileName) -Force
+Copy-Item (Join-Path $PayloadDir "runtime") (Join-Path $PortableDir "runtime") -Recurse
 Write-Utf8 (Join-Path $PortableDir "portable.flag") "" $false
 $portableReadme = @"
 这是「$ProductName」的便携版（$Version）。

@@ -231,6 +231,8 @@ public sealed class FailoverRouter : IMarketDataService
         {
             var ok = p switch
             {
+                IConnectivityProbe probe => await probe.ProbeAsync(ct).ConfigureAwait(false),
+                ILiquiditySeriesSource l => (await l.GetSeriesAsync("SOFR", ct).ConfigureAwait(false)).Observations.Count > 0,
                 IQuoteProvider q => (await q.GetQuotesAsync(["AAPL"], ct).ConfigureAwait(false)).Count > 0,
                 IFinancialsProvider f => (await f.GetFinancialsAsync("AAPL", ct).ConfigureAwait(false)).Lines.Count > 0,
                 ISymbolSearchProvider s => (await s.SearchAsync("AAPL", 5, ct).ConfigureAwait(false)).Count > 0,

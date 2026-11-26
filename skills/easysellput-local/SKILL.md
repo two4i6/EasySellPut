@@ -1,12 +1,22 @@
 ---
 name: easysellput-local
 metadata:
-  version: "2.0"
+  version: "2.4"
   mcp-server: easysellput
-description: Use the local EasySellPut MCP server for US equity quotes, OHLCV and chart indicators, company financials/news/events, option chains and IV/Greeks, volatility history, strategy presets/payoffs/what-if analysis, and explicitly requested local watchlist/strategy/alert/preferences changes. Use when the user asks to research or analyze these through EasySellPut; not for placing orders or controlling desktop windows.
+description: Use the local EasySellPut MCP server for US equity quotes, OHLCV and chart indicators, company financials/news/events, US funding/liquidity indicators and sector ETF activity proxies, option chains and IV/Greeks, volatility history, strategy presets/payoffs/what-if analysis, and explicitly requested local watchlist/strategy/alert/preferences changes. Use when the user asks to research or analyze these through EasySellPut; not for placing orders or controlling desktop windows.
 ---
 
 # EasySellPut local research
+
+## Liquidity research
+
+Yahoo overnight frames are returned as `session=Overnight`. `get_live_bars` may report `status="observed_partial"`: actual received prices remain visible with original source times, while unavailable overnight history stays missing. This is not complete overnight OHLC or a trade tape. Never replace it with regular/postmarket data or invent volume.
+
+Use `get_live_bars` for historical/live candle handoff and inspect its join status, missing interval and incomplete observed tail. Never conceal unavailable source buckets by forward-filling prices.
+
+Use `get_live_quotes` when the user asks for live/pushed stock prices. It samples Yahoo's free WebSocket for 1–20 seconds (default 5) and at most 500 updates; pass a small symbol set and inspect `status`, `missingSymbols`, `error`, each tick's `time` and `session`. `received` proves updates arrived, not consolidated exchange/NBBO entitlement or zero delay. No updates may mean closed/quiet trading; never substitute zero or call an idle socket disconnected. Keep regular and extended trades separate. Use `get_quotes` for an HTTP snapshot and metadata, `get_bars` for historical OHLC; do not synthesize full volume or candles from a sampled last-price stream. Cancellation closes the session; this read-only tool does not create an alert monitor or persistent subscription.
+
+Use `get_market_liquidity` for US money-market funding context and a sector ETF activity comparison. The experimental 0–100 `pressureIndex` is a funding heuristic, not VIX or an official panic index: SOFR-IORB 50%, EFFR-IORB 30%, four-observation reserve change 20%. Read its formula, dates, components and unavailable reason; never turn the score into a calibrated forecast or trading signal. Read the six macro observations and their input series dates first; daily and weekly data are not synchronized live quotes. Compare sector ratios against each ETF’s own baseline, inspect unavailable/offline/adjustment metadata, then use `get_bars` or `get_chart_analysis` for a specific ETF. Do not call turnover a fund inflow or quote an unobserved bid/ask spread. No write tool is needed.
 
 ## Connect and choose tools
 
@@ -121,4 +131,33 @@ Discover the live schema before calling any tool; this guide does not replace ar
 | `delete_chart_drawing` | write | Read get_chart_drawings first; use its revision and zero-based index to remove only the intended line. Other lines remain; stale revisions fail. |
 | `clear_chart_drawings` | write | Clear persisted drawings for one symbol with conflict protection. |
 | `update_preferences` | write | Patch allowlisted local preferences; omitted fields remain unchanged. No proxy URL/credentials, arbitrary paths or window control. Desktop reload/restart required after external changes. |
+| `capture_qqq_gex_input` | write | Capture coherent QQQ provider inputs locally, preserving source delay and gaps; this does not publish calculated history. |
+| `calculate_qqq_gex_local` | write | Run the bundled original calculation on captured local inputs; uses the bundled pinned Node runtime and reports missing runtime or rejected data explicitly. |
+| `get_qqq_gex_view` | read | Exact local display/evidence/context/exposure/spread/original-analysis, workspace preference/last-desktop observations and hash-selected original provider bytes in bounded base64 chunks, SHA256 continuation protection; decode before parsing. No remote fallback; re-read manifest after windows. |
+| `get_qqq_gex_archive` | read | Discover retained dates, snapshot metadata and provider-body hashes, or page lossless strike profiles and 2-minute bars. Maximum 200 items per page; continuation requires revision, changes restart pagination. No remote capture, history completeness never implied. |
+| `get_qqq_gex_replay` | read | Replay imported local history through the original causal engine; maximum 366 days; above 32 days uses original daily summaries, no remote fallback, incomplete coverage stays explicit. |
+| `rebuild_qqq_gex_history` | write | Resume imports of retained normalized observations; bounded batches, independent commits and explicit retry of failed inputs; never fills missing history. |
+| `get_cache_status` | read | Inspect process-local cache counts and shared bar storage policies before maintenance. Memory in another running process is not included; IV/OI history and user data are protected. |
+| `clear_cache` | write | Clear only an explicitly requested registered category. Inspect first; requires write-enabled MCP. Symbol filtering is bars-only, expired mode keeps TTL-free bars, and clearing bars removes offline availability. Never delete the database or browser profile. Explicit mode=compact with category=qqq_gex_wire atomically reclaims pages without deleting history; it needs temporary free space and may refuse busy/corrupt storage. |
+| `get_qqq_gex_live_decision` | read | Evaluate original PCS gates/timing and real-chain references using retained local inputs only. Preserve expiry/delay/missing input meaning; no network, synthetic trade substitute, account permission or order path. |
+| `get_live_bars` | read | Join source historical candles with a bounded observed close-only tail. Inspect joined/repairing/waiting_history, missingFrom/To, source adjustment and observed provenance. Refreshes overlapping history; never fills missing time buckets or invents OHLC/volume. Observed points are incomplete; canonical closed provider bars replace overlaps. Quote gaps are not a complete trade tape. |
+| `get_live_quotes` | read | Bounded Yahoo WebSocket sample: 1..50 symbols, 1..20 seconds, 1..500 updates. Inspect received/no_updates/unavailable, source timestamps, pre/regular/post/overnight sessions, errors and missing symbols. Indicative last prices are not guaranteed zero-delay consolidated exchange quotes, NBBO or a complete trade tape. No ticks is never price zero. No persistent monitor or writes. Use get_quotes/get_bars separately for snapshots/history. |
+| `get_market_liquidity` | read | Experimental 0–100 funding-pressure-v1 gauge (not VIX/official/calibrated); inspect formula, component weights/dates and missing/stale-input rejection. Six dated US macro indicators and eleven sector ETF daily activity proxies. Preserve exact observation dates, FRED source units, common-date spread joins, missing/offline flags and each sector date. SOFR-IORB/EFFR-IORB are basis points; balance levels are USD billions. Heat is close×volume / prior 20 observations; Amihud is absolute percent return per USD million, not intraday depth or net flows. Never infer complete sector liquidity or systemic risk from this proxy alone. |
+| `get_qqq_gex_lifecycle` | read | Read retained PCS lifecycle for an explicit date; never synthesize missing observations or treat available points as complete history. |
 <!-- mcp-tool-guide:end -->
+
+QQQ GEX read guidance: use view resource=workspace to inspect persisted selection/cursor and the timestamped last desktop observation; fresh means observed within30s, not guaranteed current window or realtime market. scope=all reads the full UI cross-expiry ATM IV/MaxPain curves. wallTouches accepts wallHorizon(10/30),wallGamma,wallPeriod,wallSide; use result.presentation for filtered UI statistics and respect statsKnown=false/null when references are uncertified. Legacy top-level wall summary is unfiltered retained data. Archive resource=providers pages original provider hashes/source/publication/receipt metadata; view resource=providerRaw with providerHash reads hash-verified immutable bytes, never arbitrary files. Reassemble all base64 chunks and verify SHA; do not fill gaps or infer a notification occurred.
+
+Partial-only GEX data is separately readable: view resource=partial matches the native partial-capture panel; archive archiveState=partial pages dates/snapshots/lossless profile/bars/extendedBars without treating them as published regular-session history. bars contains regular-session observations; extendedBars contains separately retained premarket/after-hours observations with the same date, source/price provenance and missingness. Partial-workspace saved date, snapshot and pagination are timestamped in view workspace. Default archiveState=published is unchanged. Never interpret a successful partial read as complete coverage.
+
+For a comprehensive QQQ GEX read, inspect view workspace and partial first, then query archive dates for both archiveState=published and archiveState=partial. An empty published index does not mean there is no locally retained partial capture. Compare source/observation times and revisions, read every required archive page/exposure window, and preserve missing-input reasons.
+
+Workspace analyticalSelections.interaction is a timestamped, 500ms-coalesced private-document observation: focus/control state, CSS viewport pointer, visible tooltips and original K-line hover (Unix seconds). Respect documentId, visibility, observedAt, textTruncated/detailsOmitted and null. Text/password drafts are redacted; no global/native input capture or instantaneous-screen guarantee. For bounded omitted details read chartStudies/archive. Native physical-input coverage remains separately unverified.
+
+Heatmap inspection is in workspace analyticalSelections.interaction.heatmapInspection: original current tile/value/null/inputStatus, mode, keyboard, scenario/price-axis/coverage. Heatmap times are Unix milliseconds; K-line hover uses Unix seconds. Preserve hypothetical scenario versus historical provenance. Respect tooltipsOmitted/detailsOmitted/observationLimits; bounded omission is not absence. Full fields remain in heatmapField/dayScenario/archive.
+
+Exposure observations distinguish mode (retained original selection), scenarioMode (original scenario kernel mode) and displayedMode (actual UI select/model). Delta/Charm retained history selection can display Gamma in scenario view; never infer effective scenario mode from heatmapInspection.mode, which is the original inspector input. Read exposure.displayedMode and preserve scenario provenance.
+
+Exposure also retains original scenarioInputAt/scenarioDisplayedAt (Unix milliseconds), scenarioLoading/scenarioRetained/scenarioError. While recalculation is pending, the displayed scenario may be older than the requested input; respect these fields instead of attributing a retained field to the new cursor.
+
+Exposure active identifies visible heatmap state; allExpiries identifies matrix aggregate context. displayedMode is the effective heatmap model, not proof of an on-screen heatmap while active=false.

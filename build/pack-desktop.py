@@ -19,6 +19,7 @@ import bundle
 def run(*args): subprocess.run([str(a) for a in args],cwd=ROOT,check=True)
 
 def pack(rid,output):
+    run(sys.executable,ROOT/'build/prepare-app-seed.py','--if-current')
     host=('win' if sys.platform=='win32' else 'osx' if sys.platform=='darwin' else 'linux')
     arch='arm64' if platform.machine().lower() in ('arm64','aarch64') else 'x64'
     if host=='osx':
@@ -33,7 +34,7 @@ def pack(rid,output):
         process_machine=ctypes.c_ushort();native_machine=ctypes.c_ushort()
         if not kernel.IsWow64Process2(kernel.GetCurrentProcess(),ctypes.byref(process_machine),ctypes.byref(native_machine)):
             raise ctypes.WinError(ctypes.get_last_error())
-        arch='arm64' if native_machine.value==0xAA64 else 'x64' if native_machine.value==0x8664 else 'unsupported'
+        arch='x64' if native_machine.value==0x8664 else 'unsupported'
 
     if rid!=f'{host}-{arch}' or host not in ('win','osx'):raise ValueError('Build and test on the native Windows/macOS architecture')
     version=ET.parse(ROOT/'Directory.Build.props').find('.//Version').text
@@ -47,6 +48,8 @@ def pack(rid,output):
         run('dotnet','publish',project,'-c','Release','-r',rid,'--self-contained','true','-m:3','-p:PublishTrimmed=false',f'-p:PublishSingleFile={str(host=="osx").lower()}','-p:IncludeNativeLibrariesForSelfExtract=false','-p:DebugType=None','-o',publish)
         automation=work/'automation'
         run('dotnet','publish',ROOT/'src/Meili.Cli/Meili.Cli.csproj','-c','Release','-r',rid,'--self-contained','true','-m:3','-p:PublishTrimmed=false',f'-p:PublishSingleFile={str(host=="osx").lower()}','-p:IncludeNativeLibrariesForSelfExtract=false','-p:PackAsTool=false','-p:DebugType=None','-p:GenerateDocumentationFile=false','-p:PublishReferencesDocumentationFiles=false','-o',automation)
+        run(sys.executable,ROOT/'build/bundle-qqq-runtime.py',rid,publish)
+        run(sys.executable,ROOT/'build/bundle-qqq-runtime.py',rid,automation)
         if host=='osx':
             icon=work/'AppIcon.icns';run(sys.executable,ROOT/'build/mac/make_icon.py',icon)
             app=payload/'EasySellPut.app';bundle.make_app(publish,app,version,icon)
@@ -77,5 +80,5 @@ def pack(rid,output):
     return archive
 
 if __name__=='__main__':
-    parser=argparse.ArgumentParser();parser.add_argument('--rid',required=True,choices=['win-x64','win-arm64','osx-x64','osx-arm64']);parser.add_argument('--output',type=pathlib.Path,default=ROOT/'build/out/desktop')
+    parser=argparse.ArgumentParser();parser.add_argument('--rid',required=True,choices=['win-x64','osx-x64','osx-arm64']);parser.add_argument('--output',type=pathlib.Path,default=ROOT/'build/out/desktop')
     args=parser.parse_args();pack(args.rid,args.output)

@@ -1,0 +1,45 @@
+import { layerHeatmapInspection } from './heatmap-inspection-layer.mjs';
+// Local build adapter observes presentation state without changing pinned source kernels.
+export function observeUi(contents,file){
+ // esbuild receives native Windows paths and checkout line endings.
+ file=file.replaceAll('\\','/');contents=contents.replaceAll('\r\n','\n');
+ const hooks=[
+  ['QqqExposureWorkbench.tsx',`  const selectedStrikes=useMemo(()=>new Set(strikeKey?strikeKey.split(',').map(Number):[]),[strikeKey]);`,'exposure',{date:'data.view.date',expiry:'selectedExpiry',scope:'scope',cursor:'cursor',effectiveAt:'frame?.time??null',playing:'playing',playbackSpeed:'playbackSpeed',active:'active',allExpiries:'allExpiries',heatmapView:'heatmapView',mode:'mode',scenarioMode:'scenarioMode',displayedMode:'scenarioView?scenarioMode:mode',scenarioInputAt:'scenarioInput.observationAt',scenarioDisplayedAt:'scenarioDisplayedAt',scenarioLoading:'scenario.loading',scenarioRetained:'Boolean(scenario.retained)',scenarioError:'scenario.error??scenarioField?.reason??null',metric:'metric',radius:'radius',gain:'gain',keys:'keys',heat:'heat',historyMarks:'historyMarks',dayRange:'dayRange',overlays:'overlays',reactions:'reactions',discovery:'discovery',changeMinutes:'changeMinutes',focusedStrike:'focusedStrike',strikeHover:'strikeHover',observationMinutes:'observationMinutes',inverted:'inverted',smooth:'smooth',barZoom:'barZoom',selectedStrikes:'[...selectedStrikes]'}],
+  ['QqqWallTouchStatsCard.tsx','  const stats = useMemo(() => summarizeWallTouches(events), [events]);','wallTouches',{date:'date',expiry:'expiry',dte:'dte',gamma:'gamma',period:'period',side:'side',horizon:'horizon',statsKnown:'statsKnown'}],
+  ['QqqSpreadStudyCard.tsx','  return <div>','spreadStudy',{date:'study.date',expiry:'study.expiry',cutoff:'study.cutoff',side:'side',basis:'basis',ivShockPp:'shock',fees:'fees',manualCredit:'manual',shortStrike:'short',longStrike:'long'}]
+ ];
+ for(const [name,anchor,key,fields] of hooks){
+  if(!file.endsWith('/'+name))continue;
+  if(!contents.includes(anchor))throw Error('Pinned UI observation anchor changed: '+name);
+  const values=Object.entries(fields).map(([k,v])=>k+':'+v).join(','),dependencies=[...new Set(Object.values(fields).map(v=>v==='[...selectedStrikes]'?'selectedStrikes':v))].join(',');
+  const hook=`\n  useEffect(()=>{try{const key='qqq-local:observed-${key}:v1',value={${values}};let previous;try{previous=JSON.parse(localStorage.getItem(key)??'null');}catch{}if(previous&&typeof previous==='object'&&!Array.isArray(previous)){delete previous.observedAt;if(JSON.stringify(previous)===JSON.stringify(value))return;}localStorage.setItem(key,JSON.stringify({observedAt:new Date().toISOString(),...value}));}catch{}},[${dependencies}]);\n`;
+  contents=key==='spreadStudy'?contents.replace(anchor,hook+anchor):contents.replace(anchor,anchor+hook);
+ }
+ if(file.endsWith('/QqqPcsGexIntradayChart.tsx')){
+  const anchor='    return <>\n      {showGex && !tooltipDetails';
+  if(!contents.includes(anchor))throw Error('Pinned chart cursor observation anchor changed');
+  contents=contents.replace(anchor,'    return <>\n      <span hidden data-qqq-hover={JSON.stringify({hover,hoverDetails,granularity,tooltipDetails})} />\n      {showGex && !tooltipDetails');
+ }
+ if(file.endsWith('/QqqHeatmapInspector.tsx')){
+  const anchor='  return <g data-heatmap-inspector>';
+  if(!contents.includes(anchor))throw Error('Pinned heatmap inspector observation anchor changed');
+  contents=contents.replace(anchor,'  return <g data-heatmap-inspector data-qqq-inspection={JSON.stringify({current,inputStatus,label,priceAxis,mode,scenario:Boolean(scenario),coverage:scenario?.field.coverage??null,keyboard:keyboard.current})}>');
+ }
+ if(file.endsWith('/qqqExposureChartReplay.ts'))contents=contents.replace("from './qqqExposureReplay';","from '@/lib/qqqExposureReplay';");
+ if(file.endsWith('/QqqPcsGexIntradayChart.tsx')){
+  contents="import {useIndependentStockPrices,projectStockChart} from '@/lib/localStockDisplay';\n"+contents;
+  const anchor="  const data = useMemo(() => buildQqqPcsIntradayChartData(chartBars, scores, dailyScore, confirmation, stableGex, granularity), [chartBars, confirmation, dailyScore, granularity, stableGex, scores]);";
+  if(!contents.includes(anchor))throw Error('Pinned drawing/model separation anchor changed');
+  contents=contents.replace(anchor,anchor.replace('const data =','const modelData =')+"\n  const stockPrices=useIndependentStockPrices(bars);\n  const data=useMemo(()=>projectStockChart(modelData,stockPrices,granularity),[modelData,stockPrices,granularity]);");
+  contents=contents.replace('chartBars === bars ? data : buildQqqPcsIntradayChartData','chartBars === bars ? modelData : buildQqqPcsIntradayChartData');
+  contents=contents.replace('[bars, chartBars, confirmation, dailyScore, data, granularity, stableGex, scores]','[bars, chartBars, confirmation, dailyScore, modelData, granularity, stableGex, scores]');
+  contents=contents.replace('buildObservedPriceLowMarkers(data.normalizedBars), [data.normalizedBars]','buildObservedPriceLowMarkers(modelData.normalizedBars), [modelData.normalizedBars]');
+  contents=contents.replace('bars: (bars.length ? bars : liveTick ?', 'bars: (stockPrices?.bars.length ? stockPrices.bars : bars.length ? bars : liveTick ?');
+  contents=contents.replace('JSON.stringify({hover,hoverDetails,granularity,tooltipDetails})','JSON.stringify({hover,hoverDetails,granularity,tooltipDetails,displayPriceClock:stockPrices?.provenance??null})');
+ }
+ if(file.endsWith('/QqqExposureSnapshotTable.tsx')){
+  if(!contents.includes('{price(row.spot)}'))throw Error('Pinned reference-price cell changed');
+  contents=contents.replace("'参考价'","'估值参考价'").replace('<td style={cell}>{price(row.spot)}</td>',`<td style={cell} title={row.valuationReference?JSON.stringify(row.valuationReference):undefined}>{price(row.valuationReference?row.valuationReference.price:row.spot)}</td>`);
+ }
+ return layerHeatmapInspection(contents,file);
+}

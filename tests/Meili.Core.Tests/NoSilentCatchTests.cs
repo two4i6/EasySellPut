@@ -66,6 +66,23 @@ public class NoSilentCatchTests
     }
 
     [Fact]
+    public void Scoped_errors_preserve_the_primary_log_directory_and_keep_the_stack()
+    {
+        var root=Path.Combine(Path.GetTempPath(),"scoped-logs-"+Guid.NewGuid().ToString("N"));
+        var primary=Path.Combine(root,"primary");var other=Path.Combine(root,"other");
+        try
+        {
+            AppLog.Initialize(primary);var original=AppLog.Directory;
+            AppLog.ErrorInDirectory(other,"fixture","scoped failure",new IOException("local fixture only"));
+            AppLog.Info("fixture","primary retained");
+            Assert.Equal(original,AppLog.Directory);
+            Assert.Contains("local fixture only",File.ReadAllText(Directory.GetFiles(Path.Combine(other,"logs")).Single()));
+            Assert.Contains("primary retained",File.ReadAllText(Directory.GetFiles(Path.Combine(primary,"logs")).Single()));
+        }
+        finally{Directory.Delete(root,true);}
+    }
+
+    [Fact]
     public void Errors_keep_the_stack_and_warnings_keep_the_root_cause()
     {
         var dir = Path.Combine(Path.GetTempPath(), "h2log-" + Guid.NewGuid().ToString("N"));

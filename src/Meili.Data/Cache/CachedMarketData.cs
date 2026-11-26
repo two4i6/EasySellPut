@@ -16,8 +16,9 @@ namespace Meili.Data.Cache;
 /// </list>
 /// Requests with an explicit end (<see cref="BarRequest.To"/>) bypass the cache. Everything else passes through.
 /// </summary>
-public sealed class CachedMarketData : IMarketDataService
+public sealed class CachedMarketData : IMarketDataService, IManagedCache
 {
+    public string CacheId => "bars";
     public const int OverlapBars = 5;
     /// <summary>Tail merges append forever; keep the newest bars only (≈ 5 trading days of 1-minute bars with extended hours).</summary>
     public const int MaxBars = 6000;
@@ -32,6 +33,8 @@ public sealed class CachedMarketData : IMarketDataService
     }
 
     public MarketDb Db => _db;
+    public CacheStatus Inspect() => _db.InspectCache();
+    public CacheClearResult Clear(bool expiredOnly, string? symbol = null) => expiredOnly ? new("bars", 0) : _db.ClearBars(symbol);
     public Func<DateTimeOffset> Now { get; set; } = () => DateTimeOffset.UtcNow;
 
     /// <summary>Counters for tests and diagnostics.</summary>
@@ -58,8 +61,9 @@ public sealed class CachedMarketData : IMarketDataService
 
     private async Task<BarSeries> GetCoreAsync(BarRequest request, CancellationToken ct)
     {
+        long generation;
         (IReadOnlyList<Bar> Bars, BarCacheMeta? Meta) cached;
-        try { cached = _db.LoadBars(request.Symbol, request.Interval, request.Adjust.CacheKey()); }
+        try { generation = _db.CacheGeneration(); cached = _db.LoadBars(request.Symbol, request.Interval, request.Adjust.CacheKey()); }
         catch (Exception ex)
         {
             AppLog.Warn("cache", $"read failed, bypassing: {ex.Message}");
@@ -69,7 +73,7 @@ public sealed class CachedMarketData : IMarketDataService
         // The cache can serve this request only if it was filled from at least as far back as asked for.
         var usable = cached.Meta is { } meta && cached.Bars.Count > OverlapBars
             && (meta.CoveredFrom is null || (request.From is { } rf && rf >= meta.CoveredFrom));
-        if (!usable) return await FullAsync(request, cached, ct).ConfigureAwait(false);
+        if (!usable) return await FullAsync(request, cached, generation, ct).ConfigureAwait(false);
 
         BarSeries tail;
         try
@@ -85,21 +89,21 @@ public sealed class CachedMarketData : IMarketDataService
         }
 
         if (!string.Equals(tail.Source, cached.Meta!.Source, StringComparison.OrdinalIgnoreCase))
-            return await FullAsync(request, cached, ct, $"source changed {cached.Meta.Source}→{tail.Source}").ConfigureAwait(false);
+            return await FullAsync(request, cached, generation, ct, $"source changed {cached.Meta.Source}→{tail.Source}").ConfigureAwait(false);
         // F7: never splice bars of different adjustment bases (e.g. a pre-F7 cache, or a source that changed its basis).
         if (tail.Adjustment != cached.Meta.Basis)
-            return await FullAsync(request, cached, ct, $"adjustment changed {cached.Meta.Basis}→{tail.Adjustment}").ConfigureAwait(false);
+            return await FullAsync(request, cached, generation, ct, $"adjustment changed {cached.Meta.Basis}→{tail.Adjustment}").ConfigureAwait(false);
         var (full, outcome) = BarMerge.Merge(cached.Bars, tail.Bars);
         if (outcome is BarMergeOutcome.Diverged or BarMergeOutcome.Gap)
-            return await FullAsync(request, cached, ct, outcome.ToString()).ConfigureAwait(false);
+            return await FullAsync(request, cached, generation, ct, outcome.ToString()).ConfigureAwait(false);
 
         var trim = Math.Max(0, full.Count - MaxBars);
         var merged = trim > 0 ? full.Skip(trim).ToList() : full;
-        SaveMerged(request, cached.Bars, full, trim, MetaOf(tail, cached.Meta.CoveredFrom));
+        SaveMerged(request, cached.Bars, full, trim, MetaOf(tail, cached.Meta.CoveredFrom), generation);
         return Shape(request, tail, merged);
     }
 
-    private async Task<BarSeries> FullAsync(BarRequest request, (IReadOnlyList<Bar> Bars, BarCacheMeta? Meta) cached, CancellationToken ct, string? why = null)
+    private async Task<BarSeries> FullAsync(BarRequest request, (IReadOnlyList<Bar> Bars, BarCacheMeta? Meta) cached, long generation, CancellationToken ct, string? why = null)
     {
         if (why is not null) AppLog.Info("cache", $"{request.Symbol} {request.Interval}: full reload ({why})");
         BarSeries full;
@@ -113,7 +117,7 @@ public sealed class CachedMarketData : IMarketDataService
         {
             return Offline(request, cached.Bars, cached.Meta);
         }
-        Save(request, full.Bars, MetaOf(full, request.From));
+        Save(request, full.Bars, MetaOf(full, request.From), generation);
         return full;
     }
 
@@ -121,11 +125,11 @@ public sealed class CachedMarketData : IMarketDataService
         new(from.Source ?? "", from.FetchedAt ?? Now(), from.AsOf, from.DelayMinutes, from.IsRealtime, coveredFrom, from.Adjustment);
 
     /// <summary>Full reload: replaces the whole stored series.</summary>
-    private void Save(BarRequest request, IReadOnlyList<Bar> bars, BarCacheMeta meta)
+    private void Save(BarRequest request, IReadOnlyList<Bar> bars, BarCacheMeta meta, long generation)
     {
         try
         {
-            _db.SaveBars(request.Symbol, request.Interval, bars, meta, request.Adjust.CacheKey());
+            _db.SaveBars(request.Symbol, request.Interval, bars, meta, request.Adjust.CacheKey(), generation);
             Interlocked.Add(ref _barRowsWritten, bars.Count);
         }
         catch (Exception ex) { AppLog.Warn("cache", $"write failed: {ex.Message}"); }
@@ -136,7 +140,7 @@ public sealed class CachedMarketData : IMarketDataService
     /// <see cref="MaxBars"/> trim (<paramref name="trim"/> oldest bars are dropped); it equals <paramref name="cached"/> up to
     /// the first changed bar, so everything before that stays untouched. With no change only the metadata is refreshed.
     /// </summary>
-    private void SaveMerged(BarRequest request, IReadOnlyList<Bar> cached, IReadOnlyList<Bar> full, int trim, BarCacheMeta meta)
+    private void SaveMerged(BarRequest request, IReadOnlyList<Bar> cached, IReadOnlyList<Bar> full, int trim, BarCacheMeta meta, long generation)
     {
         var i = 0;
         while (i < full.Count && i < cached.Count && full[i] == cached[i]) i++;
@@ -153,7 +157,7 @@ public sealed class CachedMarketData : IMarketDataService
         DateTimeOffset? deleteBefore = trim > 0 ? full[trim].Time : null;
         try
         {
-            _db.ReplaceTail(request.Symbol, request.Interval, request.Adjust.CacheKey(), bars, deleteFrom, deleteBefore, meta);
+            _db.ReplaceTail(request.Symbol, request.Interval, request.Adjust.CacheKey(), bars, deleteFrom, deleteBefore, meta, generation);
             Interlocked.Add(ref _barRowsWritten, bars.Count);
         }
         catch (Exception ex) { AppLog.Warn("cache", $"write failed: {ex.Message}"); }
@@ -161,7 +165,8 @@ public sealed class CachedMarketData : IMarketDataService
 
     private static BarSeries Shape(BarRequest request, BarSeries meta, IReadOnlyList<Bar> bars)
     {
-        var list = request.From is { } f ? bars.Where(b => b.Time >= f).ToList() : bars;
+        var visible = VisibleCachedBars(request, bars, meta.Source);
+        var list = request.From is { } f ? visible.Where(b => b.Time >= f).ToList() : visible;
         return meta with { Symbol = request.Symbol, Interval = request.Interval, Bars = list };
     }
 
@@ -169,10 +174,16 @@ public sealed class CachedMarketData : IMarketDataService
         new()
         {
             Symbol = request.Symbol, Interval = request.Interval,
-            Bars = request.From is { } f ? bars.Where(b => b.Time >= f).ToList() : bars,
+            Bars = request.From is { } f ? VisibleCachedBars(request, bars, meta.Source).Where(b => b.Time >= f).ToList() : VisibleCachedBars(request, bars, meta.Source),
             Source = meta.Source, AsOf = meta.AsOf, FetchedAt = meta.FetchedAt, DelayMinutes = meta.DelayMinutes,
             IsRealtime = false, OfflineCache = true, Adjustment = meta.Basis,
         };
+
+    // Older Yahoo caches can retain its quote-time endpoint. Keep stored source evidence intact,
+    // but never expose that endpoint as an extra interval candle (including offline recovery).
+    private static IReadOnlyList<Bar> VisibleCachedBars(BarRequest request, IReadOnlyList<Bar> bars, string source) =>
+        source == "yahoo" && request.Interval.IsIntraday()
+            ? bars.Where(b => b.Time.ToUnixTimeSeconds() % 60 == 0).ToArray() : bars;
 
     // ---------------- pass-through ----------------
     public Task<IReadOnlyList<Quote>> GetQuotesAsync(IReadOnlyList<string> symbols, CancellationToken ct = default) => _inner.GetQuotesAsync(symbols, ct);

@@ -36,13 +36,15 @@
             <Setter Property="Padding" Value="0" />
         </Style>
     </UserControl.Styles>
+    <controls:MarketWorkspaceLayout x:Name="Workspace" Title="{DynamicResource Op_Title}" HelpText="{DynamicResource Op_Desc}">
+        <controls:MarketWorkspaceLayout.WorkspaceContent>
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
     <DockPanel MinHeight="760" Height="{Binding $parent[ScrollViewer].Bounds.Height}">
-        <StackPanel DockPanel.Dock="Top" Margin="32,20,32,8">
+        <StackPanel DockPanel.Dock="Top" Margin="24,16,24,8">
             <ux:AppFormHeader Title="{DynamicResource Op_Title}" HelpText="{DynamicResource Op_Desc}" IsPageTitle="True" Margin="0,0,0,12"/>
             <DockPanel Margin="0,0,0,10">
-                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding ExportCommand}" Content="{DynamicResource Op_Export}" />
-                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding RefreshCommand}" Content="{DynamicResource Op_Refresh}"  IsEnabled="{Binding !IsBusy}"/>
+                <Button DockPanel.Dock="Right" Width="36" Height="36" Padding="0" Margin="8,0,0,0" Command="{Binding ExportCommand}" AutomationProperties.Name="{DynamicResource Op_Export}" ToolTip.Tip="{DynamicResource Op_Export}"><ux:LucideIcon Kind="Download" Width="18" Height="18"/></Button>
+                <Button DockPanel.Dock="Right" Width="36" Height="36" Padding="0" Margin="8,0,0,0" Command="{Binding RefreshCommand}" AutomationProperties.Name="{DynamicResource Op_Refresh}" ToolTip.Tip="{DynamicResource Op_Refresh}" IsEnabled="{Binding !IsBusy}"><ux:LucideIcon Kind="Refresh" Width="18" Height="18"/></Button>
                 <Button DockPanel.Dock="Right" Margin="8,0,0,0" Classes="Primary" Command="{Binding LoadFromBoxCommand}" Content="{DynamicResource Op_Load}"  IsEnabled="{Binding !IsBusy}"/>
                 <ds:AppSelect x:Name="ExpirationBox" DockPanel.Dock="Right" MinWidth="220" Margin="8,0,0,0"
                           ItemsSource="{Binding Expirations}" SelectedItem="{Binding SelectedExpiration}" DisplayMemberBinding="{Binding Label, x:DataType=vm:ExpirationChoice}" />
@@ -52,7 +54,7 @@
             </DockPanel>
             <WrapPanel Margin="0,0,0,8">
                 <TextBlock Classes="CardTitle" FontSize="16" Text="{Binding Headline}" VerticalAlignment="Center" Margin="0,2" />
-                <TextBlock Classes="Caption" Text="{Binding LivePriceText}" VerticalAlignment="Center" Margin="12,2,0,2" ToolTip.Tip="{DynamicResource Op_LivePriceTip}" />
+                <TextBlock Classes="Caption" Text="{Binding LivePriceText}" VerticalAlignment="Center" Margin="12,2,0,2" ToolTip.Tip="{Binding LivePriceTip}" />
                 <Border Classes="Tag" Margin="12,2,0,2" VerticalAlignment="Center" IsVisible="{Binding HasDelay}">
                     <TextBlock Classes="Caption" Text="{Binding DelayText}" />
                 </Border>
@@ -89,7 +91,7 @@
                 <CheckBox Margin="12,0,12,0" Content="{DynamicResource Op_Compact}" IsChecked="{Binding CompactColumns}" ToolTip.Tip="{DynamicResource Op_CompactTip}" />
                 <CheckBox Margin="0,0,12,0" Content="{DynamicResource Op_Smile}" IsChecked="{Binding ShowSmile}" />
                 <CheckBox Margin="0,0,12,0" Content="{DynamicResource Op_Term}" IsChecked="{Binding ShowTerm}" ToolTip.Tip="{DynamicResource Op_TermTip}" IsEnabled="{Binding ShowSmile}" />
-            </WrapPanel></ux:AppPopover.PopupContent></ux:AppPopover></WrapPanel><WrapPanel Margin="0,0,0,8" IsEnabled="{Binding HasSelectedRow}"><TextBlock Classes="Caption" Text="{DynamicResource UX_SelectedContract}" Margin="0,0,8,0" VerticalAlignment="Center"/><Button Content="{DynamicResource Op_SeedLongCall}" Command="{Binding BuildStrategyCommand}" CommandParameter="LC" Margin="0,0,6,0"/><Button Content="{DynamicResource Op_SeedShortCall}" Command="{Binding BuildStrategyCommand}" CommandParameter="SC" Margin="0,0,6,0"/><Button Content="{DynamicResource Op_SeedLongPut}" Command="{Binding BuildStrategyCommand}" CommandParameter="LP" Margin="0,0,6,0"/><Button Content="{DynamicResource Op_SeedShortPut}" Command="{Binding BuildStrategyCommand}" CommandParameter="SP" Margin="0,0,6,0"/></WrapPanel>
+            </WrapPanel></ux:AppPopover.PopupContent></ux:AppPopover></WrapPanel><ux:AppPopover x:Name="StrategyActionsPopover" Header="{DynamicResource Op_ToStrategy}" PopupWidth="360" Width="160" Height="36" Padding="12,0" IsEnabled="{Binding HasSelectedRow}" Margin="0,0,0,8"><ux:AppPopover.Content><StackPanel Orientation="Horizontal"><ux:LucideIcon Kind="Add" Width="16" Height="16" Margin="0,0,6,0"/><TextBlock Text="{DynamicResource Op_ToStrategy}" Classes="Body" VerticalAlignment="Center"/></StackPanel></ux:AppPopover.Content><ux:AppPopover.PopupContent><WrapPanel Margin="0,0,0,8" IsEnabled="{Binding HasSelectedRow}"><TextBlock Classes="Caption" Text="{DynamicResource UX_SelectedContract}" Margin="0,0,8,0" VerticalAlignment="Center"/><Button Content="{DynamicResource Op_SeedLongCall}" Command="{Binding BuildStrategyCommand}" CommandParameter="LC" Margin="0,0,6,0"/><Button Content="{DynamicResource Op_SeedShortCall}" Command="{Binding BuildStrategyCommand}" CommandParameter="SC" Margin="0,0,6,0"/><Button Content="{DynamicResource Op_SeedLongPut}" Command="{Binding BuildStrategyCommand}" CommandParameter="LP" Margin="0,0,6,0"/><Button Content="{DynamicResource Op_SeedShortPut}" Command="{Binding BuildStrategyCommand}" CommandParameter="SP" Margin="0,0,6,0"/></WrapPanel></ux:AppPopover.PopupContent></ux:AppPopover>
             <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
                 <controls:AppLoading Margin="0,0,8,0" IsVisible="{Binding IsBusy}" />
                 <TextBlock Classes="Caption" Text="{Binding StatusText}" VerticalAlignment="Center" Margin="0,0,16,0" />
@@ -100,7 +102,7 @@
         <sp:AvaPlot x:Name="SmilePlot" DockPanel.Dock="Bottom" Height="150" Margin="16,0,16,12" IsVisible="{Binding ShowSmile}" />
         <Panel Margin="16,0,16,16">
             <TextBlock Classes="Secondary" Margin="16,8" Text="{DynamicResource Op_Empty}" IsVisible="{Binding !HasRows}" />
-            <DataGrid x:Name="ChainList" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow}" IsVisible="{Binding HasRows}"
+            <DataGrid x:Name="ChainList" IsVisible="{Binding HasRows}"
                       SelectionMode="Single" GridLinesVisibility="Horizontal" CanUserSortColumns="False">
                 <DataGrid.ContextMenu>
                     <ContextMenu>
@@ -116,4 +118,6 @@
         </Panel>
     </DockPanel>
     </ScrollViewer>
+        </controls:MarketWorkspaceLayout.WorkspaceContent>
+    </controls:MarketWorkspaceLayout>
 </UserControl>

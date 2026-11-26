@@ -15,12 +15,21 @@ public partial class MainWindow
 {
     private WebWorkspace? _workspace;
     private string? _activeWebsite;
+    private string? _activeModule;
+    private readonly Dictionary<string, Meili.Mac.Views.ModuleAppPage> _modulePages=[];
     private readonly Dictionary<string, WebTabPane> _webTabs = [];
     private void SetupWorkspace()
     {
-        try { _workspace = new WebWorkspace(AppServices.DataDirectory.Path); }
+        try { _workspace = AppServices.Get<WebWorkspace>(); _workspace.Reload(); }
         catch (Exception ex) when (ex is System.IO.IOException or System.Text.Json.JsonException or ArgumentException)
-        { Meili.Core.Diagnostics.AppLog.Warn("web-workspace", "Workspace could not be loaded", ex); AddWebsite.IsEnabled = false; ShowBanner(_loc["Web_Edit"], _loc["Web_Failed"]); }
+        { _workspace = null; Meili.Core.Diagnostics.AppLog.Warn("web-workspace", "Workspace could not be loaded", ex); AddWebsite.IsEnabled = false; ShowBanner(_loc["Web_Edit"], _loc["Web_Failed"]); }
+        if (_workspace is not null) _workspace.MotionChanged += WorkspaceMotionChanged;
+        Closed += (_, _) => { if (_workspace is not null) _workspace.MotionChanged -= WorkspaceMotionChanged; };
+        Closed+=(_,_)=>{CloseModulePresentation();_modulePages.Clear();};
+        var apps=AppServices.Get<AppManagementViewModel>();
+        EventHandler refreshApps=(_,_)=>RebuildBuiltinRail();
+        apps.Changed+=refreshApps;Activated+=refreshApps;
+        Closed+=(_,_)=>{apps.Changed-=refreshApps;Activated-=refreshApps;};
         SetupStatusIcons(); RebuildBuiltinRail(); RebuildWebsiteRail(); ApplyWorkspaceMotion();
         _loc.LanguageChanged += WorkspaceLanguageChanged; Closed += (_, _) => _loc.LanguageChanged -= WorkspaceLanguageChanged;
         Activated += (_, _) => ApplyWorkspaceMotion();
@@ -35,7 +44,7 @@ public partial class MainWindow
     private void RebuildBuiltinRail()
     {
         BuiltinRail.Children.Clear();
-        foreach(var page in PageOrder.Where(p => p is not (AppPage.Dashboard or AppPage.Settings)))
+        foreach(var page in PageOrder.Where(p => p is not (AppPage.Dashboard or AppPage.Settings or AppPage.DataSources) && ModuleNavigation.IsAvailable(AppServices.Get<Meili.Core.Settings.DataDirectoryInfo>().Path,p)))
         {
             var tile = new ToggleButton { Tag = page }; tile.Classes.Add("Workspace");
             tile.Content = CreateNavigationIcon(NavigationIcons.For(page),tile);
@@ -43,13 +52,20 @@ public partial class MainWindow
             AutomationProperties.SetName(tile,title);AutomationProperties.SetAutomationId(tile,"Navigate-"+page);
             tile.Click += (_,_) => Navigate(page);BuiltinRail.Children.Add(tile);
         }
+        foreach(var app in ModuleNavigation.Entries(AppServices.DataDirectory.Path))
+        {
+            var tile=new ToggleButton{Tag="app:"+app.Id};tile.Classes.Add("Workspace");
+            tile.Content=CreateNavigationIcon(NavigationIcons.Options,tile);ToolTip.SetTip(tile,app.Id+" · "+app.Version);
+            AutomationProperties.SetName(tile,app.Id);AutomationProperties.SetAutomationId(tile,"Application-"+app.Id);
+            var id=app.Id;tile.Click+=(_,_)=>OpenModule(id);BuiltinRail.Children.Add(tile);
+        }
         SelectBuiltinPage();
     }
     private void SelectBuiltinPage()
     {
-        HomeWorkspace.IsChecked = _activeWebsite is null && CurrentPage == AppPage.Dashboard;
-        SettingsButton.IsChecked = _activeWebsite is null && CurrentPage == AppPage.Settings;
-        foreach(var tile in BuiltinRail.Children.OfType<ToggleButton>())tile.IsChecked=_activeWebsite is null && Equals(tile.Tag,CurrentPage);
+        HomeWorkspace.IsChecked = _activeWebsite is null && _activeModule is null && CurrentPage == AppPage.Dashboard;
+        SettingsButton.IsChecked = _activeWebsite is null && _activeModule is null && CurrentPage == AppPage.Settings;
+        foreach(var tile in BuiltinRail.Children.OfType<ToggleButton>())tile.IsChecked=tile.Tag is string module&&module.StartsWith("app:",StringComparison.Ordinal)?_activeModule==module[4..]:_activeWebsite is null && _activeModule is null && Equals(tile.Tag,CurrentPage);
     }
     private static Viewbox CreateNavigationIcon(string data, Avalonia.Controls.Primitives.TemplatedControl owner, double size=24) => Meili.Mac.Views.Controls.LucideIcon.View(data,owner,size);
     private void SetupStatusIcons()
@@ -58,8 +74,6 @@ public partial class MainWindow
         SettingsButton.Content=CreateNavigationIcon(NavigationIcons.Settings,SettingsButton,18);
         LanguageButton.Content=CreateNavigationIcon(NavigationIcons.Language,LanguageButton,18);
         ThemeButton.Content=CreateNavigationIcon(NavigationIcons.Theme,ThemeButton,18);
-        BackgroundButton.Content=CreateNavigationIcon(NavigationIcons.Minus,BackgroundButton,18);
-        MotionButton.Content=CreateNavigationIcon(NavigationIcons.Motion,MotionButton,18);
     }
     private void OnSettings(object? sender,RoutedEventArgs e) => Navigate(AppPage.Settings);
     private void RebuildWebsiteRail()
@@ -77,8 +91,26 @@ public partial class MainWindow
         AddWebsite.IsEnabled = _workspace is not null && _workspace.Tabs.Count < WebWorkspace.MaximumTabs;
         ToolTip.SetTip(AddWebsite, _loc[_workspace is null ? "Web_Failed" : AddWebsite.IsEnabled ? "Web_Add" : "Web_Limit"]);
     }
+    internal void OpenModule(string id)
+    {
+        if(!ModuleNavigation.Entries(AppServices.DataDirectory.Path).Any(a=>a.Id==id))return;
+        ConfigureNewsDefault(null);
+        CloseModulePresentation();_activeModule=id;_activeWebsite=null;
+        PageHost.Content=null;WebTabHost.IsVisible=false;
+        if(!_modulePages.TryGetValue(id,out var page))_modulePages[id]=page=new Meili.Mac.Views.ModuleAppPage(id);
+        ModuleAppHost.IsVisible=true;ModuleAppHost.Content=_presentationSuspended?null:page;
+        foreach(var pane in _webTabs.Values)pane.SetPresentationActive(false);
+        foreach(var tile in WebsiteRail.Children.OfType<ToggleButton>())tile.IsChecked=false;
+        SelectBuiltinPage();
+    }
+    private void CloseModulePresentation()
+    {
+        _activeModule=null;ModuleAppHost.Content=null;ModuleAppHost.IsVisible=false;
+    }
     internal void OpenWebsite(WebWorkspaceTab tab)
     {
+        ConfigureNewsDefault(null);
+        CloseModulePresentation();
         if (!_webTabs.TryGetValue(tab.Id, out var pane))
         {
             pane = new WebTabPane(tab.Url); _webTabs[tab.Id] = pane;
@@ -93,21 +125,17 @@ public partial class MainWindow
     }
     private void ShowMarketWorkspace()
     {
+        CloseModulePresentation();
         _activeWebsite = null; WebTabHost.IsVisible = false; SelectBuiltinPage();
         foreach (var button in WebsiteRail.Children.OfType<ToggleButton>()) button.IsChecked = false;
     }
     private void OnHomeWorkspace(object? sender, RoutedEventArgs e) => Navigate(AppPage.Dashboard);
     private void OnAddWebsite(object? sender, RoutedEventArgs e) { AddWebsite.IsChecked = false; _ = EditWebsite(null); }
-    private void OnToggleMotion(object? sender, RoutedEventArgs e)
-    {
-        try { _workspace?.SetReduceMotion(MotionButton.IsChecked == true); }
-        catch (System.IO.IOException) { ShowBanner(_loc["Web_Edit"], _loc["Web_Failed"]); }
-        ApplyWorkspaceMotion();
-    }
+    private void WorkspaceMotionChanged(object? sender, EventArgs e) => ApplyWorkspaceMotion();
     private void ApplyWorkspaceMotion()
     {
         var reduced = _workspace?.ReduceMotion == true || SystemReduceMotion();
-        DesignMotion.SetReduced(reduced); Classes.Set("ReducedMotion", reduced); MotionButton.IsChecked = _workspace?.ReduceMotion == true;
+        DesignMotion.SetReduced(reduced); Classes.Set("ReducedMotion", reduced);
     }
     private static bool SystemReduceMotion()
     {
@@ -123,15 +151,15 @@ public partial class MainWindow
     internal async Task EditWebsite(WebWorkspaceTab? tab)
     {
         if (_workspace is null) return;
-        var dialog = new Meili.Mac.Views.Controls.AppDialog { Title = _loc[tab is null ? "Web_Add" : "Web_Edit"], Width = 440, MinWidth = 400, SizeToContent = SizeToContent.Height, CanResize = false, WindowStartupLocation = WindowStartupLocation.CenterOwner, FontSize = 14 };
+        var dialog = new Meili.Mac.Views.Controls.AppDialog { Title = _loc[tab is null ? "Web_Add" : "Web_Edit"], Width = 440, MinWidth = 400, SizeToContent = SizeToContent.Height, CanResize = false, WindowStartupLocation = WindowStartupLocation.CenterOwner }.WithFontSize(14);
         dialog.Bind(BackgroundProperty, new DynamicResourceExtension("ApplicationBackgroundBrush")); dialog.Bind(ForegroundProperty, new DynamicResourceExtension("TextFillColorPrimaryBrush"));
         var body = new StackPanel { Margin = new Thickness(24), Spacing = 12 };
         var name = new TextBox { Text = tab?.Name ?? "", MaxLength = 40, Name = "WebsiteName" };
         var url = new TextBox { Text = tab?.Url ?? "", PlaceholderText = "https://", MaxLength = 2048, Name = "WebsiteAddress" };
-        var error = new TextBlock { IsVisible = false, TextWrapping = Avalonia.Media.TextWrapping.Wrap, FontSize = 12 };
+        var error = new TextBlock { IsVisible = false, TextWrapping = Avalonia.Media.TextWrapping.Wrap }.WithFontSize(12);
         body.Children.Add(new TextBlock { Text = _loc["Web_Name"] }); body.Children.Add(name); body.Children.Add(new TextBlock { Text = _loc["Web_Address"] }); body.Children.Add(url);
         AutomationProperties.SetName(name, _loc["Web_Name"]); AutomationProperties.SetName(url, _loc["Web_Address"]);
-        body.Children.Add(new TextBlock { Text = _loc["Web_Privacy"], TextWrapping = Avalonia.Media.TextWrapping.Wrap, FontSize = 12 }); body.Children.Add(error);
+        body.Children.Add(new TextBlock { Text = _loc["Web_Privacy"], TextWrapping = Avalonia.Media.TextWrapping.Wrap }.WithFontSize(12)); body.Children.Add(error);
         var actions = new WrapPanel { Orientation = Orientation.Horizontal }; body.Children.Add(actions);
         Button Button(string key, Action action) { var button = new Button { Content = _loc[key], Margin = new Thickness(0, 0, 8, 8) }; button.Click += (_, _) => action(); actions.Children.Add(button); return button; }
         void Fail(string key) { error.Text = _loc[key]; error.IsVisible = true; }

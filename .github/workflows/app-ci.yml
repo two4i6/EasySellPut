@@ -1,0 +1,91 @@
+name: Apps · Build & Test
+run-name: "Apps · ${{ github.head_ref || github.ref_name }} · #${{ github.run_number }}"
+on:
+  push:
+    branches: [main, work]
+    paths: ['web/qqq-gex/**', 'web/market-liquidity/**', 'web/news-fundamentals/**', 'web/options-strategy/**', 'web/charts/**', 'tests/automation/charts_app_smoke.py', 'tests/automation/options_app_smoke.py', 'tests/automation/news_app_smoke.py', 'tests/automation/liquidity_app_smoke.py', 'web/app-sdk/**', 'build/pack-app.py', 'tests/automation/app_package_smoke.py', '.github/workflows/app-ci.yml']
+  pull_request:
+    paths: ['web/qqq-gex/**', 'web/market-liquidity/**', 'web/news-fundamentals/**', 'web/options-strategy/**', 'web/charts/**', 'tests/automation/charts_app_smoke.py', 'tests/automation/options_app_smoke.py', 'tests/automation/news_app_smoke.py', 'tests/automation/liquidity_app_smoke.py', 'web/app-sdk/**', 'build/pack-app.py', 'tests/automation/app_package_smoke.py', '.github/workflows/app-ci.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: app-ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  core:
+    name: ${{ matrix.label }} · App core
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {os: ubuntu-24.04, label: Linux x64, rid: linux-x64}
+          - {os: windows-latest, label: Windows x64, rid: win-x64}
+          - {os: macos-15-intel, label: Mac Intel, rid: osx-x64}
+          - {os: macos-26, label: Mac Apple Silicon, rid: osx-arm64}
+    steps:
+      - name: Checkout app source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install engine runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify pinned model source
+        run: python tools/qqq-gex/verify-source.py
+      - name: Test shared protocol
+        run: node --test web/app-sdk/engine.test.mjs web/app-sdk/client.test.mjs web/app-sdk/engine-host.test.mjs web/app-sdk/presentation.test.mjs
+      - name: Install app dependencies
+        working-directory: web/qqq-gex
+        run: npm ci --no-audit --no-fund
+      - name: Build and verify charts app
+        run: |
+          node web/app-sdk/build-engine.mjs web/charts/runtime/report.mjs web/charts/runtime-dist/report.mjs
+          python build/pack-app.py --app charts --development --repository "${{ github.repository }}" --output "build/out/app-core/charts-${{ matrix.rid }}.espapp"
+          python tests/automation/charts_app_smoke.py --archive "build/out/app-core/charts-${{ matrix.rid }}.espapp" --public-key "build/out/app-core/charts-${{ matrix.rid }}.espapp.public.pem" --repository "${{ github.repository }}"
+      - name: Build and verify options core
+        run: |
+          node web/app-sdk/build-engine.mjs web/options-strategy/runtime/report.mjs web/options-strategy/runtime-dist/report.mjs
+          python build/pack-app.py --app options-strategy --development --repository "${{ github.repository }}" --output "build/out/app-core/options-${{ matrix.rid }}.espapp"
+          python tests/automation/options_app_smoke.py --archive "build/out/app-core/options-${{ matrix.rid }}.espapp" --public-key "build/out/app-core/options-${{ matrix.rid }}.espapp.public.pem" --repository "${{ github.repository }}"
+      - name: Build and verify news core
+        run: |
+          node web/app-sdk/build-engine.mjs web/news-fundamentals/runtime/report.mjs web/news-fundamentals/runtime-dist/report.mjs
+          python build/pack-app.py --app news-fundamentals --development --repository "${{ github.repository }}" --output "build/out/app-core/news-${{ matrix.rid }}.espapp"
+          python tests/automation/news_app_smoke.py --archive "build/out/app-core/news-${{ matrix.rid }}.espapp" --public-key "build/out/app-core/news-${{ matrix.rid }}.espapp.public.pem" --repository "${{ github.repository }}"
+      - name: Build independent liquidity core
+        run: node web/app-sdk/build-engine.mjs web/market-liquidity/runtime/report.mjs web/market-liquidity/runtime-dist/report.mjs
+      - name: Package liquidity core
+        run: python build/pack-app.py --app market-liquidity --development --repository "${{ github.repository }}" --output "build/out/app-core/liquidity-${{ matrix.rid }}.espapp"
+      - name: Verify signed liquidity core and protocol
+        run: python tests/automation/liquidity_app_smoke.py --archive "build/out/app-core/liquidity-${{ matrix.rid }}.espapp" --public-key "build/out/app-core/liquidity-${{ matrix.rid }}.espapp.public.pem" --repository "${{ github.repository }}"
+      - name: Build app core without host or desktop
+        working-directory: web/qqq-gex
+        run: npm run build:runtime
+      - name: Build app UI without desktop host
+        working-directory: web/qqq-gex
+        run: npm run build
+      - name: Test original core contracts
+        working-directory: web/qqq-gex
+        run: node test-results/pcs-contract.mjs
+      - name: Package development core
+        run: python build/pack-app.py --development --repository "${{ github.repository }}" --output "build/out/app-core/qqq-gex-${{ matrix.rid }}.espapp"
+      - name: Verify development package and retained-data operation
+        run: python tests/automation/app_package_smoke.py --archive "build/out/app-core/qqq-gex-${{ matrix.rid }}.espapp" --public-key "build/out/app-core/qqq-gex-${{ matrix.rid }}.espapp.public.pem" --repository "${{ github.repository }}"
+      - name: Package optional app UI
+        run: python build/pack-app.py --development --repository "${{ github.repository }}" --ui-dir web/qqq-gex/dist --output "build/out/app-core/qqq-gex-ui-${{ matrix.rid }}.espapp"
+      - name: Verify optional UI package and retained-data operation
+        run: python tests/automation/app_package_smoke.py --archive "build/out/app-core/qqq-gex-ui-${{ matrix.rid }}.espapp" --public-key "build/out/app-core/qqq-gex-ui-${{ matrix.rid }}.espapp.public.pem" --repository "${{ github.repository }}"
+      - name: Upload development artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: App-core-${{ matrix.rid }}
+          path: build/out/app-core/
+          if-no-files-found: error
+          retention-days: 14

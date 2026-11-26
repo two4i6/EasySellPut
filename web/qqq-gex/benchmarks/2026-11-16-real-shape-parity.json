@@ -1,0 +1,12 @@
+[
+  {
+    "format": "qqq-local-day-v3",
+    "rows": 870,
+    "canonicalRowSha256": "d5db151f7d64c2cc78794065dd03cee13aceb95a413000badbd714293349efe7"
+  },
+  {
+    "format": "qqq-local-day-v2",
+    "rows": 870,
+    "canonicalRowSha256": "d5db151f7d64c2cc78794065dd03cee13aceb95a413000badbd714293349efe7"
+  }
+]

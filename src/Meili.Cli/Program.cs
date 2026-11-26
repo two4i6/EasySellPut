@@ -14,16 +14,28 @@ public static class Program
     public static Task<int> Main(string[] args) => RunAsync(args);
 
     /// <summary>Shared executable entry point; test hosts may supply deterministic market services.</summary>
-    public static async Task<int> RunAsync(string[] args, Func<Meili.Core.Settings.DataDirectoryInfo, AutomationService>? serviceFactory = null)
+    public static async Task<int> RunAsync(string[] args, Func<Meili.Core.Settings.DataDirectoryInfo, IOperationDispatcher>? serviceFactory = null, Func<string?, Task<IOperationCatalog>>? catalogResolver = null)
     {
         bool json = args.Contains("--json");
         using var stop = new CancellationTokenSource();
         Console.CancelKeyPress += (_, e) => { e.Cancel = true; stop.Cancel(); };
         try
         {
+            if (args.FirstOrDefault() == "apps")
+            {
+                if (args.Skip(1).SequenceEqual(new[] { "--help" }))
+                {
+                    Console.WriteLine("apps list|doctor|recover|check [--data-dir PATH] [--json]\napps info|enable|disable|uninstall|download APP-ID [--data-dir PATH] [--json]\napps install|update --package PATH [--data-dir PATH] [--json]\nApp check/download uses the separate signed app catalog. Local packages require matching first-party trust. Uninstall preserves data. Maintenance is never an MCP tool.");
+                    return 0;
+                }
+                var maintained = await AppsCommand.RunAsync(args, stop.Token);
+                if (json) Console.WriteLine(WireJson.Element(WireJson.Success(maintained)).GetRawText());
+                else PrintHuman(WireJson.Element(maintained));
+                return 0;
+            }
             if(args.FirstOrDefault()=="update")
             {
-                if(args.Skip(1).SequenceEqual(new[]{"--help"})){Console.WriteLine("update check|download [--data-dir PATH] [--json]\nReads signed stable GitHub Releases. Download verifies signature/size/SHA-256; installation requires desktop confirmation. update apply --plan PATH is the internal desktop handoff, never an MCP tool.");return 0;}
+                if(args.Skip(1).SequenceEqual(new[]{"--help"})){Console.WriteLine("update source [--json] | update check|download [--data-dir PATH] [--json]\nReads signed stable GitHub Releases. Download verifies signature/size/SHA-256; installation requires desktop confirmation. update apply --plan PATH is the internal desktop handoff, never an MCP tool.");return 0;}
                 var updateResult=await UpdateCommand.RunAsync(args,stop.Token);
                 if(json)Console.WriteLine(WireJson.Element(WireJson.Success(updateResult)).GetRawText());else if(args.ElementAtOrDefault(1)!="apply")PrintHuman(WireJson.Element(updateResult));
                 return 0;
@@ -67,16 +79,23 @@ public static class Program
                 if (json) Console.WriteLine(WireJson.Element(WireJson.Success(installed)).GetRawText()); else PrintHuman(WireJson.Element(installed));
                 return 0;
             }
-            var parsed = Parse(args);
+            IOperationCatalog catalog = OperationCatalog.Snapshot;
+            if (!args.Contains("--version"))
+            {
+                var profile = DiscoveryDirectory(args);
+                catalog = catalogResolver is null ? await OperationCatalogResolver.ResolveAsync(LocalPaths.Resolve(profile, migrateLegacy: false), stop.Token) : await catalogResolver(profile);
+            }
+            var parsed = Parse(args, _ => catalog);
             if (parsed.Help)
             {
                 if (json) Console.WriteLine(WireJson.Element(WireJson.Success(new
                 {
                     version = typeof(Program).Assembly.GetName().Version?.ToString(3),
-                    operations = OperationCatalog.All.Where(o => parsed.Operation is null || o.Name == parsed.Operation)
+                    unavailableApps=catalog.Issues,
+                    operations = catalog.All.Where(o => parsed.Operation is null || o.Name == parsed.Operation)
                         .Select(o => new { o.Name, o.Description, o.Writes, inputSchema = o.Schema })
                 })).GetRawText());
-                else PrintHelp(parsed.Operation);
+                else {PrintHelp(parsed.Operation, catalog);foreach(var issue in catalog.Issues)Console.Error.WriteLine($"{issue.AppId??"registry"}: {issue.Message}");}
                 return 0;
             }
             if (parsed.Version) { Console.WriteLine(typeof(Program).Assembly.GetName().Version?.ToString(3)); return 0; }
@@ -98,18 +117,21 @@ public static class Program
         }
     }
 
-    private static async Task ServeMcp(AutomationService service, bool writes, int timeout, CancellationToken ct)
+    private static async Task ServeMcp(IOperationDispatcher service, bool writes, int timeout, CancellationToken ct)
     {
         string? observedClient=null;
+        AppCatalogNotifications? catalogNotifications=null;
         var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { Args = [], DisableDefaults = true });
         builder.Logging.ClearProviders();
         builder.Logging.AddConsole(o => o.LogToStandardErrorThreshold = LogLevel.Trace);
         builder.Logging.SetMinimumLevel(LogLevel.Warning);
         builder.Services.AddMcpServer(o =>
         {
+            o.Capabilities=new ServerCapabilities{Tools=new ToolsCapability{ListChanged=true}};
             o.ServerInfo = new Implementation { Name = "EasySellPut", Version = typeof(Program).Assembly.GetName().Version?.ToString(3) ?? "0.6.0" };
             o.ServerInstructions = AiWorkflowGuide.Instructions + (writes ? " Explicit write mode is enabled; still require a user-requested change." : " This connection is read-only.");
         }).WithStdioServerTransport()
+        .WithSubscriptionsListenHandler((request,cancel)=>catalogNotifications is not null?catalogNotifications.ListenAsync(request,cancel):throw new InvalidOperationException("Catalog observer is not ready."))
         .WithListPromptsHandler((request,cancel)=>ValueTask.FromResult(new ListPromptsResult
         {
             Prompts=AiWorkflowGuide.All.Select(w=>new Prompt{Name=w.Name,Title=w.Title,Description=w.Description,
@@ -134,33 +156,36 @@ public static class Program
             new Resource{Uri="easysellput://guides/skill",Name="Companion skill",Description="Complete local research guide, safety/units and all tool usage.",MimeType="text/markdown"},
             new Resource{Uri="easysellput://capabilities",Name="Available capabilities",Description="Compiled tool catalog for this connection's permissions.",MimeType="application/json"}
         ]}))
-        .WithReadResourceHandler((request,cancel)=>
+        .WithReadResourceHandler(async (request,cancel)=>
         {
             observedClient=request.Server.ClientInfo?.Name;
+            var currentCatalog=await service.GetCatalogAsync(cancel);
             var uri=request.Params?.Uri;
             var content=uri switch
             {
                 "easysellput://guides/workflows"=>AiWorkflowGuide.Markdown,
                 "easysellput://guides/skill"=>AiSkillInstaller.Content,
-                "easysellput://capabilities"=>WireJson.Element(new{readOnly=!writes,operations=OperationCatalog.All.Where(o=>writes||!o.Writes).Select(o=>new{o.Name,o.Description,o.Writes,inputSchema=o.Schema})}).GetRawText(),
+                "easysellput://capabilities"=>WireJson.Element(new{readOnly=!writes,unavailableApps=currentCatalog.Issues,operations=currentCatalog.All.Where(o=>writes||!o.Writes).Select(o=>new{o.Name,o.Description,o.Writes,inputSchema=o.Schema})}).GetRawText(),
                 _=>throw new ModelContextProtocol.McpProtocolException("Unknown resource URI; arbitrary file/URL reads are not supported.",ModelContextProtocol.McpErrorCode.InvalidParams)
             };
-            return ValueTask.FromResult(new ReadResourceResult{Contents=[new TextResourceContents{Uri=uri!,MimeType=uri=="easysellput://capabilities"?"application/json":"text/markdown",Text=content}]});
+            return new ReadResourceResult{Contents=[new TextResourceContents{Uri=uri!,MimeType=uri=="easysellput://capabilities"?"application/json":"text/markdown",Text=content}]};
         })
-        .WithListToolsHandler((request, cancel) =>
+        .WithListToolsHandler(async (request, cancel) =>
         {
             observedClient=request.Server.ClientInfo?.Name;
-            return ValueTask.FromResult(new ListToolsResult
+            var currentCatalog = await service.GetCatalogAsync(cancel);
+            return new ListToolsResult
         {
-            Tools = OperationCatalog.All.Where(x => writes || !x.Writes).Select(x => new Tool
+            Meta=currentCatalog.Issues.Count==0?null:new JsonObject{["unavailableApps"]=JsonSerializer.SerializeToNode(currentCatalog.Issues,WireJson.Options)},
+            Tools = currentCatalog.All.Where(x => writes || !x.Writes).Select(x => new Tool
             {
                 Name = x.Name,
                 Title = CultureInfo.InvariantCulture.TextInfo.ToTitleCase(x.Name.Replace('_',' ')),
                 Description = x.Description,
                 InputSchema = x.Schema,
-                Annotations = new ToolAnnotations { ReadOnlyHint = !x.Writes, DestructiveHint = x.Writes && (x.Name.StartsWith("delete_",StringComparison.Ordinal) || x.Name.StartsWith("clear_",StringComparison.Ordinal) || x.Name=="save_strategy"), IdempotentHint = !x.Writes, OpenWorldHint = x.Name is "search_symbols" or "get_quotes" or "get_bars" or "get_expirations" or "get_option_chain" or "get_fundamentals" or "get_financials" or "get_news" or "get_market_events" or "get_chart_analysis" or "analyze_option_chain" or "get_pricing_assumptions" or "get_volatility_insights" or "record_option_snapshot" or "probe_data_sources" }
+                Annotations = new ToolAnnotations { ReadOnlyHint = !x.Writes, DestructiveHint = x.Writes && (x.Name.StartsWith("delete_",StringComparison.Ordinal) || x.Name.StartsWith("clear_",StringComparison.Ordinal) || x.Name=="save_strategy"), IdempotentHint = !x.Writes, OpenWorldHint = !OperationCatalog.All.Any(o=>o.Name==x.Name)||x.Name.Contains("_qqq_gex_",StringComparison.Ordinal)||x.Name is "search_symbols" or "get_quotes" or "get_bars" or "get_expirations" or "get_option_chain" or "get_fundamentals" or "get_financials" or "get_news" or "get_market_events" or "get_chart_analysis" or "analyze_option_chain" or "get_pricing_assumptions" or "get_volatility_insights" or "record_option_snapshot" or "probe_data_sources" }
             }).ToList()
-        });
+        };
         })
         .WithCallToolHandler(async (request, cancel) =>
         {
@@ -182,11 +207,25 @@ public static class Program
         using var host = builder.Build();
         var server=host.Services.GetService<ModelContextProtocol.Server.McpServer>();
         using var session=new McpSessionLease(service.DirectoryInfo.Path,writes,()=>server?.ClientInfo?.Name??observedClient);
+        await using var notifications=catalogNotifications=server is null?null:AppCatalogNotifications.Start(service,server,writes,ct);
         await host.RunAsync(ct);
     }
 
+    private static string? DiscoveryDirectory(string[] args)
+    {
+        string? directory=null;
+        for(var i=0;i<args.Length;i++)
+        {
+            if(args[i] != "--data-dir" && !args[i].StartsWith("--data-dir=",StringComparison.Ordinal))continue;
+            if(directory is not null)throw new ArgumentException("Duplicate --data-dir.");
+            directory=args[i].StartsWith("--data-dir=",StringComparison.Ordinal)?args[i][11..]:++i<args.Length?args[i]:throw new ArgumentException("Missing --data-dir.");
+            if(string.IsNullOrWhiteSpace(directory)||directory.StartsWith("--",StringComparison.Ordinal))throw new ArgumentException("Missing --data-dir.");
+        }
+        return directory;
+    }
+
     internal sealed record Parsed(string? Operation, JsonElement Arguments, string? DataDir, int Timeout, bool Mcp, bool AllowWrites, bool Help, bool Version);
-    internal static Parsed Parse(string[] args)
+    internal static Parsed Parse(string[] args, Func<string?, IOperationCatalog>? resolveCatalog = null)
     {
         string? directory = null, input = null; int timeout = 60; bool mcp = false, writes = false, help = false, version = false;
         var words = new List<string>(); var fields = new Dictionary<string, string>();
@@ -212,6 +251,7 @@ public static class Program
             }
             else words.Add(arg);
         }
+        var catalog = version ? OperationCatalog.Snapshot : resolveCatalog?.Invoke(directory) ?? OperationCatalog.Snapshot;
         if (words.Count == 0) { if (fields.Count > 0 || input is not null) throw new ArgumentException("An operation is required."); if (!version) help = true; return new(null, WireJson.Element(new { }), directory, timeout, false, writes, help, version); }
         if (words[0] == "mcp")
         {
@@ -219,8 +259,8 @@ public static class Program
             mcp = true; return new(null, WireJson.Element(new { }), directory, timeout, mcp, writes, help, version);
         }
         var command = words[0];
-        var aliases = new Dictionary<string, string> { ["quote"] = "get_quotes", ["bars"] = "get_bars", ["search"] = "search_symbols", ["expirations"] = "get_expirations", ["options"] = "get_option_chain", ["fundamentals"] = "get_fundamentals", ["financials"] = "get_financials", ["news"] = "get_news", ["events"] = "get_market_events", ["chart"] = "get_chart_analysis", ["option-analysis"] = "analyze_option_chain", ["insights"] = "get_volatility_insights", ["presets"] = "list_strategy_presets", ["sources"] = "get_source_health", ["price"] = "calculate_option", ["indicators"] = "calculate_indicators" };
-        if (command is "watchlist" or "strategy" or "alerts" or "settings")
+        var aliases = new Dictionary<string, string> { ["live-bars"] = "get_live_bars", ["live"] = "get_live_quotes", ["liquidity"] = "get_market_liquidity", ["quote"] = "get_quotes", ["bars"] = "get_bars", ["search"] = "search_symbols", ["expirations"] = "get_expirations", ["options"] = "get_option_chain", ["fundamentals"] = "get_fundamentals", ["financials"] = "get_financials", ["news"] = "get_news", ["events"] = "get_market_events", ["chart"] = "get_chart_analysis", ["option-analysis"] = "analyze_option_chain", ["insights"] = "get_volatility_insights", ["presets"] = "list_strategy_presets", ["sources"] = "get_source_health", ["price"] = "calculate_option", ["indicators"] = "calculate_indicators" };
+        if (command is "watchlist" or "strategy" or "alerts" or "settings" or "cache")
         {
             if (words.Count < 2) throw new ArgumentException($"{command} needs a subcommand. See --help.");
             var sub = words[1]; words.RemoveAt(1);
@@ -242,11 +282,13 @@ public static class Program
                 ("alerts", "delete") => "delete_alert",
                 ("alerts", "enable") => "set_alert_enabled",
                 ("settings", "show") => "get_settings",
+                ("cache", "status") => "get_cache_status",
+                ("cache", "clear") => "clear_cache",
                 _ => throw new ArgumentException("Unknown subcommand.")
             };
         }
         else if (aliases.TryGetValue(command, out var mapped)) command = mapped;
-        var op = OperationCatalog.Find(command);
+        var op = catalog.Find(command);
         if (help) return new(command, WireJson.Element(new { }), directory, timeout, false, writes, true, version);
         JsonObject values = new();
         if (input is not null)
@@ -257,7 +299,7 @@ public static class Program
         var props = op.Schema.GetProperty("properties");
         if (words.Count > 1)
         {
-            string key = command switch { "get_quotes" => "symbols", "search_symbols" => "query", _ when props.TryGetProperty("symbol", out _) => "symbol", _ => throw new ArgumentException("Unexpected positional argument.") };
+            string key = command switch { "get_quotes" or "get_live_quotes" => "symbols", "search_symbols" => "query", _ when props.TryGetProperty("symbol", out _) => "symbol", _ => throw new ArgumentException("Unexpected positional argument.") };
             if (values.ContainsKey(key)) throw new ArgumentException($"Duplicate argument {key}.");
             if (key == "symbols") values[key] = new JsonArray(words.Skip(1).Select(s => JsonValue.Create(s)).ToArray());
             else { if (words.Count != 2) throw new ArgumentException("Unexpected positional argument."); values[key] = words[1]; }
@@ -272,10 +314,10 @@ public static class Program
         return new(command, JsonSerializer.SerializeToElement(values), directory, timeout, false, writes, false, version);
     }
     private static string Kebab(string s) => string.Concat(s.Select(c => char.IsUpper(c) ? "-" + char.ToLowerInvariant(c) : c.ToString()));
-    private static void PrintHelp(string? operation)
+    private static void PrintHelp(string? operation, IOperationCatalog catalog)
     {
-        Console.WriteLine("EasySellPut — local CLI + stdio MCP\nUsage: easysellput <command> [options] [--json] [--data-dir PATH] [--timeout 60]\n       easysellput mcp serve [--allow-writes] [--data-dir PATH]\nMaintenance: update check|download [--json] (signed stable desktop updates; installation is desktop-confirmed)\nSetup: connect codex|claude-code [--check] [--json] (verifies MCP, installs skill and registers the client)\n       install-skill --client codex|claude-code [--project PATH] [--json] (CLI only; preserves custom skills; known bundled upgrades are backed up)\nAliases: quote, bars, search, expirations, options, fundamentals, financials, news, events, chart, option-analysis, insights, presets, sources, price, indicators\nGroups: watchlist list/add/remove/create-group/rename-group/delete-group; strategy list/save/delete/analyze; alerts list/history/save/delete/enable; settings show\nUse any operation name below directly. --input FILE accepts an argument JSON object.\nNumbers use invariant decimal units. --help after an operation prints its JSON schema.\nExit: 0 success, 1 failure, 2 arguments, 3 permission, 4 conflict, 130 cancelled/timeout.");
-        foreach (var op in OperationCatalog.All.Where(o => operation is null || o.Name == operation))
+        Console.WriteLine("EasySellPut — local CLI + stdio MCP\nUsage: easysellput <command> [options] [--json] [--data-dir PATH] [--timeout 60]\n       easysellput mcp serve [--allow-writes] [--data-dir PATH]\nMaintenance: update check|download [--json] (signed stable desktop updates; installation is desktop-confirmed)\nSetup: connect codex|claude-code [--check] [--json] (verifies MCP, installs skill and registers the client)\n       install-skill --client codex|claude-code [--project PATH] [--json] (CLI only; preserves custom skills; known bundled upgrades are backed up)\nAliases: live-bars, live, liquidity, quote, bars, search, expirations, options, fundamentals, financials, news, events, chart, option-analysis, insights, presets, sources, price, indicators\nGroups: watchlist list/add/remove/create-group/rename-group/delete-group; strategy list/save/delete/analyze; alerts list/history/save/delete/enable; settings show\nUse any operation name below directly. --input FILE accepts an argument JSON object.\nNumbers use invariant decimal units. --help after an operation prints its JSON schema.\nExit: 0 success, 1 failure, 2 arguments, 3 permission, 4 conflict, 130 cancelled/timeout.");
+        foreach (var op in catalog.All.Where(o => operation is null || o.Name == operation))
         {
             Console.WriteLine($"\n{op.Name}{(op.Writes ? " [writes local data]" : "")}: {op.Description}");
             if (operation is not null) Console.WriteLine(JsonSerializer.Serialize(op.Schema, new JsonSerializerOptions { WriteIndented = true }));

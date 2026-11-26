@@ -84,6 +84,7 @@ public sealed class AlertMonitor : IDisposable
 
     private void OnBatch(object? sender, QuoteBatch batch)
     {
+        if(batch.IsStreaming)return; // QuotePump rebroadcasts current cached quotes at the existing alert cadence.
         _batches++;
         if (!_started) return;
         OnBatchCore(batch, DateTimeOffset.Now);

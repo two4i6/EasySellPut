@@ -13,24 +13,128 @@ using Right = Meili.Analytics.OptionRight;
 
 namespace Meili.Automation;
 
-/// <summary>UI-free application boundary shared by CLI and MCP. Serializes requests within one host.</summary>
-public sealed partial class AutomationService(DataDirectoryInfo directory, IMarketDataService? market = null, IReadOnlyList<IDataProvider>? diagnosticProviders = null) : IDisposable
+/// <summary>UI-free application boundary shared by CLI and MCP. Serializes state/provider requests; bounded pure calculations and module jobs have independent resource gates.</summary>
+public sealed partial class AutomationService(DataDirectoryInfo directory, IMarketDataService? market = null, IReadOnlyList<IDataProvider>? diagnosticProviders = null, ILiquiditySeriesSource? liquiditySource = null, TimeProvider? liquidityClock = null, IQuoteStreamSource? quoteStream = null, IMarketDataService? liveBarMarket = null, TimeProvider? liveClock = null) : IDisposable, IOperationDispatcher
 {
     private readonly SemaphoreSlim _gate = new(1);
+    private static readonly SemaphoreSlim PureCalculationGate = new(Math.Clamp(Environment.ProcessorCount,1,4));
     private readonly bool _injectedMarket = market is not null;
     private DataServices? _sources;
     private Meili.Data.Routing.FailoverRouter? _probeRouter;
     private IMarketDataService? _market = market;
     public DataDirectoryInfo DirectoryInfo { get; } = directory;
+    public Task<IOperationCatalog> GetCatalogAsync(CancellationToken ct = default) => OperationCatalogResolver.ResolveAsync(DirectoryInfo, ct);
 
     public async Task<JsonElement> ExecuteAsync(string operation, JsonElement args, bool allowWrites, CancellationToken ct = default)
     {
-        var op = OperationCatalog.Find(operation);
+        try{return await ExecuteDispatchAsync(operation,args,allowWrites,ct).ConfigureAwait(false);}
+        catch(IOException ex)when(ex is not DataConflictException)
+        {
+            // No arguments, source bodies or credentials: retain only the local failure and stack.
+            Meili.Core.Diagnostics.AppLog.ErrorInDirectory(DirectoryInfo.Path,"automation-io",$"Local operation {operation} failed (0x{ex.HResult:X8})",ex);
+            throw;
+        }
+    }
+    private async Task<JsonElement> ExecuteDispatchAsync(string operation,JsonElement args,bool allowWrites,CancellationToken ct)
+    {
+        var op = (await GetCatalogAsync(ct)).Find(operation);
         OperationCatalog.Validate(op, args);
         if (op.Writes && !allowWrites) throw new UnauthorizedAccessException();
+        var module = (await Modules.ModuleOperations.ReadAsync(DirectoryInfo.Path, ct)).SingleOrDefault(o => o.Definition.Name == operation);
+        if (module is not null)
+        {
+            return WireJson.Element(WireJson.Success(await ExecuteModuleAsync(module,args,allowWrites,ct)));
+        }
+        using var legacyLease = Modules.ModuleAccess.OperationOwner(operation) is { } owner ? Modules.ModuleAccess.AcquireEnabled(DirectoryInfo.Path, owner) : null;
+        if(operation is "calculate_option" or "calculate_indicators" or "analyze_strategy")
+        {
+            await PureCalculationGate.WaitAsync(ct);
+            try { return await Task.Run(async () => WireJson.Element(WireJson.Success(await ExecuteCoreAsync(operation,new Input(args),ct))),ct); }
+            finally { PureCalculationGate.Release(); }
+        }
         await _gate.WaitAsync(ct);
         try { ct.ThrowIfCancellationRequested(); return WireJson.Element(WireJson.Success(await ExecuteCoreAsync(operation, new Input(args), ct))); }
         finally { _gate.Release(); }
+    }
+
+    internal async Task<JsonElement> ExecuteModuleAsync(Modules.BoundModuleOperation module,JsonElement args,bool allowWrites,CancellationToken ct,
+        Modules.ModuleInstaller? installer=null,Func<CancellationToken,Task<string?>>? runtime=null)
+    {
+        using var session=BeginModuleHostSession();
+        var grant=new Modules.ModuleWriteGrant(module.Definition.Name,args,allowWrites,session.InvokeAsync,
+            (name,arguments,token)=>ExecuteHostOperationAsync(name,arguments,token,allowWrites:true));
+        var result=await Modules.ModuleProcess.ExecuteAsync(DirectoryInfo.Path,module,args,allowWrites,
+            installer??new Modules.ModuleInstaller(DirectoryInfo.Path),runtime??(token=>Modules.PinnedNodeRuntime.ExtractNodeAsync(DirectoryInfo.Path,token)),ct,grant.InvokeAsync);
+        grant.RequireApplied();return result;
+    }
+
+    internal Modules.ModuleMarketSession BeginModuleHostSession()=>new(OpenMarketSnapshotAsync,(name,args,ct)=>ExecuteHostOperationAsync(name,args,ct));
+    private async Task<Modules.ModuleMarketSnapshot> OpenMarketSnapshotAsync(JsonElement arguments,CancellationToken ct)
+    {
+        OperationCatalog.Validate(Modules.ModuleHostOperations.Definition("open_market_snapshot"),arguments);
+        var input=new Input(arguments);
+        static string SourceSymbol(string value)
+        {
+            value=value.Trim().ToUpperInvariant();
+            if(value.Length is <1 or >32||!(char.IsAsciiLetter(value[0])||value[0]=='^')||value.Any(c=>!char.IsAsciiLetterOrDigit(c)&&c is not ('^' or '=' or '.' or '-')))throw new ArgumentException("Invalid market source symbol.");
+            return value;
+        }
+        var kind=input.Text("kind");var symbol=kind=="quotes"?null:SourceSymbol(input.Text("symbol"));
+        string[]? symbols=null;DateOnly? expiry=null;DateTimeOffset? from=null,to=null;
+        var interval=Meili.Core.Models.BarInterval.Day1;
+        if(kind is "quotes" or "expirations")
+        {
+            if(input.Has("expiry")||input.Has("interval")||input.Has("from")||input.Has("to"))throw new ArgumentException("Invalid market source arguments.");
+            if(kind=="expirations"&&input.Has("symbols"))throw new ArgumentException("Expiry source accepts one symbol.");
+            if(kind=="quotes")
+            {
+                if(input.Has("symbol")||!input.Has("symbols"))throw new ArgumentException("Quote source requires symbols.");
+                symbols=arguments.GetProperty("symbols").EnumerateArray().Select(v=>SourceSymbol(v.GetString()!)).ToArray();
+            }
+        }
+        else
+        {
+            if(input.Has("symbols"))throw new ArgumentException("Source accepts one symbol.");
+            if(kind=="chain")
+            {
+                if(input.Has("interval")||input.Has("from")||input.Has("to"))throw new ArgumentException("Chain source accepts only symbol and expiry.");
+                expiry=input.Date("expiry");
+            }
+            else
+            {
+                if(input.Has("expiry"))throw new ArgumentException("Bar source does not accept expiry.");
+                from=input.Instant("from");to=input.Instant("to");if(from>to)throw new ArgumentException("from must not be after to.");
+                interval=ParseInterval(input.Text("interval","1d"));
+            }
+        }
+        await _gate.WaitAsync(ct).ConfigureAwait(false);
+        try
+        {
+            var provider=await Market(ct).ConfigureAwait(false);
+            if(kind=="quotes")return new(await provider.GetQuotesAsync(symbols!,ct).ConfigureAwait(false));
+            if(kind=="expirations")return new(await provider.GetExpirationsAsync(symbol!,ct).ConfigureAwait(false));
+            if(kind=="chain")
+            {
+                var chain=await provider.GetChainAsync(symbol!,expiry,ct).ConfigureAwait(false);
+                return new(chain,chain.RawSourcePayload);
+            }
+            var series=await provider.GetBarsAsync(new(symbol!,interval,from,to),ct).ConfigureAwait(false);
+            return new(new{series,marketSessions=series.Bars.Select(bar=>Meili.Core.Time.MarketClock.GetSession(bar.Time)).ToArray()});
+        }
+        finally{_gate.Release();}
+    }
+
+    /// <summary>Stable common read capabilities for signed app engines; never invokes another app or maintenance.</summary>
+    internal Task<JsonElement> ExecuteHostOperationAsync(string name,JsonElement arguments,CancellationToken ct)=>ExecuteHostOperationAsync(name,arguments,ct,false);
+    internal async Task<JsonElement> ExecuteHostOperationAsync(string name,JsonElement arguments,CancellationToken ct,bool allowWrites)
+    {
+        var definition=Modules.ModuleHostOperations.Definition(name);OperationCatalog.Validate(definition,arguments);
+        if(definition.Writes && !allowWrites)throw new UnauthorizedAccessException("Read host session cannot grant a write.");
+        var pure=name is "calculate_option" or "calculate_indicators" or "analyze_strategy";
+        var gate=pure?PureCalculationGate:_gate;
+        await gate.WaitAsync(ct).ConfigureAwait(false);
+        try{return await Task.Run(async()=>WireJson.Element(WireJson.Success(await ExecuteCoreAsync(name,new Input(arguments),ct))),ct).ConfigureAwait(false);}
+        finally{gate.Release();}
     }
 
     private SettingsStore Settings()
@@ -47,13 +151,21 @@ public sealed partial class AutomationService(DataDirectoryInfo directory, IMark
     private void CheckJson(string name)
     {
         var path = Path.Combine(DirectoryInfo.Path, name);
-        if (!File.Exists(path)) return;
+        var text=new SnapshotFile(path).Read();
+        if(text is null)return;
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web) { AllowTrailingCommas = true, ReadCommentHandling = JsonCommentHandling.Skip };
         options.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
-        var text = File.ReadAllText(path);
         object? parsed = name switch { "settings.json" => JsonSerializer.Deserialize<AppSettings>(text, options), "alerts.json" => JsonSerializer.Deserialize<AlertDocument>(text, options), _ => JsonSerializer.Deserialize<List<SavedStrategy>>(text, options) };
         if (parsed is null) throw new JsonException($"{name} must not be null.");
     }
+    private Meili.Caching.CacheManager Caches()
+    {
+        return new(DirectoryInfo.Path, _sources?.Cache ?? _cacheOnly, new Meili.Caching.BarCacheResource(
+            new MarketDb(Path.Combine(DirectoryInfo.Path, "cache", "market.db"))),new QqqGexResponseStore(Path.Combine(DirectoryInfo.Path,"cache","qqq-gex.db")));
+    }
+
+    private readonly ResponseCache _cacheOnly = new();
+
     private async Task<IMarketDataService> Market(CancellationToken ct)
     {
         if (_market is not null) return _market;
@@ -66,6 +178,28 @@ public sealed partial class AutomationService(DataDirectoryInfo directory, IMark
     {
         switch (op)
         {
+            case "get_live_bars":
+                {
+                    var data=liveBarMarket??await Market(ct);var source=quoteStream??(_sources is not null?new Meili.Data.Providers.Yahoo.YahooQuoteStream(_sources.Gateway):throw new InvalidOperationException("Quote stream is not configured."));
+                    return await new LiveBarsService(data,new QuoteStreamingService(source),liveClock).SampleAsync(Symbol(a.Text("symbol")),ParseInterval(a.Text("interval","1m")),a.Int("seconds",5,1,20),a.Int("maxUpdates",100,1,500),ct);
+                }
+            case "get_live_quotes":
+                {
+                    var symbols=a.Value.GetProperty("symbols").EnumerateArray().Select(x=>Symbol(x.GetString()!)).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+                    if(symbols.Length is <1 or >50)throw new ArgumentException("Provide 1..50 symbols.");
+                    var stream=quoteStream;
+                    if(stream is null){await Market(ct);stream=_sources is not null?new Meili.Data.Providers.Yahoo.YahooQuoteStream(_sources.Gateway):throw new InvalidOperationException("Quote stream is not configured.");}
+                    return await new QuoteStreamingService(stream).SampleAsync(symbols,a.Int("seconds",5,1,20),a.Int("maxUpdates",100,1,500),ct);
+                }
+            case "get_market_liquidity":
+                {
+                    var marketData = await Market(ct);
+                    var source = liquiditySource ?? _sources?.Providers.OfType<ILiquiditySeriesSource>().SingleOrDefault()
+                        ?? throw new InvalidOperationException("Liquidity source is not configured.");
+                    return await new MarketLiquidityService(source, marketData, liquidityClock).LoadAsync(ct);
+                }
+            case "get_cache_status": return await Task.Run(() => Caches().Inspect(ct), ct);
+            case "clear_cache": if(a.Text("mode","all")=="compact"){if(a.Has("symbol"))throw new ArgumentException("Compaction has no symbol filter");return await Task.Run(()=>Caches().Compact(a.Text("category")),ct);}return await Task.Run(() => Caches().Clear(a.Text("category"), a.Text("mode", "all") == "expired", a.Has("symbol") ? a.Text("symbol") : null), ct);
             case "search_symbols": return await (await Market(ct)).SearchAsync(a.Text("query", max: 100), a.Int("limit", 10, 1, 50), ct);
             case "get_quotes":
                 {
@@ -76,7 +210,7 @@ public sealed partial class AutomationService(DataDirectoryInfo directory, IMark
                 }
             case "get_bars":
                 {
-                    var interval = a.Text("interval", "1d") switch { "1m" => BarInterval.Minute1, "5m" => BarInterval.Minute5, "15m" => BarInterval.Minute15, "30m" => BarInterval.Minute30, "1h" => BarInterval.Hour1, "1d" => BarInterval.Day1, "1w" => BarInterval.Week1, "1mo" => BarInterval.Month1, _ => throw new ArgumentException("Invalid interval.") };
+                    var interval = ParseInterval(a.Text("interval","1d"));
                     var from = a.Instant("from"); var to = a.Instant("to"); if (from > to) throw new ArgumentException("from must not be after to.");
                     var s = await (await Market(ct)).GetBarsAsync(new(Symbol(a.Text("symbol")), interval, from, to, a.Text("adjust", "split") == "total" ? AdjustMode.Total : AdjustMode.Split), ct);
                     return new { s.Symbol, s.Interval, s.Source, s.AsOf, s.FetchedAt, s.IsRealtime, s.DelayMinutes, s.OfflineCache, s.Adjustment, page = Page(s.Bars, a) };
@@ -89,7 +223,7 @@ public sealed partial class AutomationService(DataDirectoryInfo directory, IMark
                     var s = await (await Market(ct)).GetChainAsync(Symbol(a.Text("symbol")), a.Date("expiry"), ct);
                     var requestedExpiry = a.Date("expiry");
                     var filtered = s.Contracts.Where(c => (!requestedExpiry.HasValue || c.Expiration == requestedExpiry.Value) && (!a.Has("right") || c.Right.ToString().Equals(a.Text("right"), StringComparison.OrdinalIgnoreCase)) && (!min.HasValue || c.Strike >= min) && (!max.HasValue || c.Strike <= max)).OrderBy(c => c.Expiration).ThenBy(c => c.Strike).ThenBy(c => c.Right).ToArray();
-                    return new { s.Underlying, s.UnderlyingPrice, s.Expiration, s.Expirations, s.Source, s.AsOf, s.FetchedAt, s.IsRealtime, s.DelayMinutes, page = Page(filtered, a), entryReferences = Page(filtered.Select(c => new { c.ContractSymbol, reference = OptionEntryReference.From(c) }).ToArray(), a) };
+                    return new { s.Underlying, s.UnderlyingPrice, s.Expiration, s.Expirations, s.Source, s.AsOf, s.FetchedAt, s.IsRealtime, s.DelayMinutes, page = Page(filtered, a), entryReferences = Page(filtered.Select(c => new { c.ContractSymbol, reference = OptionEntryReference.From(c),bidReference=OptionEntryReference.FromQuoteSide(c,"bid"),askReference=OptionEntryReference.FromQuoteSide(c,"ask") }).ToArray(), a) };
                 }
             case "get_fundamentals": return await (await Market(ct)).GetFundamentalsAsync(Symbol(a.Text("symbol")), ct);
             case "get_financials": return await (await Market(ct)).GetFinancialsAsync(Symbol(a.Text("symbol")), ct);
@@ -210,6 +344,7 @@ public sealed partial class AutomationService(DataDirectoryInfo directory, IMark
         };
     }
     private static StrategyLeg[] Legs(Input a) => a.Value.GetProperty("legs").EnumerateArray().Select(v => WireJson.Read<LegInput>(v).ToLeg()).ToArray();
+    private static BarInterval ParseInterval(string text)=>text switch{"1m"=>BarInterval.Minute1,"5m"=>BarInterval.Minute5,"15m"=>BarInterval.Minute15,"30m"=>BarInterval.Minute30,"1h"=>BarInterval.Hour1,"1d"=>BarInterval.Day1,"1w"=>BarInterval.Week1,"1mo"=>BarInterval.Month1,_=>throw new ArgumentException("Invalid interval.")};
     private static string Symbol(string text) => WatchlistStore.TryNormalizeSymbol(text, out var s, out _) ? s : throw new ArgumentException("Invalid ticker symbol.");
     private static object Page<T>(IReadOnlyList<T> items, Input a)
     {

@@ -1,6 +1,6 @@
 /* Shared embedded components. Layout/data visualization stays in each renderer. */
 html,body{font-family:var(--font-sans);font-variant-numeric:tabular-nums}
-button,input,select{font-family:inherit;font-size:14px;border-radius:var(--control-radius);min-height:var(--control-height);transition:background-color var(--motion-fast-ms) ease-out,border-color var(--motion-fast-ms) ease-out,box-shadow var(--motion-fast-ms) ease-out;box-shadow:none}
+button,input,select{font-family:inherit;font-size:calc(14px * var(--text-scale, 1));border-radius:var(--control-radius);min-height:var(--control-height);transition:background-color var(--motion-fast-ms) ease-out,border-color var(--motion-fast-ms) ease-out,box-shadow var(--motion-fast-ms) ease-out;box-shadow:none}
 button{background:var(--control);border:1px solid var(--border);color:var(--text);cursor:pointer}
 button:hover:not(:disabled){background:var(--hover,var(--control));border-color:var(--muted)}
 button:active:not(:disabled){background:var(--pressed,var(--control))}
@@ -26,3 +26,22 @@ input[type=checkbox],input[type=range]{accent-color:var(--text)}
 :root[data-reduced-motion=true] *, :root[data-reduced-motion=true] *::before{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 
 button{transition:background-color var(--motion-fast-ms) ease-out,border-color var(--motion-fast-ms) ease-out,opacity var(--motion-fast-ms) ease-out}button:active:not(:disabled),button.keyboard-pressed:not(:disabled){opacity:.9}
+
+/* Reusable analytical quote chips: action semantics are independent of price-up/down conventions. */
+button.quote-chip{min-width:76px;min-height:36px;border-radius:999px;font-weight:600;background:color-mix(in srgb,currentColor 10%,var(--background));border:1px solid color-mix(in srgb,currentColor 35%,var(--border));justify-content:center}
+button.quote-chip.buy{color:var(--healthy,var(--text))}button.quote-chip.sell{color:var(--danger)}
+button.quote-chip[aria-pressed=true]{background:currentColor;box-shadow:inset 0 0 0 2px var(--background);border-color:currentColor}
+button.quote-chip[aria-pressed=true]{color:var(--text);background:var(--control);outline:2px solid var(--focus);outline-offset:1px}
+.app-disclosure>summary{cursor:pointer;display:flex;gap:8px;align-items:center;min-height:32px}.app-disclosure>summary:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:var(--control-radius)}
+
+/* Shared web variants of AppPopover and segmented controls. */
+.app-popover{position:relative}.app-popover>summary{display:inline-flex;align-items:center;justify-content:center;gap:8px;list-style:none;cursor:pointer;min-height:var(--comfortable-control-height);padding:6px 12px;border:1px solid var(--border);border-radius:999px;background:var(--control);font-size:14px}
+.app-popover>summary::-webkit-details-marker{display:none}.app-popover>summary:hover{background:var(--hover)}.app-popover[open]>summary{outline:2px solid var(--focus);outline-offset:1px}
+.app-popover-panel{position:fixed;z-index:30;width:320px;max-width:calc(100vw - 32px);overflow:auto;padding:var(--space-l-g);border:1px solid var(--border);border-radius:var(--card-radius);background:var(--input,var(--background));box-shadow:0 16px 48px #14141330}
+.app-segmented{display:inline-flex;align-items:center;gap:4px;padding:4px;border:1px solid var(--border);border-radius:999px;background:var(--control)}.app-segmented button{min-height:28px;min-width:60px;padding:3px 12px;border:0;border-radius:999px;background:transparent;color:var(--muted)}.app-segmented button[aria-selected=true],.app-segmented button[aria-pressed=true]{background:var(--pressed);color:var(--text);box-shadow:0 1px 3px #14141320}
+button.quote-chip.buy{color:var(--buy-quote,var(--healthy,var(--text)))}button.quote-chip.sell{color:var(--sell-quote,var(--danger))}
+button.quote-chip[aria-pressed=true].buy{background:var(--buy-quote,var(--healthy));color:var(--trading-canvas,var(--background));outline-color:var(--buy-quote,var(--healthy))}button.quote-chip[aria-pressed=true].sell{background:var(--sell-quote,var(--danger));color:var(--trading-canvas,var(--background));outline-color:var(--sell-quote,var(--danger))}
+
+:root{--trading-canvas:var(--tradingcanvas);--trading-surface:var(--tradingsurface);--trading-edge:var(--tradingedge);--trading-muted:var(--tradingmuted);--buy-quote:var(--buyquote);--sell-quote:var(--sellquote)}
+
+button.quote-chip[aria-pressed=false]:hover:not(:disabled){background:color-mix(in srgb,currentColor 17%,var(--trading-surface));border-color:currentColor}

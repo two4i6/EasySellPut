@@ -6,7 +6,7 @@ Windows / macOS 用户请先看 [平台快速开始与 MCP 配置](12-Windows与
 
 ## 安装与启动
 
-使用 `build/pack-cli.sh <rid>` 生成的自包含发行包，解压整个目录后运行 `easysellput`（Windows 为 `easysellput.exe`），不需要另装 .NET。不要只复制可执行文件；同目录包含运行时和 SQLite 等依赖。支持发布 `win-x64`、`win-arm64`、`osx-x64`、`osx-arm64`、`linux-x64`、`linux-arm64`；交叉发布不等于已在目标系统运行验证。macOS 包是命令行发行包，无 Developer ID 签名/公证。
+使用 `build/pack-cli.sh <rid>` 生成的自包含发行包，解压整个目录后运行 `easysellput`（Windows 为 `easysellput.exe`），不需要另装 .NET。不要只复制可执行文件；同目录包含运行时和 SQLite 等依赖。支持发布 `win-x64`、`osx-x64`、`osx-arm64`、`linux-x64`、`linux-arm64`；交叉发布不等于已在目标系统运行验证。macOS 包是命令行发行包，无 Developer ID 签名/公证。
 
 源码运行需要 global.json 指定的 .NET 10 SDK：
 
@@ -124,7 +124,7 @@ Windows command 改为完整的 `easysellput.exe` 路径，JSON 中反斜杠需�
 
 默认只读，发现列表不包含修改工具，直接调用修改工具也被拒绝。确需让客户端修改本地自选股、策略或提醒时，在 args 中显式增加 `--allow-writes`。这个开关允许本次 MCP 进程全部已登记的修改操作；仍应由客户端按自己的策略确认操作。工具注解用于描述，不代替权限检查。
 
-查询/计算工具：search_symbols、get_quotes、get_bars、get_expirations、get_option_chain、get_fundamentals、get_financials、get_news、get_market_events、get_source_health、probe_data_sources、get_chart_analysis、analyze_option_chain、get_pricing_assumptions、get_volatility_insights、list_strategy_presets、build_strategy、strategy_what_if、get_chart_drawings、calculate_option、calculate_indicators、analyze_strategy、get_watchlists、get_saved_strategies、get_alerts、get_alert_history、get_settings。
+查询/计算工具：search_symbols、get_quotes、get_bars、get_expirations、get_option_chain、get_fundamentals、get_financials、get_news、get_market_events、get_market_liquidity、get_source_health、probe_data_sources、get_chart_analysis、analyze_option_chain、get_pricing_assumptions、get_volatility_insights、list_strategy_presets、build_strategy、strategy_what_if、get_chart_drawings、calculate_option、calculate_indicators、analyze_strategy、get_watchlists、get_saved_strategies、get_alerts、get_alert_history、get_settings。
 
 修改工具：create_watchlist_group、rename_watchlist_group、delete_watchlist_group、add_watchlist_symbol、remove_watchlist_symbol、save_strategy、delete_strategy、save_alert、delete_alert、set_alert_enabled。
 
@@ -161,8 +161,64 @@ MEILI_LIVE=1 python3 tests/automation/live_cli_mcp_smoke.py --executable /path/t
 
 事件查询的日期精度、预计/确认状态及历史覆盖边界见 [K 线事件时间线](16-K线事件时间线.md)。
 
-完整桌面功能对应、45 项工具及界面/监控/安全例外见 [MCP 全功能覆盖审计](17-MCP全功能覆盖审计.md)。新增写入工具包括 record_option_snapshot、add_chart_drawing、update_chart_drawing、delete_chart_drawing、clear_chart_drawings、update_preferences、clear_alert_history、move_watchlist_symbol，MCP 同样要求 --allow-writes。
+完整桌面功能对应、47 项工具及界面/监控/安全例外见 [MCP 全功能覆盖审计](17-MCP全功能覆盖审计.md)。新增写入工具包括 record_option_snapshot、add_chart_drawing、update_chart_drawing、delete_chart_drawing、clear_chart_drawings、update_preferences、clear_alert_history、move_watchlist_symbol，MCP 同样要求 --allow-writes。
 
 ## 软件更新（本地维护）
 
 `easysellput update check --json` 检查签名的稳定桌面版本；`easysellput update download --json` 下载并验证当前架构包。可加 `--data-dir PATH` 使用相同网络配置。不会自动安装；在桌面设置页阅读更新内容并确认安装/重启。MCP 不开放自我替换可执行文件或任意安装命令。参见 [检查更新与安装](29-检查更新与安装.md)。
+
+缓存维护：`cache status` / `cache clear --category bars --symbol AAPL`；MCP 对应 `get_cache_status` / `clear_cache`。作用范围、历史数据保护与清理语义见 [统一缓存管理](47-统一缓存管理.md)。
+
+## 市场流动性
+
+`easysellput liquidity --json` 或 MCP `get_market_liquidity {}` 返回同一报告：实验性0–100资金压力分数/公式/权重/日期、六项FRED宏观指标、11个行业ETF的日频成交活跃度与Amihud代理。缺少/陈旧输入不出分数，不是VIX、实时深度或资金净流入。无需写权限。详见[数据口径与验收](52-市场流动性与行业热力图.md)。
+
+
+### QQQ GEX 本地只读归档与页面数据
+
+`get_qqq_gex_archive` 的 `resource` 为 `dates`、`snapshots`、`profile`、`bars`、`extendedBars` 或 `providers`。`providers` 不需要 date：分页返回本地保留的原始来源响应哈希、来源、发布时间、接收时间和存储大小；使用 `get_qqq_gex_view resource=providerRaw providerHash=该哈希` 读取原始字节，不能传文件路径。除日期索引外需 `date`；完整 profile 还需快照列表原样返回的 `expiry` 和 `capturedAt`。每页最多 200 项，后续页必须带首批 `revision`；`revision_changed` 后从第一页重读。profile 不经过 compact、舍入或缺失补零。
+
+`get_qqq_gex_view` 支持 `display`、`evidence`、`context`、`exposureManifest`、`exposureWindow`、`spreadQuote`、`analysis`、`workspace`、`providerRaw`。大结果用 base64 分块（默认 64 KiB，最大 256 KiB）；解码拼接后验证完整 `sha256`，再解析 JSON/NDJSON。后续块提交 `offset` 和首块 `sha256`，内容变化返回 `revision_changed`，不得拼接旧块。context 的 `at` 固定响应时间，缺少参考日期仍明确报告。manifest 只接收日期及可选 expiry；窗口需使用 manifest 的精确 from/to/source，最长一小时，读完全部窗口后重读 manifest 验证 revision。
+
+analysis 复用导入的 UI 内核：exposure、replayTable、gammaModel、atmIv、maxPain、pulse、optionOverview、dayScenario、wallTouches、spreadStudy、structureEvents、activityResponse、overlays、chart、heatmapField。需 date、at 游标，selected scope 还需 expiry；mode 支持 gamma/gamma-call/gamma-put/delta/charm，metric 支持 gex/oi/volume。工具的 complete=false 不等于传输丢失：它明确不认证缺失历史或全日覆盖。每个快照仍保留自己的输入质量、来源、源时间、延迟和计算版本。不能把这些工具的新增视为所有 UI 分析已完成逐项验收，详见 web/qqq-gex/MIGRATION-MATRIX.md。
+
+`workspace` 无需市场数据库或 Node：只读返回允许保存的界面偏好、已解码的 analyticalSelections、最近观察到的回放游标／作用域／模式／执行价筛选，以及桌面采集阶段、部分数据、存储状态、原生行情和配色的带时间戳观察。`desktop.fresh` 仅表示 30 秒内观察过，不能证明窗口仍运行或行情实时；关闭／休眠后旧观察明确标记 stale。偏好中的 `qqq-local:observed-*` 同样带 observedAt，不冒充瞬时屏幕状态。此工具不改变界面，也不启动监控。读取更新会使分块 hash 失效，应从头重读。
+
+`wallTouches` 新增 `wallHorizon=10|30`（默认 30）、`wallGamma=all|positive|negative|zero`、`wallPeriod=all|open|middle|late`、`wallSide=all|put|call`。`presentation` 采用原界面筛选和直方图表达式：历史参考未认证时 `statsKnown=false`、summary/histogram=null、事件／表格为空；完整筛选事件不截断，表格单独给最后 8 项。旧顶层 events/summary 明确为未筛选保留样本，不当作界面已就绪统计。ATM IV/Max Pain 的跨到期日曲线查询使用 scope=all；单到期日查询是有意缩小范围。
+
+这些读取工具无需 --allow-writes，不采集远程行情或生成观察记录。capture_qqq_gex_input、calculate_qqq_gex_local、rebuild_qqq_gex_history、clear_cache 仍是独立写操作。
+## Yahoo 免费推送
+
+`easysellput live AAPL SPY QQQ --seconds 10 --max-updates 20 --json`；MCP `get_live_quotes` 使用同一有界 WebSocket 会话。不是 HTTP 快照或无限监控。完整的覆盖、缺失/断线语义与验证见 [免费 Live](53-Yahoo免费Live与全应用行情订阅.md)。
+
+QQQ GEX 部分采集：`get_qqq_gex_view resource=partial` 返回与桌面“部分采集”表相同的最新元数据，无需桌面打开；`get_qqq_gex_archive archiveState=partial` 可分别分页读取 dates/snapshots/profile/bars/extendedBars。`bars` 只含常规时段，`extendedBars` 单独提供盘前盘后原始桶；结果保留 source、issues、barProvenance、underlyingLastTradeAt，不把采集时间当期权报价时间。默认 archiveState=published 保持原行为，两种记录绝不混作完整交易日，也不能用 partial 直接授权常规回放。
+
+QQQ GEX 的 `workspace.analyticalSelections.interaction` 还提供私有页面最近观察到的焦点、控件值、指针、可见提示及原始 K 线悬停数据。`observedAt` 是观察时间，`documentId` 区分页面；指针为 CSS 视口像素，图表时间为 Unix 秒。500ms 合并更新，经本地偏好桥保存，不能代表瞬时屏幕或原生全局输入。密码／文本草稿不导出；隐藏页面清空交互。超长内容明确返回 `detailsOmitted`，完整序列请读 chartStudies/archive；提示文字最多4条、各1000字符。缺失字段、旧时间戳及未验证的原生输入流程不能当作实时完整覆盖。
+
+热图当前检查结果见 `interaction.heatmapInspection`：保留原始单元格、null、缺失输入原因、模式、键盘观察及 `scenario`／覆盖信息。其时间是 Unix 毫秒（`heatmapTimeUnits`），K 线仍为 Unix 秒。情景估值不是历史实测。`tooltipsOmitted`、`detailsOmitted` 和 `observationLimits` 明示观察上限，不能把省略内容当成不存在；完整序列继续读 heatmapField/dayScenario/archive。
+
+Exposure observations distinguish mode (retained original selection), scenarioMode (original scenario kernel mode) and displayedMode (actual UI select/model). Delta/Charm retained history selection can display Gamma in scenario view; never infer effective scenario mode from heatmapInspection.mode, which is the original inspector input. Read exposure.displayedMode and preserve scenario provenance.
+
+Exposure also retains original scenarioInputAt/scenarioDisplayedAt (Unix milliseconds), scenarioLoading/scenarioRetained/scenarioError. While recalculation is pending, the displayed scenario may be older than the requested input; respect these fields instead of attributing a retained field to the new cursor.
+
+Exposure active identifies visible heatmap state; allExpiries identifies matrix aggregate context. displayedMode is the effective heatmap model, not proof of an on-screen heatmap while active=false.
+# Local application package maintenance
+
+The modular migration currently provides explicit local maintenance primitives:
+
+```sh
+easysellput apps list --json
+easysellput apps doctor --data-dir PATH --json
+easysellput apps install --package signed.espapp --data-dir PATH --json
+easysellput apps update --package signed.espapp --data-dir PATH --json
+easysellput apps disable easysellput.example --data-dir PATH --json
+easysellput apps enable easysellput.example --data-dir PATH --json
+easysellput apps uninstall easysellput.example --data-dir PATH --json
+easysellput apps recover --data-dir PATH --json
+```
+
+Only the compiled repository/key is trusted. Unconfigured local builds reject installation; no runtime trust override is available. Discovery does not initialize storage. An app in use blocks maintenance. Update rejects downgrades and unplanned data-format changes; uninstall preserves app data and immutable backups. Recovery reconciles interrupted journal metadata and never promotes an uncommitted candidate or rewinds observations. These commands are CLI-only software maintenance and never MCP tools. Installing metadata is not yet proof of GEX runtime/UI integration; track S06 onward in TODO.md.
+
+## 独立子应用更新
+
+`apps check` 检查独立签名目录；`apps download APP-ID` 下载并验证指定子应用；再显式执行 `apps update --package PATH` 或在设置的「子应用」卡片选择安装包。宿主 Latest 更新源与 apps 目录分离。生产信任不接受开发产物的临时签名，维护操作不属于 MCP 工具。详见 [独立应用分发](app-runtime-research/app-distribution.md)。

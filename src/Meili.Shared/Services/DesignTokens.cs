@@ -71,7 +71,16 @@ public static class DesignTokens
         Series6: 0xFFC2C0B6,
         PreMarketTint: 0x22CBCADB,
         AfterHoursTint: 0x22EBC9B7);
+    public const double FontSize13 = 13;
+    public const double FontSize14 = 14;
+    public const double FontSize18 = 18;
+    public const double FontSize22 = 22;
+    public const double FontSize26 = 26;
+    public const double FontSize32 = 32;
     public const double CaptionFontSize = 12;
+    public const double StatusItemHeight = 24;
+    public const double StatusLineHeight = 16;
+    public const double StatusDotSize = 6;
     public const double BodyFontSize = 15;
     public const double SubtitleFontSize = 16;
     public const double TitleFontSize = 20;
@@ -92,6 +101,43 @@ public static class DesignTokens
     public const double MotionEnterMs = 220;
     public const double FormFieldWidth = 260;
     public const double WindowHeaderHeight = 36;
+    public const double StorageBarHeight = 24;
+    public const double GaugeWidth = 240;
+    public const double GaugeHeight = 132;
+    public const double GaugeStroke = 8;
+    public const double GaugeMarker = 6;
+    public const double LiquidityHeatLowAlpha = 16;
+    public const double LiquidityHeatNormalAlpha = 40;
+    public const double LiquidityHeatHighAlpha = 72;
+    public const double QuotePanelWidth = 420;
+    public const double MacQuotePanelWidth = 360;
+    public const double MacQuotePanelHeight = 640;
+    public const double QuotePanelHeight = 680;
+    public const double QuotePanelSparkWidth = 64;
+    public const double QuotePanelHeroSparkHeight = 80;
+    public const double TradingCardRadius = 24;
+    public const double TradingTicketRadius = 32;
+    public const double TradingRowHeight = 48;
+    public const double TradingQuoteWidth = 76;
+    public const double TradingTableFontSize = 15;
+    public const double TradingHeaderHeight = 52;
+    public const double ChartToolRailWidth = 48;
+    public const double ChartSidebarWidth = 320;
+    internal static IEnumerable<(string Key, double Size)> FontSizes { get; } = new (string, double)[]
+    {
+        (nameof(FontSize13), FontSize13),
+        (nameof(FontSize14), FontSize14),
+        (nameof(FontSize18), FontSize18),
+        (nameof(FontSize22), FontSize22),
+        (nameof(FontSize26), FontSize26),
+        (nameof(FontSize32), FontSize32),
+        (nameof(CaptionFontSize), CaptionFontSize),
+        (nameof(BodyFontSize), BodyFontSize),
+        (nameof(SubtitleFontSize), SubtitleFontSize),
+        (nameof(TitleFontSize), TitleFontSize),
+        (nameof(DisplayFontSize), DisplayFontSize),
+        (nameof(TradingTableFontSize), TradingTableFontSize),
+    };
     public static IEnumerable<(string Key,uint Argb)> ComponentBrushes(bool dark) => dark ? DarkBrushes : LightBrushes;
     private static readonly (string Key,uint Argb)[] LightBrushes =
     [
@@ -104,6 +150,18 @@ public static class DesignTokens
         ("PressedBrush", 0xFFE8E6DC),
         ("DangerBrush", 0xFFA53E36),
         ("OverlayBrush", 0x55141413),
+        ("StorageMarketBrush", 0xFF416B95),
+        ("StorageBrowserBrush", 0xFF655DA0),
+        ("StorageUserdataBrush", 0xFF9D4C33),
+        ("StorageLogsBrush", 0xFF3D7263),
+        ("StorageCacheBrush", 0xFF8A5F4C),
+        ("StorageOtherBrush", 0xFF66655E),
+        ("TradingCanvasBrush", 0xFFFAF9F5),
+        ("TradingSurfaceBrush", 0xFFFFFFFF),
+        ("TradingEdgeBrush", 0xFFD1CFC5),
+        ("TradingMutedBrush", 0xFF5E5D59),
+        ("BuyQuoteBrush", 0xFF24643D),
+        ("SellQuoteBrush", 0xFFAA3929),
         ("TextControlBorderBrushFocused", 0xFFC46849),
         ("SystemControlErrorTextForegroundBrush", 0xFFA53E36),
     ];
@@ -118,6 +176,18 @@ public static class DesignTokens
         ("PressedBrush", 0xFF4D4C48),
         ("DangerBrush", 0xFFE5A19A),
         ("OverlayBrush", 0x99000000),
+        ("StorageMarketBrush", 0xFF8CB1D6),
+        ("StorageBrowserBrush", 0xFFCBCADB),
+        ("StorageUserdataBrush", 0xFFE4A38A),
+        ("StorageLogsBrush", 0xFF8AB9A7),
+        ("StorageCacheBrush", 0xFFEBC9B7),
+        ("StorageOtherBrush", 0xFFC2C0B6),
+        ("TradingCanvasBrush", 0xFF101110),
+        ("TradingSurfaceBrush", 0xFF181A19),
+        ("TradingEdgeBrush", 0xFF343734),
+        ("TradingMutedBrush", 0xFFB0B4AE),
+        ("BuyQuoteBrush", 0xFF6FC48B),
+        ("SellQuoteBrush", 0xFFF77B67),
         ("TextControlBorderBrushFocused", 0xFFD97757),
         ("SystemControlErrorTextForegroundBrush", 0xFFE5A19A),
     ];

@@ -5,7 +5,6 @@ CLI 和 MCP 使用同一个原生可执行文件，不需要打开桌面界面�
 | 系统 | 机器架构 | 发行目标 | 可执行文件 |
 |---|---|---|---|
 | Windows | Intel / AMD 64 位 | win-x64 | easysellput.exe |
-| Windows | ARM64（例如 Windows on ARM） | win-arm64 | easysellput.exe |
 | macOS | Intel | osx-x64 | easysellput |
 | macOS | Apple Silicon（M 系列） | osx-arm64 | easysellput |
 
@@ -16,7 +15,6 @@ CLI 和 MCP 使用同一个原生可执行文件，不需要打开桌面界面�
 GitHub Actions 的 `CI · Test & Package` 成功运行后，可在该运行的 Artifacts 中下载：
 
 - CLI-MCP-win-x64
-- CLI-MCP-win-arm64
 - CLI-MCP-osx-x64
 - CLI-MCP-osx-arm64
 
@@ -26,7 +24,7 @@ CI 在以上四种架构的原生 runner 上打包、核对校验和及可执行
 
 ## Windows 快速开始
 
-根据机器选择 win-x64 或 win-arm64，并解压整个目录。在 PowerShell 中：
+根据机器选择 win-x64，并解压整个目录。在 PowerShell 中：
 
 ```powershell
 cd 'C:\Tools\EasySellPutCLI'
@@ -39,7 +37,7 @@ cd 'C:\Tools\EasySellPutCLI'
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File build\pack-cli.ps1
-# 默认识别 Windows x64 / ARM64；也可显式传 -Runtime win-arm64。
+# 发布 Windows x64；也可显式传 -Runtime win-x64。
 ```
 
 仓库内有本地 SDK 时优先使用；否则使用已安装且符合 global.json 的系统 SDK。PowerShell 打包脚本保留 UTF-8 BOM，兼容 Windows PowerShell 5.1 的中文文档路径。

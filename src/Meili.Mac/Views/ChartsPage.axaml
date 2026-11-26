@@ -8,6 +8,8 @@
              Classes="ChartWorkspace"
              x:Class="Meili.Mac.Views.ChartsPage"
              x:DataType="vm:ChartsViewModel">
+    <controls:MarketWorkspaceLayout x:Name="Workspace" UseNativeQuotePanel="False" Title="{DynamicResource Nav_Charts}">
+        <controls:MarketWorkspaceLayout.WorkspaceContent>
     <Grid RowDefinitions="Auto,*,Auto" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
         <Border Grid.Row="0" Padding="12,8" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}">
             <Grid x:Name="ChartToolbar" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" ColumnDefinitions="Auto,*,Auto">
@@ -24,24 +26,25 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:ChartRangeTab">
-                                <Button Classes="Chip" Classes.Selected="{Binding IsSelected}" Content="{Binding CompactTitle}" AutomationProperties.Name="{Binding Title}" ToolTip.Tip="{Binding Title}" Margin="0,0,4,0" Padding="6,5" Command="{Binding $parent[UserControl].((vm:ChartsViewModel)DataContext).SelectRangeCommand}" CommandParameter="{Binding Kind}"/>
+                                <Button Classes="ChartInterval" Classes.Selected="{Binding IsSelected}" Content="{Binding CompactTitle}" AutomationProperties.Name="{Binding Title}" ToolTip.Tip="{Binding Title}" Margin="0,0,4,0" Padding="6,5" Command="{Binding $parent[UserControl].((vm:ChartsViewModel)DataContext).SelectRangeCommand}" CommandParameter="{Binding Kind}"/>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </ScrollViewer>
                 <StackPanel Grid.Column="2" VerticalAlignment="Center" Orientation="Horizontal">
-                        <ToggleButton x:Name="InspectorToggle" Margin="6,0,0,0" Padding="10,6" Content="{DynamicResource Ch_Tools}" IsChecked="{Binding ShowInspector, Mode=TwoWay}" AutomationProperties.AutomationId="ChartsTools"/>
-                        <Button Margin="6,0,0,0" Padding="10,6" Content="{DynamicResource Ch_Refresh}" Command="{Binding RefreshCommand}" IsEnabled="{Binding !IsBusy}"/>
-                        <Button Margin="6,0,0,0" Padding="10,6" Content="{DynamicResource Ch_Export}" Command="{Binding ExportCommand}"/>
+                        <ToggleButton x:Name="InspectorToggle" Margin="6,0,0,0" Width="32" Height="32" Padding="4" AutomationProperties.Name="{DynamicResource Ch_Tools}" ToolTip.Tip="{DynamicResource Ch_Tools}" IsChecked="{Binding ShowInspector, Mode=TwoWay}" AutomationProperties.AutomationId="ChartsTools"><lucide:LucideIcon Kind="Settings" Width="18" Height="18"/></ToggleButton>
+                        <Button Margin="6,0,0,0" Classes="Icon" AutomationProperties.Name="{DynamicResource Ch_Refresh}" ToolTip.Tip="{DynamicResource Ch_Refresh}" Command="{Binding RefreshCommand}" IsEnabled="{Binding !IsBusy}"><lucide:LucideIcon Kind="Refresh"/></Button>
+                        <Button Margin="6,0,0,0" Classes="Icon" AutomationProperties.Name="{DynamicResource Ch_Export}" ToolTip.Tip="{DynamicResource Ch_Export}" Command="{Binding ExportCommand}"><lucide:LucideIcon Kind="Download"/></Button>
                     </StackPanel>
             </Grid>
         </Border>
         <DockPanel Grid.Row="1">
-            <Border DockPanel.Dock="Left" Width="72" Padding="6,12" BorderThickness="0,0,1,0" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}">
+            <Border DockPanel.Dock="Left" x:Name="DrawingToolbar" Width="{StaticResource ChartToolRailWidth}" Padding="6,8" BorderThickness="0,0,1,0" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}">
                 <StackPanel>
-                    <ToggleButton Classes="DrawTool" Padding="6,6" IsChecked="{Binding IsHorizontalDrawing, Mode=OneWay}" Margin="0,0,0,8"  ToolTip.Tip="{DynamicResource Ch_DrawHLineHint}" Command="{Binding StartDrawingCommand}" CommandParameter="{x:Static cs:DrawingKind.HorizontalLine}" AutomationProperties.Name="{DynamicResource Ch_HLineShort}"><StackPanel Spacing="4" HorizontalAlignment="Center"><lucide:LucideIcon Kind="Minus" Width="20" Height="20"/><TextBlock Text="{DynamicResource Ch_HLineShort}" FontSize="12" HorizontalAlignment="Center"/></StackPanel></ToggleButton>
-                    <ToggleButton Classes="DrawTool" Padding="6,6" IsChecked="{Binding IsTrendDrawing, Mode=OneWay}" Margin="0,0,0,8"  ToolTip.Tip="{DynamicResource Ch_DrawTrendHint1}" Command="{Binding StartDrawingCommand}" CommandParameter="{x:Static cs:DrawingKind.TrendLine}" AutomationProperties.Name="{DynamicResource Ch_TrendShort}"><StackPanel Spacing="4" HorizontalAlignment="Center"><lucide:LucideIcon Kind="TrendUp" Width="20" Height="20"/><TextBlock Text="{DynamicResource Ch_TrendShort}" FontSize="12" HorizontalAlignment="Center"/></StackPanel></ToggleButton>
-                    <Button Margin="0,0,0,8"  Classes="DrawTool" Command="{Binding ClearDrawingsCommand}" AutomationProperties.Name="{DynamicResource Ch_ClearAllShort}"><StackPanel Spacing="4" HorizontalAlignment="Center"><lucide:LucideIcon Kind="Trash" Width="20" Height="20"/><TextBlock Text="{DynamicResource Ch_ClearAllShort}" FontSize="12" HorizontalAlignment="Center"/></StackPanel></Button>
+                    <ToggleButton Classes="DrawTool" Margin="0,0,0,8" IsChecked="{Binding IsPan, Mode=OneWay}" Command="{Binding CancelDrawingCommand}" AutomationProperties.Name="{DynamicResource Ch_Pan}" ToolTip.Tip="{DynamicResource Ch_Pan}"><lucide:LucideIcon Kind="Cursor" Width="20" Height="20"/></ToggleButton>
+                    <ToggleButton Classes="DrawTool" Padding="4" IsChecked="{Binding IsHorizontalDrawing, Mode=OneWay}" Margin="0,0,0,8"  ToolTip.Tip="{DynamicResource Ch_DrawHLineHint}" Command="{Binding StartDrawingCommand}" CommandParameter="{x:Static cs:DrawingKind.HorizontalLine}" AutomationProperties.Name="{DynamicResource Ch_HLineShort}"><lucide:LucideIcon Kind="Minus" Width="20" Height="20"/></ToggleButton>
+                    <ToggleButton Classes="DrawTool" Padding="4" IsChecked="{Binding IsTrendDrawing, Mode=OneWay}" Margin="0,0,0,8"  ToolTip.Tip="{DynamicResource Ch_DrawTrendHint1}" Command="{Binding StartDrawingCommand}" CommandParameter="{x:Static cs:DrawingKind.TrendLine}" AutomationProperties.Name="{DynamicResource Ch_TrendShort}"><lucide:LucideIcon Kind="TrendUp" Width="20" Height="20"/></ToggleButton>
+                    <Button Margin="0,0,0,8"  Classes="DrawTool" ToolTip.Tip="{DynamicResource Ch_ClearAllShort}" Command="{Binding ClearDrawingsCommand}" AutomationProperties.Name="{DynamicResource Ch_ClearAllShort}"><lucide:LucideIcon Kind="Trash" Width="20" Height="20"/></Button>
                 </StackPanel>
             </Border>
             <controls:AppDrawer x:Name="ChartInspector" ReturnFocusTarget="{Binding ElementName=InspectorToggle}" AutomationProperties.Name="{DynamicResource Ch_Indicators}" DockPanel.Dock="Right" Width="280" BorderThickness="1,0,0,0" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" IsOpen="{Binding ShowInspector, Mode=TwoWay}">
@@ -120,16 +123,21 @@
             </controls:AppDrawer>
             <platform:WebChartControl x:Name="Chart" MinHeight="220"/>
         </DockPanel>
-        <Border Grid.Row="2" Padding="12,6" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}">
-            <StackPanel>
-                <TextBlock Text="{Binding AdjustWarning}" FontSize="12" Margin="0,0,0,6" TextWrapping="Wrap" Foreground="{DynamicResource DegradedBrush}" IsVisible="{Binding AdjustWarning, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
-                <StackPanel Orientation="Horizontal">
-                    <controls:AppLoading Margin="0,0,8,0" IsVisible="{Binding IsBusy}"/>
-                    <TextBlock Classes="Caption" Text="{Binding StatusText}" VerticalAlignment="Center" Margin="0,0,16,0"/>
-<TextBlock Classes="Caption" Text="{Binding AdjustText}" Margin="0,0,12,0" VerticalAlignment="Center"/>
-                    <TextBlock Classes="Caption Num" Text="{Binding CrosshairText}" VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
-                </StackPanel>
-            </StackPanel>
+        <Border x:Name="ChartStatusBar" Grid.Row="2" Padding="12,2" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}">
+          <StackPanel>
+            <TextBlock Text="{Binding AdjustWarning}" FontSize="12" Margin="0,0,0,4" TextWrapping="Wrap" Foreground="{DynamicResource DegradedBrush}" IsVisible="{Binding AdjustWarning, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+            <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,*">
+
+              <controls:AppHelp x:Name="ChartControlsHelp" Grid.Column="0" HelpText="{DynamicResource Ch_ControlHelp}" Margin="0,0,8,0"/>
+              <controls:AppLoading Grid.Column="1" Margin="0,0,8,0" IsVisible="{Binding IsBusy}"/>
+              <TextBlock x:Name="ChartSourceStatus" Grid.Column="2" Classes="Caption" Text="{Binding StatusText}" ToolTip.Tip="{Binding StatusText}" MaxWidth="180" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" VerticalAlignment="Center" Margin="0,0,12,0"/>
+              <TextBlock x:Name="ChartAdjustmentStatus" Grid.Column="3" Classes="Caption" Text="{Binding AdjustText}" ToolTip.Tip="{Binding AdjustText}" MaxWidth="136" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" Margin="0,0,12,0" VerticalAlignment="Center"/>
+              <TextBlock Grid.Column="4" Classes="Caption Num" MaxWidth="200" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" Text="{Binding LiveChartText}" ToolTip.Tip="{Binding LiveChartTip}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+              <TextBlock x:Name="ChartCrosshairStatus" Grid.Column="5" Classes="Caption Num" Text="{Binding CrosshairText}" ToolTip.Tip="{Binding CrosshairText}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+            </Grid>
+          </StackPanel>
         </Border>
     </Grid>
+        </controls:MarketWorkspaceLayout.WorkspaceContent>
+    </controls:MarketWorkspaceLayout>
 </UserControl>

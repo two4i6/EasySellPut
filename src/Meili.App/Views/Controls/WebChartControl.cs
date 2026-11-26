@@ -19,12 +19,12 @@ public sealed class WebChartControl : UserControl
     public string? LastDiagnostic { get; private set; }
     public WebChartControl()
     {
-        _status.FontSize = 12;
+        _status.WithFontSize(12);
         _status.Margin = new Thickness(12, 8, 12, 8);
         _status.Padding = new Thickness(12, 8, 12, 8);
         _status.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorSecondaryBrush");
         _status.SetResourceReference(TextBlock.BackgroundProperty, "InfoBarBrush");
-        _install.FontSize = 14; _install.MinHeight = 32;
+        _install.WithFontSize(14); _install.MinHeight = 32;
         _install.Padding = new Thickness(12, 6, 12, 6); _install.Margin = new Thickness(12, 0, 12, 8);
         _install.Appearance = Wpf.Ui.Controls.ControlAppearance.Secondary;
         DockPanel.SetDock(_status, Dock.Top); _root.Children.Add(_status);
@@ -32,7 +32,8 @@ public sealed class WebChartControl : UserControl
         _install.Click += (_, _) => Ui.Platform.OpenUrl("https://developer.microsoft.com/microsoft-edge/webview2/#download-section");
         Content = _root;
     }
-    public void Start(ChartsViewModel vm, ChartPalette palette) => Start(() => new WebChartSession(vm), palette);
+    public void Start(ChartsViewModel vm, ChartPalette palette, MarketWorkspaceViewModel? workspace = null) =>
+        Start(() => new WebChartSession(vm, workspace), palette);
     public void Start(StrategyViewModel vm, ChartPalette palette) => Start(() => new WebChartSession(vm), palette);
     private void Start(Func<WebChartSession> create, ChartPalette palette)
     {

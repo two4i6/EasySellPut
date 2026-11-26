@@ -1,0 +1,56 @@
+{
+  "baseline": "b863eaa787a3467784f6a10569187738b231a879",
+  "evidence": "Actual CLI + official SDK stdio processes; no GUI, user data or market network calls. Queue/cancellation use explicitly labelled fixture host.",
+  "headless": {
+    "readerProtocol": "2025-06-18",
+    "writerProtocol": "2025-11-25",
+    "readerCapabilities": {
+      "logging": {},
+      "prompts": {},
+      "resources": {},
+      "tools": {}
+    },
+    "readonlyTools": 36,
+    "allTools": 58,
+    "resourceToolParity": true,
+    "readonlyDeniesDirectWrite": true,
+    "cliWriteVisibleToRunningMcp": true,
+    "cliMcpCalculationParity": true,
+    "gexWithoutArchive": {
+      "status": "cache_miss",
+      "available": false,
+      "complete": false
+    },
+    "desktopAssemblyDependencies": []
+  },
+  "headlessShutdown": {
+    "reader": {
+      "exit": 0,
+      "stdoutJsonLines": 7,
+      "stderrLines": 0
+    },
+    "writer": {
+      "exit": 0,
+      "stdoutJsonLines": 2,
+      "stderrLines": 0
+    },
+    "diagnosticsRemoved": true
+  },
+  "currentGlobalQueue": {
+    "fixture": true,
+    "slowSampleSeconds": 3.108,
+    "pureMathQueuedSeconds": 2.963,
+    "sampleSource": "fixture",
+    "interpretation": "One AutomationService semaphore serializes unrelated operations in the same server."
+  },
+  "cancellation": {
+    "fixture": true,
+    "nextMathCompletedAfterCancelSeconds": 0.006,
+    "serverUsable": true
+  },
+  "fixtureShutdown": {
+    "exit": 0,
+    "stdoutJsonLines": 4,
+    "stderrLines": 8
+  }
+}

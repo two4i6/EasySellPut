@@ -1,37 +1,65 @@
 using System.Text.Json;
 using Meili.Analytics;
+using Meili.Core.Models;
+using Meili.Core.Settings;
 using Meili.Automation;
 using Meili.Shared.ViewModels;
 
 namespace Meili.Shared.Services;
 
 /// <summary>Local UI protocol for the linked workbench. Valuations are the existing StrategyViewModel/Analytics results.</summary>
+internal sealed record WorkbenchQuote(OptionContract Source, EnrichedOption Enriched, OptionEntryReference Bid, OptionEntryReference Ask, OptionExpiryReference Expiry);
+
 public static class StrategyWorkbench
 {
+    internal static IReadOnlyList<WorkbenchQuote> BuildQuotes(OptionChain? chain, DateOnly? expiration, double? spot, PricingInputs inputs)
+    {
+        if (chain is null) return [];
+        var selected = chain.Contracts.Where(c => c.Expiration == expiration).ToArray();
+        var settings = inputs.Enrichment(DateTimeOffset.UtcNow, chain);
+        return selected.OrderBy(c => selected.Length > 2000 && spot is { } px ? Math.Abs(c.Strike - px) : c.Strike).ThenBy(c => c.Right).Take(2000).OrderBy(c => c.Strike).ThenBy(c => c.Right).Select(c =>
+        {
+            var right = c.Right == Meili.Core.Models.OptionRight.Call ? Meili.Analytics.OptionRight.Call : Meili.Analytics.OptionRight.Put;
+            var enriched = OptionEnricher.Enrich(right, spot ?? 0, c.Strike, c.Expiration, c.ImpliedVolatility, c.Bid, c.Ask, c.Last, c.Delta, c.Gamma, c.Theta, c.Vega, c.Rho, c.TheoreticalPrice, c.InTheMoney, settings);
+            var ask = OptionEntryReference.FromQuoteSide(c, "ask");
+            return new WorkbenchQuote(c, enriched, OptionEntryReference.FromQuoteSide(c, "bid"), ask, OptionExpiryReference.ForLong(right, c.Strike, c.Expiration, ask.Price, spot));
+        }).ToArray();
+    }
+
     public static string Serialize(StrategyViewModel vm, ChartPalette palette)
     {
         static double? F(double? x) => x is { } n && double.IsFinite(n) ? n : null;
         var chain = vm.WorkbenchChain;
         var valid = vm.Legs.Count > 0 && vm.Legs.All(l => l.TryToLeg(out _, out _)) && vm.WorkbenchSymbolMatches;
         var selected = chain?.Contracts.Where(c => c.Expiration == vm.SelectedExpiration?.Date).ToArray() ?? [];
-        var contracts = selected.OrderBy(c => selected.Length > 2000 && vm.Spot is { } spot ? Math.Abs(c.Strike-spot) : c.Strike)
-            .ThenBy(c => c.Right).Take(2000).OrderBy(c => c.Strike).ThenBy(c => c.Right).Select(c => new
+        var contracts = vm.WorkbenchQuotes.Select(q =>
+        {
+            var c = q.Source;
+            return new
             {
                 id = c.ContractSymbol ?? "", strike = F(c.Strike), right = c.Right.ToString(), expiration = c.Expiration.ToString("yyyy-MM-dd"),
-                bid = F(c.Bid), ask = F(c.Ask), last = F(c.Last), iv = F(c.ImpliedVolatility), delta = F(c.Delta),
-                volume = F(c.Volume), oi = F(c.OpenInterest), lastTrade = c.LastTradeTime,
+                bid = F(c.Bid), ask = F(c.Ask), last = F(c.Last), iv = F(q.Enriched.ImpliedVolatility), delta = F(q.Enriched.Delta),
+                gamma = F(q.Enriched.Gamma), theta = F(q.Enriched.Theta), vega = F(q.Enriched.Vega), rho = F(q.Enriched.Rho),
+                be = F(q.Expiry.BreakEven), bePercent = F(q.Expiry.DistanceToBreakEven),
+                volume = c.Volume is >= 0 ? F(c.Volume) : null, oi = c.OpenInterest is >= 0 ? F(c.OpenInterest) : null, lastTrade = c.LastTradeTime,
+                ivOrigin = q.Enriched.IvOrigin?.ToString(), greeksComputedLocally = q.Enriched.GreeksComputedLocally,
+                canSelect = !vm.IsBusy && vm.WorkbenchSymbolMatches && !string.IsNullOrWhiteSpace(c.ContractSymbol) && double.IsFinite(c.Strike) && c.Strike > 0 && string.Equals(c.Underlying, chain?.Underlying, StringComparison.OrdinalIgnoreCase) && string.Equals(chain?.Underlying, vm.SymbolText, StringComparison.OrdinalIgnoreCase),
                 canAdd = !string.IsNullOrWhiteSpace(c.ContractSymbol) && double.IsFinite(c.Strike) && c.Strike > 0 && string.Equals(c.Underlying, chain?.Underlying, StringComparison.OrdinalIgnoreCase) && !vm.IsBusy && vm.WorkbenchSymbolMatches && string.Equals(chain?.Underlying, vm.SymbolText, StringComparison.OrdinalIgnoreCase) && OptionEntryReference.From(c).Price is not null,
+                bidReference = q.Bid, askReference = q.Ask,
                 basis = OptionEntryReference.From(c).Basis, entryPrice = OptionEntryReference.From(c).Price,
-            }).ToArray();
+            };
+        }).ToArray();
         var loc = LocalizationService.Current;
         var labels = new Dictionary<string, string>();
-        foreach (var k in new[] { "Chain", "Legs", "Buy", "Sell", "Quantity", "Remove", "Clear", "Search", "All", "Near", "Call", "Put", "Strike", "Bid", "Ask", "Iv", "Oi", "Entry", "Empty", "NoChain", "Price", "Pnl", "Fit", "Hint", "Draft", "Mid", "Last", "Missing", "WhatIf", "Curve", "Expiry", "Cost", "Profit", "Loss", "Breakeven", "Greeks", "Loading", "Unavailable", "Margin", "Stock", "Delta", "Add", "Truncated", "Previous", "Next" })
+        foreach (var k in new[] { "Chain", "Legs", "Buy", "Sell", "Quantity", "Remove", "Clear", "Search", "All", "Near", "Call", "Put", "Strike", "Bid", "Ask", "Iv", "Oi", "Entry", "Empty", "NoChain", "Price", "Pnl", "Fit", "Hint", "Draft", "Mid", "Last", "Missing", "WhatIf", "Curve", "Expiry", "Cost", "Profit", "Loss", "Breakeven", "Greeks", "Loading", "Unavailable", "Margin", "Stock", "Delta", "Add", "Truncated", "Previous", "Next", "Columns", "ColumnsFixed", "Compact", "Common", "Everything", "Be", "BePercent", "Volume", "Gamma", "Theta", "Vega", "Rho", "BeHint", "ModelHint", "SourceHint", "Both", "Expiration", "EmptyTitle", "EmptyHint", "StartSelecting", "LastPrice", "OiShort", "IvShort", "DteShort", "CenterAtm" })
             labels[k] = loc["Wb_" + k];
         return JsonSerializer.Serialize(new
         {
             schemaVersion = 1, key = vm.WorkbenchKey, language = loc.Language, theme = WebChartSnapshot.Theme(palette),
             symbol = chain?.Underlying ?? vm.SymbolText, draftSymbol = vm.WorkbenchDraftSymbol, busy = vm.IsBusy, expiration = vm.SelectedExpiration?.Date.ToString("yyyy-MM-dd"),
-            spot = F(vm.Spot), contracts, totalContracts = selected.Length, truncated = selected.Length > contracts.Length,
+            columns = vm.WorkbenchVisibleColumns, columnsRevision = vm.WorkbenchColumnsRevision, columnsError = vm.WorkbenchColumnsError, defaultColumns = WorkbenchColumns.Default, columnOptions = WorkbenchColumns.Available,
+            strategyName = vm.SelectedPreset?.Label, companyName = vm.WorkbenchCompanyName, livePrice = vm.LivePriceText, livePriceTip = vm.LivePriceTip, expirations = vm.Expirations.Select(e => new { date = e.Date.ToString("yyyy-MM-dd"), label = e.Date.ToString(loc.Language == "zh-CN" ? "M月d日" : "MMM d", System.Globalization.CultureInfo.GetCultureInfo(loc.Language)) + " (" + string.Format(loc["Wb_DteShort"], OptionTime.DaysToExpiry(e.Date, DateTimeOffset.Now)) + ")", fullLabel = e.Label }),
+            contractRevision = vm.WorkbenchQuoteVersion, spot = F(vm.Spot), contracts, totalContracts = selected.Length, truncated = selected.Length > contracts.Length,
             source = chain?.Source, asOf = chain?.AsOf, fetchedAt = chain?.FetchedAt, delayMinutes = chain?.DelayMinutes, offline = (bool?)null,
             headline = vm.Headline, sourceText = vm.SourceText, delayText = vm.DelayText, model = vm.ModelText,
             note = vm.LocalNote, message = vm.WorkbenchSymbolMatches ? vm.WorkbenchMessage : loc["Wb_DifferentSymbol"], status = vm.StatusText,
@@ -45,14 +73,20 @@ public static class StrategyWorkbench
     }
     private static bool String(JsonElement e, string name, int max = 128) => e.TryGetProperty(name, out var p) && p.ValueKind == JsonValueKind.String && p.GetString() is { Length: > 0 } s && s.Length <= max;
     private static bool Number(JsonElement e, string name, double min, double max) => e.TryGetProperty(name, out var p) && p.ValueKind == JsonValueKind.Number && p.TryGetDouble(out var n) && double.IsFinite(n) && n >= min && n <= max;
+    private static bool ValidColumns(JsonElement e) => e.TryGetProperty("columns", out var p) && p.ValueKind == JsonValueKind.Array
+        && p.GetArrayLength() <= WorkbenchColumns.Available.Count && p.EnumerateArray().All(v => v.ValueKind == JsonValueKind.String && WorkbenchColumns.Available.Contains(v.GetString()!))
+        && p.EnumerateArray().Select(v => v.GetString()).Distinct().Count() == p.GetArrayLength();
     public static bool ValidEvent(JsonElement e)
     {
         if (e.ValueKind != JsonValueKind.Object || !String(e, "kind") || !String(e, "key")) return false;
+        if(e.GetProperty("kind").GetString()=="toggle-contract" && !String(e,"quoteSide"))return false;
         return e.GetProperty("kind").GetString() switch
         {
-            "add-contract" => String(e, "contract") && String(e, "side") && Number(e, "quantity", 1, 1000) && e.GetProperty("quantity").TryGetInt32(out _),
+            "add-contract" or "toggle-contract" => String(e, "contract") && String(e, "side") && Number(e, "quantity", 1, 1000) && e.GetProperty("quantity").TryGetInt32(out _) && (!e.TryGetProperty("quoteSide",out var quoteSide)||quoteSide.ValueKind==JsonValueKind.String && quoteSide.GetString() is "reference" or "bid" or "ask"),
             "edit-leg" => String(e, "id") && Guid.TryParse(e.GetProperty("id").GetString(), out _) && String(e, "field")
                 && (e.GetProperty("field").GetString() switch { "quantity" => Number(e, "quantity", 1, 1000000) && e.GetProperty("quantity").TryGetInt32(out _), "side" => String(e, "side"), "remove" => true, _ => false }),
+            "set-columns" => ValidColumns(e),
+            "select-expiration" => String(e, "expiration", 10) && DateOnly.TryParseExact(e.GetProperty("expiration").GetString(), "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out _),
             "clear-legs" => true,
             "what-if" => Number(e, "price", 0, 1e9),
             "horizon" => Number(e, "days", 0, 30) && e.GetProperty("days").TryGetInt32(out var d) && d is 0 or 7 or 14 or 30,
@@ -61,12 +95,24 @@ public static class StrategyWorkbench
     }
     public static void Dispatch(StrategyViewModel vm, JsonElement e)
     {
+        // Pure presentation preferences do not mutate the financial draft and may survive a quote revision.
+        if (e.GetProperty("kind").GetString() == "set-columns")
+        {
+            if (ValidColumns(e)) vm.SetWorkbenchColumns(e.GetProperty("columns").EnumerateArray().Select(v => v.GetString()!).ToArray());
+            return;
+        }
         if (e.GetProperty("key").GetString() != vm.WorkbenchKey) { if (e.GetProperty("kind").GetString() == "what-if") return; vm.RejectWorkbench("Wb_Stale"); return; }
         static PositionSide? Side(JsonElement e) => e.GetProperty("side").GetString() switch { "Long" => PositionSide.Long, "Short" => PositionSide.Short, _ => null };
         switch (e.GetProperty("kind").GetString())
         {
+            case "select-expiration":
+                if (!vm.SelectWorkbenchExpiration(DateOnly.ParseExact(e.GetProperty("expiration").GetString()!, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture))) vm.RejectWorkbench("Wb_Stale");
+                break;
+            case "toggle-contract":
+                if(Side(e) is {} toggleSide && e.TryGetProperty("quoteSide",out var toggleQuote))vm.ToggleWorkbenchContract(e.GetProperty("contract").GetString()!,toggleSide,e.GetProperty("quantity").GetInt32(),toggleQuote.GetString()!);
+                break;
             case "add-contract":
-                if (Side(e) is { } side) vm.AddWorkbenchContract(e.GetProperty("contract").GetString()!, side, e.GetProperty("quantity").GetInt32());
+                if (Side(e) is { } side) vm.AddWorkbenchContract(e.GetProperty("contract").GetString()!, side, e.GetProperty("quantity").GetInt32(),e.TryGetProperty("quoteSide",out var quoteSide)?quoteSide.GetString()!:"reference");
                 else vm.RejectWorkbench("Wb_Stale");
                 break;
             case "edit-leg":

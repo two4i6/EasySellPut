@@ -23,6 +23,10 @@ def make_app(publish, app, version, icns):
     resources = os.path.join(contents, "Resources")
     shutil.copytree(publish, macos, symlinks=True, ignore=shutil.ignore_patterns("*.pdb"))
     os.makedirs(resources)
+    # Runtime archives are sealed data, not nested code under Contents/MacOS.
+    runtime = os.path.join(macos, "runtime")
+    if os.path.isdir(runtime):
+        shutil.move(runtime, os.path.join(resources, "runtime"))
     shutil.copy(icns, os.path.join(resources, "AppIcon.icns"))
     for root, _, files in os.walk(macos):
         for f in files:

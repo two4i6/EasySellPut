@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "success": true,
+  "generatedAt": "2026-11-17T08:34:28.7109611+00:00",
+  "data": {
+    "transport": "websocket",
+    "source": "yahoo",
+    "ticks": [
+      {
+        "symbol": "QQQ",
+        "price": 661.8300170898438,
+        "time": "2026-11-17T08:34:09+00:00",
+        "session": "Overnight",
+        "change": 0.08001708984375,
+        "changePercent": 0.012091740034520626,
+        "volume": null,
+        "currency": null,
+        "exchange": "NGM",
+        "name": null,
+        "source": "yahoo"
+      }
+    ],
+    "missingSymbols": [],
+    "status": "received",
+    "error": null,
+    "coverage": "Yahoo public indicative last-price stream; latency and consolidated/NBBO coverage are not guaranteed. No tick is not proof of disconnection or zero price.",
+    "interruptions": [],
+    "continuity": "Indicative last prices are not a complete trade tape. Reconnect gaps are not backfilled by snapshots."
+  },
+  "numberEncoding": "Non-finite values are null; inspect unbounded flags, incomplete bars and calculation status."
+}

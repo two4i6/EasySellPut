@@ -1,0 +1,297 @@
+using System.Text.Json;
+using System.Runtime.InteropServices;
+using System.Reflection;
+using Meili.Shared.Services;
+using Meili.Automation;
+#if WINDOWS_READER
+using System.Windows;
+using Microsoft.Web.WebView2.Wpf;
+#else
+using Avalonia.Controls;
+using Meili.Mac.Platform;
+#endif
+
+internal static partial class Program
+{
+    // Test-only DOM evaluation of our tokenized local document. No production
+    // browser API or remote-page bridge is enabled by this probe.
+    private static async Task ProbeQqqPopulated(string directory)
+    {
+        var data=System.IO.Path.Combine(directory,"gex-fixture");
+        System.IO.Directory.CreateDirectory(System.IO.Path.Combine(data,"cache"));
+        var start=DateTimeOffset.Parse("2026-01-02T14:30:00Z");
+        var input=new {symbol="QQQ",source="synthetic-native-engine-test",captures=Enumerable.Range(0,8).SelectMany(i=>new[]{2,5}.Select(d=>new{valuationAt=start.AddMinutes(2*i),expiry=DateTimeOffset.Parse($"2026-01-0{d}T00:00:00Z").ToUnixTimeSeconds(),spot=600+i*.1,result=new{receivedAt=start.AddMinutes(2*i).AddSeconds(1),options=new[]{new{calls=Enumerable.Range(0,41).Select(j=>new{strike=580+j,impliedVolatility=.2,openInterest=100+j+i}),puts=Enumerable.Range(0,41).Select(j=>new{strike=580+j,impliedVolatility=.22,openInterest=90+j+i})}}}})),bars=Enumerable.Range(0,8).Select(i=>new{timestamp=start.AddMinutes(2*i),open=600+i*.1,high=601+i*.1,low=599+i*.1,close=600+i*.1,volume=100+i})};
+        await System.IO.File.WriteAllTextAsync(System.IO.Path.Combine(data,"cache","qqq-gex-input.json"),JsonSerializer.Serialize(input));
+        using var signed=new SignedGexFixture(data,directory);
+        await signed.Installer.InstallAsync(signed.Archive);
+        var importResponse=await signed.Dispatcher.ExecuteAsync("calculate_qqq_gex_local",JsonSerializer.SerializeToElement(new{}),true);
+        var imported=importResponse.GetProperty("data");
+        if(!imported.TryGetProperty("rows",out var count)||count.GetInt32()!=16)throw new Exception("Native fixture import failed: "+imported);
+        await using var session=await signed.OpenAsync();
+#if WINDOWS_READER
+        using var browser=new WebView2();
+#else
+        var browser=new NewsWebView();
+#endif
+        var window=new Window{Width=1920,Height=1080,Content=browser};
+        try
+        {
+            window.Show();window.Activate();
+#if WINDOWS_READER
+            var environment=await Microsoft.Web.WebView2.Core.CoreWebView2Environment.CreateAsync(null,System.IO.Path.Combine(directory,"gex-populated-browser"));
+            await browser.EnsureCoreWebView2Async(environment);
+            browser.CoreWebView2.Settings.AreHostObjectsAllowed=false;browser.CoreWebView2.Settings.IsWebMessageEnabled=false;
+            browser.CoreWebView2.Navigate(session.PageUri.AbsoluteUri);
+#else
+            browser.Navigate(session.PageUri.AbsoluteUri);
+#endif
+            string Title(){
+#if WINDOWS_READER
+                return browser.CoreWebView2.DocumentTitle;
+#else
+                return browser.DocumentTitle;
+#endif
+            }
+            async Task Eval(string script){
+#if WINDOWS_READER
+                await browser.CoreWebView2.ExecuteScriptAsync(script);
+#else
+                var field=typeof(NewsWebView).GetField("_view",BindingFlags.Instance|BindingFlags.NonPublic)!;
+                var view=(IntPtr)field.GetValue(browser)!;
+                if(view==IntPtr.Zero)throw new Exception("WKWebView unavailable");
+                var text=MacMessage(MacClass("NSString"),MacSelector("alloc"));
+                var utf8=Marshal.StringToCoTaskMemUTF8(script);
+                try{text=MacMessageArg(text,MacSelector("initWithUTF8String:"),utf8);MacEvaluate(view,MacSelector("evaluateJavaScript:completionHandler:"),text,IntPtr.Zero);}
+                finally{Marshal.FreeCoTaskMem(utf8);MacMessage(text,MacSelector("release"));}
+                await Task.CompletedTask;
+#endif
+            }
+            // A WKWebView may still be on its initial empty document immediately
+            // after Navigate. DOM polling injected there is destroyed by commit.
+            await Until(()=>Title().StartsWith("QQQ GEX",StringComparison.Ordinal),"native local document loaded");
+            await Eval("window.__gexProbeFetch=[];const probeFetch=window.fetch.bind(window);window.fetch=(...args)=>probeFetch(...args).then(r=>{window.__gexProbeFetch.push({asset:new URL(String(args[0]?.url??args[0]),location.href).pathname.split('/').pop(),status:r.status});if(window.__gexProbeFetch.length>40)window.__gexProbeFetch.shift();return r;});window.__gexProbeErrors=[];addEventListener('error',e=>window.__gexProbeErrors.push(String(e.message).replace(/https?:\\/\\/[^ ]+/g,'[url]')));addEventListener('unhandledrejection',e=>window.__gexProbeErrors.push(String(e.reason).slice(0,300)));window.__gexProbeDone=false");
+            var serial=0;
+            async Task Check(string condition,string label)
+            {
+                var marker="gex-native-"+(++serial);
+                var token=JsonSerializer.Serialize(marker);
+                // The app can update its title as requests complete. Keep reporting a satisfied
+                // check until the native host observes it, including across a single overwritten title.
+                await Eval($$"""
+                    (() => {
+                        const marker = {{token}};
+                        window.__gexProbeMarker = marker;
+                        const deadline = Date.now() + 45000;
+                        let satisfied = false;
+                        function poll() {
+                            if (window.__gexProbeMarker !== marker || Date.now() >= deadline) return;
+                            if (!satisfied) {
+                                try { satisfied = Boolean({{condition}}); } catch {}
+                            }
+                            if (satisfied && document.title !== marker) document.title = marker;
+                            setTimeout(poll, 100);
+                        }
+                        poll();
+                    })()
+                    """);
+                try
+                {
+                    await Until(()=>Title()==marker,label);
+                    await Eval("delete window.__gexProbeMarker");
+                }
+                catch{
+                    await Eval("delete window.__gexProbeMarker;document.title='GEX_DIAGNOSTIC '+JSON.stringify({rows:document.querySelectorAll('section[aria-label=\"回放 GEX 快照表\"] tbody tr:not([aria-hidden])').length,visibility:document.visibilityState,focus:document.hasFocus(),ready:document.readyState,nativePointer:window.__gexNativePointer,scope:[...document.querySelectorAll('select[aria-label=\"到期日范围\"]')].map(s=>({value:s.value,disabled:s.disabled})),errors:window.__gexProbeErrors?.slice(-2),fetches:window.__gexProbeFetch?.slice(-4),body:document.body.innerText.slice(0,300),observedExposure:localStorage.getItem('qqq-local:observed-exposure:v1')})");
+                    await Task.Delay(500);Console.Error.WriteLine(Title());throw;
+                }
+            }
+            await Check("document.querySelectorAll('section[aria-label=\"回放 GEX 快照表\"] tbody tr:not([aria-hidden])').length===8","native populated snapshot table");
+            await Check("document.querySelector('[data-testid=\"qqq-local-notice\"]')?.getBoundingClientRect().height<=36&&![...document.querySelectorAll('button')].some(b=>/^(历史回放|实时观察)$/.test(b.textContent.trim()))&&!document.querySelector('.qqq-local-decision')&&localStorage.getItem('qqq-local:mode')==='history'","native single historical workspace and compact notice");
+            foreach(var mode in new[]{"GEX矩阵","Heatmap","K线"})
+            {
+                await Eval("[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==="+JsonSerializer.Serialize(mode)+").click()");
+                await Check("document.querySelectorAll('section[aria-label=\"回放 GEX 快照表\"] tbody tr:not([aria-hidden])').length===8&&!document.body.textContent.includes('QQQ GEX 视图暂时无法显示')","native "+mode);
+            }
+            await Check("[...document.querySelectorAll('canvas')].some(c=>c.width>0&&c.height>0)","native Kline canvas");
+            async Task<JsonElement> Workspace()
+            {
+                using var args=JsonDocument.Parse("{\"resource\":\"workspace\",\"length\":262144}");
+                var response=await signed.Dispatcher.ExecuteAsync("get_qqq_gex_view",args.RootElement,false);
+                if(!response.GetProperty("success").GetBoolean())throw new Exception("Native application workspace read failed");
+                using var decoded=JsonDocument.Parse(Convert.FromBase64String(response.GetProperty("data").GetProperty("bodyBase64").GetString()!));return decoded.RootElement.Clone();
+            }
+            await Eval("document.querySelector('select[aria-label=\"播放速度\"]').focus()");
+            await Check("JSON.parse(localStorage.getItem('qqq-local:observed-interaction:v1')??'null')?.focus?.label==='播放速度'","native DOM focus observation");
+            await Check("JSON.parse(localStorage.getItem('qqq-local:observed-interaction:v1')??'null')?.focus?.value==='1'","native playback value observation");
+            // Allow the existing bounded native preference bridge to acknowledge the observation.
+            await Check("document.body.textContent.includes('视图设置保存失败')===false","native preference persistence health");
+            JsonElement nativeFocus=default;
+            for(var attempt=0;attempt<40;attempt++){var current=await Workspace();if(current.GetProperty("analyticalSelections").TryGetProperty("interaction",out var observed)&&observed.TryGetProperty("focus",out var focus)&&focus.ValueKind==JsonValueKind.Object&&focus.GetProperty("label").GetString()=="播放速度"){nativeFocus=observed.Clone();break;}await Task.Delay(100);}
+            if(nativeFocus.ValueKind!=JsonValueKind.Object||nativeFocus.GetProperty("focus").GetProperty("value").GetString()!="1")throw new Exception("Native focus and signed operation disagree");
+            await Eval("[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Heatmap').click()");
+            await Check("document.querySelector('select[aria-label=\"到期日范围\"]')?.disabled===false","native editable expiry scope");
+            // Mode activation resets the preferred scope in a passive React effect.
+            // Wait across its first paint before sending the next control event.
+            await Eval("window.__gexScopeSettled=false;requestAnimationFrame(()=>requestAnimationFrame(()=>window.__gexScopeSettled=true))");
+            await Check("window.__gexScopeSettled===true","native scope activation effects settled");
+            await Eval("(()=>{const s=document.querySelector('select[aria-label=\"到期日范围\"]');s.value='all';s.dispatchEvent(new Event('change',{bubbles:true}));})()");
+            await Check("JSON.parse(localStorage.getItem('qqq-local:observed-exposure:v1')??'null')?.scope==='all'","native all-expiry scope observation");
+            await Eval("(()=>{const s=document.querySelector('select[aria-label=\"到期日范围\"]');s.value='selected';s.dispatchEvent(new Event('change',{bubbles:true}));})()");
+            await Check("JSON.parse(localStorage.getItem('qqq-local:observed-exposure:v1')??'null')?.scope==='selected'","native selected-expiry scope observation");
+            async Task NativeKey(string key)
+            {
+                await Eval("window.__gexNativeKey=null");await Check("window.__gexNativeKey===null","native key listener reset");
+#if WINDOWS_READER
+                var code=key switch{"End"=>35,"ArrowLeft"=>37,"Escape"=>27,_=>throw new ArgumentException("Unsupported test key")};
+                foreach(var type in new[]{"rawKeyDown","keyUp"})await browser.CoreWebView2.CallDevToolsProtocolMethodAsync("Input.dispatchKeyEvent",JsonSerializer.Serialize(new{type,key,code=key,windowsVirtualKeyCode=code,nativeVirtualKeyCode=code}));
+#else
+                var field=typeof(NewsWebView).GetField("_view",BindingFlags.Instance|BindingFlags.NonPublic)!;var view=(IntPtr)field.GetValue(browser)!;var nativeWindow=MacMessage(view,MacSelector("window"));
+                if(nativeWindow==IntPtr.Zero)throw new Exception("Native keyboard window unavailable");
+                MacMessage(nativeWindow,MacSelector("makeKeyWindow"));var uptime=MacDouble(MacMessage(MacClass("NSProcessInfo"),MacSelector("processInfo")),MacSelector("systemUptime"));
+                var (character,code)=key switch{"End"=>("\uF72B",(ushort)119),"ArrowLeft"=>("\uF702",(ushort)123),"Escape"=>("\u001B",(ushort)53),_=>throw new ArgumentException("Unsupported test key")};
+                var chars=MacMessage(MacClass("NSString"),MacSelector("alloc"));var utf8=Marshal.StringToCoTaskMemUTF8(character);
+                try{
+                    chars=MacMessageArg(chars,MacSelector("initWithUTF8String:"),utf8);
+                    foreach(var type in new ulong[]{10,11}){
+                        var ev=MacKeyEvent(MacClass("NSEvent"),MacSelector("keyEventWithType:location:modifierFlags:timestamp:windowNumber:context:characters:charactersIgnoringModifiers:isARepeat:keyCode:"),type,new KeyPoint(),key=="Escape"?0UL:1UL<<23,uptime,MacMessage(nativeWindow,MacSelector("windowNumber")),IntPtr.Zero,chars,chars,false,code);
+                        if(ev==IntPtr.Zero)throw new Exception("Native keyboard event unavailable");MacSendEvent(nativeWindow,MacSelector("sendEvent:"),ev);
+                    }
+                }finally{Marshal.FreeCoTaskMem(utf8);MacMessage(chars,MacSelector("release"));}
+#endif
+                await Check("window.__gexNativeKey?.key==="+JsonSerializer.Serialize(key)+"&&window.__gexNativeKey.trusted===true","trusted native "+key);
+            }
+            await Eval("document.addEventListener('keydown',e=>window.__gexNativeKey={key:e.key,trusted:e.isTrusted},true)");
+            // Test-only native-engine/window input, never a production or global input bridge.
+            await Check("(()=>{const g=document.querySelector('[data-heatmap-inspector]');return g&&![...document.querySelectorAll('[aria-busy=\"true\"]')].some(e=>e.contains(g));})()","native heatmap computation settled");
+#if !WINDOWS_READER
+            var keyView=(IntPtr)typeof(NewsWebView).GetField("_view",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(browser)!;var keyWindow=MacMessage(keyView,MacSelector("window"));
+            if(keyWindow==IntPtr.Zero)throw new Exception("Native input window unavailable");MacMessage(keyWindow,MacSelector("makeKeyWindow"));MacMessageArg(keyWindow,MacSelector("makeFirstResponder:"),keyView);
+#endif
+            await Eval("(()=>{const r=document.querySelector('[data-heatmap-inspector] > rect[tabindex]');r.focus();})()");
+            await NativeKey("End");
+            await Check("JSON.parse(document.querySelector('[data-qqq-inspection]')?.getAttribute('data-qqq-inspection')??'null')?.current?.time>0","native heatmap End selection");
+            await Check("JSON.stringify(JSON.parse(document.querySelector('[data-qqq-inspection]').getAttribute('data-qqq-inspection')))===JSON.stringify(JSON.parse(localStorage.getItem('qqq-local:observed-interaction:v1')??'null')?.heatmapInspection)","native original heatmap and observed state agree");
+            async Task<JsonElement> Inspection(Func<JsonElement,bool> ready)
+            {
+                for(var n=0;n<40;n++){var current=await Workspace();if(current.GetProperty("analyticalSelections").TryGetProperty("interaction",out var observed)&&observed.TryGetProperty("heatmapInspection",out var inspection)&&inspection.ValueKind==JsonValueKind.Object&&ready(inspection))return inspection.Clone();await Task.Delay(100);}
+                throw new TimeoutException("Native heatmap selection did not reach signed app operation");
+            }
+            var endInspection=await Inspection(v=>v.GetProperty("current").ValueKind==JsonValueKind.Object);
+            var endTime=endInspection.GetProperty("current").GetProperty("time").GetDouble();
+            if(endTime<1e12||!endInspection.GetProperty("keyboard").GetBoolean()||endInspection.GetProperty("scenario").GetBoolean())throw new Exception("Native history heatmap units or provenance disagree");
+            await NativeKey("ArrowLeft");
+            var leftInspection=await Inspection(v=>v.GetProperty("current").ValueKind==JsonValueKind.Object&&v.GetProperty("current").GetProperty("time").GetDouble()<endTime);
+            if(leftInspection.GetProperty("current").GetProperty("strike").GetDouble()!=endInspection.GetProperty("current").GetProperty("strike").GetDouble())throw new Exception("Native heatmap horizontal navigation changed strike");
+            await NativeKey("Escape");
+            await Inspection(v=>v.GetProperty("current").ValueKind==JsonValueKind.Null);
+            // Move the native engine pointer inside the private plot, not via DOM dispatch.
+            await Eval("window.__gexNativePointer=null;document.addEventListener('pointermove',e=>window.__gexNativePointer={trusted:e.isTrusted,x:e.clientX,y:e.clientY},true);(()=>{const r=document.querySelector('[data-heatmap-inspector] > rect[tabindex]').getBoundingClientRect();document.title='gex-input-point:'+JSON.stringify({x:r.left+r.width*.5,y:r.top+r.height*.75,height:innerHeight});})()");
+            await Until(()=>Title().StartsWith("gex-input-point:",StringComparison.Ordinal),"native plot pointer coordinates");
+            using(var point=JsonDocument.Parse(Title()["gex-input-point:".Length..])){
+                var px=point.RootElement.GetProperty("x").GetDouble();var py=point.RootElement.GetProperty("y").GetDouble();
+#if WINDOWS_READER
+                await browser.CoreWebView2.CallDevToolsProtocolMethodAsync("Input.dispatchMouseEvent",JsonSerializer.Serialize(new{type="mouseMoved",x=px,y=py,button="none",buttons=0}));
+#else
+                var nativeView=(IntPtr)typeof(NewsWebView).GetField("_view",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(browser)!;var nativeWindow=MacMessage(nativeView,MacSelector("window"));
+                MacSetBool(nativeWindow,MacSelector("setAcceptsMouseMovedEvents:"),true);
+                var localPoint=new KeyPoint{X=px,Y=MacBool(nativeView,MacSelector("isFlipped"))?py:point.RootElement.GetProperty("height").GetDouble()-py};
+                var windowPoint=MacConvertPoint(nativeView,MacSelector("convertPoint:toView:"),localPoint,IntPtr.Zero);
+                var uptime=MacDouble(MacMessage(MacClass("NSProcessInfo"),MacSelector("processInfo")),MacSelector("systemUptime"));
+                var ev=MacMouseEvent(MacClass("NSEvent"),MacSelector("mouseEventWithType:location:modifierFlags:timestamp:windowNumber:context:eventNumber:clickCount:pressure:"),5,windowPoint,0,uptime,MacMessage(nativeWindow,MacSelector("windowNumber")),IntPtr.Zero,IntPtr.Zero,IntPtr.Zero,0);
+                if(ev==IntPtr.Zero)throw new Exception("Native pointer event unavailable");
+                // Match WebKitTestRunner's non-drag routing: NSWindow.sendEvent
+                // may discard synthetic moves before WKWebView sees them.
+                // Test-only SPI, capability checked; no DOM or global-input fallback.
+                var app=MacMessage(MacClass("NSApplication"),MacSelector("sharedApplication"));
+                var move=MacSelector("_simulateMouseMove:");var currentEvent=MacSelector("_setCurrentEvent:");
+                if(!MacHasSelector(nativeView,MacSelector("respondsToSelector:"),move)||!MacHasSelector(app,MacSelector("respondsToSelector:"),currentEvent))throw new Exception("Native WebKit test pointer routing unavailable");
+                var previousEvent=MacMessage(app,MacSelector("currentEvent"));
+                try{MacSendEvent(app,currentEvent,ev);MacSendEvent(nativeView,move,ev);}
+                finally{MacSendEvent(app,currentEvent,previousEvent);}
+#endif
+            }
+            await Check("window.__gexNativePointer?.trusted===true","trusted native plot pointer");
+            await Inspection(v=>v.GetProperty("current").ValueKind==JsonValueKind.Object&&!v.GetProperty("keyboard").GetBoolean());
+            var pointerObserved=false;for(var n=0;n<40;n++){var current=await Workspace();if(current.GetProperty("analyticalSelections").TryGetProperty("interaction",out var observed)&&observed.TryGetProperty("pointer",out var pointer)&&pointer.ValueKind==JsonValueKind.Object&&pointer.GetProperty("trusted").GetBoolean()){pointerObserved=true;break;}await Task.Delay(100);}
+            if(!pointerObserved)throw new Exception("Trusted native pointer did not reach signed app operation");
+
+            await Eval("[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='日内情景推演').click()");
+            await Check("(()=>{const g=document.querySelector('[data-heatmap-inspector]');return g&&![...document.querySelectorAll('[aria-busy=\"true\"]')].some(e=>e.contains(g));})()","native scenario computation settled");
+            foreach(var dark in new[]{false,true}){
+                var palette=ThemePalette.For(dark);var (up,down)=palette.UpDown(Meili.Core.Settings.UpDownColorMode.RedUp);ScottPlot.Color C(uint n)=>new((byte)(n>>16),(byte)(n>>8),(byte)n);
+                session.UpdatePresentation(AppViewPresentation.Create(ChartPalette.Create(dark,C(up),C(down),C(palette.PrimaryText),C(palette.MutedText),palette)));
+                await Check("document.documentElement.dataset.theme==='"+(dark?"dark":"light")+"'","native GEX palette update");
+                foreach(var width in new[]{1000,1440,1920}){
+                    window.Width=width;await Task.Delay(150);
+                    await Check("document.querySelectorAll('section[aria-label=\"回放 GEX 快照表\"] tbody tr:not([aria-hidden])').length===8&&!document.body.textContent.includes('QQQ GEX 视图暂时无法显示')","native GEX compact/wide retained data");
+                    await Eval("document.querySelector('[data-heatmap-inspector] > rect[tabindex]').focus()");await NativeKey("End");
+                    await Inspection(v=>v.GetProperty("scenario").GetBoolean()&&v.GetProperty("current").ValueKind==JsonValueKind.Object);
+                    await Check("(()=>{const g=document.querySelector('[data-qqq-inspection-highlight]'),o=document.querySelector('[data-qqq-inspection-overlay]'),s=document.querySelector('[data-qqq-inspection-status]'),h=document.querySelector('[data-qqq-inspection-overlay-html]'),b=document.querySelector('[data-qqq-heatmap-bitmap]');return g&&o&&s&&h&&b&&o.ownerSVGElement.lastElementChild===o&&g.parentElement===o&&s.parentElement===h&&!o.ownerSVGElement.contains(s)&&!o.ownerSVGElement.contains(b)&&getComputedStyle(s).backgroundColor==='rgb(17, 24, 39)'&&getComputedStyle(s).pointerEvents==='none';})()","native scenario status top layer and pass-through");
+                    var output=System.IO.Path.Combine("build","out","ci");System.IO.Directory.CreateDirectory(output);var png=System.IO.Path.Combine(output,$"desktop-smoke-gex-scenario-{width}-{(dark?"dark":"light")}.png");
+#if WINDOWS_READER
+                    using(var image=System.IO.File.Create(png))await browser.CoreWebView2.CapturePreviewAsync(Microsoft.Web.WebView2.Core.CoreWebView2CapturePreviewImageFormat.Png,image);
+#else
+                    var nativeView=(IntPtr)typeof(NewsWebView).GetField("_view",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(browser)!;var nativeWindow=MacMessage(nativeView,MacSelector("window"));var windowNumber=MacMessage(nativeWindow,MacSelector("windowNumber")).ToInt64();
+                    if(windowNumber<=0)throw new Exception("Native screenshot window unavailable");
+                    var startInfo=new System.Diagnostics.ProcessStartInfo("/usr/sbin/screencapture"){UseShellExecute=false,RedirectStandardError=true};foreach(var arg in new[]{"-x","-o","-l",windowNumber.ToString(System.Globalization.CultureInfo.InvariantCulture),png})startInfo.ArgumentList.Add(arg);
+                    using(var capture=System.Diagnostics.Process.Start(startInfo)??throw new Exception("Native screenshot process unavailable")){using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(15));try{await capture.WaitForExitAsync(deadline.Token);}catch(OperationCanceledException){capture.Kill(true);throw new TimeoutException("Native own-window screenshot timed out");}if(capture.ExitCode!=0)throw new Exception("Native own-window screenshot unavailable: "+await capture.StandardError.ReadToEndAsync());}
+#endif
+                    var bytes=await System.IO.File.ReadAllBytesAsync(png);if(bytes.Length<1000||!bytes.Take(8).SequenceEqual(new byte[]{137,80,78,71,13,10,26,10}))throw new Exception("Native screenshot missing or invalid");
+                }
+            }
+            await Eval("[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='历史快照').click()");
+            window.Hide();await Task.Delay(250);window.Show();window.Activate();
+            await Check("document.querySelectorAll('section[aria-label=\"回放 GEX 快照表\"] tbody tr:not([aria-hidden])').length===8","native hide/show preserves GEX rows");
+            foreach(var tab in new[]{"Gamma 地图","行权价分布","成交持仓","结构事件","活动响应","日内节奏","组合分析","触位统计","Max Pain / Time","ATM IV"})
+            {
+                var name=JsonSerializer.Serialize(tab);
+                await Eval("[...document.querySelectorAll('[role=tab]')].find(b=>b.textContent.trim()==="+name+").click()");
+                await Check("[...document.querySelectorAll('[role=tab]')].some(b=>b.textContent.trim()==="+name+"&&b.getAttribute('aria-selected')==='true')","native tab "+tab);
+            }
+            await Eval("document.title='gex-reload-pending'");await Until(()=>Title()=="gex-reload-pending","native reload sentinel");
+            browser.Reload();await Until(()=>Title().StartsWith("QQQ GEX",StringComparison.Ordinal),"native reload new document");
+            await Check("document.querySelectorAll('section[aria-label=\"回放 GEX 快照表\"] tbody tr:not([aria-hidden])').length===8","native reload retains snapshots");
+            // Complete the same-process A -> B app update without recompiling the native host.
+            var hostPath=typeof(Program).Assembly.Location;
+            var hostHash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(await System.IO.File.ReadAllBytesAsync(hostPath)));
+            await session.DisposeAsync();
+            var dbPath=System.IO.Path.Combine(data,"cache","qqq-gex.db");
+            var retained=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(await System.IO.File.ReadAllBytesAsync(dbPath)));
+            var update=signed.CreateUpdate();await signed.Installer.InstallAsync(update,updateOnly:true);
+            await using(var updated=await signed.OpenAsync())
+            {
+#if WINDOWS_READER
+                browser.CoreWebView2.Navigate(updated.PageUri.AbsoluteUri);
+#else
+                browser.Navigate(updated.PageUri.AbsoluteUri);
+#endif
+                await Until(()=>Title().StartsWith("QQQ GEX",StringComparison.Ordinal),"updated native GEX document");
+                await Check("document.querySelectorAll('section[aria-label=\"回放 GEX 快照表\"] tbody tr:not([aria-hidden])').length===8","updated app retains original GEX rows");
+                await Eval("window.__gexUpdated=false;fetch('host/invoke',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operation:'get_qqq_gex_retained_summary_v2',arguments:{}})}).then(r=>r.json()).then(r=>window.__gexUpdated=r.success&&r.data.appVersion==='1.0.1'&&r.data.publishedDays===1)");
+                await Check("window.__gexUpdated===true","updated app-owned operation in native browser");
+            }
+            if(hostHash!=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(await System.IO.File.ReadAllBytesAsync(hostPath))))throw new Exception("Native host changed during app update");
+            if(retained!=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(await System.IO.File.ReadAllBytesAsync(dbPath))))throw new Exception("App update altered retained financial history");
+            signed.Installer.Uninstall("easysellput.qqq-gex");
+            if(retained!=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(await System.IO.File.ReadAllBytesAsync(dbPath))))throw new Exception("Uninstall removed financial history");
+            await signed.Installer.InstallAsync(update);
+            Console.WriteLine("PASS: synthetic populated signed native QQQ GEX: 3 chart modes, 10 analysis tabs, canvas, DOM focus/trusted native heatmap keys and pointer through signed public app operations, scope changes, light/dark/compact/wide, hide/show/reload, independent A/B update/new operation, uninstall/reinstall and fixed host/history hashes; no live-history/alert claim.");
+        }
+        finally{window.Content=null;window.Close();}
+    }
+#if !WINDOWS_READER
+    [StructLayout(LayoutKind.Sequential)] private struct KeyPoint{public double X,Y;}
+    [DllImport("/usr/lib/libobjc.A.dylib",EntryPoint="objc_msgSend")] private static extern IntPtr MacKeyEvent(IntPtr cls,IntPtr selector,ulong type,KeyPoint location,ulong flags,double timestamp,IntPtr windowNumber,IntPtr context,IntPtr characters,IntPtr ignoring,[MarshalAs(UnmanagedType.I1)]bool repeat,ushort keyCode);
+    [DllImport("/usr/lib/libobjc.A.dylib",EntryPoint="objc_msgSend")] [return:MarshalAs(UnmanagedType.I1)] private static extern bool MacHasSelector(IntPtr obj,IntPtr selector,IntPtr target);
+    [DllImport("/usr/lib/libobjc.A.dylib",EntryPoint="objc_msgSend")] [return:MarshalAs(UnmanagedType.I1)] private static extern bool MacBool(IntPtr obj,IntPtr selector);
+    [DllImport("/usr/lib/libobjc.A.dylib",EntryPoint="objc_msgSend")] private static extern void MacSetBool(IntPtr obj,IntPtr selector,[MarshalAs(UnmanagedType.I1)]bool value);
+    [DllImport("/usr/lib/libobjc.A.dylib",EntryPoint="objc_msgSend")] private static extern KeyPoint MacConvertPoint(IntPtr obj,IntPtr selector,KeyPoint point,IntPtr target);
+    [DllImport("/usr/lib/libobjc.A.dylib",EntryPoint="objc_msgSend")] private static extern IntPtr MacMouseEvent(IntPtr cls,IntPtr selector,ulong type,KeyPoint location,ulong flags,double timestamp,IntPtr windowNumber,IntPtr context,IntPtr number,IntPtr clicks,float pressure);
+    [DllImport("/usr/lib/libobjc.A.dylib",EntryPoint="objc_msgSend")] private static extern double MacDouble(IntPtr obj,IntPtr selector);
+    [DllImport("/usr/lib/libobjc.A.dylib",EntryPoint="objc_msgSend")] private static extern void MacSendEvent(IntPtr obj,IntPtr selector,IntPtr ev);
+    [DllImport("/usr/lib/libobjc.A.dylib",EntryPoint="objc_getClass")] private static extern IntPtr MacClass(string name);
+    [DllImport("/usr/lib/libobjc.A.dylib",EntryPoint="sel_registerName")] private static extern IntPtr MacSelector(string name);
+    [DllImport("/usr/lib/libobjc.A.dylib",EntryPoint="objc_msgSend")] private static extern IntPtr MacMessage(IntPtr obj,IntPtr selector);
+    [DllImport("/usr/lib/libobjc.A.dylib",EntryPoint="objc_msgSend")] private static extern IntPtr MacMessageArg(IntPtr obj,IntPtr selector,IntPtr argument);
+    [DllImport("/usr/lib/libobjc.A.dylib",EntryPoint="objc_msgSend")] private static extern void MacEvaluate(IntPtr obj,IntPtr selector,IntPtr script,IntPtr completion);
+#endif
+}

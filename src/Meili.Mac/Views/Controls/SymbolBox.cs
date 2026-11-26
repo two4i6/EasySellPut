@@ -47,7 +47,8 @@ public sealed class SymbolBox : UserControl
 
     public SymbolBox()
     {
-        _box = new TextBox { Height = 32, MinHeight = 32, VerticalContentAlignment = VerticalAlignment.Center, Padding = new Thickness(8, 4) };
+        _box = new TextBox { MinHeight = 32, VerticalContentAlignment = VerticalAlignment.Center, Padding = new Thickness(8, 4) };
+        _box[!HeightProperty] = _box.GetResourceObservable("SymbolInputHeight").ToBinding();
         _box[!TextBox.PlaceholderTextProperty] = _box.GetResourceObservable("Sb_Placeholder").ToBinding();
         _box.TextChanged += OnBoxTextChanged;
         _box.AddHandler(KeyDownEvent, OnBoxKeyDown, Avalonia.Interactivity.RoutingStrategies.Tunnel);
@@ -60,7 +61,7 @@ public sealed class SymbolBox : UserControl
         _list.KeyDown += OnListKeyDown;
         _list.Tapped += (_, _) => { if (_list.SelectedItem is SymbolSuggestion s) Pick(s); };
 
-        _empty = new TextBlock { Margin = new Thickness(12, 6), FontSize = 12, TextWrapping = TextWrapping.Wrap, IsVisible = false };
+        _empty = new TextBlock { Margin = new Thickness(12, 6), TextWrapping = TextWrapping.Wrap, IsVisible = false }.WithFontSize(12);
         _empty[!TextBlock.ForegroundProperty] = _empty.GetResourceObservable("TextFillColorSecondaryBrush").ToBinding();
 
         var panel = new DockPanel();
@@ -118,10 +119,10 @@ public sealed class SymbolBox : UserControl
     {
         var name = new TextBlock { Text = s?.Name, MaxWidth = 200, TextTrimming = TextTrimming.CharacterEllipsis };
         name[!TextBlock.ForegroundProperty] = name.GetResourceObservable("TextFillColorSecondaryBrush").ToBinding();
-        var tag = new TextBlock { FontSize = 12, Margin = new Thickness(12, 0, 0, 0), IsVisible = s?.FromWatchlist == true };
+        var tag = new TextBlock { Margin = new Thickness(12, 0, 0, 0), IsVisible = s?.FromWatchlist == true }.WithFontSize(12);
         tag[!TextBlock.TextProperty] = tag.GetResourceObservable("Sb_WatchTag").ToBinding();
         tag[!TextBlock.ForegroundProperty] = tag.GetResourceObservable("AccentFillColorDefaultBrush").ToBinding();
-        var exch = new TextBlock { Text = s?.Exchange, FontSize = 12, Margin = new Thickness(12, 0, 0, 0) };
+        var exch = new TextBlock { Text = s?.Exchange, Margin = new Thickness(12, 0, 0, 0) }.WithFontSize(12);
         exch[!TextBlock.ForegroundProperty] = exch.GetResourceObservable("TextFillColorSecondaryBrush").ToBinding();
         return new StackPanel
         {

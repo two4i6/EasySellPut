@@ -24,7 +24,7 @@ public sealed class NewsReaderWindow : Window
     {
         SetResourceReference(FontFamilyProperty,"AppFont");
         Width = 1050; Height = 760; MinWidth = 640; MinHeight = 400;
-        FontSize = 14;
+        this.WithFontSize(14);
         SetResourceReference(BackgroundProperty, "ApplicationBackgroundBrush");
         SetResourceReference(ForegroundProperty, "TextFillColorPrimaryBrush");
         SetResourceReference(FontFamilyProperty, "AppFont");
@@ -36,7 +36,7 @@ public sealed class NewsReaderWindow : Window
         _address.SetResourceReference(TextBox.BorderBrushProperty, "ControlStrokeColorDefaultBrush");
         _status.Margin = new Thickness(12, 0, 12, 8);
         _status.Padding = new Thickness(12, 8, 12, 8);
-        _status.FontSize = 12;
+        _status.WithFontSize(12);
         _status.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorSecondaryBrush");
         _status.SetResourceReference(TextBlock.BackgroundProperty, "InfoBarBrush");
         _status.Visibility = Visibility.Collapsed;
@@ -45,7 +45,7 @@ public sealed class NewsReaderWindow : Window
         foreach (var button in new[] { _back, _forward, _reload, _external, _install })
         {
             button.Margin = new Thickness(0, 0, 6, 6); button.Padding = new Thickness(12, 6, 12, 6);
-            button.FontSize = 14; button.MinHeight = 32;
+            button.WithFontSize(14); button.MinHeight = 32;
             button.Appearance = Wpf.Ui.Controls.ControlAppearance.Secondary;
             toolbar.Children.Add(button);
         }

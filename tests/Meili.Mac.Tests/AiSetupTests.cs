@@ -54,22 +54,22 @@ public sealed class AiSetupTests
             Assert.InRange(Math.Abs(codex.TranslatePoint(new Point(),panel)!.Value.Y-claude.TranslatePoint(new Point(),panel)!.Value.Y),0,1);
             Save(panel,$"ai-setup-{language}-{dark}");
             var status=window.FindControl<Border>("BottomStatusBar")!;
-            shell.RefreshMcpStatus();Assert.Equal(loc["Status_McpIdle"],shell.McpStatusText);Save(status,$"mcp-idle-{language}-{dark}");
+            await shell.RefreshMcpStatusAsync();Assert.Equal(loc["Status_McpIdle"],shell.McpStatusText);Save(status,$"mcp-idle-{language}-{dark}");
             using(var lease=new McpSessionLease(directory,false,()=>"UI fixture client"))
             {
-                lease.Publish();shell.RefreshMcpStatus();MacHost.Pump();
+                lease.Publish();await shell.RefreshMcpStatusAsync();MacHost.Pump();
                 Assert.Equal(string.Format(loc["Status_McpConnected"],1),shell.McpStatusText);
                 var button=window.FindControl<Button>("McpStatusIndicator")!;
                 Assert.Same(shell.CopyMcpSetupCommand,button.Command);Assert.True(button.IsEffectivelyVisible);
                 Assert.Contains(loc["Status_McpCopyHint"],shell.McpStatusTip);
                 Save(status,$"mcp-connected-{language}-{dark}");
             }
-            shell.RefreshMcpStatus();Assert.Equal(loc["Status_McpIdle"],shell.McpStatusText);
+            await shell.RefreshMcpStatusAsync();Assert.Equal(loc["Status_McpIdle"],shell.McpStatusText);
             await shell.CopyMcpSetupCommand.ExecuteAsync(null);MacHost.Pump();
             Assert.Equal(loc["Status_McpCopyFailed"],shell.McpStatusText); // headless has no desktop clipboard; native package checks verify success
             Save(status,$"mcp-copy-failed-{language}-{dark}");
         }
-        finally{window.Close();loc.Apply(original);theme.Apply(AppThemeMode.System);Directory.Delete(directory,true);}
+        finally{shell.Dispose();window.Close();loc.Apply(original);theme.Apply(AppThemeMode.System);Directory.Delete(directory,true);}
     }
     private static void Save(Control control,string name)
     {

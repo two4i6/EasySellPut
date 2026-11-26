@@ -15,6 +15,23 @@ namespace Meili.Mac.Tests;
 
 public sealed class DesignSystemTests
 {
+    [AvaloniaFact] public void Storage_bar_preserves_true_proportions_and_handles_empty_data()
+    {
+        MacHost.EnsureComposed(); var bar = new AppStorageBar { Segments = [new("market", "Database", "3 MB", .75, 3), new("userdata", "User data", "1 MB", .25, 1)] };
+        var window = new Window { Width = 600, Content = bar }; window.Show(); MacHost.Pump();
+        try
+        {
+            var grid = (Grid)((Border)bar.Children[0]).Child!;
+            Assert.InRange(grid.Children[0].Bounds.Width / grid.Children[1].Bounds.Width, 2.99, 3.01);
+            window.Width = 980; MacHost.Pump();
+            Assert.InRange(grid.Children[0].Bounds.Width / grid.Children[1].Bounds.Width, 2.99, 3.01);
+            Assert.Contains(bar.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "Database · 3 MB");
+            Assert.Contains(bar.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "User data · 1 MB");
+            bar.Segments = []; MacHost.Pump(); Assert.Empty(((Grid)((Border)bar.Children[0]).Child!).Children);
+        }
+        finally { window.Close(); }
+    }
+
     [AvaloniaFact]
     public void Select_refreshes_localized_labels_without_changing_selection()
     {
@@ -49,13 +66,19 @@ public sealed class DesignSystemTests
         }
         actions.Children.Add(new Button{Content=T("不可用","Disabled"),IsEnabled=false,Margin=new Thickness(0,0,8,4)});
         actions.Children.Add(new Button{Content=new LucideIcon{Kind="Add"},Classes={"Icon"},Margin=new Thickness(0,0,8,4)});
+        actions.Children.Add(new AppActionCard{Content=new StackPanel{Children={new TextBlock{Text=T("操作卡片","Action card"),Classes={"CardTitle"}},new TextBlock{Text="ETF · 1.25×",Classes={"Caption"}}}},Margin=new Thickness(0,0,8,4)});
         Card(T("操作","Actions"),actions);
         var input=new TextBox{PlaceholderText=T("证券代码","Symbol"),Text="AAPL"};
         var select=new AppSelect{ItemsSource=new[]{T("日线","Daily"),T("周线","Weekly"),T("月线","Monthly")},SelectedIndex=0,HorizontalAlignment=HorizontalAlignment.Stretch};
         var invalid=new TextBox{PlaceholderText=T("请输入地址","Enter an address"),Text="https://",Classes={"error"}};
         Card(T("表单","Form"),new AppFormHeader{Title=T("界面语言","Interface language"),HelpText=T("统一对齐的表单标题与帮助。","Aligned form label and help.")},input,select,invalid);
         var loading=new AppLoading();var loadingRow=new StackPanel{Orientation=Orientation.Horizontal,Spacing=12,Children={loading,new TextBlock{Text=T("加载中","Loading"),Classes={"Caption"},VerticalAlignment=VerticalAlignment.Center}}};
-        Card(T("状态","States"),new CheckBox{Content=T("显示新闻","Show news"),IsChecked=true},new ToggleSwitch{Content=T("自动刷新","Auto refresh"),IsChecked=true},loadingRow);
+        var statusLabel=new TextBlock{Text=T("休市 · 0/8","Closed · 0/8"),Classes={"StatusText"}};
+        var statusRow=new StackPanel{Orientation=Orientation.Horizontal,Spacing=12,Children={new Button{Classes={"StatusEntry"},Content=statusLabel},new TextBlock{Text="ET 09:30 · BJ 22:30",Classes={"StatusText"}}}};
+        Card(T("实际与预测图表","Actual and estimate chart"),new AppFinancialChart{DataContext=Meili.Shared.ViewModels.FinancialChart.Build("EPS","Synthetic component fixture",new (string,string,double?,double?)[]{("Q1","Actual -1 / estimate 0",-1,0),("Q2","Actual 2 / estimate 1.8",2,1.8),("Next","Forecast only",null,3)})});
+        Card(T("压力表盘","Pressure gauge"),new AppGauge{Width=DesignTokens.GaugeWidth,Height=DesignTokens.GaugeHeight,Value=67,LowBrush=(IBrush)Ui.Platform.Resource("HealthyBrush")!,NormalBrush=(IBrush)Ui.Platform.Resource("UnknownBrush")!,HighBrush=(IBrush)Ui.Platform.Resource("DegradedBrush")!,CriticalBrush=(IBrush)Ui.Platform.Resource("DangerBrush")!,MarkerBrush=(IBrush)Ui.Platform.Resource("TextFillColorPrimaryBrush")!});
+        Card(T("存储占用","Storage"), new AppStorageBar { Segments = [new("market", T("行情数据库","Market database"), "24 MB", .75, 24*1024*1024), new("userdata", T("用户数据","User data"), "8 MB", .25, 8*1024*1024)] });
+        Card(T("状态","States"),new CheckBox{Content=T("显示新闻","Show news"),IsChecked=true},new ToggleSwitch{Content=T("自动刷新","Auto refresh"),IsChecked=true},loadingRow,statusRow);
         var drawerInput=new TextBox{Text="20"};var drawer=new AppDrawer{ReturnFocusTarget=(Button)actions.Children[0],IsOpen=true,Padding=new Thickness(20),Child=new StackPanel{Spacing=16,Children={new TextBlock{Text=T("指标","Indicators"),Classes={"SectionTitle"},Margin=default},new CheckBox{Content="MA",IsChecked=true},drawerInput,new TextBlock{Text=T("Esc 关闭","Esc to close"),Classes={"Caption"}}}}};Grid.SetColumn(drawer,1);root.Children.Add(drawer);
         var window=new Window{Width=1120,Height=820,Content=root};window.Show();MacHost.Pump();
         try

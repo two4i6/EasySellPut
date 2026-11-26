@@ -19,6 +19,7 @@ public static class SharedComposition
         s.AddSingleton<PricingAssumptions>();              // H1
         s.AddSingleton(loc);
         s.AddSingleton<WatchlistStore>();
+        s.AddSingleton(sp => new WebWorkspace(dataDir.Path));
         s.AddSingleton<NavigationHub>();
         s.AddSingleton<SymbolContext>();
         s.AddSingleton<AlertMonitor>();
@@ -27,14 +28,29 @@ public static class SharedComposition
         s.AddSingleton(sp => sp.GetRequiredService<DataServices>().Router);
         // B2: K-line history is cached in SQLite in the data folder; everything else goes straight to the router.
         s.AddSingleton(sp => new Meili.Data.Cache.MarketDb(System.IO.Path.Combine(dataDir.Path, "cache", "market.db")));
+        s.AddSingleton<ILiquiditySeriesSource>(sp => sp.GetRequiredService<DataServices>().Providers.OfType<ILiquiditySeriesSource>().Single());
+        s.AddSingleton(sp=>new OptionsStrategyAppClient(dataDir.Path,sp.GetRequiredService<IMarketDataService>(),sp.GetRequiredService<PricingAssumptions>(),sp.GetRequiredService<StrategyStore>()));
+        s.AddSingleton(new ChartAppClient(dataDir.Path));
+        s.AddSingleton(sp=>new NewsAppClient(dataDir.Path,sp.GetRequiredService<IMarketDataService>()));
+        s.AddSingleton<MarketLiquidityService>();
+        s.AddSingleton(sp=>new LiquidityAppClient(dataDir.Path,sp.GetRequiredService<MarketLiquidityService>()));
+        s.AddSingleton<LiquidityViewModel>();
         s.AddSingleton<IMarketDataService>(sp => new Meili.Data.Cache.CachedMarketData(
             sp.GetRequiredService<DataServices>().Router, sp.GetRequiredService<Meili.Data.Cache.MarketDb>()));
         s.AddSingleton(sp => new Meili.Core.Quotes.QuoteHub(sp.GetRequiredService<IMarketDataService>()));
         s.AddSingleton<DesktopActivity>();
+        s.AddSingleton<DataSourceHealthMonitor>();
+        s.AddSingleton<Meili.Core.Abstractions.IQuoteStreamSource>(sp=>new Meili.Data.Providers.Yahoo.YahooQuoteStream(sp.GetRequiredService<DataServices>().Gateway));
+        s.AddSingleton<QuoteStreamingService>();
         s.AddSingleton<QuotePump>();
         s.AddSingleton<SymbolSearchService>();
         s.AddSingleton(sp => new Meili.Core.Pricing.RiskFreeRateProvider(sp.GetRequiredService<IMarketDataService>(),
             () => sp.GetRequiredService<SettingsStore>().Current.Pricing));
+        s.AddSingleton(sp => new Meili.Caching.CacheManager(dataDir.Path,
+            sp.GetRequiredService<DataServices>().Cache,
+            new Meili.Caching.BarCacheResource(sp.GetRequiredService<Meili.Data.Cache.MarketDb>()),
+            sp.GetRequiredService<Meili.Core.Quotes.QuoteHub>(), sp.GetRequiredService<SymbolSearchService>(),
+            sp.GetRequiredService<Meili.Core.Pricing.RiskFreeRateProvider>(),new Meili.Data.Cache.QqqGexResponseStore(System.IO.Path.Combine(dataDir.Path,"cache","qqq-gex.db"))));
         s.AddSingleton<IIvSource>(sp => new IvSource(
             (symbols, ct) => sp.GetRequiredService<DataServices>().Providers.OfType<Meili.Data.Providers.Cboe.CboeProvider>().First().GetQuotesAsync(symbols, ct),
             sp.GetRequiredService<IMarketDataService>(), sp.GetRequiredService<Meili.Core.Pricing.RiskFreeRateProvider>()));
@@ -42,10 +58,14 @@ public static class SharedComposition
         s.AddSingleton<IvAlertSampler>();
         s.AddSingleton<NetworkController>();
         s.AddSingleton<INetworkController>(sp => sp.GetRequiredService<NetworkController>());
+        s.AddSingleton<UpdateViewModel>();
+        s.AddSingleton(sp=>new AppManagementViewModel(dataDir.Path,loc));
+        s.AddSingleton<Meili.Automation.IOperationDispatcher>(sp=>new Meili.Automation.AutomationService(dataDir,sp.GetRequiredService<IMarketDataService>()));
         s.AddTransient<SettingsViewModel>();
         s.AddTransient<DashboardViewModel>();
         s.AddTransient<QuotePanelViewModel>();
         s.AddSingleton<WatchlistViewModel>();
+        s.AddSingleton<MarketWorkspaceViewModel>();
         s.AddSingleton<ChartsViewModel>();
         s.AddSingleton<OptionsViewModel>();
         s.AddSingleton<StrategyViewModel>();
@@ -57,10 +77,20 @@ public static class SharedComposition
     /// <summary>After the window is shown: detect the proxy (Clash etc.) in the background without blocking startup.</summary>
     public static void OnStarted(IServiceProvider sp)
     {
-        _ = sp.GetRequiredService<NetworkController>().ReconfigureAsync();
+        _ = StartSourceHealthAsync(sp);
         sp.GetRequiredService<AlertStore>().Load();
         sp.GetRequiredService<AlertMonitor>().Start();
         sp.GetRequiredService<IvAlertSampler>().Start();
         sp.GetRequiredService<QuotePump>().Start();
+        sp.GetRequiredService<UpdateViewModel>().StartNotifications();
+    }
+
+    private static async Task StartSourceHealthAsync(IServiceProvider sp)
+    {
+        var monitor = sp.GetRequiredService<DataSourceHealthMonitor>();
+        try { await sp.GetRequiredService<NetworkController>().ReconfigureAsync(); }
+        catch (Exception ex) { Meili.Core.Diagnostics.AppLog.Warn("source-health", "Startup network setup failed", ex); }
+        // Detection failure must not leave all other sources untested forever; use the current gateway configuration.
+        Ui.Platform.Run(monitor.Start);
     }
 }

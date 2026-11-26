@@ -11,6 +11,6 @@ public class AppDialog : Window
         Width=440;MinWidth=400;SizeToContent=SizeToContent.Height;ResizeMode=ResizeMode.NoResize;
         WindowStartupLocation=WindowStartupLocation.CenterOwner;ShowInTaskbar=false;
         SetResourceReference(BackgroundProperty,"CardBackgroundFillColorDefaultBrush");SetResourceReference(ForegroundProperty,"TextFillColorPrimaryBrush");
-        SetResourceReference(FontFamilyProperty,"AppFont");FontSize=DesignTokens.BodyFontSize;
+        SetResourceReference(FontFamilyProperty,"AppFont");this.WithFontSize(DesignTokens.BodyFontSize);
     }
 }

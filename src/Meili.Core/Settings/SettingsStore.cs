@@ -16,7 +16,7 @@ public sealed class SettingsStore
     };
 
     private readonly object _gate = new();
-    private readonly SnapshotFile _snapshot;
+    private SnapshotFile _snapshot;
     public string FilePath { get; }
     public AppSettings Current { get; private set; } = new();
 
@@ -52,6 +52,20 @@ public sealed class SettingsStore
             _snapshot.Read();
             Current = new AppSettings().Normalize();
             return Current;
+        }
+    }
+
+    /// <summary>Reload a competing valid snapshot for explicit editing; retain the old CAS baseline on malformed data.</summary>
+    public void ReloadForEditing()
+    {
+        lock (_gate)
+        {
+            var candidate = new SnapshotFile(FilePath);
+            var text = candidate.Read() ?? throw new FileNotFoundException("Settings were removed; no snapshot to reload.", FilePath);
+            var settings = JsonSerializer.Deserialize<AppSettings>(text, Json) ?? throw new InvalidDataException("Settings must be an object.");
+            var normalized = settings.Normalize();
+            _snapshot = candidate;
+            Current = normalized;
         }
     }
 

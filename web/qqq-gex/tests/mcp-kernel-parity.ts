@@ -1,0 +1,65 @@
+import {exposureReplayTableRows,exposureReplayDisplayDeltaDetails} from '../upstream/src/lib/qqqExposureReplay';
+import {qqqRegularBarIndex,qqqPulseSeries,qqqWindowVolatility,qqqRegularObservationCutoff,prepareRvolBaseline,qqqRvolFromBaseline} from '../upstream/src/lib/qqqIntradayIndicators';
+import {prepareQqqOptionObservations,qqqObservationPrefix,qqqObservationSpotIndex} from '../upstream/src/lib/qqqOptionObservationHistory';
+import {qqqSnapshotAtmIv} from '../upstream/src/lib/qqqAtmIvObservation';
+import {readLocalContext} from '../runtime/local-context';
+import {qqqReadableMarkers} from '../upstream/src/lib/qqqChartReadability';
+import {prepareExposureChartReplay,exposureReplayChartPayload} from '../upstream/src/lib/qqqExposureChartReplay';
+import {buildQqqPcsIntradayChartData,buildObservedPriceLowMarkers} from '../upstream/src/components/Strategy/qqq/QqqPcsIntradayChart.shared';
+import {prepareHeatmapPriceReactions} from '../upstream/src/components/Strategy/qqq/QqqHeatmapPriceReactions';
+import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import {DatabaseSync} from 'node:sqlite';
+import {readMcpAnalysis,analysisJson} from '../runtime/mcp-analysis';import {hydrateDay} from '../runtime/local-rows';import {displayLocalDay} from '../runtime/display-day';
+import {exposureFrames,prepareAggregateGammaFrames,exposureSpotIndex,exposureValues,exposureStrikeMetric,exposureStrikeComparisons,prepareExposureField} from '../upstream/src/lib/qqqExposureWorkbench';
+import {qqqOptionOverview} from '../upstream/src/lib/qqqOptionObservation';import {prepareQqqMaxPain,qqqMaxPainAt} from '../upstream/src/lib/qqqMaxPain';import {prepareQqqAtmIvObservation,qqqAtmIvAt} from '../upstream/src/lib/qqqAtmIvObservation';
+import {prepareHedgeObservations,hedgeObservationWindow} from '../upstream/src/lib/qqqHedgeObservations';import {prepareHeatmapDiscovery,scenarioExpectedBandsFromInput} from '../upstream/src/lib/qqqHeatmapDiscovery';import {prepareHeatmapOverlays} from '../upstream/src/lib/qqqHeatmapOverlays';import {buildDayScenario,dayScenarioInput} from '../upstream/src/lib/qqqDayScenario';
+const dbPath=process.env.QQQ_PARITY_DB??JSON.parse(readFileSync('test-results/pipeline-location.json','utf8')).dbPath,db=new DatabaseSync(dbPath,{readOnly:true}),record=db.prepare('SELECT day,payload FROM qqq_gex_local_days ORDER BY day DESC LIMIT 1').get() as any,retained=JSON.parse(record.payload),date=process.env.QQQ_PARITY_DB?record.day:'2026-01-02',expiry=process.env.QQQ_PARITY_DB?retained.rows[0].expiryDate:date,at=process.env.QQQ_PARITY_DB?new Date(Math.max(...retained.rows.map((r:any)=>Date.parse(r.capturedAt)))+300000).toISOString():'2026-01-02T14:35:00Z',cutoff=Date.parse(at),day=hydrateDay(db,retained),data=displayLocalDay(day,date,expiry),all=data.intraday!.gexExpiries!,bars=day.bars,spotAt=exposureSpotIndex(bars),signal=new AbortController().signal;
+const call=(analysis:string,params:Record<string,string>={})=>readMcpAnalysis(dbPath,new URL('/api/analysis/qqq/local-analysis?'+new URLSearchParams({date,expiry,at,analysis,...params}),'http://local'));
+const equal=(actual:any,expected:any)=>assert.deepEqual(JSON.parse(analysisJson(actual)),JSON.parse(analysisJson(expected)));
+try{for(const scope of ['selected','0dte','all'] as const){const expiries=all.filter(e=>scope==='all'||e.expiryDate===expiry),raw=exposureFrames(all,cutoff,scope,expiry,date),frames=scope==='all'?await prepareAggregateGammaFrames(raw,spotAt,signal):raw,frame=frames.at(-1)!;assert.ok(frame);
+ if(!process.env.QQQ_PARITY_SCENARIO_ONLY){
+ for(const mode of ['gamma','gamma-call','gamma-put','delta','charm'])for(const metric of ['gex','oi','volume']){const result=await call('exposure',{scope,mode,metric});assert.equal(result.available,true);equal(result.result.values,[...exposureValues(frame,mode as any,spotAt(frame.time))]);equal(result.result.strikeMetric,[...exposureStrikeMetric(frame,metric as any)]);equal(result.result.comparisons,exposureStrikeComparisons(frames,frame,metric as any));}
+ const availableStrikes=frame.profiles.flatMap(p=>p.strikes.map(s=>s.strike));for(const strikes of [[],availableStrikes.slice(0,1),availableStrikes.slice(0,2)])for(const mode of ['gamma','gamma-call','gamma-put','delta','charm'])for(const metric of ['gex','oi','volume']){const selected=new Set(strikes),result=await call('exposure',{scope,mode,metric,strikes:strikes.join(',')});equal(result.result.values,[...exposureValues(frame,mode as any,spotAt(frame.time),selected)]);equal(result.result.strikeMetric,[...exposureStrikeMetric(frame,metric as any,selected)]);equal(result.result.comparisons,exposureStrikeComparisons(frames,frame,metric as any,selected));const field=await prepareExposureField({frames,mode:mode as any,metric:metric as any,spotAt,selectedStrikes:selected,comparisons:true,activity:true},signal),heat=(await call('heatmapField',{scope,mode,metric,strikes:strikes.join(',')})).result;equal(heat,{cells:field.cells.map(c=>({time:c.frame.time,missing:c.frame.missing,values:[...c.values]})),activity:field.activity,comparisons:[...field.comparisonAt!(frame,selected)]});}
+ for(let mask=0;mask<16;mask++){const keys=['vwap','delta','iv','putCall'].filter((_,i)=>mask&(1<<i)),flags={vwap:keys.includes('vwap'),delta:keys.includes('delta'),iv:keys.includes('iv'),putCall:keys.includes('putCall')};equal((await call('overlays',{scope,overlays:keys.join(',')})).result,await prepareHeatmapOverlays({frames,bars,date,expiry,scope:scope==='all'?'all':'selected',flags},signal));}
+ await prepareExposureChartReplay(frames,bars,signal);const projected=exposureReplayChartPayload(data,{date,selectedExpiry:expiry,scope,followingLatest:false,frame,bars,frames,rawFrames:raw}),chart=(await call('chart',{scope})).result;equal(chart.display,projected);for(const granularity of ['2m','5m','1d'] as const)equal(chart.seriesByGranularity[granularity],buildQqqPcsIntradayChartData(projected.intraday?.bars??[],projected.intraday?.scoreSeries??[],undefined,undefined,projected.intraday?.gex??[],granularity));
+ const studies=(await call('chartStudies',{scope,hiddenLegends:''})).result;equal(studies.series,chart.seriesByGranularity['2m']);
+ const reactions=await prepareHeatmapPriceReactions({data,frames,bars,date,expiry,scope},signal),observed=buildObservedPriceLowMarkers(reactions.bars.filter(b=>(Number(b.time)+120)*1000<=cutoff));for(let mask=0;mask<8;mask++){const keys=['markers','low','high'].filter((_,i)=>mask&(1<<i)),result=(await call('priceReactions',{scope,reactions:keys.join(',')})).result;equal(result.bars,reactions.bars);equal(result.bands,reactions.bands);equal(result.markers,reactions.markers);equal(result.observedPriceLowMarkers,observed);equal(result.visible.markers,keys.includes('markers')?[...reactions.markers.filter(m=>(Number(m.time)+120)*1000<=cutoff),...observed].sort((a,b)=>Number(a.time)-Number(b.time)):[]);equal(result.visible.bands,reactions.bands.filter(b=>(b.time+120)*1000<=cutoff).map(b=>({...b,low:keys.includes('low')?b.low:null,high:keys.includes('high')?b.high:null})));}
+ if(!process.env.QQQ_PARITY_DB)for(const width of [320,1024]){const start=cutoff-600000,end=cutoff,raw=[...reactions.markers.filter(m=>(Number(m.time)+120)*1000<=cutoff),...observed].sort((a,b)=>Number(a.time)-Number(b.time)),result=(await call('priceReactions',{scope,viewportFrom:new Date(start).toISOString(),viewportTo:new Date(end).toISOString(),plotWidth:String(width)})).result;equal(result.visible.markers,qqqReadableMarkers(raw.map(m=>({...m,label:m.text})),m=>((Number(m.time)+120)*1000-start)/(end-start)*width,width).filter(m=>(Number(m.time)+120)*1000>=start&&(Number(m.time)+120)*1000<=end));}
+ equal((await call('optionOverview',{scope})).result,qqqOptionOverview(frame.profiles.flatMap(p=>p.strikes)));
+ equal((await call('maxPain',{scope})).result,qqqMaxPainAt(await prepareQqqMaxPain(expiries,raw,date,signal),cutoff));
+ equal((await call('atmIv',{scope})).result,qqqAtmIvAt(await prepareQqqAtmIvObservation(expiries,raw,bars,date,signal),cutoff));
+ const discovery=(await call('structureEvents',{scope})).result;const {presentation,...rawDiscovery}=discovery;equal(rawDiscovery,await prepareHeatmapDiscovery({frames,bars,expiry,scope:scope==='all'?'all':'selected'},undefined,signal));
+ equal((await call('overlays',{scope})).result,await prepareHeatmapOverlays({frames,bars,date,expiry,scope:scope==='all'?'all':'selected',flags:{vwap:true,delta:true,iv:true,putCall:true}},signal));
+ const series=await prepareHedgeObservations({frames,bars},signal);for(const minutes of [2,10,30])equal((await call('activityResponse',{scope,minutes:String(minutes)})).result,{series,window:hedgeObservationWindow(series,cutoff,minutes)});
+ }
+ for(const policy of ['partial','complete'] as const)for(const mode of ['gamma','gamma-call','gamma-put'] as const){const input=dayScenarioInput(raw.at(-1),date,spotAt(raw.at(-1)!.time)),expected=buildDayScenario(input,mode,policy),result=(await call('dayScenario',{scope,mode,policy})).result;equal(result,{...expected,policy,forecastBands:scenarioExpectedBandsFromInput(input,expected.times,expiry,scope==='all'?'all':'selected')});}equal((await call('dayScenario',{scope})).result,(await call('dayScenario',{scope,policy:'partial'})).result);
+ }
+ // Scrubbing must preserve the original table's causal prefix and delta explanations.
+ const cursorTimes=[...new Set([Date.parse(date+'T14:29:59Z'),...day.rows.map((r:any)=>Date.parse(r.availableAt??r.capturedAt)),cutoff])].sort((a,b)=>a-b);
+ for(const cursor of cursorTimes)for(const scope of ['selected','0dte','all'] as const){
+  const raw=exposureFrames(all,cursor,scope,expiry,date),frames=scope==='all'?await prepareAggregateGammaFrames(raw,spotAt,signal):raw;
+  const response=await call('replayTable',{scope,at:new Date(cursor).toISOString()});
+  if(!frames.length){assert.equal(response.status,'causal_frame_missing');continue;}
+  const rows=exposureReplayTableRows(frames,bars);
+  equal(response.result.map(({valuationReference,...row}:any)=>row),rows.map((row,i)=>({...row,displayValues:[...row.displayValues],delta:exposureReplayDisplayDeltaDetails(row,rows[i-1])})));
+  assert.ok(response.result.every((row:any)=>row.time<=cursor),'no future table snapshot');
+ }
+ // Match useQqqIntradayStudy, not merely the transport adapter: IV is only
+ // available after the last receipt/computation timestamp of its profile.
+ for(const cursor of cursorTimes){
+  const raw=exposureFrames(all,cursor,'selected',expiry,date),response=await call('pulse',{at:new Date(cursor).toISOString()});
+  if(!raw.length){assert.equal(response.status,'causal_frame_missing');continue;}
+  const tracks=await prepareQqqOptionObservations(all.filter(e=>e.expiryDate===expiry),raw.map(f=>({...f,profiles:f.profiles.filter(p=>p.expiry===expiry)})),date,signal,profile=>({profile}));
+  const pulseCutoff=qqqRegularObservationCutoff(date,cursor),snapshot=qqqObservationPrefix(tracks.find(t=>t.expiry===expiry)?.history??[],pulseCutoff).at(-1),observationSpot=qqqObservationSpotIndex(bars,date);
+  const iv=snapshot?qqqSnapshotAtmIv(snapshot.profile,observationSpot(snapshot.time))||null:null,index=qqqRegularBarIndex(bars,date),points=qqqObservationPrefix(qqqPulseSeries(index),pulseCutoff);
+  equal(response.result.points,points);
+  equal(response.result.volatility,[10,30].map(minutes=>qqqWindowVolatility(index,pulseCutoff,minutes as 10|30,iv,snapshot?.time??null,expiry)));
+  const reference=readLocalContext(db,date,0,'volume',new Date(cursor).toISOString());
+  equal(response.result.rvol,qqqRvolFromBaseline(points.at(-1),await prepareRvolBaseline(reference.days,date,signal),pulseCutoff));
+  assert.ok(points.every(p=>p.time<=pulseCutoff),'no unclosed future pulse bar');
+ }
+ console.log('PASS replay cursor/scopes and pulse closed-bars/receipt-time/IV/RVOL parity against original UI preparation; fixture or retained sample only.');
+ for(const analysis of ['exposure','overlays','atmIv','maxPain','priceReactions'])equal((await call(analysis,{scope:'0dte',expiry:'2026-01-09'})).result,(await call(analysis,{scope:'0dte'})).result);
+ await assert.rejects(()=>call('overlays',{overlays:'unknown'}),/Invalid overlay/);await assert.rejects(()=>call('exposure',{overlays:'iv'}),/Invalid overlay/);
+ console.log(process.env.QQQ_PARITY_DB&&!process.env.QQQ_PARITY_SYNTHETIC?'Dataset: retained real partial delayed sample; no complete-day claim.':'Dataset: synthetic fixture; not market data.');
+ console.log(process.env.QQQ_PARITY_SCENARIO_ONLY?'PASS scenario policy and forecast-band parity: 3 scopes ×3 gamma modes ×2 policies and UI partial default.':'PASS UI→MCP kernel numerical parity: 3 expiry scopes × 5 exposure modes × 3 metrics; ATM IV/Max Pain/overview/discovery/overlays/2,10,30-minute activity/scenario match original UI kernels, including missing values. Includes empty/single/multiple strike filters, all 16 overlay combinations and all 8 price-reaction layer combinations with original bars/zones/markers. Limited datasets; positive marker cohorts and native rendering remain separate gates.');
+}finally{db.close();}

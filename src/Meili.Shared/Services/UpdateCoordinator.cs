@@ -7,6 +7,7 @@ namespace Meili.Shared.Services;
 
 public interface IUpdateCoordinator
 {
+    bool IsConfigured => true;
     bool CanInstall { get; }
     Task<UpdateCheck> CheckAsync(CancellationToken ct);
     Task<string> DownloadAsync(UpdateRelease release, IProgress<double> progress, CancellationToken ct);
@@ -16,6 +17,7 @@ public interface IUpdateCoordinator
 /// <summary>Desktop ownership of updates; the MCP server never launches installers or replaces itself.</summary>
 public sealed class UpdateCoordinator(SettingsStore settings, string dataDirectory, string baseDirectory) : IUpdateCoordinator
 {
+    public bool IsConfigured => UpdateClient.IsConfigured;
     public bool CanInstall
     {
         get { try { _ = UpdateInstaller.InstalledRoot(baseDirectory, OperatingSystem.IsWindows()); return OperatingSystem.IsWindows() || OperatingSystem.IsMacOS(); } catch (IOException) { return false; } }

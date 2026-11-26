@@ -150,5 +150,9 @@ public sealed class HttpGateway : IDisposable
         throw last!;
     }
 
+    // Reuse the current pooled handler/proxy/cookie configuration; no separate direct-network route.
+    internal Task ConnectWebSocketAsync(System.Net.WebSockets.ClientWebSocket socket, Uri uri, CancellationToken ct)
+        => socket.ConnectAsync(uri, _client, ct);
+
     public void Dispose() => _client.Dispose();
 }

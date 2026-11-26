@@ -38,7 +38,7 @@
                                 <DockPanel LastChildFill="False">
                                     <lucide:LucideIcon DockPanel.Dock="Left" Kind="{Binding StateIcon, Converter={x:Static local:MacConverters.HealthGlyph}}" Width="16" Height="16"
                                                Foreground="{Binding StateBrush}" VerticalAlignment="Center" Margin="0,0,8,0" />
-                                    <TextBlock DockPanel.Dock="Left" Text="{Binding DisplayName}" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"
+                                    <TextBlock DockPanel.Dock="Left" Text="{Binding DisplayName}" FontSize="{DynamicResource SubtitleFontSize}" FontWeight="SemiBold" VerticalAlignment="Center"
                                                Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                                     <Border DockPanel.Dock="Left" Margin="10,0,0,0" CornerRadius="4" Padding="6,1" VerticalAlignment="Center"
                                             Background="{DynamicResource ControlFillColorSecondaryBrush}">
@@ -46,7 +46,7 @@
                                     </Border>
                                     <Border DockPanel.Dock="Right" CornerRadius="4" Padding="8,2" VerticalAlignment="Center"
                                             BorderThickness="1" BorderBrush="{Binding StateBrush}">
-                                        <TextBlock Text="{Binding StateText}" FontSize="12" FontWeight="SemiBold" Foreground="{Binding StateBrush}" />
+                                        <TextBlock Text="{Binding StateText}" FontSize="{DynamicResource CaptionFontSize}" FontWeight="SemiBold" Foreground="{Binding StateBrush}" />
                                     </Border>
                                 </DockPanel>
                                 <TextBlock Classes="Caption" Margin="0,8,0,12" Text="{Binding CapabilitiesText}" />
@@ -82,7 +82,7 @@
                                         IsVisible="{Binding HasError}">
                                     <StackPanel>
                                         <TextBlock Classes="Caption" FontWeight="SemiBold" Text="{DynamicResource Ds_LastError}" />
-                                        <ux:AppDisclosure Header="{DynamicResource UX_Details}" HorizontalAlignment="Stretch"><SelectableTextBlock FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" MaxHeight="240" Text="{Binding LastErrorText}" TextWrapping="Wrap" Margin="0,8,0,0"/></ux:AppDisclosure>
+                                        <ux:AppDisclosure Header="{DynamicResource UX_Details}" HorizontalAlignment="Stretch"><SelectableTextBlock FontSize="{DynamicResource CaptionFontSize}" Foreground="{DynamicResource TextFillColorSecondaryBrush}" MaxHeight="240" Text="{Binding LastErrorText}" TextWrapping="Wrap" Margin="0,8,0,0"/></ux:AppDisclosure>
                                     </StackPanel>
                                 </Border>
                             </StackPanel>

@@ -25,7 +25,7 @@ public sealed class ThemeService : IThemeController
 
     public bool IsDark => ApplicationThemeManager.GetAppTheme() == ApplicationTheme.Dark;
 
-    // Every theme change, including one the system watcher makes on its own, re-tones the semantic brushes.
+    // Every actual palette change, including system changes, publishes the cached semantic palette.
     public ThemeService() => ApplicationThemeManager.Changed += (_, _) =>
     {
         ApplySemanticColors(IsDark);
@@ -40,26 +40,34 @@ public sealed class ThemeService : IThemeController
     /// </summary>
     public void Apply(AppThemeMode mode, Window? mainWindow = null)
     {
+        if (mode is AppThemeMode.Light or AppThemeMode.Dark && Mode == mode
+            && IsDark == (mode == AppThemeMode.Dark) && _installed == (IsDark, _upDown)
+            && ReferenceEquals(_resourceOwner,Application.Current.Resources)
+            && Application.Current.Resources.MergedDictionaries.LastOrDefault()==_semanticHost) return;
         Mode = mode;
         mainWindow ??= Application.Current.MainWindow;
         ClearWatch();
 
+        // Our token palette owns accent colors; WPF-UI accent updates otherwise write dozens of root resources.
         switch (mode)
         {
-            case AppThemeMode.Light: ApplicationThemeManager.Apply(ApplicationTheme.Light, Backdrop, true); break;
-            case AppThemeMode.Dark: ApplicationThemeManager.Apply(ApplicationTheme.Dark, Backdrop, true); break;
+            case AppThemeMode.Light: ApplicationThemeManager.Apply(ApplicationTheme.Light, Backdrop, false); break;
+            case AppThemeMode.Dark: ApplicationThemeManager.Apply(ApplicationTheme.Dark, Backdrop, false); break;
             default:
                 // WPF-UI's system variant always asks for Mica; reset the window to the solid background afterwards.
-                ApplicationThemeManager.ApplySystemTheme(true);
+                ApplicationThemeManager.ApplySystemTheme(false);
                 WindowBackgroundManager.UpdateBackground(mainWindow, ApplicationThemeManager.GetAppTheme(), Backdrop);
                 if (mainWindow is not null && mainWindow.IsLoaded)
                 {
-                    SystemThemeWatcher.Watch(mainWindow, Backdrop, true);
+                    SystemThemeWatcher.Watch(mainWindow, Backdrop, false);
                     _watched = mainWindow;
                     mainWindow.Closing += OnWatchedClosing;
                 }
                 break;
         }
+        // WPF-UI need not raise Changed when its theme already matches. Still
+        // establish our semantic palette/precedence before returning to callers.
+        ApplySemanticColors(IsDark);
     }
 
     private void ClearWatch()
@@ -92,41 +100,58 @@ public sealed class ThemeService : IThemeController
     public static event EventHandler? ColorsChanged;
 
     /// <summary>
-    /// Writes the 0.4.2 palette over WPF-UI's Fluent brushes (which Apply resets to #202020/#FFFFFF) and then
-    /// the semantic tones. Called from <see cref="ApplicationThemeManager.Changed"/> so it always runs after Apply,
-    /// including a change the system watcher makes on its own. Never copies resources onto a window (0.4.1 fix).
+    /// Installs one complete, frozen, cached palette above WPF-UI's Fluent resources. One dictionary replacement
+    /// avoids a global invalidation per brush. Called after native/system changes; redundant calls are no-ops.
+    /// Never copies resources onto windows or pages.
     /// </summary>
     public static void ApplySemanticColors(bool dark)
     {
+        var resources = Application.Current.Resources;
+        if (!ReferenceEquals(_resourceOwner, resources))
+        {
+            _resourceOwner = resources; _semanticHost = new ResourceDictionary(); _installed = null; _palettes.Clear();
+        }
+        var key = (dark, _upDown);
+        var changed = _installed != key;
+        if (!_palettes.TryGetValue(key, out var palette)) _palettes[key] = palette = CreatePalette(dark, _upDown);
+        var hosted = resources.MergedDictionaries.Contains(_semanticHost!);
+        var last = resources.MergedDictionaries.Count > 0 && ReferenceEquals(resources.MergedDictionaries[^1], _semanticHost);
+        if (hosted && last && _installed == key) return;
+        if (_semanticHost!.MergedDictionaries.Count == 0) _semanticHost.MergedDictionaries.Add(palette);
+        else _semanticHost.MergedDictionaries[0] = palette;
+        if (!last)
+        {
+            if (hosted) resources.MergedDictionaries.Remove(_semanticHost);
+            resources.MergedDictionaries.Add(_semanticHost);
+        }
+        _installed = key;
+        // Reordering the same frozen palette repairs resource precedence, but
+        // does not change the colors held by view models.
+        if(changed)ColorsChanged?.Invoke(null, EventArgs.Empty);
+    }
+
+    private static ResourceDictionary? _resourceOwner, _semanticHost;
+    private static (bool Dark, UpDownColorMode Mode)? _installed;
+    private static readonly Dictionary<(bool Dark, UpDownColorMode Mode), ResourceDictionary> _palettes = new();
+    private static ResourceDictionary CreatePalette(bool dark, UpDownColorMode mode)
+    {
+        var dict = new ResourceDictionary();
+        void Set(string name, uint argb) { var brush = new SolidColorBrush(C(argb)); brush.Freeze(); dict[name] = brush; }
         var p = ThemePalette.For(dark);
-        foreach (var (key, argb) in p.ResourceBrushes())
-            Set(key, C(argb));
-        var (up, down) = p.UpDown(_upDown);
-        Set("UpBrush", C(up));
-        Set("DownBrush", C(down));
-        Set("UpBackgroundBrush", C(ThemePalette.Tint(up)));
-        Set("DownBackgroundBrush", C(ThemePalette.Tint(down)));
-        Set("HealthyBrush", C(p.Healthy));
-        Set("DegradedBrush", C(p.Degraded));
-        Set("DownStateBrush", C(p.DownState));
-        Set("UnknownBrush", C(p.Unknown));
-        Set("RowHighlightBrush", C(p.RowHighlight));
-        Set("ItmBrush", C(p.ItmTint));
-        Application.Current.Resources["ApplicationBackgroundColor"] = C(p.Window);
-        Application.Current.Resources["SystemAccentColor"] = C(p.Accent);
-        Application.Current.Resources["SystemAccentColorPrimary"] = C(p.Accent);
-        ColorsChanged?.Invoke(null, EventArgs.Empty);
+        foreach (var (name, argb) in p.ResourceBrushes()) Set(name, argb);
+        var (up, down) = p.UpDown(mode);
+        Set("UpBrush", up); Set("DownBrush", down);
+        Set("UpBackgroundBrush", ThemePalette.Tint(up)); Set("DownBackgroundBrush", ThemePalette.Tint(down));
+        Set("HealthyBrush", p.Healthy); Set("DegradedBrush", p.Degraded); Set("DownStateBrush", p.DownState);
+        Set("UnknownBrush", p.Unknown); Set("RowHighlightBrush", p.RowHighlight); Set("ItmBrush", p.ItmTint);
+        dict["ApplicationBackgroundColor"] = C(p.Window);
+        dict["SystemAccentColor"] = C(p.Accent); dict["SystemAccentColorPrimary"] = C(p.Accent);
+        return dict;
     }
 
     private static Color C(uint argb) => Color.FromArgb((byte)(argb >> 24), (byte)(argb >> 16), (byte)(argb >> 8), (byte)argb);
 
-    // WPF freezes brushes held in application resources, so each change installs a new brush.
-    private static void Set(string key, Color color)
-    {
-        var b = new SolidColorBrush(color);
-        b.Freeze();
-        Application.Current.Resources[key] = b;
-    }
+
 }
 
 /// <summary>E4: the shared <see cref="SemanticColors"/> as WPF colours.</summary>

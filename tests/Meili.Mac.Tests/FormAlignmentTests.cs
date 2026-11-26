@@ -17,7 +17,8 @@ public sealed class FormAlignmentTests
             foreach(var language in new[]{"zh-CN","en-US"})foreach(var dark in new[]{false,true})foreach(var width in new[]{980,1440})
             {
                 LocalizationService.Current.Apply(language);AppServices.Get<MacTheme>().Apply(dark?AppThemeMode.Dark:AppThemeMode.Light);w.Width=width;await Task.Delay(30);MacHost.Pump();
-                var page=w.CurrentView!;var headers=page.GetVisualDescendants().OfType<AppFormHeader>().ToList();Assert.Equal(9,headers.Count);
+                var page=w.CurrentView!;var headers=page.GetVisualDescendants().OfType<AppFormHeader>().ToList();Assert.Equal(11,headers.Count);
+                Assert.Contains(headers, header => header.Title == LocalizationService.Current["Set_TextSize"]);
                 foreach(var header in headers)
                 {
                     var title=header.GetVisualDescendants().OfType<TextBlock>().First(t=>t.Text==header.Title);

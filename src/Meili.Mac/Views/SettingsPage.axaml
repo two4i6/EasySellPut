@@ -27,7 +27,7 @@
         <StackPanel MaxWidth="1000">
             <TextBlock Classes="PageTitle" Text="{DynamicResource Nav_Settings}" />
 
-            <ds:AppCard x:Name="UpdatePanel" Classes="Card UpdateCard" Padding="16" Margin="0,16,0,0">
+            <ds:AppCard x:Name="UpdatePanel" DataContext="{Binding Updates}" x:DataType="vm:UpdateViewModel" Classes="Card UpdateCard" Padding="16" Margin="0,16,0,0">
                 <StackPanel Spacing="8">
                     <DockPanel LastChildFill="True">
                         <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center">
@@ -44,7 +44,27 @@
                         <Button Classes="Subtle Icon" Width="24" Height="24" MinWidth="24" MinHeight="24" DockPanel.Dock="Right" Command="{Binding CancelUpdateCommand}" AutomationProperties.Name="{DynamicResource Upd_Cancel}" ToolTip.Tip="{DynamicResource Upd_Cancel}" Margin="8,0,0,0"><lucide:LucideIcon Kind="Close"/></Button>
                         <ProgressBar Minimum="0" Maximum="100" Value="{Binding UpdateProgress}" IsIndeterminate="{Binding IsUpdateIndeterminate}" Height="4" MinHeight="0" VerticalAlignment="Center"/>
                     </DockPanel>
-                    <Expander Header="{DynamicResource Upd_Notes}" IsVisible="{Binding HasUpdateNotes}" HorizontalAlignment="Stretch"><TextBlock Text="{Binding UpdateNotes}" FontSize="14" FontWeight="Normal" TextWrapping="Wrap" Margin="0,8,0,0"/></Expander>
+                    <Expander Header="{DynamicResource Upd_Notes}" IsVisible="{Binding HasUpdateNotes}" HorizontalAlignment="Stretch"><TextBlock Text="{Binding UpdateNotes}" FontSize="{DynamicResource FontSize14}" FontWeight="Normal" TextWrapping="Wrap" Margin="0,8,0,0"/></Expander>
+                </StackPanel>
+            </ds:AppCard>
+
+            <ds:AppCard x:Name="ApplicationsPanel" Classes="Card" Margin="0,16,0,0" Padding="16" DataContext="{Binding Applications}" x:DataType="vm:AppManagementViewModel">
+                <StackPanel Spacing="12">
+                    <DockPanel>
+                        <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center">
+                            <Button Content="{DynamicResource Apps_Refresh}" Command="{Binding RefreshAppsCommand}" Margin="8,0,0,0"/>
+                            <Button Classes="Primary" Content="{DynamicResource Apps_Install}" Command="{Binding InstallAppCommand}" Margin="8,0,0,0"/>
+                        </WrapPanel>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"><TextBlock Classes="CardTitle" Text="{DynamicResource Apps_Title}" VerticalAlignment="Center"/><ds:AppHelp HelpText="{DynamicResource Apps_Help}" Margin="8,0,0,0"/></StackPanel>
+                    </DockPanel>
+                    <WrapPanel>
+                        <ds:AppSelect x:Name="InstalledApplications" MinWidth="260" ItemsSource="{Binding Apps}" SelectedItem="{Binding SelectedApp}" Margin="0,0,8,8"/>
+                        <TextBlock Classes="Caption" Text="{Binding SelectedStatus}" VerticalAlignment="Center" Margin="0,0,12,8"/>
+                        <Button Content="{Binding ToggleLabel}" Command="{Binding ToggleAppCommand}" Margin="0,0,8,8"/>
+                        <Button Content="{DynamicResource Apps_Uninstall}" Command="{Binding UninstallAppCommand}" Margin="0,0,0,8"/>
+                    </WrapPanel>
+                    <ProgressBar IsVisible="{Binding IsBusy}" IsIndeterminate="True" Height="4" MinHeight="0"/>
+                    <TextBlock Classes="Caption" Text="{Binding Status}" TextWrapping="Wrap"/>
                 </StackPanel>
             </ds:AppCard>
 
@@ -82,6 +102,15 @@
 </DockPanel>
 </ds:AppCard>
             <ds:AppCard Classes="Card FormRow" Padding="16,12" Margin="0,0,0,4">
+                <DockPanel>
+                    <ds:AppSelect DockPanel.Dock="Right" Width="{StaticResource FormFieldWidth}" Margin="16,0,0,0"
+                                  VerticalAlignment="Center" ItemsSource="{Binding TextSizeOptions}"
+                                  SelectedIndex="{Binding TextSizeIndex, Mode=TwoWay}" AutomationProperties.AutomationId="SettingsTextSize"
+                                  AutomationProperties.Name="{DynamicResource Set_TextSize}"/>
+                    <ux:AppFormHeader Title="{DynamicResource Set_TextSize}" HelpText="{DynamicResource Set_TextSizeDesc}"/>
+                </DockPanel>
+            </ds:AppCard>
+            <ds:AppCard Classes="Card FormRow" Padding="16,12" Margin="0,0,0,4">
 <DockPanel>
 <StackPanel DockPanel.Dock="Right" VerticalAlignment="Center" Margin="16,0,0,0">
                 <ds:AppSelect Width="{StaticResource FormFieldWidth}" SelectedIndex="{Binding UpDownIndex}">
@@ -113,6 +142,17 @@
 </DockPanel>
 </ds:AppCard>
 
+            <ds:AppCard Classes="Card FormRow" Padding="16,12" Margin="0,0,0,4">
+                <StackPanel>
+                    <DockPanel>
+                        <StackPanel DockPanel.Dock="Right" Width="{StaticResource FormFieldWidth}" Margin="16,0,0,0" VerticalAlignment="Center">
+                            <CheckBox x:Name="ReduceMotionSetting" Width="{StaticResource ControlHeight}" Height="{StaticResource ControlHeight}" HorizontalAlignment="Right" IsChecked="{Binding ReduceMotionEnabled}" IsEnabled="{Binding CanChangeMotion}" AutomationProperties.Name="{DynamicResource Web_Motion}"/>
+                        </StackPanel>
+                        <ux:AppFormHeader Title="{DynamicResource Web_Motion}" HelpText="{DynamicResource Set_MotionDesc}" VerticalAlignment="Center"/>
+                    </DockPanel>
+                    <TextBlock Classes="Caption" Text="{Binding MotionStatus}" TextWrapping="Wrap" IsVisible="{Binding HasMotionStatus}"/>
+                </StackPanel>
+            </ds:AppCard>
             <!-- Network -->
             <TextBlock Classes="SectionTitle" Text="{DynamicResource Set_Network}" />
             <ds:AppCard Classes="Card FormRow" Padding="16,12" Margin="0,0,0,4">
@@ -214,7 +254,7 @@
                     <WrapPanel>
                         <Border Width="280" Padding="12" Margin="0,0,12,8" CornerRadius="6" BorderThickness="1" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" Background="{DynamicResource ControlFillColorSecondaryBrush}">
                             <StackPanel>
-                                <DockPanel Margin="0,0,0,12"><Button DockPanel.Dock="Right" Classes="Icon" Width="24" Height="24" MinWidth="24" MinHeight="24" Command="{Binding OpenAiHelpCommand}" CommandParameter="codex" AutomationProperties.Name="{DynamicResource Set_AiHelp}" ToolTip.Tip="{DynamicResource Set_AiHelp}" Margin="8,0,0,0"><lucide:LucideIcon Kind="Help"/></Button><TextBlock DockPanel.Dock="Right" Classes="Caption" Text="{Binding CodexAvailability}" VerticalAlignment="Center"/><TextBlock Classes="CardTitle" FontSize="16" Text="Codex" VerticalAlignment="Center"/></DockPanel>
+                                <DockPanel Margin="0,0,0,12"><Button DockPanel.Dock="Right" Classes="Icon" Width="24" Height="24" MinWidth="24" MinHeight="24" Command="{Binding OpenAiHelpCommand}" CommandParameter="codex" AutomationProperties.Name="{DynamicResource Set_AiHelp}" ToolTip.Tip="{DynamicResource Set_AiHelp}" Margin="8,0,0,0"><lucide:LucideIcon Kind="Help"/></Button><TextBlock DockPanel.Dock="Right" Classes="Caption" Text="{Binding CodexAvailability}" VerticalAlignment="Center"/><TextBlock Classes="CardTitle" FontSize="{DynamicResource SubtitleFontSize}" Text="Codex" VerticalAlignment="Center"/></DockPanel>
                                 <WrapPanel>
                                     <Button x:Name="ConnectCodex" Content="{DynamicResource Set_AiCodex}" Command="{Binding CopyCodexCommand}" IsEnabled="{Binding CanConnectAi}" AutomationProperties.AutomationId="ConnectCodex" Margin="0,0,8,0"/>
                                     <Button Content="{DynamicResource Set_AiPrompt}" Command="{Binding CopyAiPromptCommand}" CommandParameter="codex" IsEnabled="{Binding CanConnectAi}"/>
@@ -223,7 +263,7 @@
                         </Border>
                         <Border Width="280" Padding="12" Margin="0,0,12,8" CornerRadius="6" BorderThickness="1" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" Background="{DynamicResource ControlFillColorSecondaryBrush}">
                             <StackPanel>
-                                <DockPanel Margin="0,0,0,12"><Button DockPanel.Dock="Right" Classes="Icon" Width="24" Height="24" MinWidth="24" MinHeight="24" Command="{Binding OpenAiHelpCommand}" CommandParameter="claude-code" AutomationProperties.Name="{DynamicResource Set_AiHelp}" ToolTip.Tip="{DynamicResource Set_AiHelp}" Margin="8,0,0,0"><lucide:LucideIcon Kind="Help"/></Button><TextBlock DockPanel.Dock="Right" Classes="Caption" Text="{Binding ClaudeAvailability}" VerticalAlignment="Center"/><TextBlock Classes="CardTitle" FontSize="16" Text="Claude Code" VerticalAlignment="Center"/></DockPanel>
+                                <DockPanel Margin="0,0,0,12"><Button DockPanel.Dock="Right" Classes="Icon" Width="24" Height="24" MinWidth="24" MinHeight="24" Command="{Binding OpenAiHelpCommand}" CommandParameter="claude-code" AutomationProperties.Name="{DynamicResource Set_AiHelp}" ToolTip.Tip="{DynamicResource Set_AiHelp}" Margin="8,0,0,0"><lucide:LucideIcon Kind="Help"/></Button><TextBlock DockPanel.Dock="Right" Classes="Caption" Text="{Binding ClaudeAvailability}" VerticalAlignment="Center"/><TextBlock Classes="CardTitle" FontSize="{DynamicResource SubtitleFontSize}" Text="Claude Code" VerticalAlignment="Center"/></DockPanel>
                                 <WrapPanel>
                                     <Button x:Name="ConnectClaude" Content="{DynamicResource Set_AiClaude}" Command="{Binding CopyClaudeCommand}" IsEnabled="{Binding CanConnectAi}" AutomationProperties.AutomationId="ConnectClaude" Margin="0,0,8,0"/>
                                     <Button Content="{DynamicResource Set_AiPrompt}" Command="{Binding CopyAiPromptCommand}" CommandParameter="claude-code" IsEnabled="{Binding CanConnectAi}"/>
@@ -245,6 +285,33 @@
                             <TextBlock Classes="Caption" Text="{DynamicResource Set_AiPrivacy}" TextWrapping="Wrap" />
                         </StackPanel>
                     </Expander>
+                </StackPanel>
+            </ds:AppCard>
+            <ds:AppCard x:Name="CachePanel" Classes="Card" Padding="16" Margin="0,16,0,4">
+                <StackPanel>
+                    <DockPanel Margin="0,0,0,8">
+                        <TextBlock DockPanel.Dock="Right" Text="{Binding StorageTotal}" VerticalAlignment="Center" Margin="12,0,0,0" Classes="CardTitle"/>
+                        <Button DockPanel.Dock="Right" Content="{DynamicResource Cache_Refresh}" Command="{Binding RefreshCacheCommand}" VerticalAlignment="Center"/>
+                        <ux:AppLoading DockPanel.Dock="Right" Margin="0,0,8,0" IsVisible="{Binding IsCacheBusy}"/>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"><TextBlock Classes="CardTitle" Text="{DynamicResource Storage_Title}" VerticalAlignment="Center"/><ux:AppHelp HelpText="{DynamicResource Storage_Help}" Margin="8,0,0,0" VerticalAlignment="Center"/></StackPanel>
+                    </DockPanel>
+                    <ux:AppStorageBar x:Name="StorageUsageBar" Segments="{Binding StorageSegments}" Margin="0,0,0,8"/>
+                    <TextBlock Classes="Caption" Text="{Binding StorageStatus}" TextWrapping="Wrap" IsVisible="{Binding HasStorageStatus}"/>
+                    <WrapPanel>
+                        <ds:AppSelect AutomationProperties.Name="{DynamicResource Cache_Title}" Width="{StaticResource FormFieldWidth}" SelectedIndex="{Binding CacheCategoryIndex}" IsEnabled="{Binding CanManageCache}" Margin="0,0,8,8">
+                            <ComboBoxItem Content="{DynamicResource Cache_all}"/>
+<ComboBoxItem Content="{DynamicResource Cache_responses}"/>
+<ComboBoxItem Content="{DynamicResource Cache_bars}"/>
+<ComboBoxItem Content="{DynamicResource Cache_quotes}"/>
+<ComboBoxItem Content="{DynamicResource Cache_search}"/>
+<ComboBoxItem Content="{DynamicResource Cache_rates}"/>
+<ComboBoxItem Content="{DynamicResource Cache_qqq_gex_wire}"/>
+                        </ds:AppSelect>
+                        <Button Content="{DynamicResource Cache_Expired}" Command="{Binding ClearExpiredCacheCommand}" Margin="0,0,8,8"/>
+                        <Button x:Name="CompactGexCache" Content="{DynamicResource Cache_CompactGex}" Command="{Binding CompactGexCacheCommand}" Margin="0,0,8,8"/>
+                        <Button x:Name="ClearManagedCache" Content="{DynamicResource Cache_Clear}" Command="{Binding ClearCacheCommand}" Margin="0,0,0,8"/>
+                    </WrapPanel>
+                    <TextBlock Classes="Caption" Text="{Binding CacheFeedback}" TextWrapping="Wrap"/>
                 </StackPanel>
             </ds:AppCard>
             <!-- Storage -->
@@ -271,7 +338,7 @@
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                         <Image Source="avares://MeiliMac/Assets/app-64.png" Width="40" Height="40" Margin="0,0,12,0" />
                         <StackPanel VerticalAlignment="Center">
-                            <TextBlock Classes="CardTitle" FontSize="16" Text="{DynamicResource App_Title}" />
+                            <TextBlock Classes="CardTitle" FontSize="{DynamicResource SubtitleFontSize}" Text="{DynamicResource App_Title}" />
                             <TextBlock Classes="Caption">
                                 <Run Text="{DynamicResource Set_Company}" />
                                 <Run Text="  ·  " />
@@ -281,7 +348,7 @@
                             </TextBlock>
                         </StackPanel>
                     </StackPanel>
-                    <ux:AppHelp HelpText="{DynamicResource Set_AboutDesc}" DockPanel.Dock="Right" Margin="8,0,0,0"/>
+                    <TextBlock x:Name="AboutDescription" Classes="Body" Text="{DynamicResource Set_AboutDesc}" TextWrapping="Wrap" Margin="0,8,0,0"/>
                 </StackPanel>
             </ds:AppCard>
         </StackPanel>

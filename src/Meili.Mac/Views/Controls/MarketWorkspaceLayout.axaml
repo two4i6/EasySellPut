@@ -1,0 +1,99 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="using:Meili.Mac.Views.Controls"
+             xmlns:lucide="using:Meili.Mac.Views.Controls"
+             x:Class="Meili.Mac.Views.Controls.MarketWorkspaceLayout"
+             x:Name="Layout"
+             x:CompileBindings="False">
+    <UserControl.Styles>
+        <Style Selector="TextBlock.up">
+            <Setter Property="Foreground" Value="{DynamicResource UpBrush}"/>
+        </Style>
+        <Style Selector="TextBlock.down">
+            <Setter Property="Foreground" Value="{DynamicResource DownBrush}"/>
+        </Style>
+        <Style Selector="ToggleButton.PanelToggle:checked /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource RowHighlightBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
+        </Style>
+    </UserControl.Styles>
+    <Grid Background="{DynamicResource ApplicationBackgroundBrush}" RowDefinitions="Auto,*">
+        <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" Padding="12,8" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <ToggleButton Classes="PanelToggle" x:Name="WatchlistToggle" Click="OnWatchlistToggle" Padding="8,4" Margin="4,0,0,0" ToolTip.Tip="{DynamicResource QP_Watchlist}" AutomationProperties.Name="{DynamicResource QP_Watchlist}" AutomationProperties.AutomationId="WatchlistToggle" ><lucide:LucideIcon Kind="Watchlist" Width="16" Height="16"/></ToggleButton>
+                    <ToggleButton Classes="PanelToggle" x:Name="QuoteToggle" Click="OnQuoteToggle" Padding="8,4" Margin="4,0,0,0" ToolTip.Tip="{DynamicResource Workspace_Quote}" AutomationProperties.Name="{DynamicResource Workspace_Quote}" AutomationProperties.AutomationId="QuoteToggle" ><lucide:LucideIcon Kind="Info" Width="16" Height="16"/></ToggleButton>
+                </StackPanel>
+                <StackPanel x:Name="SymbolToolbar" DockPanel.Dock="Left" Margin="0,0,16,0" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal">
+                        <controls:SymbolBox x:Name="SymbolInput" Width="156" AutomationProperties.AutomationId="WorkspaceSymbol" Text="{Binding SymbolText, Mode=TwoWay}" WatchSymbols="{Binding WatchSymbols}" CommitCommand="{Binding SubmitSymbolCommand}"/>
+                        <Button Classes="Icon" ToolTip.Tip="{DynamicResource Ch_Load}" AutomationProperties.Name="{DynamicResource Ch_Load}" Command="{Binding SubmitSymbolCommand}" Margin="4,0,0,0"><lucide:LucideIcon Kind="CornerDownLeft" Width="16" Height="16"/></Button>
+                    </StackPanel>
+                    <TextBlock Text="{Binding SymbolError}" FontSize="{DynamicResource CaptionFontSize}" MaxWidth="208" TextWrapping="Wrap"
+                               Foreground="{DynamicResource DegradedBrush}" Margin="0,4,0,0" IsVisible="{Binding SymbolError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                </StackPanel>
+                <controls:AppFormHeader Title="{Binding Title, ElementName=Layout}" HelpText="{Binding HelpText, ElementName=Layout}" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+            </DockPanel>
+        </Border>
+        <Grid x:Name="WorkspaceBody" Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="0"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Border x:Name="WorkspaceWatchlist" IsVisible="False" Background="{DynamicResource SidebarBackgroundBrush}" BorderThickness="0,0,1,0" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}">
+                <controls:MarketWatchlist x:Name="WatchlistView"/>
+            </Border>
+            <GridSplitter x:Name="WatchlistSplitter" Grid.Column="1" Width="6" IsVisible="False"
+                          HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext"
+                          Background="{DynamicResource ControlFillColorSecondaryBrush}" Focusable="True" Cursor="SizeWestEast"
+                          AutomationProperties.Name="{DynamicResource Workspace_Resize}" ToolTip.Tip="{DynamicResource Workspace_Resize}"/>
+            <Grid Grid.Column="2" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
+                <ContentControl Content="{Binding WorkspaceContent, ElementName=Layout}" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"/>
+            </Grid>
+            <Border Grid.Column="3" x:Name="WorkspaceQuote" IsVisible="False" Width="224" Background="{DynamicResource SidebarBackgroundBrush}" BorderThickness="1,0,0,0" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="12">
+                        <TextBlock Classes="Caption" Text="{DynamicResource Workspace_Quote}" FontWeight="SemiBold"/>
+                        <StackPanel DataContext="{Binding Current}" Margin="0,12,0,0">
+                            <TextBlock Text="{Binding Symbol}" FontWeight="SemiBold" FontSize="{DynamicResource SubtitleFontSize}"/>
+                            <TextBlock Classes="Caption" Text="{Binding Name}" TextWrapping="Wrap"/>
+                            <DockPanel Margin="0,8,0,4">
+                                <TextBlock Classes="Num" Classes.up="{Binding IsUp}" Classes.down="{Binding IsDown}" Text="{Binding Change}" HorizontalAlignment="Right" VerticalAlignment="Center" DockPanel.Dock="Right" Margin="4,0,0,0"/>
+                                <TextBlock Classes="Num" Text="{Binding Price}" FontSize="{DynamicResource FontSize26}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            </DockPanel>
+                            <TextBlock Classes="Caption" Text="{Binding Source}" Margin="0,6,0,0" TextWrapping="Wrap"/>
+                            <TextBlock Classes="Caption" Text="{Binding Timestamp}" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                            <Border BorderThickness="0,1,0,0" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" Margin="0,12,0,4"/>
+                            <DockPanel Margin="0,4">
+                                <TextBlock DockPanel.Dock="Right" Classes="Num" Text="{Binding Open}"/>
+                                <TextBlock Classes="Caption" Text="{DynamicResource QP_OpenPrice}"/>
+                            </DockPanel>
+                            <DockPanel Margin="0,4">
+                                <TextBlock DockPanel.Dock="Right" Classes="Num" Text="{Binding High}"/>
+                                <TextBlock Classes="Caption" Text="{DynamicResource QP_High}"/>
+                            </DockPanel>
+                            <DockPanel Margin="0,4">
+                                <TextBlock DockPanel.Dock="Right" Classes="Num" Text="{Binding Low}"/>
+                                <TextBlock Classes="Caption" Text="{DynamicResource QP_Low}"/>
+                            </DockPanel>
+                            <DockPanel Margin="0,4">
+                                <TextBlock DockPanel.Dock="Right" Classes="Num" Text="{Binding PreviousClose}"/>
+                                <TextBlock Classes="Caption" Text="{DynamicResource Workspace_PreviousClose}"/>
+                            </DockPanel>
+                            <DockPanel Margin="0,4">
+                                <TextBlock DockPanel.Dock="Right" Classes="Num" Text="{Binding Volume}"/>
+                                <TextBlock Classes="Caption" Text="{DynamicResource QP_Volume}"/>
+                            </DockPanel>
+                            <Border BorderThickness="0,1,0,0" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" Margin="0,12,0,0" Padding="0,8,0,0" IsVisible="{Binding Extended, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                <TextBlock Classes="Caption" Text="{Binding Extended}" TextWrapping="Wrap"/>
+                            </Border>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

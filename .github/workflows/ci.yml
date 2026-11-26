@@ -18,7 +18,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.macos_arm_runner || 'macos-26' }}
   cancel-in-progress: true
 
 env:
@@ -28,6 +28,130 @@ env:
   NUGET_PACKAGES: ${{ github.workspace }}/tools/nuget-packages
 
 jobs:
+  qqq-gex:
+    name: QQQ GEX · Web
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.4'
+      - run: python3 tools/qqq-gex/verify-source.py
+      - run: npm ci --no-audit --no-fund
+        working-directory: web/qqq-gex
+      - run: npm run build
+        working-directory: web/qqq-gex
+      - run: python3 tools/qqq-gex/check-surface.py
+      - run: bun test upstream/src/lib/qqqGexInputQuality.test.ts upstream/src/lib/qqqExposureWire.test.ts upstream/src/lib/qqqGammaModel.test.ts upstream/src/lib/engines/analysis/QqqGexResearch.test.ts upstream/src/lib/engines/analysis/QqqIntradayDirectional.test.ts upstream/src/lib/qqqIntradayDirectionalSignals.test.ts upstream/src/lib/qqqGexCalculation.test.ts
+        working-directory: web/qqq-gex
+      - run: bun test upstream/src/lib/qqqIntradayDirectionalSummary.test.ts upstream/src/lib/qqqHeatmapPresentation.test.ts upstream/src/lib/qqqOptionActivityScope.test.ts upstream/src/lib/qqqIntradayIndicators.test.ts upstream/src/lib/qqqExposureSides.test.ts upstream/src/lib/qqqExposureReplay.test.ts upstream/src/lib/qqqMaxPain.test.ts upstream/src/lib/qqqIndicatorConsistency.test.ts upstream/src/lib/qqqExposureArchive.test.ts
+        working-directory: web/qqq-gex
+      - run: bun test upstream/src/lib/qqqIntradaySetup.test.ts upstream/src/lib/qqqChartObservationBands.test.ts upstream/src/lib/qqqHeatmapDiscovery.test.ts upstream/src/components/Strategy/qqq/qqqDirectionalChartMarkers.test.ts upstream/src/components/Strategy/qqq/qqqChartDisplayPreferences.test.ts
+        working-directory: web/qqq-gex
+      - run: bun test upstream/src/components/Strategy/qqq/QqqIntradayLifecycle.test.tsx upstream/src/lib/engines/analysis/QqqPcsEntrySnapshot.test.ts upstream/src/lib/engines/analysis/QqqDailyMarketBase.test.ts upstream/src/lib/engines/analysis/PcsReactiveRule.test.ts upstream/src/lib/engines/leveraged-overlay/v2/strategies/pcs-contract-profile.test.ts upstream/src/lib/engines/leveraged-overlay/v2/strategies/put-credit-spread.test.ts
+        working-directory: web/qqq-gex
+      - run: npx playwright install --with-deps chromium
+        working-directory: web/qqq-gex
+      - name: Test historical workspace and retired quote-channel isolation
+        run: node tests/live-quote.mjs
+        working-directory: web/qqq-gex
+      - run: node tests/offline-viewer.mjs
+        working-directory: web/qqq-gex
+      - run: npm run build:runtime && node test-results/pcs-contract.mjs && node tests/live-display.mjs && node tests/storage-faults.mjs && node tests/wire-capacity.mjs && node tests/mcp-archive.mjs && node tests/provider-index.mjs && node tests/mcp-partial.mjs && node tests/recovery.mjs && node tests/preferences-recovery.mjs && node tests/interaction-observer.mjs && node tests/ui-observation-portability.mjs && npm run test:pipeline && node tests/mcp-analysis-fixture.mjs && node test-results/mcp-kernel-parity.mjs && node tests/pulse-replay-cohort.mjs && node test-results/wall-view-parity.mjs && node test-results/spread-study-parity.mjs && node test-results/chart-positive-parity.mjs && node test-results/chart-real-parity.mjs
+        working-directory: web/qqq-gex
+      - name: Test partial workspace and independent price clocks
+        run: |
+          node tests/partial-workspace.mjs
+          QQQ_TEST_PRICE_CLOCK=1 QQQ_TEST_DB="$(node -p "JSON.parse(require('fs').readFileSync('test-results/price-clocks-location.json')).dbPath")" node tests/offline-viewer.mjs
+        working-directory: web/qqq-gex
+      - run: QQQ_TEST_DB="$(node -p "JSON.parse(require('fs').readFileSync('test-results/pipeline-location.json')).dbPath")" QQQ_TEST_DECISION=test-results/pcs-positive.json node tests/offline-viewer.mjs
+        working-directory: web/qqq-gex
+      - run: bun tests/wire-benchmark.ts
+        working-directory: web/qqq-gex
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Test private GEX session recovery and repeated rendering
+        run: |
+          dotnet build tests/Meili.Qqq.CloudHost/Meili.Qqq.CloudHost.csproj -m:3 -v minimal
+          python3 build/bundle-qqq-runtime.py linux-x64 tests/Meili.Qqq.CloudHost/bin/Debug/net10.0
+          cd web/qqq-gex
+          node tests/session-soak.mjs
+      - name: Test isolated signed app Web UI
+        run: |
+          dotnet build src/Meili.Cli/Meili.Cli.csproj -c Release -m:3 -v minimal
+          dotnet build tools/Meili.AppDev/Meili.AppDev.csproj -c Release -m:3 -v minimal
+          node web/app-sdk/browser-appview.mjs
+          node web/app-sdk/browser-gex-app.mjs
+      - name: Test shared app engine SDK
+        run: node --test web/app-sdk/engine.test.mjs web/app-sdk/client.test.mjs web/app-sdk/engine-host.test.mjs web/app-sdk/presentation.test.mjs
+      - name: Build & verify charts core fixture
+        run: |
+          node web/app-sdk/build-engine.mjs web/charts/runtime/report.mjs web/charts/runtime-dist/report.mjs
+          python3 build/pack-app.py --app charts --development --repository "$GITHUB_REPOSITORY" --output build/out/charts-fixture/charts.espapp
+          python3 tests/automation/charts_app_smoke.py --archive build/out/charts-fixture/charts.espapp --public-key build/out/charts-fixture/charts.espapp.public.pem --repository "$GITHUB_REPOSITORY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CHARTS-test-package
+          path: build/out/charts-fixture/
+          if-no-files-found: error
+      - name: Build & verify options core fixture
+        run: |
+          node web/app-sdk/build-engine.mjs web/options-strategy/runtime/report.mjs web/options-strategy/runtime-dist/report.mjs
+          python3 build/pack-app.py --app options-strategy --development --repository "$GITHUB_REPOSITORY" --output build/out/options-fixture/options.espapp
+          python3 tests/automation/options_app_smoke.py --archive build/out/options-fixture/options.espapp --public-key build/out/options-fixture/options.espapp.public.pem --repository "$GITHUB_REPOSITORY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OPTIONS-test-package
+          path: build/out/options-fixture/
+          if-no-files-found: error
+      - name: Build & verify news core fixture
+        run: |
+          node web/app-sdk/build-engine.mjs web/news-fundamentals/runtime/report.mjs web/news-fundamentals/runtime-dist/report.mjs
+          python3 build/pack-app.py --app news-fundamentals --development --repository "$GITHUB_REPOSITORY" --output build/out/news-fixture/news.espapp
+          python3 tests/automation/news_app_smoke.py --archive build/out/news-fixture/news.espapp --public-key build/out/news-fixture/news.espapp.public.pem --repository "$GITHUB_REPOSITORY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: NEWS-test-package
+          path: build/out/news-fixture/
+          if-no-files-found: error
+      - name: Build & verify liquidity core fixture
+        run: |
+          node web/app-sdk/build-engine.mjs web/market-liquidity/runtime/report.mjs web/market-liquidity/runtime-dist/report.mjs
+          python3 build/pack-app.py --app market-liquidity --development --repository "$GITHUB_REPOSITORY" --output build/out/liquidity-fixture/liquidity.espapp
+          python3 tests/automation/liquidity_app_smoke.py --archive build/out/liquidity-fixture/liquidity.espapp --public-key build/out/liquidity-fixture/liquidity.espapp.public.pem --repository "$GITHUB_REPOSITORY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LIQUIDITY-test-package
+          path: build/out/liquidity-fixture/
+          if-no-files-found: error
+      - name: Build & verify independent app fixture
+        run: |
+          mkdir -p build/out/app-fixture
+          trap 'rm -f "$RUNNER_TEMP/app-fixture-key.pem"' EXIT
+          openssl ecparam -name prime256v1 -genkey -noout -out "$RUNNER_TEMP/app-fixture-key.pem"
+          openssl pkey -in "$RUNNER_TEMP/app-fixture-key.pem" -pubout -out "$RUNNER_TEMP/app-fixture-public.pem"
+          python3 build/pack-app.py --repository "$GITHUB_REPOSITORY" --key "$RUNNER_TEMP/app-fixture-key.pem" --ui-dir web/qqq-gex/dist --output build/out/app-fixture/qqq-gex-test.espapp
+          python3 tests/automation/app_package_smoke.py --archive build/out/app-fixture/qqq-gex-test.espapp --public-key "$RUNNER_TEMP/app-fixture-public.pem" --repository "$GITHUB_REPOSITORY"
+          python3 tests/automation/app_release_smoke.py --archive build/out/app-fixture/qqq-gex-test.espapp --key "$RUNNER_TEMP/app-fixture-key.pem" --public-key "$RUNNER_TEMP/app-fixture-public.pem" --repository "$GITHUB_REPOSITORY"
+          python3 tests/automation/app_release_smoke.py --app market-liquidity --archive build/out/liquidity-fixture/liquidity.espapp --key "$RUNNER_TEMP/app-fixture-key.pem" --public-key "$RUNNER_TEMP/app-fixture-public.pem" --repository "$GITHUB_REPOSITORY"
+          python3 tests/automation/app_release_smoke.py --app news-fundamentals --archive build/out/news-fixture/news.espapp --key "$RUNNER_TEMP/app-fixture-key.pem" --public-key "$RUNNER_TEMP/app-fixture-public.pem" --repository "$GITHUB_REPOSITORY"
+          python3 tests/automation/app_release_smoke.py --app options-strategy --archive build/out/options-fixture/options.espapp --key "$RUNNER_TEMP/app-fixture-key.pem" --public-key "$RUNNER_TEMP/app-fixture-public.pem" --repository "$GITHUB_REPOSITORY"
+          python3 tests/automation/app_release_smoke.py --app charts --archive build/out/charts-fixture/charts.espapp --key "$RUNNER_TEMP/app-fixture-key.pem" --public-key "$RUNNER_TEMP/app-fixture-public.pem" --repository "$GITHUB_REPOSITORY"
+          rm "$RUNNER_TEMP/app-fixture-key.pem"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: QQQ-GEX-test-package
+          path: build/out/app-fixture/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qqq-gex-web-evidence
+          path: web/qqq-gex/test-results
   cli:
     name: ${{ matrix.label }} · CLI/MCP
     runs-on: ${{ matrix.os }}
@@ -42,9 +166,6 @@ jobs:
           - os: windows-latest
             rid: win-x64
             label: Windows x64
-          - os: windows-11-arm
-            rid: win-arm64
-            label: Windows ARM64
           - os: macos-15-intel
             rid: osx-x64
             label: Mac Intel
@@ -67,10 +188,27 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Install Python guard dependencies
+        run: python -m pip install PyYAML==6.0.3
+      - name: Install app build runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Prepare app compatibility seed
+        run: python build/prepare-app-seed.py --if-current
       - name: Build CLI & protocol test host
         run: |
           dotnet build tests/Meili.Automation.Host/Meili.Automation.Host.csproj -c Release -m:3 -v minimal
           if ($LASTEXITCODE -ne 0) { throw 'CLI / protocol host build failed' }
+      - name: Verify compiled update repository and key
+        run: |
+          python tests/automation/check_update_source.py dotnet src/Meili.Cli/bin/Release/net10.0/easysellput.dll
+          if ($LASTEXITCODE -ne 0) { throw 'Compiled updater trust binding failed' }
+      - name: Test upstream, fork and development update binding
+        if: runner.os == 'Linux'
+        run: |
+          python tests/automation/update_source_build_smoke.py
+          if ($LASTEXITCODE -ne 0) { throw 'Update repository build binding failed' }
       - name: Test shared business logic
         run: |
           $failed = $false
@@ -91,7 +229,68 @@ jobs:
         run: |
           python tests/automation/cli_mcp_smoke.py --dll src/Meili.Cli/bin/Release/net10.0/easysellput.dll
           if ($LASTEXITCODE -ne 0) { throw 'Production CLI / MCP process checks failed' }
+      - name: Test cache maintenance & data preservation
+        run: |
+          python tests/automation/cache_management_smoke.py --dll src/Meili.Cli/bin/Release/net10.0/easysellput.dll
+          if ($LASTEXITCODE -ne 0) { throw 'Cache maintenance or protected data checks failed' }
+          python tests/automation/gex_compaction_recovery.py --dll src/Meili.Cli/bin/Release/net10.0/easysellput.dll
+          if ($LASTEXITCODE -ne 0) { throw 'Interrupted GEX compaction recovery failed' }
+      - name: Build isolated app development host
+        run: |
+          dotnet build tools/Meili.AppDev/Meili.AppDev.csproj -c Release -m:3 -v minimal
+          if ($LASTEXITCODE -ne 0) { throw 'App development host build failed' }
+      - name: Test isolated app development host
+        run: |
+          python build/pack-app.py --development --repository test/source --output "$env:RUNNER_TEMP/dev-app.espapp"
+          if ($LASTEXITCODE -ne 0) { throw 'Development app package failed' }
+          python tests/automation/app_dev_smoke.py --archive "$env:RUNNER_TEMP/dev-app.espapp" --public-key "$env:RUNNER_TEMP/dev-app.espapp.public.pem"
+          if ($LASTEXITCODE -ne 0) { throw 'App development isolation regression failed' }
+      - name: Test app updates through CLI & MCP
+        run: |
+          python tests/automation/app_mcp_update_smoke.py
+          if ($LASTEXITCODE -ne 0) { throw 'Independent app MCP update regression failed' }
+      - name: Test liquidity updates through CLI & MCP
+        run: |
+          node web/app-sdk/build-engine.mjs web/market-liquidity/runtime/report.mjs web/market-liquidity/runtime-dist/report.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Liquidity core build failed' }
+          python tests/automation/liquidity_mcp_smoke.py
+          if ($LASTEXITCODE -ne 0) { throw 'Liquidity fixed-host CLI/MCP update regression failed' }
+      - name: Test news updates through CLI & MCP
+        run: |
+          node web/app-sdk/build-engine.mjs web/news-fundamentals/runtime/report.mjs web/news-fundamentals/runtime-dist/report.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'News build failed' }
+          python tests/automation/news_mcp_smoke.py
+          if ($LASTEXITCODE -ne 0) { throw "Signed news app smoke failed" }
+      - name: Test charts updates through CLI & MCP
+        run: |
+          node web/app-sdk/build-engine.mjs web/charts/runtime/report.mjs web/charts/runtime-dist/report.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Charts core build failed' }
+          python tests/automation/charts_mcp_smoke.py
+          if ($LASTEXITCODE -ne 0) { throw 'Charts fixed-host CLI/MCP update regression failed' }
+      - name: Test options updates through CLI & MCP
+        run: |
+          node web/app-sdk/build-engine.mjs web/options-strategy/runtime/report.mjs web/options-strategy/runtime-dist/report.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Options core build failed' }
+          python tests/automation/options_mcp_smoke.py
+          if ($LASTEXITCODE -ne 0) { throw 'Options fixed-host CLI/MCP update regression failed' }
+      - name: Test signed original GEX app operations
+        run: |
+          python build/pack-app.py --development --repository test/source --ui-dir web/qqq-gex/dist --output "$env:RUNNER_TEMP/gex-pilot.espapp"
+          if ($LASTEXITCODE -ne 0) { throw 'GEX pilot package failed' }
+          python tests/automation/app_gex_operations_smoke.py --archive "$env:RUNNER_TEMP/gex-pilot.espapp"
+          if ($LASTEXITCODE -ne 0) { throw 'Original GEX signed app regression failed' }
+      - name: Test cross-process app maintenance
+        run: |
+          python tests/automation/app_maintenance_smoke.py
+          if ($LASTEXITCODE -ne 0) { throw 'App execution lease or data preservation failed' }
+      - name: Test host without app toolchain
+        if: runner.os == 'Linux'
+        run: |
+          python tests/automation/host_without_app_build_smoke.py
+          if ($LASTEXITCODE -ne 0) { throw 'Host build still depends on the app toolchain' }
       - name: Build & test CLI package
+        # The Linux check proves ordinary host compilation does not invoke the app toolchain.
+        # Packaging below explicitly prepares its compatibility seed.
         run: |
           $os = if ($IsWindows) { 'win' } elseif ($IsMacOS) { 'osx' } else { 'linux' }
           $arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant()
@@ -114,6 +313,12 @@ jobs:
           $executable = Join-Path (Join-Path $extract $name) $binary
           python tests/automation/cli_mcp_smoke.py --executable $executable
           if ($LASTEXITCODE -ne 0) { throw 'Extracted CLI / MCP process checks failed' }
+          python tests/automation/qqq_runtime_smoke.py --executable $executable
+          if ($LASTEXITCODE -ne 0) { throw 'Bundled GEX runtime checks failed' }
+          python tests/automation/app_gex_operations_smoke.py --archive "$env:RUNNER_TEMP/gex-pilot.espapp" --bundle-directory (Join-Path $extract $name)
+          if ($LASTEXITCODE -ne 0) { throw 'Signed GEX app without system Node failed' }
+          python tests/automation/cache_management_smoke.py --executable $executable
+          if ($LASTEXITCODE -ne 0) { throw 'Extracted cache maintenance checks failed' }
       - name: Upload CLI package
         uses: actions/upload-artifact@v4
         with:
@@ -152,10 +357,17 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y fontconfig fonts-dejavu-core fonts-noto-core fonts-noto-cjk
-      - name: Test layout & themes
+      - name: Install app build runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Prepare app compatibility seed
+        run: python3 build/prepare-app-seed.py --if-current
+      - name: Test layout, themes & update reminders
         env:
           FONTCONFIG_FILE: ${{ github.workspace }}/build/ci-fonts.conf
           MEILI_RENDER_DIR: ${{ github.workspace }}/build/out/ci/render
+          MEILI_THEME_PROFILE: ${{ github.workspace }}/build/out/ci/render/theme-performance.json
         run: |
           mkdir -p "$MEILI_RENDER_DIR"
           dotnet test tests/Meili.Mac.Tests/Meili.Mac.Tests.csproj -c Release -m:3 --blame-crash --blame-crash-dump-type mini --filter 'Category!=Live' --logger 'trx;LogFileName=Mac.trx' --results-directory build/out/ci/tests -v minimal -- RunConfiguration.TreatNoTestsAsError=true
@@ -203,13 +415,10 @@ jobs:
           - os: windows-latest
             rid: win-x64
             label: Windows x64
-          - os: windows-11-arm
-            rid: win-arm64
-            label: Windows ARM64
           - os: macos-15-intel
             rid: osx-x64
             label: Mac Intel
-          - os: macos-26
+          - os: "${{ inputs.macos_arm_runner || 'macos-26' }}"
             rid: osx-arm64
             label: Mac Apple Silicon
     steps:
@@ -221,6 +430,10 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           global-json-file: global.json
+      - name: Set Full HD capture desktop
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./build/ci-display.ps1
       - name: Install WebView2 runtime
         if: runner.os == 'Windows'
         shell: pwsh
@@ -235,13 +448,26 @@ jobs:
             $process = Start-Process $installer -ArgumentList '/silent', '/install' -Wait -PassThru
             if ($process.ExitCode -ne 0) { throw "WebView2 installation failed: $($process.ExitCode)" }
           }
+      - name: Install app build runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Prepare app compatibility seed
+        run: python build/prepare-app-seed.py --if-current
       - name: Test native WebView
         shell: pwsh
         run: |
-          dotnet run --project tests/Meili.NewsBrowser.Smoke/Meili.NewsBrowser.Smoke.csproj -c Release -p:BuildInParallel=false
-          if ($LASTEXITCODE -ne 0) { throw 'Native news reader smoke failed' }
+          dotnet build tests/Meili.NewsBrowser.Smoke/Meili.NewsBrowser.Smoke.csproj -c Release -p:BuildInParallel=false
+          if ($LASTEXITCODE -ne 0) { throw 'Native browser host build failed' }
+          $os = if ($IsWindows) { 'win' } else { 'osx' }
+          $arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant()
+          $tfm = if ($IsWindows) { 'net10.0-windows10.0.19041.0' } else { 'net10.0' }
+          python build/bundle-qqq-runtime.py "$os-$arch" "tests/Meili.NewsBrowser.Smoke/bin/Release/$tfm"
+          if ($LASTEXITCODE -ne 0) { throw 'Native browser pinned runtime bundle failed' }
+          dotnet run --no-build --project tests/Meili.NewsBrowser.Smoke/Meili.NewsBrowser.Smoke.csproj -c Release
+          if ($LASTEXITCODE -ne 0) { throw 'Native news/GEX browser smoke failed' }
 
-      - name: Test Windows desktop
+      - name: Test Windows desktop & update reminders
         if: runner.os == 'Windows'
         env:
           MEILI_RENDER_DIR: ${{ github.workspace }}/build/out/ci/desktop-render
@@ -264,6 +490,11 @@ jobs:
           $arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant()
           python build/pack-desktop.py --rid "$os-$arch" --output build/out/ci/desktop
           if ($LASTEXITCODE -ne 0) { throw 'Desktop packaging failed' }
+      - name: Check native GEX inspection pixels
+        shell: pwsh
+        run: |
+          python tests/webcharts/check_gex_native_pixels.py build/out/ci
+          if ($LASTEXITCODE -ne 0) { throw 'Native GEX inspection pixel check failed' }
       - name: Test packaged app & updater
         shell: pwsh
         run: |
@@ -288,6 +519,7 @@ jobs:
           name: desktop-package-evidence-${{ matrix.os }}
           path: |
             build/out/ci/desktop-smoke*
+            build/out/ci/theme-switch-*.png
             build/out/ci/desktop-render/**/*.png
             build/out/ci/desktop-render/**/*.json
             build/out/ci/tests/**/*.trx
@@ -316,7 +548,7 @@ jobs:
   required:
     name: CI · Required checks
     if: always()
-    needs: [cli, ui, desktop, release-policy]
+    needs: [cli, ui, desktop, release-policy, qqq-gex]
     runs-on: ubuntu-24.04
     steps:
       - name: Require every CI job to pass
@@ -325,8 +557,10 @@ jobs:
           UI_RESULT: ${{ needs.ui.result }}
           DESKTOP_RESULT: ${{ needs.desktop.result }}
           RELEASE_POLICY_RESULT: ${{ needs.release-policy.result }}
+          QQQ_GEX_RESULT: ${{ needs.qqq-gex.result }}
         run: |
           test "$CLI_RESULT" = success
           test "$UI_RESULT" = success
           test "$DESKTOP_RESULT" = success
           test "$RELEASE_POLICY_RESULT" = success
+          test "$QQQ_GEX_RESULT" = success

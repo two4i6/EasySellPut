@@ -70,15 +70,19 @@ public partial class OptionsViewModel
         try
         {
             var now = DateTimeOffset.Now;
-            _ivRank = await _insights.RankAsync(symbol, now, ct);
+            var rank = await _insights.RankAsync(symbol, now, ct);
+            ct.ThrowIfCancellationRequested();
+            _ivRank = rank;
             RelabelIvRank();
-            TermPoints = await _insights.TermStructureAsync(symbol, expirations, spot, now, ct);
+            var term = await _insights.TermStructureAsync(symbol, expirations, spot, now, ct);
+            ct.ThrowIfCancellationRequested();
+            TermPoints = term;
         }
         catch (OperationCanceledException) { }
         catch (Exception ex) when (ex is AllSourcesFailedException or Microsoft.Data.Sqlite.SqliteException)
         {
             AppLog.Warn("options", "volatility insights failed", ex);
         }
-        if (string.Equals(symbol, _loadedSymbol, StringComparison.OrdinalIgnoreCase)) TableChanged?.Invoke(this, EventArgs.Empty);
+        if (!ct.IsCancellationRequested && string.Equals(symbol, _loadedSymbol, StringComparison.OrdinalIgnoreCase)) TableChanged?.Invoke(this, EventArgs.Empty);
     }
 }

@@ -1,0 +1,30 @@
+name: Apps · Renew catalog
+run-name: Renew signed app catalog · main
+on:
+  schedule:
+    - cron: '17 4 * * 1'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: official-app-release
+  cancel-in-progress: false
+jobs:
+  renew:
+    name: Renew catalog expiry
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || vars.APPS_AUTO_RELEASE == 'true')
+    runs-on: ubuntu-24.04
+    environment: release
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify and renew existing catalog
+        env:
+          UPDATE_SIGNING_KEY: ${{ secrets.UPDATE_SIGNING_KEY }}
+        run: python3 build/release/app-release.py refresh

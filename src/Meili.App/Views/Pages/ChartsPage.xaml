@@ -8,7 +8,9 @@
       xmlns:controls="clr-namespace:Meili.App.Views.Controls"
 >
 
-    <Grid Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
+    <Grid x:Name="WorkspaceRoot">
+        <controls:MarketWorkspaceLayout x:Name="Workspace" UseNativeQuotePanel="False" Title="{DynamicResource Nav_Charts}"/>
+    <Grid x:Name="WorkspaceSurface" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -29,24 +31,25 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Button Style="{StaticResource RangeChip}" Content="{Binding CompactTitle}" AutomationProperties.Name="{Binding Title}" ToolTip="{Binding Title}" Command="{Binding DataContext.SelectRangeCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding Kind}"/>
+                                <Button Style="{StaticResource ChartInterval}" Content="{Binding CompactTitle}" AutomationProperties.Name="{Binding Title}" ToolTip="{Binding Title}" Command="{Binding DataContext.SelectRangeCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding Kind}"/>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </ScrollViewer>
                 <StackPanel Grid.Column="2" VerticalAlignment="Center" Orientation="Horizontal">
-                        <ToggleButton x:Name="InspectorToggle" Margin="6,0,0,0" Padding="10,6" Content="{DynamicResource Ch_Tools}" IsChecked="{Binding ShowInspector, Mode=TwoWay}" AutomationProperties.AutomationId="ChartsTools"/>
-                        <ui:Button Height="32" MinHeight="32" Margin="6,0,0,0" Padding="10,4" Content="{DynamicResource Ch_Refresh}" Command="{Binding RefreshCommand}" IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}"/>
-                        <ui:Button Height="32" MinHeight="32" Margin="6,0,0,0" Padding="10,4" Content="{DynamicResource Ch_Export}" Command="{Binding ExportCommand}"/>
+                        <ToggleButton x:Name="InspectorToggle" Margin="6,0,0,0" Width="32" Height="32" MinWidth="32" MinHeight="32" Padding="4" Content="{lucide:Lucide Settings}" AutomationProperties.Name="{DynamicResource Ch_Tools}" ToolTip="{DynamicResource Ch_Tools}" IsChecked="{Binding ShowInspector, Mode=TwoWay}" AutomationProperties.AutomationId="ChartsTools"/>
+                        <ui:Button Height="32" MinHeight="32" Margin="6,0,0,0" Width="32" MinWidth="32" Padding="4" Content="{lucide:Lucide Refresh}" AutomationProperties.Name="{DynamicResource Ch_Refresh}" ToolTip="{DynamicResource Ch_Refresh}" Command="{Binding RefreshCommand}" IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}"/>
+                        <ui:Button Height="32" MinHeight="32" Margin="6,0,0,0" Width="32" MinWidth="32" Padding="4" Content="{lucide:Lucide Download}" AutomationProperties.Name="{DynamicResource Ch_Export}" ToolTip="{DynamicResource Ch_Export}" Command="{Binding ExportCommand}"/>
                     </StackPanel>
             </Grid>
         </Border>
         <DockPanel Grid.Row="1">
-            <Border DockPanel.Dock="Left" Width="72" Padding="6,12" BorderThickness="0,0,1,0" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}">
+            <Border DockPanel.Dock="Left" x:Name="DrawingToolbar" Width="{StaticResource ChartToolRailWidth}" Padding="6,8" BorderThickness="0,0,1,0" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}">
                 <StackPanel>
-                    <ToggleButton Width="56" Height="56" Padding="4" IsChecked="{Binding IsHorizontalDrawing, Mode=OneWay}" Margin="0,0,0,8"  ToolTip="{DynamicResource Ch_DrawHLineHint}" Command="{Binding StartDrawingCommand}" CommandParameter="{x:Static cs:DrawingKind.HorizontalLine}" AutomationProperties.AutomationId="ChartsDrawHLine" AutomationProperties.Name="{DynamicResource Ch_HLineShort}"><StackPanel HorizontalAlignment="Center"><lucide:LucideIcon Kind="Minus" Width="20" Height="20"/><TextBlock Text="{DynamicResource Ch_HLineShort}" FontSize="12" HorizontalAlignment="Center"/></StackPanel></ToggleButton>
-                    <ToggleButton Width="56" Height="56" Padding="4" IsChecked="{Binding IsTrendDrawing, Mode=OneWay}" Margin="0,0,0,8"  ToolTip="{DynamicResource Ch_DrawTrendHint1}" Command="{Binding StartDrawingCommand}" CommandParameter="{x:Static cs:DrawingKind.TrendLine}" AutomationProperties.AutomationId="ChartsDrawTrend" AutomationProperties.Name="{DynamicResource Ch_TrendShort}"><StackPanel HorizontalAlignment="Center"><lucide:LucideIcon Kind="TrendUp" Width="20" Height="20"/><TextBlock Text="{DynamicResource Ch_TrendShort}" FontSize="12" HorizontalAlignment="Center"/></StackPanel></ToggleButton>
-                    <ui:Button Width="56" Height="56" Appearance="Secondary" Padding="4" Margin="0,0,0,8"  Command="{Binding ClearDrawingsCommand}" AutomationProperties.Name="{DynamicResource Ch_ClearAllShort}"><StackPanel HorizontalAlignment="Center"><lucide:LucideIcon Kind="Trash" Width="20" Height="20"/><TextBlock Text="{DynamicResource Ch_ClearAllShort}" FontSize="12" HorizontalAlignment="Center"/></StackPanel></ui:Button>
+                    <ToggleButton Width="32" Height="32" MinWidth="32" MinHeight="32" Padding="4" Margin="0,0,0,8" IsChecked="{Binding IsPan, Mode=OneWay}" Command="{Binding CancelDrawingCommand}" AutomationProperties.Name="{DynamicResource Ch_Pan}" ToolTip="{DynamicResource Ch_Pan}"><lucide:LucideIcon Kind="Cursor" Width="20" Height="20"/></ToggleButton>
+                    <ToggleButton Width="32" Height="32" MinWidth="32" MinHeight="32" Padding="4" IsChecked="{Binding IsHorizontalDrawing, Mode=OneWay}" Margin="0,0,0,8"  ToolTip="{DynamicResource Ch_DrawHLineHint}" Command="{Binding StartDrawingCommand}" CommandParameter="{x:Static cs:DrawingKind.HorizontalLine}" AutomationProperties.AutomationId="ChartsDrawHLine" AutomationProperties.Name="{DynamicResource Ch_HLineShort}"><lucide:LucideIcon Kind="Minus" Width="20" Height="20"/></ToggleButton>
+                    <ToggleButton Width="32" Height="32" MinWidth="32" MinHeight="32" Padding="4" IsChecked="{Binding IsTrendDrawing, Mode=OneWay}" Margin="0,0,0,8"  ToolTip="{DynamicResource Ch_DrawTrendHint1}" Command="{Binding StartDrawingCommand}" CommandParameter="{x:Static cs:DrawingKind.TrendLine}" AutomationProperties.AutomationId="ChartsDrawTrend" AutomationProperties.Name="{DynamicResource Ch_TrendShort}"><lucide:LucideIcon Kind="TrendUp" Width="20" Height="20"/></ToggleButton>
+                    <ui:Button Width="32" Height="32" MinWidth="32" MinHeight="32" Appearance="Secondary" Padding="4" Margin="0,0,0,8"  ToolTip="{DynamicResource Ch_ClearAllShort}" Command="{Binding ClearDrawingsCommand}" AutomationProperties.Name="{DynamicResource Ch_ClearAllShort}"><lucide:LucideIcon Kind="Trash" Width="20" Height="20"/></ui:Button>
                 </StackPanel>
             </Border>
             <controls:AppDrawer x:Name="ChartInspector" ReturnFocusTarget="{Binding ElementName=InspectorToggle}" AutomationProperties.Name="{DynamicResource Ch_Indicators}" DockPanel.Dock="Right" Width="280" BorderThickness="1,0,0,0" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" IsOpen="{Binding ShowInspector, Mode=TwoWay}">
@@ -66,54 +69,54 @@
                             <WrapPanel Margin="0,8,0,0">
                                 <StackPanel Margin="0,0,12,8">
                                     <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Ch_PMa}" Margin="0,0,0,4"/>
-                                    <ui:NumberBox Width="104" Value="{Binding MaPeriod, UpdateSourceTrigger=LostFocus}" Minimum="1" Maximum="250" SmallChange="1" MaxDecimalPlaces="0" FontSize="13"/>
+                                    <ui:NumberBox Width="104" Value="{Binding MaPeriod, UpdateSourceTrigger=LostFocus}" Minimum="1" Maximum="250" SmallChange="1" MaxDecimalPlaces="0" FontSize="{DynamicResource FontSize13}"/>
                                 </StackPanel>
                                 <StackPanel Margin="0,0,12,8">
                                     <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Ch_PEma}" Margin="0,0,0,4"/>
-                                    <ui:NumberBox Width="104" Value="{Binding EmaPeriod, UpdateSourceTrigger=LostFocus}" Minimum="1" Maximum="250" SmallChange="1" MaxDecimalPlaces="0" FontSize="13"/>
+                                    <ui:NumberBox Width="104" Value="{Binding EmaPeriod, UpdateSourceTrigger=LostFocus}" Minimum="1" Maximum="250" SmallChange="1" MaxDecimalPlaces="0" FontSize="{DynamicResource FontSize13}"/>
                                 </StackPanel>
                                 <StackPanel Margin="0,0,12,8">
                                     <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Ch_PBoll}" Margin="0,0,0,4"/>
-                                    <ui:NumberBox Width="104" Value="{Binding BollPeriod, UpdateSourceTrigger=LostFocus}" Minimum="2" Maximum="250" SmallChange="1" MaxDecimalPlaces="0" FontSize="13"/>
+                                    <ui:NumberBox Width="104" Value="{Binding BollPeriod, UpdateSourceTrigger=LostFocus}" Minimum="2" Maximum="250" SmallChange="1" MaxDecimalPlaces="0" FontSize="{DynamicResource FontSize13}"/>
                                 </StackPanel>
                                 <StackPanel Margin="0,0,12,8">
                                     <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Ch_PBollWidth}" Margin="0,0,0,4"/>
-                                    <ui:NumberBox Width="104" Value="{Binding BollWidth, UpdateSourceTrigger=LostFocus}" Minimum="0.5" Maximum="5" SmallChange="0.1" MaxDecimalPlaces="2" FontSize="13"/>
+                                    <ui:NumberBox Width="104" Value="{Binding BollWidth, UpdateSourceTrigger=LostFocus}" Minimum="0.5" Maximum="5" SmallChange="0.1" MaxDecimalPlaces="2" FontSize="{DynamicResource FontSize13}"/>
                                 </StackPanel>
                                 <StackPanel Margin="0,0,12,8">
                                     <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Ch_PMacdFast}" Margin="0,0,0,4"/>
-                                    <ui:NumberBox Width="104" Value="{Binding MacdFast, UpdateSourceTrigger=LostFocus}" Minimum="1" Maximum="250" SmallChange="1" MaxDecimalPlaces="0" FontSize="13"/>
+                                    <ui:NumberBox Width="104" Value="{Binding MacdFast, UpdateSourceTrigger=LostFocus}" Minimum="1" Maximum="250" SmallChange="1" MaxDecimalPlaces="0" FontSize="{DynamicResource FontSize13}"/>
                                 </StackPanel>
                                 <StackPanel Margin="0,0,12,8">
                                     <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Ch_PMacdSlow}" Margin="0,0,0,4"/>
-                                    <ui:NumberBox Width="104" Value="{Binding MacdSlow, UpdateSourceTrigger=LostFocus}" Minimum="2" Maximum="251" SmallChange="1" MaxDecimalPlaces="0" FontSize="13"/>
+                                    <ui:NumberBox Width="104" Value="{Binding MacdSlow, UpdateSourceTrigger=LostFocus}" Minimum="2" Maximum="251" SmallChange="1" MaxDecimalPlaces="0" FontSize="{DynamicResource FontSize13}"/>
                                 </StackPanel>
                                 <StackPanel Margin="0,0,12,8">
                                     <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Ch_PMacdSignal}" Margin="0,0,0,4"/>
-                                    <ui:NumberBox Width="104" Value="{Binding MacdSignal, UpdateSourceTrigger=LostFocus}" Minimum="1" Maximum="250" SmallChange="1" MaxDecimalPlaces="0" FontSize="13"/>
+                                    <ui:NumberBox Width="104" Value="{Binding MacdSignal, UpdateSourceTrigger=LostFocus}" Minimum="1" Maximum="250" SmallChange="1" MaxDecimalPlaces="0" FontSize="{DynamicResource FontSize13}"/>
                                 </StackPanel>
                                 <StackPanel Margin="0,0,12,8">
                                     <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Ch_PRsi}" Margin="0,0,0,4"/>
-                                    <ui:NumberBox Width="104" Value="{Binding RsiPeriod, UpdateSourceTrigger=LostFocus}" Minimum="1" Maximum="250" SmallChange="1" MaxDecimalPlaces="0" FontSize="13"/>
+                                    <ui:NumberBox Width="104" Value="{Binding RsiPeriod, UpdateSourceTrigger=LostFocus}" Minimum="1" Maximum="250" SmallChange="1" MaxDecimalPlaces="0" FontSize="{DynamicResource FontSize13}"/>
                                 </StackPanel>
                                 <StackPanel Margin="0,0,12,8">
                                     <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Ch_PKdj}" Margin="0,0,0,4"/>
-                                    <ui:NumberBox Width="104" Value="{Binding KdjPeriod, UpdateSourceTrigger=LostFocus}" Minimum="1" Maximum="250" SmallChange="1" MaxDecimalPlaces="0" FontSize="13"/>
+                                    <ui:NumberBox Width="104" Value="{Binding KdjPeriod, UpdateSourceTrigger=LostFocus}" Minimum="1" Maximum="250" SmallChange="1" MaxDecimalPlaces="0" FontSize="{DynamicResource FontSize13}"/>
                                 </StackPanel>
                                 <StackPanel Margin="0,0,12,8">
                                     <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Ch_PKdjM1}" Margin="0,0,0,4"/>
-                                    <ui:NumberBox Width="104" Value="{Binding KdjM1, UpdateSourceTrigger=LostFocus}" Minimum="1" Maximum="250" SmallChange="1" MaxDecimalPlaces="0" FontSize="13"/>
+                                    <ui:NumberBox Width="104" Value="{Binding KdjM1, UpdateSourceTrigger=LostFocus}" Minimum="1" Maximum="250" SmallChange="1" MaxDecimalPlaces="0" FontSize="{DynamicResource FontSize13}"/>
                                 </StackPanel>
                                 <StackPanel Margin="0,0,12,8">
                                     <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Ch_PKdjM2}" Margin="0,0,0,4"/>
-                                    <ui:NumberBox Width="104" Value="{Binding KdjM2, UpdateSourceTrigger=LostFocus}" Minimum="1" Maximum="250" SmallChange="1" MaxDecimalPlaces="0" FontSize="13"/>
+                                    <ui:NumberBox Width="104" Value="{Binding KdjM2, UpdateSourceTrigger=LostFocus}" Minimum="1" Maximum="250" SmallChange="1" MaxDecimalPlaces="0" FontSize="{DynamicResource FontSize13}"/>
                                 </StackPanel>
                                 <ui:Button VerticalAlignment="Bottom" Margin="0,0,0,8" Appearance="Secondary" Padding="12,6" Content="{DynamicResource Ch_PReset}" Command="{Binding ResetIndicatorsCommand}"/>
                             </WrapPanel>
                         </Expander>
                         <StackPanel Margin="0,12,0,0">
                             <TextBlock Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0,0,8,0" Text="{DynamicResource Ch_Compare}"/>
-                            <ui:TextBox HorizontalAlignment="Stretch" Text="{Binding CompareText, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{DynamicResource Ch_ComparePlaceholder}" FontSize="13" Margin="0,6,0,6" AutomationProperties.AutomationId="ChartsCompare">
+                            <ui:TextBox HorizontalAlignment="Stretch" Text="{Binding CompareText, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{DynamicResource Ch_ComparePlaceholder}" FontSize="{DynamicResource FontSize13}" Margin="0,6,0,6" AutomationProperties.AutomationId="ChartsCompare">
                                 <ui:TextBox.InputBindings>
                                     <KeyBinding Key="Enter" Command="{Binding ApplyCompareCommand}"/>
                                 </ui:TextBox.InputBindings>
@@ -130,16 +133,20 @@
             </controls:AppDrawer>
             <controls:WebChartControl x:Name="Chart" MinHeight="220"/>
         </DockPanel>
-        <Border Grid.Row="2" Padding="12,6" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}">
-            <StackPanel>
-                <TextBlock Text="{Binding AdjustWarning}" FontSize="12" Margin="0,0,0,6" TextWrapping="Wrap" Foreground="{DynamicResource DegradedBrush}" Visibility="{Binding AdjustWarning, Converter={StaticResource NonEmptyToVis}}" AutomationProperties.AutomationId="ChartsAdjustWarning"/>
-                <DockPanel LastChildFill="True">
-                    <controls:AppLoading DockPanel.Dock="Left" Margin="0,0,8,0" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
-                    <TextBlock Style="{StaticResource Caption}" Text="{Binding StatusText}" VerticalAlignment="Center" Margin="0,0,16,0"/>
-<TextBlock Style="{StaticResource Caption}" Text="{Binding AdjustText}" Margin="0,0,12,0" VerticalAlignment="Center"/>
-                    <TextBlock Style="{StaticResource Caption}" FontFamily="{DynamicResource NumberFont}" Text="{Binding CrosshairText}" VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
-                </DockPanel>
-            </StackPanel>
+        <Border x:Name="ChartStatusBar" Grid.Row="2" Padding="12,2" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}">
+          <StackPanel>
+            <TextBlock Text="{Binding AdjustWarning}" FontSize="12" Margin="0,0,0,4" TextWrapping="Wrap" Foreground="{DynamicResource DegradedBrush}" Visibility="{Binding AdjustWarning, Converter={StaticResource NonEmptyToVis}}" AutomationProperties.AutomationId="ChartsAdjustWarning"/>
+            <Grid >
+              <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+              <controls:AppHelp x:Name="ChartControlsHelp" Grid.Column="0" HelpText="{DynamicResource Ch_ControlHelp}" Margin="0,0,8,0"/>
+              <controls:AppLoading Grid.Column="1" Margin="0,0,8,0" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
+              <TextBlock x:Name="ChartSourceStatus" Grid.Column="2" Style="{StaticResource Caption}" Text="{Binding StatusText}" ToolTip="{Binding StatusText}" MaxWidth="180" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" VerticalAlignment="Center" Margin="0,0,12,0"/>
+              <TextBlock x:Name="ChartAdjustmentStatus" Grid.Column="3" Style="{StaticResource Caption}" Text="{Binding AdjustText}" ToolTip="{Binding AdjustText}" MaxWidth="136" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" Margin="0,0,12,0" VerticalAlignment="Center"/>
+              <TextBlock Grid.Column="4" Style="{StaticResource Caption}" MaxWidth="200" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" Text="{Binding LiveChartText}" ToolTip="{Binding LiveChartTip}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+              <TextBlock x:Name="ChartCrosshairStatus" Grid.Column="5" Style="{StaticResource Caption}" FontFamily="{DynamicResource NumberFont}" Text="{Binding CrosshairText}" ToolTip="{Binding CrosshairText}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+            </Grid>
+          </StackPanel>
         </Border>
+    </Grid>
     </Grid>
 </Page>

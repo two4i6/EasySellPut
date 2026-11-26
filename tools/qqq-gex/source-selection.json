@@ -1,0 +1,1710 @@
+{
+  "sourceCommit": "8abee90a260071cbe9b1519a56548e8bf5a8d18e",
+  "policy": "actual-browser-runtime-build-and-test-roots-v1",
+  "sourceDataOnly": [
+    "src/app/api/analysis/qqq/pcs/route.ts",
+    "src/services/orchestrators/macroDataService.ts",
+    "src/lib/qqqIntradayDirectionalReplayHistory.ts"
+  ],
+  "retainedPaths": [
+    "src/App.css",
+    "src/app/analysis/qqq/gex/page.component.tsx",
+    "src/app/api/analysis/qqq/pcs/route.ts",
+    "src/app/globals.css",
+    "src/components/Button.tsx",
+    "src/components/Strategy/qqq/QqqCacheHealth.module.css",
+    "src/components/Strategy/qqq/QqqChartSettings.module.css",
+    "src/components/Strategy/qqq/QqqExposureCanvas.tsx",
+    "src/components/Strategy/qqq/QqqExposureSnapshotTable.tsx",
+    "src/components/Strategy/qqq/QqqExposureWorkbench.module.css",
+    "src/components/Strategy/qqq/QqqExposureWorkbench.tsx",
+    "src/components/Strategy/qqq/QqqGexDateRail.module.css",
+    "src/components/Strategy/qqq/QqqGexDateRail.tsx",
+    "src/components/Strategy/qqq/QqqGexLoadingSkeleton.tsx",
+    "src/components/Strategy/qqq/QqqGexMatrix.module.css",
+    "src/components/Strategy/qqq/QqqGexMatrix.tsx",
+    "src/components/Strategy/qqq/QqqGexRequestFeedback.module.css",
+    "src/components/Strategy/qqq/QqqGexRequestFeedback.tsx",
+    "src/components/Strategy/qqq/QqqHeatmapDataStatus.tsx",
+    "src/components/Strategy/qqq/QqqHeatmapDiscovery.module.css",
+    "src/components/Strategy/qqq/QqqHeatmapDiscovery.tsx",
+    "src/components/Strategy/qqq/QqqHeatmapInspector.tsx",
+    "src/components/Strategy/qqq/QqqHeatmapOverlayLines.tsx",
+    "src/components/Strategy/qqq/QqqHeatmapPriceReactions.tsx",
+    "src/components/Strategy/qqq/QqqHedgeObservationPanels.tsx",
+    "src/components/Strategy/qqq/QqqInfoTooltip.module.css",
+    "src/components/Strategy/qqq/QqqInfoTooltip.tsx",
+    "src/components/Strategy/qqq/QqqIntradayExecutionScoreCard.tsx",
+    "src/components/Strategy/qqq/QqqIntradayLifecycle.test.tsx",
+    "src/components/Strategy/qqq/QqqIntradayLifecycle.tsx",
+    "src/components/Strategy/qqq/QqqNextActionCard.module.css",
+    "src/components/Strategy/qqq/QqqNextActionCard.tsx",
+    "src/components/Strategy/qqq/QqqPcsGexChart.tsx",
+    "src/components/Strategy/qqq/QqqPcsGexIntradayChart.tsx",
+    "src/components/Strategy/qqq/QqqPcsIntradayChart.shared.ts",
+    "src/components/Strategy/qqq/QqqPcsIntradayChart.tsx",
+    "src/components/Strategy/qqq/QqqPcsKlineChartsPoc.tsx",
+    "src/components/Strategy/qqq/QqqReplaySlider.tsx",
+    "src/components/Strategy/qqq/QqqScrollRail.module.css",
+    "src/components/Strategy/qqq/QqqScrollRail.tsx",
+    "src/components/Strategy/qqq/QqqTerminalWorkspace.module.css",
+    "src/components/Strategy/qqq/QqqTerminalWorkspace.tsx",
+    "src/components/Strategy/qqq/QqqVirtualTableBody.tsx",
+    "src/components/Strategy/qqq/qqqChartDisplayPreferences.test.ts",
+    "src/components/Strategy/qqq/qqqChartDisplayPreferences.ts",
+    "src/components/Strategy/qqq/qqqDayScenarioRenderModel.ts",
+    "src/components/Strategy/qqq/qqqDirectionalChartMarkers.test.ts",
+    "src/components/Strategy/qqq/qqqDirectionalChartMarkers.ts",
+    "src/components/Strategy/qqq/qqqExposureRenderModel.ts",
+    "src/components/Strategy/qqq/qqqGexMatrixModel.ts",
+    "src/components/Strategy/qqq/qqqHeatmapInteraction.ts",
+    "src/components/Strategy/qqq/qqqLiveCandle.ts",
+    "src/components/Strategy/qqq/terminal/QqqAtmIvCard.tsx",
+    "src/components/Strategy/qqq/terminal/QqqDirectionalSignalConsole.module.css",
+    "src/components/Strategy/qqq/terminal/QqqDirectionalSignalConsole.tsx",
+    "src/components/Strategy/qqq/terminal/QqqExposureSummary.tsx",
+    "src/components/Strategy/qqq/terminal/QqqGammaModelPanel.module.css",
+    "src/components/Strategy/qqq/terminal/QqqGammaModelPanel.tsx",
+    "src/components/Strategy/qqq/terminal/QqqGammaObservation.tsx",
+    "src/components/Strategy/qqq/terminal/QqqGexTerminal.tsx",
+    "src/components/Strategy/qqq/terminal/QqqIntradayPulseCard.tsx",
+    "src/components/Strategy/qqq/terminal/QqqMaxPainCard.tsx",
+    "src/components/Strategy/qqq/terminal/QqqObservationCards.module.css",
+    "src/components/Strategy/qqq/terminal/QqqObservationUi.module.css",
+    "src/components/Strategy/qqq/terminal/QqqObservationUi.tsx",
+    "src/components/Strategy/qqq/terminal/QqqOptionActivityObservation.tsx",
+    "src/components/Strategy/qqq/terminal/QqqSpreadStudyCard.tsx",
+    "src/components/Strategy/qqq/terminal/QqqWallTouchStatsCard.tsx",
+    "src/components/Strategy/qqq/terminal/directionalSignalPresentation.ts",
+    "src/components/Strategy/qqq/terminal/qqqLayoutFrame.ts",
+    "src/components/Strategy/qqq/terminal/qqqTerminalTabsModel.ts",
+    "src/components/Tooltip.tsx",
+    "src/components/ui/accordion.tsx",
+    "src/components/ui/button.tsx",
+    "src/components/ui/popover.tsx",
+    "src/components/ui/skeleton.tsx",
+    "src/hooks/qqqDayScenarioDisplay.ts",
+    "src/hooks/qqqDayScenarioWorker.ts",
+    "src/hooks/useAppSWR.ts",
+    "src/hooks/useQqqAggregateExposureFrames.ts",
+    "src/hooks/useQqqDayScenario.ts",
+    "src/hooks/useQqqExposureChartProjection.ts",
+    "src/hooks/useQqqExposureField.ts",
+    "src/hooks/useQqqExposureFrames.ts",
+    "src/hooks/useQqqExposureHistory.ts",
+    "src/hooks/useQqqGammaModels.ts",
+    "src/hooks/useQqqGexDisplayData.ts",
+    "src/hooks/useQqqHeatmapDiscovery.ts",
+    "src/hooks/useQqqHeatmapOverlays.ts",
+    "src/hooks/useQqqHedgeObservations.ts",
+    "src/hooks/useQqqIntradayContext.ts",
+    "src/hooks/useQqqIntradayStudy.ts",
+    "src/hooks/useQqqLiveTick.ts",
+    "src/hooks/useQqqSessionQuote.ts",
+    "src/hooks/useQqqSpreadQuote.ts",
+    "src/hooks/useStoredPreference.ts",
+    "src/hooks/useVirtualTableViewport.ts",
+    "src/lib/FactorEngine.ts",
+    "src/lib/apr.ts",
+    "src/lib/cacheGeneration.ts",
+    "src/lib/cspResearch.ts",
+    "src/lib/embeddedRedisCache.ts",
+    "src/lib/engineTimeline.ts",
+    "src/lib/engines/analysis/ExpectedMoveEngine.ts",
+    "src/lib/engines/analysis/IVSuitabilityEngine.ts",
+    "src/lib/engines/analysis/IntradayBonusEngine.ts",
+    "src/lib/engines/analysis/MonkeyMarketEngine.ts",
+    "src/lib/engines/analysis/PanicTriggerEngine.ts",
+    "src/lib/engines/analysis/PcsReactiveRule.test.ts",
+    "src/lib/engines/analysis/PcsReactiveRule.ts",
+    "src/lib/engines/analysis/QqqCsEntrySnapshot.ts",
+    "src/lib/engines/analysis/QqqDailyMarketBase.test.ts",
+    "src/lib/engines/analysis/QqqDailyMarketBase.ts",
+    "src/lib/engines/analysis/QqqGexResearch.test.ts",
+    "src/lib/engines/analysis/QqqGexResearch.ts",
+    "src/lib/engines/analysis/QqqGexTerminalEngine.ts",
+    "src/lib/engines/analysis/QqqIntradayDirectional.test.ts",
+    "src/lib/engines/analysis/QqqIntradayDirectional.ts",
+    "src/lib/engines/analysis/QqqIntradayDirectionalReplay.ts",
+    "src/lib/engines/analysis/QqqPcsEntrySnapshot.test.ts",
+    "src/lib/engines/analysis/QqqPcsEntrySnapshot.ts",
+    "src/lib/engines/analysis/QqqStrategyAnalysis.ts",
+    "src/lib/engines/analysis/SellerEdgeScoreEngine.ts",
+    "src/lib/engines/analysis/SellerOpportunityFactors.ts",
+    "src/lib/engines/analysis/SellerOpportunityPolicy.ts",
+    "src/lib/engines/analysis/SellerStatsEngine.ts",
+    "src/lib/engines/analysis/SentimentEngine.ts",
+    "src/lib/engines/analysis/StockEngine.ts",
+    "src/lib/engines/analysis/TechnicalAnalysisEngine.ts",
+    "src/lib/engines/analysis/VolatilityEngine.ts",
+    "src/lib/engines/analysis/entryMetricsEngine.ts",
+    "src/lib/engines/core/DecisionEngine.ts",
+    "src/lib/engines/core/VerdictEngine.ts",
+    "src/lib/engines/discovery/AnomalyDetectionEngine.ts",
+    "src/lib/engines/discovery/SigmaEventEngine.ts",
+    "src/lib/engines/gates/PreTradeGate.ts",
+    "src/lib/engines/index.ts",
+    "src/lib/engines/indicators/IndicatorEngine.ts",
+    "src/lib/engines/intraday-ladder/types.ts",
+    "src/lib/engines/leveraged-overlay/backtest/mockOptionCalibration.ts",
+    "src/lib/engines/leveraged-overlay/backtest/mockOptions.ts",
+    "src/lib/engines/leveraged-overlay/backtest/resampled-regime-classifier.ts",
+    "src/lib/engines/leveraged-overlay/constants.ts",
+    "src/lib/engines/leveraged-overlay/engines/03-market-regime.ts",
+    "src/lib/engines/leveraged-overlay/engines/macro-regime-state.ts",
+    "src/lib/engines/leveraged-overlay/exitConditions.ts",
+    "src/lib/engines/leveraged-overlay/overlayValidation.ts",
+    "src/lib/engines/leveraged-overlay/stock-policy.ts",
+    "src/lib/engines/leveraged-overlay/types/input.ts",
+    "src/lib/engines/leveraged-overlay/types/output.ts",
+    "src/lib/engines/leveraged-overlay/types/params.ts",
+    "src/lib/engines/leveraged-overlay/types/pipeline.ts",
+    "src/lib/engines/leveraged-overlay/universe.ts",
+    "src/lib/engines/leveraged-overlay/utils.ts",
+    "src/lib/engines/leveraged-overlay/v2/base.ts",
+    "src/lib/engines/leveraged-overlay/v2/options.ts",
+    "src/lib/engines/leveraged-overlay/v2/strategies/pcs-contract-profile.test.ts",
+    "src/lib/engines/leveraged-overlay/v2/strategies/pcs-contract-profile.ts",
+    "src/lib/engines/leveraged-overlay/v2/strategies/pcs-stock-decision-filter.ts",
+    "src/lib/engines/leveraged-overlay/v2/strategies/put-credit-spread.test.ts",
+    "src/lib/engines/leveraged-overlay/v2/strategies/put-credit-spread.ts",
+    "src/lib/engines/position/RollEngine.ts",
+    "src/lib/engines/position/cspExecutionEngine.ts",
+    "src/lib/engines/position/cspWarningEngine.ts",
+    "src/lib/engines/pricing/BlackScholesEngine.ts",
+    "src/lib/engines/pricing/OptionChainEngine.ts",
+    "src/lib/engines/recommendation/RecommendationEngine.ts",
+    "src/lib/engines/regime/HMMRegimeEngine.ts",
+    "src/lib/engines/regime/UnifiedRegimeEngine.ts",
+    "src/lib/engines/screening/OptionChainScoringEngine.ts",
+    "src/lib/engines/shared/constants.ts",
+    "src/lib/engines/shared/tradeUtils.ts",
+    "src/lib/engines/structure/GEXEngine.ts",
+    "src/lib/engines/structure/GEXStructureEngine.ts",
+    "src/lib/factor.ts",
+    "src/lib/findBestCSPStrike.ts",
+    "src/lib/indicators/compat.ts",
+    "src/lib/indicators/config.ts",
+    "src/lib/indicators/index.ts",
+    "src/lib/indicators/indicators/composite.ts",
+    "src/lib/indicators/indicators/momentum.ts",
+    "src/lib/indicators/indicators/pattern.ts",
+    "src/lib/indicators/indicators/trend.ts",
+    "src/lib/indicators/indicators/volatility.ts",
+    "src/lib/indicators/indicators/volume.ts",
+    "src/lib/indicators/pipeline.ts",
+    "src/lib/indicators/types.ts",
+    "src/lib/jsonResponseDelta.ts",
+    "src/lib/optionQuote.ts",
+    "src/lib/presenters/marketTechnicalLens.ts",
+    "src/lib/qqqAtmIv.ts",
+    "src/lib/qqqAtmIvObservation.ts",
+    "src/lib/qqqChartArchive.ts",
+    "src/lib/qqqChartArchiveCodec.ts",
+    "src/lib/qqqChartCloseIndex.ts",
+    "src/lib/qqqChartCombinedTransport.ts",
+    "src/lib/qqqChartDataIndex.ts",
+    "src/lib/qqqChartObservationBands.test.ts",
+    "src/lib/qqqChartObservationBands.ts",
+    "src/lib/qqqChartProfile.ts",
+    "src/lib/qqqChartProfileTransport.ts",
+    "src/lib/qqqChartReadability.ts",
+    "src/lib/qqqChartRpc.ts",
+    "src/lib/qqqChartSeriesUpdate.ts",
+    "src/lib/qqqChartSource.ts",
+    "src/lib/qqqChartTimeGrid.ts",
+    "src/lib/qqqDayScenario.ts",
+    "src/lib/qqqDayScenario.worker.ts",
+    "src/lib/qqqDirectionalGexTime.ts",
+    "src/lib/qqqDirectionalGexTransport.ts",
+    "src/lib/qqqDirectionalPersistence.ts",
+    "src/lib/qqqDirectionalReplayPages.ts",
+    "src/lib/qqqDisplayDecision.ts",
+    "src/lib/qqqDisplayEvidence.ts",
+    "src/lib/qqqDisplayGammaModels.ts",
+    "src/lib/qqqExposureArchive.test.ts",
+    "src/lib/qqqExposureArchive.ts",
+    "src/lib/qqqExposureArchiveClient.ts",
+    "src/lib/qqqExposureBars.ts",
+    "src/lib/qqqExposureChartReplay.ts",
+    "src/lib/qqqExposureHistoryModel.ts",
+    "src/lib/qqqExposureReplay.test.ts",
+    "src/lib/qqqExposureReplay.ts",
+    "src/lib/qqqExposureSides.test.ts",
+    "src/lib/qqqExposureWire.test.ts",
+    "src/lib/qqqExposureWire.ts",
+    "src/lib/qqqExposureWire.worker.ts",
+    "src/lib/qqqExposureWireClient.ts",
+    "src/lib/qqqExposureWorkbench.ts",
+    "src/lib/qqqFramePublisher.ts",
+    "src/lib/qqqGammaModel.test.ts",
+    "src/lib/qqqGammaModel.ts",
+    "src/lib/qqqGammaModel.worker.ts",
+    "src/lib/qqqGammaModelJob.ts",
+    "src/lib/qqqGammaModelPresentation.ts",
+    "src/lib/qqqGammaObservationInput.ts",
+    "src/lib/qqqGammaPosition.ts",
+    "src/lib/qqqGexBacktestHistory.ts",
+    "src/lib/qqqGexCalculation.test.ts",
+    "src/lib/qqqGexCalculation.ts",
+    "src/lib/qqqGexCaptureBuilder.ts",
+    "src/lib/qqqGexDateSelection.ts",
+    "src/lib/qqqGexDisplayState.ts",
+    "src/lib/qqqGexHistoricalIsolation.ts",
+    "src/lib/qqqGexHistory.ts",
+    "src/lib/qqqGexInputQuality.test.ts",
+    "src/lib/qqqGexInputQuality.ts",
+    "src/lib/qqqGexLabels.ts",
+    "src/lib/qqqGexObservationComparison.ts",
+    "src/lib/qqqGexProfile.ts",
+    "src/lib/qqqGexReadConsistency.ts",
+    "src/lib/qqqGexSelection.ts",
+    "src/lib/qqqGexSummary.ts",
+    "src/lib/qqqHeatmapDiscovery.test.ts",
+    "src/lib/qqqHeatmapDiscovery.ts",
+    "src/lib/qqqHeatmapOverlays.ts",
+    "src/lib/qqqHeatmapPresentation.test.ts",
+    "src/lib/qqqHeatmapPresentation.ts",
+    "src/lib/qqqHedgeObservations.ts",
+    "src/lib/qqqHistoryClient.ts",
+    "src/lib/qqqHoverStore.ts",
+    "src/lib/qqqIndicatorConsistency.test.ts",
+    "src/lib/qqqIntradayBacktestHistory.ts",
+    "src/lib/qqqIntradayCandles.ts",
+    "src/lib/qqqIntradayDirectionalReplayHistory.ts",
+    "src/lib/qqqIntradayDirectionalSignals.test.ts",
+    "src/lib/qqqIntradayDirectionalSignals.ts",
+    "src/lib/qqqIntradayDirectionalSummary.test.ts",
+    "src/lib/qqqIntradayDirectionalSummary.ts",
+    "src/lib/qqqIntradayIndicators.test.ts",
+    "src/lib/qqqIntradayIndicators.ts",
+    "src/lib/qqqIntradaySetup.test.ts",
+    "src/lib/qqqIntradaySetup.ts",
+    "src/lib/qqqIvQuality.ts",
+    "src/lib/qqqLatestSnapshotTransport.ts",
+    "src/lib/qqqLifecycleFactors.ts",
+    "src/lib/qqqLiveDirectional.ts",
+    "src/lib/qqqMarketDate.ts",
+    "src/lib/qqqMarketSession.ts",
+    "src/lib/qqqMaxPain.test.ts",
+    "src/lib/qqqMaxPain.ts",
+    "src/lib/qqqNextAction.ts",
+    "src/lib/qqqOptionActivityScope.test.ts",
+    "src/lib/qqqOptionActivityScope.ts",
+    "src/lib/qqqOptionObservation.ts",
+    "src/lib/qqqOptionObservationHistory.ts",
+    "src/lib/qqqQuoteEnvelope.ts",
+    "src/lib/qqqQuoteTiming.ts",
+    "src/lib/qqqRefreshLoop.ts",
+    "src/lib/qqqReplayFileCache.ts",
+    "src/lib/qqqSessionQuote.ts",
+    "src/lib/qqqSessionVwap.ts",
+    "src/lib/qqqSharedOptionChain.ts",
+    "src/lib/qqqSharedPreparation.ts",
+    "src/lib/qqqSourceMetadataCache.ts",
+    "src/lib/qqqSpreadStudy.ts",
+    "src/lib/qqqTimelineMerge.ts",
+    "src/lib/qqqVersionedHistoryStore.ts",
+    "src/lib/qqqWallTouchStats.ts",
+    "src/lib/responseCache.ts",
+    "src/lib/successfulWriteCache.ts",
+    "src/lib/supabase.ts",
+    "src/lib/supabaseCachedFetch.ts",
+    "src/lib/utils.ts",
+    "src/services/adapters/marketDataService.ts",
+    "src/services/adapters/yahooFinance.ts",
+    "src/services/adapters/yahooFinanceServer.ts",
+    "src/services/adapters/yahooProxyFetch.ts",
+    "src/services/orchestrators/macroDataService.ts",
+    "src/store/useCSPStore.ts",
+    "src/store/useToastStore.ts",
+    "src/types/csp.ts",
+    "src/types/discovery.ts",
+    "src/types/factor.ts",
+    "src/types/ivCurve.ts",
+    "src/types/macro.ts",
+    "src/types/portfolio.ts",
+    "src/types/qqqGex.ts",
+    "src/types/score.ts",
+    "src/types/sellerOpportunity.ts",
+    "src/types/strategy.ts",
+    "src/utils/calculations.ts"
+  ],
+  "referencedPackages": [
+    "@base-ui/react",
+    "@playwright/test",
+    "@supabase/supabase-js",
+    "clsx",
+    "esbuild",
+    "ioredis",
+    "klinecharts",
+    "lightweight-charts",
+    "lucide-react",
+    "react",
+    "react-dom",
+    "swr",
+    "tailwind-merge",
+    "typescript",
+    "yahoo-finance2",
+    "zustand"
+  ],
+  "reviewedDynamicImports": "Only the temporary esbuild output in tests/mcp-archive.mjs; source entry runtime/mcp-archive.ts is retained and its pagination test passes.",
+  "removedUnusedPaths": [
+    {
+      "path": "scripts/research/p4-e370-research-common.ts",
+      "bytes": 5025
+    },
+    {
+      "path": "scripts/research/p5-e123-parent-common.ts",
+      "bytes": 627
+    },
+    {
+      "path": "scripts/research/p5-e173-parent-common.ts",
+      "bytes": 395
+    },
+    {
+      "path": "scripts/research/p5-e181-parent-common.ts",
+      "bytes": 466
+    },
+    {
+      "path": "scripts/research/p5-e213-semantic-compact-parent-common.ts",
+      "bytes": 6504
+    },
+    {
+      "path": "scripts/research/p5-e65-parent-common.ts",
+      "bytes": 4166
+    },
+    {
+      "path": "scripts/research/p5-e68-parent-common.ts",
+      "bytes": 1219
+    },
+    {
+      "path": "scripts/research/p5-e71-parent-common.ts",
+      "bytes": 876
+    },
+    {
+      "path": "scripts/research/p5-e74-parent-common.ts",
+      "bytes": 1716
+    },
+    {
+      "path": "scripts/research/p5-e77-parent-common.ts",
+      "bytes": 869
+    },
+    {
+      "path": "scripts/research/p5-e82-parent-common.ts",
+      "bytes": 513
+    },
+    {
+      "path": "scripts/research/p5-e86-parent-common.ts",
+      "bytes": 976
+    },
+    {
+      "path": "scripts/research/p5-e87-parent-common.ts",
+      "bytes": 1273
+    },
+    {
+      "path": "scripts/research/p5-e94-parent-common.ts",
+      "bytes": 1306
+    },
+    {
+      "path": "scripts/research/p6-e0-parent-common.ts",
+      "bytes": 360
+    },
+    {
+      "path": "scripts/research/p6-e106-parent-common.ts",
+      "bytes": 891
+    },
+    {
+      "path": "scripts/research/p6-e11-parent-common.ts",
+      "bytes": 717
+    },
+    {
+      "path": "scripts/research/p6-e132-parent-common.ts",
+      "bytes": 824
+    },
+    {
+      "path": "scripts/research/p6-e15-parent-common.ts",
+      "bytes": 708
+    },
+    {
+      "path": "scripts/research/p6-e17-parent-common.ts",
+      "bytes": 714
+    },
+    {
+      "path": "scripts/research/p6-e218-parent-common.ts",
+      "bytes": 1555
+    },
+    {
+      "path": "scripts/research/p6-e22-parent-common.ts",
+      "bytes": 547
+    },
+    {
+      "path": "scripts/research/p6-e220-parent-common.ts",
+      "bytes": 1322
+    },
+    {
+      "path": "scripts/research/p6-e222-parent-common.ts",
+      "bytes": 1031
+    },
+    {
+      "path": "scripts/research/p6-e24-parent-common.ts",
+      "bytes": 304
+    },
+    {
+      "path": "scripts/research/p6-e246-parent-common.ts",
+      "bytes": 927
+    },
+    {
+      "path": "scripts/research/p6-e252-parent-common.ts",
+      "bytes": 316
+    },
+    {
+      "path": "scripts/research/p6-e284-parent-common.ts",
+      "bytes": 301
+    },
+    {
+      "path": "scripts/research/p6-e369-parent-common.ts",
+      "bytes": 2017
+    },
+    {
+      "path": "scripts/research/p6-e6-parent-common.ts",
+      "bytes": 1009
+    },
+    {
+      "path": "scripts/research/p6-e61-parent-common.ts",
+      "bytes": 1079
+    },
+    {
+      "path": "scripts/research/p6-e73-parent-common.ts",
+      "bytes": 307
+    },
+    {
+      "path": "scripts/research/p6-e83-parent-common.ts",
+      "bytes": 787
+    },
+    {
+      "path": "scripts/research/p6-e84-parent-common.ts",
+      "bytes": 840
+    },
+    {
+      "path": "scripts/research/p6-e9-parent-common.ts",
+      "bytes": 325
+    },
+    {
+      "path": "scripts/research/pcs-rescue-r5-e56-bull-atr-frontier-20260912.ts",
+      "bytes": 22668
+    },
+    {
+      "path": "scripts/research/pcs-rescue-r6-e14-sr01-vix20-frontier-20260914.ts",
+      "bytes": 8113
+    },
+    {
+      "path": "scripts/research/pcs-rescue-r6-e15-sr02-vixlt19-frontier-20260914.ts",
+      "bytes": 8074
+    },
+    {
+      "path": "scripts/research/pcs-rescue-r6-e16-residual-frontier-20260914.ts",
+      "bytes": 8562
+    },
+    {
+      "path": "scripts/research/pcs-rescue-r6-e17-sr02-adx15-frontier-20260914.ts",
+      "bytes": 8142
+    },
+    {
+      "path": "scripts/research/pcs-rescue-r6-e18-fill-fallback-frontier-20260914.ts",
+      "bytes": 8376
+    },
+    {
+      "path": "scripts/research/pcs-rescue-r6-e187-e167-range-p3-contract-20260915.ts",
+      "bytes": 7369
+    },
+    {
+      "path": "scripts/research/pcs-rescue-r6-e19-core-bull-vix16-frontier-20260914.ts",
+      "bytes": 8241
+    },
+    {
+      "path": "scripts/research/pcs-rescue-r6-e20-lowvix-bull-adx15-frontier-20260914.ts",
+      "bytes": 8200
+    },
+    {
+      "path": "scripts/research/pcs-rescue-r6-e21-lowvix-bull-sr01-vixfall-frontier-20260914.ts",
+      "bytes": 8304
+    },
+    {
+      "path": "scripts/research/pcs-rescue-r6-e22-lowvix-bull-sr02-vixfall-frontier-20260914.ts",
+      "bytes": 8643
+    },
+    {
+      "path": "scripts/research/pcs-rescue-r6-e23-residual-frontier-20260914.ts",
+      "bytes": 8432
+    },
+    {
+      "path": "scripts/research/pcs-rescue-r6-e24-residual-frontier-20260914.ts",
+      "bytes": 8340
+    },
+    {
+      "path": "scripts/research/pcs-rescue-r6-e6-vix24-frontier-20260914.ts",
+      "bytes": 8550
+    },
+    {
+      "path": "scripts/research/pcs-rescue-r6-e8-contract-fallback-frontier-20260914.ts",
+      "bytes": 8622
+    },
+    {
+      "path": "src/app/analysis/qqq/gex/page.tsx",
+      "bytes": 453
+    },
+    {
+      "path": "src/app/api/analysis/qqq/backtest/route.ts",
+      "bytes": 994
+    },
+    {
+      "path": "src/app/api/analysis/qqq/gex/day/route.ts",
+      "bytes": 2107
+    },
+    {
+      "path": "src/app/api/analysis/qqq/gex/exposure/route.ts",
+      "bytes": 5593
+    },
+    {
+      "path": "src/app/api/analysis/qqq/gex/intraday-context/route.ts",
+      "bytes": 1328
+    },
+    {
+      "path": "src/app/api/analysis/qqq/gex/spread-quote/route.ts",
+      "bytes": 2474
+    },
+    {
+      "path": "src/app/api/analysis/qqq/pcs/backtest/route.ts",
+      "bytes": 7909
+    },
+    {
+      "path": "src/app/api/proxy/yahoo/history/route.ts",
+      "bytes": 1088
+    },
+    {
+      "path": "src/app/api/proxy/yahoo/quote-stream/route.ts",
+      "bytes": 1766
+    },
+    {
+      "path": "src/components/LoadingScreens.tsx",
+      "bytes": 5396
+    },
+    {
+      "path": "src/components/Strategy/qqq/QqqCacheHealth.tsx",
+      "bytes": 3624
+    },
+    {
+      "path": "src/lib/backtest-scripts/asymmetric-put-spread-selection-v1.ts",
+      "bytes": 2440
+    },
+    {
+      "path": "src/lib/backtest-scripts/bounded-put-spread-selection-v1.ts",
+      "bytes": 3295
+    },
+    {
+      "path": "src/lib/backtest-scripts/call-spread-kernel-v1.ts",
+      "bytes": 5702
+    },
+    {
+      "path": "src/lib/backtest-scripts/call-spread-mark-v1.ts",
+      "bytes": 2982
+    },
+    {
+      "path": "src/lib/backtest-scripts/current-bar-facts-v4.ts",
+      "bytes": 1067
+    },
+    {
+      "path": "src/lib/backtest-scripts/e209-execution-contract-v1.ts",
+      "bytes": 365
+    },
+    {
+      "path": "src/lib/backtest-scripts/e209-process-v2.ts",
+      "bytes": 11516
+    },
+    {
+      "path": "src/lib/backtest-scripts/e209-research-run-v2.ts",
+      "bytes": 1604
+    },
+    {
+      "path": "src/lib/backtest-scripts/e209-source-initialization-v2.ts",
+      "bytes": 1358
+    },
+    {
+      "path": "src/lib/backtest-scripts/e209-worker-protocol-v2.ts",
+      "bytes": 889
+    },
+    {
+      "path": "src/lib/backtest-scripts/e9230-market-contract-v1.ts",
+      "bytes": 2462
+    },
+    {
+      "path": "src/lib/backtest-scripts/execution-availability-v1.ts",
+      "bytes": 561
+    },
+    {
+      "path": "src/lib/backtest-scripts/execution-book-records-v1.ts",
+      "bytes": 1890
+    },
+    {
+      "path": "src/lib/backtest-scripts/market-coordinates-v3.ts",
+      "bytes": 1913
+    },
+    {
+      "path": "src/lib/backtest-scripts/market-data-v7.ts",
+      "bytes": 4472
+    },
+    {
+      "path": "src/lib/backtest-scripts/native-market-facts-v7.ts",
+      "bytes": 1702
+    },
+    {
+      "path": "src/lib/backtest-scripts/native-source-initialization-v2.ts",
+      "bytes": 9523
+    },
+    {
+      "path": "src/lib/backtest-scripts/p-research-identifiers.ts",
+      "bytes": 34893
+    },
+    {
+      "path": "src/lib/backtest-scripts/p6-source-initialization-v2.ts",
+      "bytes": 983
+    },
+    {
+      "path": "src/lib/backtest-scripts/pcs-observation-planner-v3.ts",
+      "bytes": 2099
+    },
+    {
+      "path": "src/lib/backtest-scripts/pcs-selection-v5.ts",
+      "bytes": 818
+    },
+    {
+      "path": "src/lib/backtest-scripts/pcs-selection-v6.ts",
+      "bytes": 1292
+    },
+    {
+      "path": "src/lib/backtest-scripts/put-spread-kernel-v6.ts",
+      "bytes": 63252
+    },
+    {
+      "path": "src/lib/backtest-scripts/qqq-ccs-analytics-v1.ts",
+      "bytes": 7555
+    },
+    {
+      "path": "src/lib/backtest-scripts/qqq-execution-quotes-v7.ts",
+      "bytes": 4438
+    },
+    {
+      "path": "src/lib/backtest-scripts/qqq-market-context-v5.ts",
+      "bytes": 6589
+    },
+    {
+      "path": "src/lib/backtest-scripts/qqq-native-observation-v2.ts",
+      "bytes": 4626
+    },
+    {
+      "path": "src/lib/backtest-scripts/qqq-observation-session-v1.ts",
+      "bytes": 3418
+    },
+    {
+      "path": "src/lib/backtest-scripts/qqq-observed-spread-adapter-v2.ts",
+      "bytes": 2401
+    },
+    {
+      "path": "src/lib/backtest-scripts/qqq-pcs-analytics-v2.ts",
+      "bytes": 4384
+    },
+    {
+      "path": "src/lib/backtest-scripts/qqq-source-adapter-v2.ts",
+      "bytes": 10775
+    },
+    {
+      "path": "src/lib/backtest-scripts/qqq-spread-adapter-v2.ts",
+      "bytes": 43454
+    },
+    {
+      "path": "src/lib/backtest-scripts/qqq-terminal-contract-v1.ts",
+      "bytes": 6041
+    },
+    {
+      "path": "src/lib/backtest-scripts/r-quote-only-rescue-v1.ts",
+      "bytes": 2789
+    },
+    {
+      "path": "src/lib/backtest-scripts/research-request-v3.ts",
+      "bytes": 2077
+    },
+    {
+      "path": "src/lib/backtest-scripts/research-result-v2.ts",
+      "bytes": 7750
+    },
+    {
+      "path": "src/lib/backtest-scripts/settlement-observations-v3.ts",
+      "bytes": 1654
+    },
+    {
+      "path": "src/lib/backtest-scripts/source-book-feedback-v1.ts",
+      "bytes": 1420
+    },
+    {
+      "path": "src/lib/backtest-scripts/spread-account-audit-v3.ts",
+      "bytes": 6939
+    },
+    {
+      "path": "src/lib/backtest-scripts/spread-account-audit-v4.ts",
+      "bytes": 17456
+    },
+    {
+      "path": "src/lib/backtest-scripts/spread-execution-config-v3.ts",
+      "bytes": 2115
+    },
+    {
+      "path": "src/lib/backtest-scripts/spread-execution-profile-names-v4.ts",
+      "bytes": 272
+    },
+    {
+      "path": "src/lib/backtest-scripts/spread-execution-profiles-v3.ts",
+      "bytes": 1288
+    },
+    {
+      "path": "src/lib/backtest-scripts/spread-fill-retry-v2.ts",
+      "bytes": 3375
+    },
+    {
+      "path": "src/lib/backtest-scripts/spread-fill-retry-v3.ts",
+      "bytes": 3649
+    },
+    {
+      "path": "src/lib/backtest-scripts/spread-research-metrics-v2.ts",
+      "bytes": 1797
+    },
+    {
+      "path": "src/lib/backtest-scripts/standalone-acceptance-envelope-v1.ts",
+      "bytes": 1218
+    },
+    {
+      "path": "src/lib/backtest-scripts/standalone-acceptance-v2.ts",
+      "bytes": 3637
+    },
+    {
+      "path": "src/lib/backtest-scripts/standalone-auth-v1.ts",
+      "bytes": 2512
+    },
+    {
+      "path": "src/lib/backtest-scripts/standalone-http-v1.ts",
+      "bytes": 7746
+    },
+    {
+      "path": "src/lib/backtest-scripts/standalone-identity-v4.ts",
+      "bytes": 1041
+    },
+    {
+      "path": "src/lib/backtest-scripts/standalone-jobs-v3.ts",
+      "bytes": 5634
+    },
+    {
+      "path": "src/lib/backtest-scripts/standalone-protocol-v2.ts",
+      "bytes": 2979
+    },
+    {
+      "path": "src/lib/backtest-scripts/standalone-registry-v2.ts",
+      "bytes": 2409
+    },
+    {
+      "path": "src/lib/backtest-scripts/standalone-request-v4.ts",
+      "bytes": 1232
+    },
+    {
+      "path": "src/lib/backtest-scripts/standalone-research-v3.ts",
+      "bytes": 21354
+    },
+    {
+      "path": "src/lib/backtest-scripts/standalone-risk-v1.ts",
+      "bytes": 2976
+    },
+    {
+      "path": "src/lib/backtest-scripts/standalone-strategy-catalog-v4.ts",
+      "bytes": 4038
+    },
+    {
+      "path": "src/lib/backtest-scripts/standalone-strategy-loader-v4.ts",
+      "bytes": 1862
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/ccs-c3-e856-contract-v1.ts",
+      "bytes": 6238
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/ccs-c3-e856-standalone-v1.ts",
+      "bytes": 27063
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e10467/base.ts",
+      "bytes": 6037
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e10467/strategy.ts",
+      "bytes": 3400
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e10467-standalone-v1.ts",
+      "bytes": 151
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e10576/e10495.ts",
+      "bytes": 1691
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e10576/e10530.ts",
+      "bytes": 3670
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e10576/e10548.ts",
+      "bytes": 3626
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e10576/e10572.ts",
+      "bytes": 2021
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e10576/strategy.ts",
+      "bytes": 3476
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e10576-standalone-v1.ts",
+      "bytes": 151
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e209-policy-v7.ts",
+      "bytes": 3805
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e209-pruned-rules-v1.ts",
+      "bytes": 8531
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e209-rounded-policy-v1.ts",
+      "bytes": 1268
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e209-source-contract-v1.ts",
+      "bytes": 854
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e9332/admission-core-v19.ts",
+      "bytes": 1926
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e9332/admission-graph-v19.ts",
+      "bytes": 4512
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e9332/admission-merge-v19.ts",
+      "bytes": 4897
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e9332/admission-policy-v19.ts",
+      "bytes": 4891
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e9332/admission-residual-v19.ts",
+      "bytes": 645
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e9332/admission-upstream-v19.ts",
+      "bytes": 2961
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e9332/boolean-runtime-v14.ts",
+      "bytes": 2973
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e9332/program-v1.ts",
+      "bytes": 54744
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/e9332/unit-kernel.ts",
+      "bytes": 3428
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb-simple-contract-v1.ts",
+      "bytes": 445
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb-simple-standalone-v1.ts",
+      "bytes": 5533
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb7-e209-bar-runtime-v3.ts",
+      "bytes": 10244
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb7-e209-causal-v6.ts",
+      "bytes": 1384
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb7-e209-e0-merge-v2.ts",
+      "bytes": 8455
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb7-e209-e0-upstream-v2.ts",
+      "bytes": 2711
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb7-e209-pruned-graph-v1.ts",
+      "bytes": 4048
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb7-e209-pruned-merge-v1.ts",
+      "bytes": 6083
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb7-e209-pruned-residual-v1.ts",
+      "bytes": 1863
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb7-e209-pruned-upstream-v1.ts",
+      "bytes": 2721
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb7-e209-pruned-v1.ts",
+      "bytes": 1720
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb7-e209-residual-v2.ts",
+      "bytes": 4358
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb7-e209-rolling-rules-v2.ts",
+      "bytes": 9412
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb7-e209-source-graph-v2.ts",
+      "bytes": 4026
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb7-e209-source-proposal-v2.ts",
+      "bytes": 6755
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb7-e209-sources-v2.ts",
+      "bytes": 6385
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb8-1-standalone-v1.ts",
+      "bytes": 2499
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb8-1298-standalone-v1.ts",
+      "bytes": 4037
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb8-3896-standalone-v1.ts",
+      "bytes": 9083
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb8-411-standalone-v1.ts",
+      "bytes": 4202
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb8-412-standalone-v1.ts",
+      "bytes": 2404
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb8-940-standalone-v1.ts",
+      "bytes": 4502
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/eb8-standalone-v1.ts",
+      "bytes": 988
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/p11262-standalone-v1.ts",
+      "bytes": 296
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/p6-3922-admission-leaves-v1.ts",
+      "bytes": 111758
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/p6-3922-admission-v1.ts",
+      "bytes": 3745
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/p6-3922-execution-contract-v1.ts",
+      "bytes": 1051
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/p6-3922-grants-v1.ts",
+      "bytes": 111305
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/p6-3922-release-rules-v1.ts",
+      "bytes": 23272
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/p6-3922-standalone-v1.ts",
+      "bytes": 7081
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/p6-9496-opening-facts-v1.ts",
+      "bytes": 66186
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/p6-e385-admission-v1.ts",
+      "bytes": 122292
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/p6-e385-compact-rules-v1.ts",
+      "bytes": 397
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/p6-e385-decision-v2.ts",
+      "bytes": 848
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/p6-e385-effective-admission-v2.ts",
+      "bytes": 2746
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/p6-e385-parameters-v2.ts",
+      "bytes": 3194
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/p6-e385-selection-v1.ts",
+      "bytes": 3241
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/p6-e385-standalone-v2.ts",
+      "bytes": 9555
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/p6-e385-standalone-v3-m-95.ts",
+      "bytes": 4161
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/p6-e385-standalone-v3.ts",
+      "bytes": 675
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/p9938-multi-axis-research.ts",
+      "bytes": 77740
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/pcs-epr-pruned-v1.ts",
+      "bytes": 6762
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/pcs-epr-standalone-v23.ts",
+      "bytes": 7269
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/r2465-execution-contract-v1.ts",
+      "bytes": 1439
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/r2465-simplified-v2.ts",
+      "bytes": 36480
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/r9-e226-main-pcs-v3.ts",
+      "bytes": 3385
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/r9-e226-policy-v5.ts",
+      "bytes": 18790
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/r9-e226-source-contract-v1.ts",
+      "bytes": 464
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategies/r9-e226-standalone-v4.ts",
+      "bytes": 10172
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategy-admission-v1.ts",
+      "bytes": 1060
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategy-host-v2.ts",
+      "bytes": 8919
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategy-identity-v3.ts",
+      "bytes": 7258
+    },
+    {
+      "path": "src/lib/backtest-scripts/strategy-module-v2.ts",
+      "bytes": 14710
+    },
+    {
+      "path": "src/lib/cache.ts",
+      "bytes": 7932
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqC4CurrentBarRules.ts",
+      "bytes": 4261
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqCompositeCoordinator.ts",
+      "bytes": 2266
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqCompositeReplaySession.ts",
+      "bytes": 2794
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqE1DynamicAdmission.ts",
+      "bytes": 134504
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqE1P0R2Replay.ts",
+      "bytes": 24336
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqE1SettlementCooldownReference.ts",
+      "bytes": 1991
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb2CandidateRegistry.ts",
+      "bytes": 45987
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb2E44Fused.ts",
+      "bytes": 10870
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb2P2R5Replay.ts",
+      "bytes": 41185
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb3E12.ts",
+      "bytes": 11417
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb6DynamicReplay.ts",
+      "bytes": 16577
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb6E209P6E385R9E226Replay.ts",
+      "bytes": 4003
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb6P4E0R7Replay.ts",
+      "bytes": 21085
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb6P4R7CandidateRegistry.ts",
+      "bytes": 3047
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7DynamicReplay.ts",
+      "bytes": 38880
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E10DynamicReplay.ts",
+      "bytes": 3025
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E11DynamicReplay.ts",
+      "bytes": 3143
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E12DynamicReplay.ts",
+      "bytes": 2928
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E13DynamicReplay.ts",
+      "bytes": 2895
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E148DynamicReplay.ts",
+      "bytes": 3775
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E14DynamicReplay.ts",
+      "bytes": 2909
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E156DynamicReplay.ts",
+      "bytes": 2884
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E15DynamicReplay.ts",
+      "bytes": 2914
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E16DynamicReplay.ts",
+      "bytes": 3677
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E172DynamicReplay.ts",
+      "bytes": 2452
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E175DynamicReplay.ts",
+      "bytes": 2500
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E175P6E218R9E221Contract.ts",
+      "bytes": 2288
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E175P6E385R9E226Contract.ts",
+      "bytes": 2523
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E209DynamicReplay.ts",
+      "bytes": 3930
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E209P6E385R9E226Replay.ts",
+      "bytes": 2440
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E235Rules.ts",
+      "bytes": 12275
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E2DynamicReplay.ts",
+      "bytes": 5085
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E2Rules.ts",
+      "bytes": 1592
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E3DynamicReplay.ts",
+      "bytes": 3776
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E3Rules.ts",
+      "bytes": 687
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E4DynamicReplay.ts",
+      "bytes": 3668
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E4Rules.ts",
+      "bytes": 724
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E5DynamicReplay.ts",
+      "bytes": 3668
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E5Rules.ts",
+      "bytes": 898
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E6DynamicReplay.ts",
+      "bytes": 3668
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E6Rules.ts",
+      "bytes": 748
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E7DynamicReplay.ts",
+      "bytes": 3668
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E7Rules.ts",
+      "bytes": 710
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E8DynamicReplay.ts",
+      "bytes": 3733
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7E8Rules.ts",
+      "bytes": 668
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7P5R8Replay.ts",
+      "bytes": 25734
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7P6R9Parallel.ts",
+      "bytes": 2089
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7P6R9Replay.ts",
+      "bytes": 22769
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqEb7P6R9Worker.ts",
+      "bytes": 3114
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqP4DynamicReplay.ts",
+      "bytes": 195208
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqPcsBacktestSpec.ts",
+      "bytes": 17382
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqPcsHistoricalBacktest.ts",
+      "bytes": 13300
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqR7DynamicReplay.ts",
+      "bytes": 4606
+    },
+    {
+      "path": "src/lib/engines/analysis/QqqReplaySnapshot.ts",
+      "bytes": 13016
+    },
+    {
+      "path": "src/lib/engines/analysis/SellerOpportunityBacktest.ts",
+      "bytes": 23446
+    },
+    {
+      "path": "src/lib/engines/analysis/qqqEbDailyAdmission.ts",
+      "bytes": 1944
+    },
+    {
+      "path": "src/lib/engines/analysis/qqqWorkerReply.ts",
+      "bytes": 1149
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/artifacts/slow-subregime-sr-v1.json",
+      "bytes": 1126680
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/backtest/attribution.ts",
+      "bytes": 18032
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/backtest/generalized-hsmm.ts",
+      "bytes": 10814
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/backtest/helpers.ts",
+      "bytes": 6557
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/backtest/metrics.ts",
+      "bytes": 5222
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/backtest/slow-subregime-model.ts",
+      "bytes": 34490
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/backtest/state-grid-audit.ts",
+      "bytes": 5159
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/backtest/types.ts",
+      "bytes": 22866
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/engines/01-data-quality-gate.ts",
+      "bytes": 2788
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/engines/02-hard-risk-rules.ts",
+      "bytes": 8733
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/engines/04-trend-following.ts",
+      "bytes": 3164
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/engines/05-volatility-target.ts",
+      "bytes": 32801
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/engines/06-risk-budget.ts",
+      "bytes": 55397
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/engines/06a-drawdown-governor.ts",
+      "bytes": 6725
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/engines/06b-intraday-risk-gate.ts",
+      "bytes": 5241
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/engines/06c-tail-risk-governor.ts",
+      "bytes": 2556
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/engines/08-conflict-resolver.ts",
+      "bytes": 2370
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/engines/09-execution-guard.ts",
+      "bytes": 7225
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/engines/10-order-proposal.ts",
+      "bytes": 31306
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/engines/crisis-state-machine.ts",
+      "bytes": 6954
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/pipeline-core-v3.ts",
+      "bytes": 16507
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/pipeline.ts",
+      "bytes": 768
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/reasonLabels.ts",
+      "bytes": 1417
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/slow-subregime-live.server.ts",
+      "bytes": 7217
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/slow-subregime-runtime.ts",
+      "bytes": 3383
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/boxx-price.ts",
+      "bytes": 1917
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/build-history.ts",
+      "bytes": 12404
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/canonical-option-signal-tape.ts",
+      "bytes": 2169
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/day-loop.ts",
+      "bytes": 355454
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/decision-memory.ts",
+      "bytes": 3189
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/decision-view.ts",
+      "bytes": 5995
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/equity-execution.ts",
+      "bytes": 4744
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/execution-adapter.ts",
+      "bytes": 4960
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/execution-state.ts",
+      "bytes": 468
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/experiments/d1-recovery-binding-aware.ts",
+      "bytes": 3217
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/fixtures.ts",
+      "bytes": 5020
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/history-range.ts",
+      "bytes": 1098
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/load-run-data.ts",
+      "bytes": 3238
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/native-decision-observation-v1.ts",
+      "bytes": 2877
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/native-market-coordinates-v2.ts",
+      "bytes": 3533
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/native-observation-contract-v2.ts",
+      "bytes": 3444
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/native-stock-loop-v2.ts",
+      "bytes": 168983
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/native-stock-pipeline-v3.ts",
+      "bytes": 720
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/pcs-fill-fallback-admission.ts",
+      "bytes": 1075
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/pcs-fill-fallback-pair-search.ts",
+      "bytes": 1142
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/pcs-survival-exit.ts",
+      "bytes": 2078
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/pipeline-input-v3.ts",
+      "bytes": 633
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/pipeline.ts",
+      "bytes": 587
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/production-defaults.ts",
+      "bytes": 2666
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/run-spec.ts",
+      "bytes": 5830
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/runner.ts",
+      "bytes": 23128
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/sample-window.ts",
+      "bytes": 4194
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/backtest/snapshot.ts",
+      "bytes": 5769
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/book.ts",
+      "bytes": 423
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/bridge.ts",
+      "bytes": 4158
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/coordinator.ts",
+      "bytes": 8086
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/defaults.ts",
+      "bytes": 8538
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/indicators.ts",
+      "bytes": 7183
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/native-overlay-diagnostics-v3.ts",
+      "bytes": 40674
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/overlay-runner.ts",
+      "bytes": 670560
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/strategies/bear-call-spread.ts",
+      "bytes": 18004
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/strategies/call-credit-spread.ts",
+      "bytes": 64911
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/strategies/collar.ts",
+      "bytes": 33048
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/strategies/cs-survival-selector.ts",
+      "bytes": 16221
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/strategies/cs-wr89-controller.ts",
+      "bytes": 7339
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/strategies/equity-boost-put-spread.ts",
+      "bytes": 17513
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/strategies/iron-condor.ts",
+      "bytes": 14079
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/strategies/pcs-research-width.ts",
+      "bytes": 1032
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/strategies/pcs-risk-envelope.ts",
+      "bytes": 8703
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/strategies/pcs-survival-selector.ts",
+      "bytes": 9892
+    },
+    {
+      "path": "src/lib/engines/leveraged-overlay/v2/strategies/standalone-policy-gates-v1.ts",
+      "bytes": 70086
+    },
+    {
+      "path": "src/lib/qqqExposureHistory.ts",
+      "bytes": 7664
+    },
+    {
+      "path": "src/lib/qqqExposureValidator.ts",
+      "bytes": 1374
+    },
+    {
+      "path": "src/lib/qqqGammaPositionHistory.ts",
+      "bytes": 3952
+    },
+    {
+      "path": "src/lib/qqqGexDisplayDay.ts",
+      "bytes": 7236
+    },
+    {
+      "path": "src/lib/qqqIntradayContext.ts",
+      "bytes": 8205
+    },
+    {
+      "path": "src/lib/qqqOptionChainHistory.ts",
+      "bytes": 9248
+    },
+    {
+      "path": "src/lib/qqqVersionedSource.ts",
+      "bytes": 992
+    },
+    {
+      "path": "src/lib/revisionedJsonCache.ts",
+      "bytes": 1456
+    },
+    {
+      "path": "src/services/adapters/apiManager.ts",
+      "bytes": 11012
+    },
+    {
+      "path": "src/services/adapters/cboeVix3mServer.ts",
+      "bytes": 2013
+    },
+    {
+      "path": "src/services/adapters/fredVix3mServer.ts",
+      "bytes": 1713
+    },
+    {
+      "path": "src/services/adapters/vix3mHistoryServer.ts",
+      "bytes": 3259
+    },
+    {
+      "path": "src/services/adapters/yahooLiveStreamer.ts",
+      "bytes": 6053
+    }
+  ]
+}

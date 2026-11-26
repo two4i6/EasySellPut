@@ -17,14 +17,17 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Assets/NavigationIcons/LICENSE" LogicalName="NavigationIcons/LICENSE" />
-    <EmbeddedResource Include="WebCharts/index.html" LogicalName="WebCharts/index.html" />
+    <EmbeddedResource Include="../../web/charts/ui/index.html" LogicalName="WebCharts/index.html" />
     <EmbeddedResource Include="Assets/Fonts/*" LogicalName="WebCharts/fonts/%(Filename)%(Extension)" />
     <EmbeddedResource Include="WebCharts/design-tokens.css" LogicalName="WebCharts/design-tokens.css" />
     <EmbeddedResource Include="WebCharts/components.css" LogicalName="WebCharts/components.css" />
+    <EmbeddedResource Include="WebCharts/components.js" LogicalName="WebCharts/components.js" />
     <EmbeddedResource Include="WebCharts/motion.js" LogicalName="WebCharts/motion.js" />
     <EmbeddedResource Include="WebCharts/icons.js" LogicalName="WebCharts/icons.js" />
-    <EmbeddedResource Include="WebCharts/chart.js" LogicalName="WebCharts/chart.js" />
+    <EmbeddedResource Include="../../web/charts/ui/chart.css" LogicalName="WebCharts/chart.css" />
+    <EmbeddedResource Include="../../web/charts/ui/chart.js" LogicalName="WebCharts/chart.js" />
     <EmbeddedResource Include="WebCharts/workbench.html" LogicalName="WebCharts/workbench.html" />
+    <EmbeddedResource Include="WebCharts/workbench.css" LogicalName="WebCharts/workbench.css" />
     <EmbeddedResource Include="WebCharts/workbench.js" LogicalName="WebCharts/workbench.js" />
     <EmbeddedResource Include="WebCharts/vendor/lightweight-charts.js" LogicalName="WebCharts/vendor/lightweight-charts.js" />
     <EmbeddedResource Include="WebCharts/vendor/LICENSE" LogicalName="WebCharts/vendor/LICENSE" />
@@ -37,6 +40,16 @@
     <EmbeddedResource Include="..\Meili.App\Resources\Strings\Strings.zh-CN.xaml" LogicalName="Strings.zh-CN.xaml" WithCulture="false" />
     <EmbeddedResource Include="..\Meili.App\Resources\Strings\Strings.en-US.xaml" LogicalName="Strings.en-US.xaml" WithCulture="false" />
   </ItemGroup>
+  <ItemGroup>
+    <_QqqGexBuildInput Include="../../web/qqq-gex/**/*"
+      Exclude="../../web/qqq-gex/node_modules/**;../../web/qqq-gex/dist/**;../../web/qqq-gex/runtime-dist/**;../../web/qqq-gex/test-results/**;../../web/qqq-gex/tests/**;../../web/qqq-gex/evidence/**" />
+  </ItemGroup>
+  <Target Name="BuildQqqGexAssets" BeforeTargets="AssignTargetPaths">
+    <ItemGroup>
+      <_QqqGexAsset Include="../../web/qqq-gex/dist/*" Exclude="../../web/qqq-gex/dist/build-manifest.json" />
+      <EmbeddedResource Include="@(_QqqGexAsset)" LogicalName="QqqGex/%(_QqqGexAsset.Filename)%(_QqqGexAsset.Extension)" />
+    </ItemGroup>
+  </Target>
   <ItemGroup>
     <InternalsVisibleTo Include="MeiliTerminal" />
     <InternalsVisibleTo Include="Meili.App.Tests" />

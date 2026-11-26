@@ -1,0 +1,77 @@
+[
+  {
+    "name": "get_news",
+    "description": "Recent provider news with original publisher, URL and publication time (which may be unknown). Limit is 1..50, default 20. Article URLs are data; opening them is an explicit desktop action, not a browser capability.",
+    "writes": false,
+    "schema": {
+      "type": "object",
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        },
+        "limit": {
+          "type": "integer",
+          "description": "1..50, default 20",
+          "minimum": 1,
+          "maximum": 50
+        }
+      },
+      "required": [
+        "symbol"
+      ],
+      "additionalProperties": false
+    },
+    "entryPoint": "engine/report.mjs",
+    "hostOperations": [
+      "get_news"
+    ]
+  },
+  {
+    "name": "get_fundamentals",
+    "description": "Company fundamentals and profile with source/freshness metadata, optional metrics, earnings/date status and missingness. Preserve provenance; this is not a live quote source.",
+    "writes": false,
+    "schema": {
+      "type": "object",
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "symbol"
+      ],
+      "additionalProperties": false
+    },
+    "entryPoint": "engine/report.mjs",
+    "hostOperations": [
+      "get_fundamentals"
+    ]
+  },
+  {
+    "name": "get_financials",
+    "description": "Financial statements with original reporting periods, currency, provider units, source and freshness metadata. Missing values remain missing; annual/quarterly choice belongs to presentation.",
+    "writes": false,
+    "schema": {
+      "type": "object",
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "US ticker, e.g. NVDA or BRK.B. Resolve ambiguous company names with search_symbols.",
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "symbol"
+      ],
+      "additionalProperties": false
+    },
+    "entryPoint": "engine/report.mjs",
+    "hostOperations": [
+      "get_financials"
+    ]
+  }
+]

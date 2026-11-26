@@ -14,4 +14,12 @@ public sealed record OptionEntryReference(double? Price, string Basis)
         if (contract.Last is { } last && double.IsFinite(last) && last > 0) return new(last, "last");
         return new(null, "missing");
     }
+    public static OptionEntryReference FromQuoteSide(OptionContract contract,string side)
+    {
+        if(side is not ("bid" or "ask"))throw new ArgumentException("Unknown quote side.",nameof(side));
+        if(contract.Bid is {} bid && contract.Ask is {} ask && double.IsFinite(bid)&&double.IsFinite(ask)&&bid>0&&ask>0&&ask<bid)return new(null,"missing");
+        var value=side=="bid"?contract.Bid:contract.Ask;
+        return value is {} p && double.IsFinite(p)&&p>0?new(p,side):new(null,"missing");
+    }
+
 }

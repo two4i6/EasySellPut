@@ -14,16 +14,25 @@ public partial class MainWindow
 {
     private WebWorkspace? _workspace;
     private string? _activeWebsite;
+    private string? _activeModule;
+    private readonly Dictionary<string, Meili.App.Views.Pages.ModuleAppPage> _modulePages=[];
     private readonly Dictionary<string, WebTabPane> _webTabs = [];
     private static readonly AppPage[] BuiltinPages = Enum.GetValues<AppPage>();
     private void SetupWorkspace()
     {
+        Closed+=(_,_)=>{CloseModulePresentation();_modulePages.Clear();};
+        var apps=AppServices.Get<AppManagementViewModel>();
+        EventHandler refreshApps=(_,_)=>RebuildBuiltinRail();
+        apps.Changed+=refreshApps;Activated+=refreshApps;
+        Closed+=(_,_)=>{apps.Changed-=refreshApps;Activated-=refreshApps;};
         SetupStatusIcons(); RebuildBuiltinRail();
-        try { _workspace = new WebWorkspace(AppServices.DataDirectory.Path); }
+        try { _workspace = AppServices.Get<WebWorkspace>(); _workspace.Reload(); }
         catch (Exception ex) when (ex is IOException or System.Text.Json.JsonException or ArgumentException)
-        { Meili.Core.Diagnostics.AppLog.Warn("web-workspace", "Workspace could not be loaded", ex); AddWebsite.IsEnabled = false; AddWebsite.ToolTip = _loc["Web_Failed"]; }
+        { _workspace = null; Meili.Core.Diagnostics.AppLog.Warn("web-workspace", "Workspace could not be loaded", ex); AddWebsite.IsEnabled = false; AddWebsite.ToolTip = _loc["Web_Failed"]; }
         _loc.LanguageChanged += WorkspaceLanguageChanged;
-        RebuildWebsiteRail(); MotionButton.IsChecked = _workspace?.ReduceMotion == true; DesignMotion.SetReduced(ReducedMotion);
+        RebuildWebsiteRail(); DesignMotion.SetReduced(ReducedMotion);
+        if (_workspace is not null) _workspace.MotionChanged += WorkspaceMotionChanged;
+        Closed += (_, _) => { if (_workspace is not null) _workspace.MotionChanged -= WorkspaceMotionChanged; };
         AnimateTile(HomeWorkspace); AnimateTile(AddWebsite);
         PreviewKeyDown += (_, e) =>
         {
@@ -37,7 +46,7 @@ public partial class MainWindow
     private void RebuildBuiltinRail()
     {
         BuiltinRail.Children.Clear();
-        foreach(var page in BuiltinPages.Where(p => p is not (AppPage.Dashboard or AppPage.Settings)))
+        foreach(var page in BuiltinPages.Where(p => p is not (AppPage.Dashboard or AppPage.Settings or AppPage.DataSources) && ModuleNavigation.IsAvailable(AppServices.Get<Meili.Core.Settings.DataDirectoryInfo>().Path,p)))
         {
             var tile = new ToggleButton { Tag=page, Style=(Style)FindResource("WorkspaceTile") };
             tile.Content=CreateNavigationIcon(NavigationIcons.For(page),tile);
@@ -46,14 +55,21 @@ public partial class MainWindow
             tile.Click += (_,_) => { ShowMarketWorkspace();RootNavigation.Navigate(PageType(page));SyncMarketNavigation(); };
             AnimateTile(tile);BuiltinRail.Children.Add(tile);
         }
+        foreach(var app in ModuleNavigation.Entries(AppServices.DataDirectory.Path))
+        {
+            var tile=new ToggleButton{Tag="app:"+app.Id,Style=(Style)FindResource("WorkspaceTile"),ToolTip=app.Id+" · "+app.Version};
+            tile.Content=CreateNavigationIcon(NavigationIcons.Options,tile);AnimateTile(tile);
+            System.Windows.Automation.AutomationProperties.SetName(tile,app.Id);System.Windows.Automation.AutomationProperties.SetAutomationId(tile,"Application-"+app.Id);
+            var id=app.Id;tile.Click+=(_,_)=>OpenModule(id);BuiltinRail.Children.Add(tile);
+        }
         SelectBuiltinPage();
     }
     private void SelectBuiltinPage()
     {
         var page=Array.Find(BuiltinPages,p=>PageType(p)==_currentPage?.GetType());
-        HomeWorkspace.IsChecked=_activeWebsite is null && page==AppPage.Dashboard;
-        SettingsButton.IsChecked=_activeWebsite is null && page==AppPage.Settings;
-        foreach(var tile in BuiltinRail.Children.OfType<ToggleButton>())tile.IsChecked=_activeWebsite is null && Equals(tile.Tag,page);
+        HomeWorkspace.IsChecked=_activeWebsite is null && _activeModule is null && page==AppPage.Dashboard;
+        SettingsButton.IsChecked=_activeWebsite is null && _activeModule is null && page==AppPage.Settings;
+        foreach(var tile in BuiltinRail.Children.OfType<ToggleButton>())tile.IsChecked=tile.Tag is string module&&module.StartsWith("app:",StringComparison.Ordinal)?_activeModule==module[4..]:_activeWebsite is null && _activeModule is null && Equals(tile.Tag,page);
     }
     private static Viewbox CreateNavigationIcon(string data,Control owner,double size=24) => Meili.App.Views.Controls.LucideIcon.View(data,owner,size);
     private void SetupStatusIcons()
@@ -62,8 +78,6 @@ public partial class MainWindow
         SettingsButton.Content=CreateNavigationIcon(NavigationIcons.Settings,SettingsButton,18);
         LanguageButton.Content=CreateNavigationIcon(NavigationIcons.Language,LanguageButton,18);
         ThemeButton.Content=CreateNavigationIcon(NavigationIcons.Theme,ThemeButton,18);
-        BackgroundButton.Content=CreateNavigationIcon(NavigationIcons.Minus,BackgroundButton,18);
-        MotionButton.Content=CreateNavigationIcon(NavigationIcons.Motion,MotionButton,18);
     }
     private void OnSettings(object sender,RoutedEventArgs e) { ShowMarketWorkspace();RootNavigation.Navigate(PageType(AppPage.Settings));SyncMarketNavigation(); }
     private void RebuildWebsiteRail()
@@ -80,6 +94,7 @@ public partial class MainWindow
         AddWebsite.IsEnabled = _workspace is not null && _workspace.Tabs.Count < WebWorkspace.MaximumTabs;
         AddWebsite.ToolTip = _loc[_workspace is null ? "Web_Failed" : AddWebsite.IsEnabled ? "Web_Add" : "Web_Limit"];
     }
+    private void WorkspaceMotionChanged(object? sender, EventArgs e) => DesignMotion.SetReduced(ReducedMotion);
     private bool ReducedMotion => _workspace?.ReduceMotion == true || !SystemParameters.ClientAreaAnimation;
     private void AnimateTile(ToggleButton tile)
     {
@@ -106,8 +121,26 @@ public partial class MainWindow
         tile.Loaded += (_, _) => Shape(tile.IsMouseOver);
         tile.Checked += (_, _) => Shape(tile.IsMouseOver); tile.Unchecked += (_, _) => Shape(tile.IsMouseOver);
     }
+    internal void OpenModule(string id)
+    {
+        if(!ModuleNavigation.Entries(AppServices.DataDirectory.Path).Any(a=>a.Id==id))return;
+        ConfigureNewsDefault(null);
+        CloseModulePresentation();_activeModule=id;_activeWebsite=null;
+        NativePageHost.Children.Remove(RootNavigation);WebTabHost.Visibility=Visibility.Collapsed;
+        if(!_modulePages.TryGetValue(id,out var page))_modulePages[id]=page=new Meili.App.Views.Pages.ModuleAppPage(id);
+        ModuleAppHost.Visibility=Visibility.Visible;ModuleAppHost.Content=_presentationSuspended?null:page;
+        foreach(var pane in _webTabs.Values)_=pane.SetPresentationActiveAsync(false);
+        foreach(var tile in WebsiteRail.Children.OfType<ToggleButton>())tile.IsChecked=false;
+        SelectBuiltinPage();
+    }
+    private void CloseModulePresentation()
+    {
+        _activeModule=null;ModuleAppHost.Content=null;ModuleAppHost.Visibility=Visibility.Collapsed;
+    }
     internal void OpenWebsite(WebWorkspaceTab tab)
     {
+        ConfigureNewsDefault(null);
+        CloseModulePresentation();
         if (!_webTabs.TryGetValue(tab.Id, out var pane))
         {
             pane = new WebTabPane(tab.Url); _webTabs[tab.Id] = pane;
@@ -122,6 +155,7 @@ public partial class MainWindow
     }
     private void ShowMarketWorkspace()
     {
+        CloseModulePresentation();
         _activeWebsite = null; WebTabHost.Visibility = Visibility.Collapsed; SelectBuiltinPage();
         if (!_presentationSuspended && !NativePageHost.Children.Contains(RootNavigation)) NativePageHost.Children.Add(RootNavigation);
         foreach (var button in WebsiteRail.Children.OfType<ToggleButton>()) button.IsChecked = false;
@@ -129,24 +163,18 @@ public partial class MainWindow
     private void SyncMarketNavigation() { ShowMarketWorkspace(); SelectBuiltinPage(); }
     private void OnHomeWorkspace(object sender, RoutedEventArgs e) { ShowMarketWorkspace(); RootNavigation.Navigate(PageType(AppPage.Dashboard)); SyncMarketNavigation(); }
     private void OnAddWebsite(object sender, RoutedEventArgs e) { AddWebsite.IsChecked = false; EditWebsite(null); }
-    private void OnToggleMotion(object sender, RoutedEventArgs e)
-    {
-        try { _workspace?.SetReduceMotion(MotionButton.IsChecked == true); }
-        catch (IOException) { MotionButton.IsChecked = _workspace?.ReduceMotion == true; MotionButton.ToolTip = _loc["Web_Failed"]; }
-        DesignMotion.SetReduced(ReducedMotion);
-    }
     internal void EditWebsite(WebWorkspaceTab? tab)
     {
         if (_workspace is null) return;
-        var dialog = new Meili.App.Views.Controls.AppDialog { Owner = this, Title = _loc[tab is null ? "Web_Add" : "Web_Edit"], Width = 440, MinWidth = 400, SizeToContent = SizeToContent.Height, ResizeMode = ResizeMode.NoResize, WindowStartupLocation = WindowStartupLocation.CenterOwner, FontSize = 14 };
+        var dialog = new Meili.App.Views.Controls.AppDialog { Owner = this, Title = _loc[tab is null ? "Web_Add" : "Web_Edit"], Width = 440, MinWidth = 400, SizeToContent = SizeToContent.Height, ResizeMode = ResizeMode.NoResize, WindowStartupLocation = WindowStartupLocation.CenterOwner }.WithFontSize(14);
         dialog.SetResourceReference(BackgroundProperty, "ApplicationBackgroundBrush"); dialog.SetResourceReference(ForegroundProperty, "TextFillColorPrimaryBrush");
         var body = new StackPanel { Margin = new Thickness(24) };
         var name = new TextBox { Text = tab?.Name ?? "", MaxLength = 40, Name = "WebsiteName", Padding = new Thickness(8), Margin = new Thickness(0, 6, 0, 12) };
         var url = new TextBox { Text = tab?.Url ?? "", MaxLength = 2048, Name = "WebsiteAddress", Padding = new Thickness(8), Margin = new Thickness(0, 6, 0, 12) };
-        var error = new TextBlock { Visibility = Visibility.Collapsed, TextWrapping = TextWrapping.Wrap, FontSize = 12, Margin = new Thickness(0, 8, 0, 8) };
+        var error = new TextBlock { Visibility = Visibility.Collapsed, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 8) }.WithFontSize(12);
         body.Children.Add(new TextBlock { Text = _loc["Web_Name"] }); body.Children.Add(name); body.Children.Add(new TextBlock { Text = _loc["Web_Address"] }); body.Children.Add(url);
         System.Windows.Automation.AutomationProperties.SetName(name, _loc["Web_Name"]); System.Windows.Automation.AutomationProperties.SetName(url, _loc["Web_Address"]);
-        body.Children.Add(new TextBlock { Text = _loc["Web_Privacy"], TextWrapping = TextWrapping.Wrap, FontSize = 12 }); body.Children.Add(error);
+        body.Children.Add(new TextBlock { Text = _loc["Web_Privacy"], TextWrapping = TextWrapping.Wrap }.WithFontSize(12)); body.Children.Add(error);
         var actions = new WrapPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 16, 0, 0) }; body.Children.Add(actions);
         Button Button(string key, Action action) { var button = new Button { Content = _loc[key], Padding = new Thickness(12, 6, 12, 6), Margin = new Thickness(0, 0, 8, 8) }; button.Click += (_, _) => action(); actions.Children.Add(button); return button; }
         void Fail(string key) { error.Text = _loc[key]; error.Visibility = Visibility.Visible; }

@@ -33,6 +33,7 @@ public partial class App : Application
         foreach(var (key,family) in new[]{("AppFont","Anthropic Sans"),("NumberFont","Anthropic Sans"),("HeadingFont","Anthropic Serif"),("CodeFont","Anthropic Mono")})
             if(Avalonia.Media.FontManager.Current.SystemFonts.Any(f=>f.Name==family))Application.Current!.Resources[key]=new Avalonia.Media.FontFamily(family);
         var settings = AppServices.Get<SettingsStore>().Load();
+        NativeTypography.Initialize(settings.TextSizePercent);
         var loc = AppServices.Get<LocalizationService>();
         loc.Apply(settings.Language);
         var theme = AppServices.Get<MacTheme>();
@@ -80,7 +81,7 @@ public partial class App : Application
                 {
                     _quotePanel??=new QuotePanelWindow(AppServices.Get<QuotePanelViewModel>(),symbol=>{window.ShowFromDock();AppServices.Get<NavigationHub>().Go(AppPage.Charts,symbol);},()=>{window.ShowFromDock();AppServices.Get<NavigationHub>().Go(AppPage.Watchlist);},()=>desktop.TryShutdown());
                     if(_quotePanel.IsVisible){_quotePanel.HidePanel();return;}
-                    var anchor=status!.Anchor;await _quotePanel.ShowPanelAsync(anchor.X,anchor.Y);
+                    await _quotePanel.ShowPanelAsync(status!.Anchor);
                 });
                 _quoteStatus=status;
                 _menuQuotes=new MenuBarQuoteController(AppServices.Get<Meili.Core.Quotes.QuoteHub>(),AppServices.Get<SymbolContext>(),
@@ -158,7 +159,7 @@ public partial class App : Application
         catch (Exception ex) { AppLog.Error("package-smoke", "Packaged desktop self-check failed", ex); failures.Add(ex.ToString()); }
         var report = options.SmokeReport ?? Path.Combine(AppServices.DataDirectory.Path, "logs", "smoke.json");
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(report))!);
-        await File.WriteAllTextAsync(report, System.Text.Json.JsonSerializer.Serialize(new { Failures = failures.Count, Errors = failures, Checks = new[] { "real_window", "settings", "bundled_automation", "clipboard", "resources", "sqlite", "packaged_webview_chart", "native_menu_bar_quote", "native_quote_panel", "background_restore" }, Architecture = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString(), BackgroundStartupVerified=options.StartInBackground }));
+        await File.WriteAllTextAsync(report, System.Text.Json.JsonSerializer.Serialize(new { UpdateSource = Meili.Automation.UpdateClient.SourceConfiguration, Failures = failures.Count, Errors = failures, Checks = new[] { "real_window", "settings", "bundled_automation", "clipboard", "resources", "sqlite", "packaged_webview_chart", "native_menu_bar_quote", "native_quote_panel", "background_restore" }, Architecture = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString(), BackgroundStartupVerified=options.StartInBackground }));
         window.RunInBackground();window.AllowClose();
         desktop.Shutdown(failures.Count == 0 ? 0 : 1);
     }

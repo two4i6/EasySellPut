@@ -13,18 +13,25 @@ public enum DataCapability
     Financials = 32,
     News = 64,
     Search = 128,
+    MacroLiquidity = 256,
 }
 
-public enum MarketState { Unknown, PreMarket, Regular, AfterHours, Closed }
+public enum MarketState { Unknown, PreMarket, Regular, AfterHours, Closed, Overnight }
 
-public enum BarInterval { Minute1, Minute5, Minute15, Minute30, Hour1, Day1, Week1, Month1 }
+public enum BarInterval { Minute1, Minute5, Minute15, Minute30, Hour1, Day1, Week1, Month1, Minute3, Minute10, Hour2, Quarter1, Year1 }
 
 public static class BarIntervalExtensions
 {
-    public static bool IsIntraday(this BarInterval i) => i < BarInterval.Day1;
+    public static bool IsIntraday(this BarInterval i) => i is BarInterval.Minute1 or BarInterval.Minute3 or BarInterval.Minute5
+        or BarInterval.Minute10 or BarInterval.Minute15 or BarInterval.Minute30 or BarInterval.Hour1 or BarInterval.Hour2;
     public static TimeSpan Duration(this BarInterval i) => i switch
     {
         BarInterval.Minute1 => TimeSpan.FromMinutes(1),
+        BarInterval.Minute3 => TimeSpan.FromMinutes(3),
+        BarInterval.Minute10 => TimeSpan.FromMinutes(10),
+        BarInterval.Hour2 => TimeSpan.FromHours(2),
+        BarInterval.Quarter1 => TimeSpan.FromDays(91),
+        BarInterval.Year1 => TimeSpan.FromDays(365),
         BarInterval.Minute5 => TimeSpan.FromMinutes(5),
         BarInterval.Minute15 => TimeSpan.FromMinutes(15),
         BarInterval.Minute30 => TimeSpan.FromMinutes(30),
@@ -55,6 +62,13 @@ public abstract record SourcedData
 
 public sealed record Quote : SourcedData
 {
+    public string Delivery { get; init; } = "snapshot";
+    public string? StreamState { get; init; }
+    public DateTimeOffset? StreamStateAt { get; init; }
+    public string? ExtendedDelivery { get; init; }
+    public string? ExtendedSource { get; init; }
+    public DateTimeOffset? SnapshotFetchedAt { get; init; }
+    public string? SnapshotSource { get; init; }
     public required string Symbol { get; init; }
     public string? Name { get; init; }
     public string? Exchange { get; init; }
@@ -192,7 +206,13 @@ public sealed record OptionContract
 
 public sealed record OptionChain : SourcedData
 {
+    /// <summary>Optional original public provider body for explicit ingestion; never emitted by ordinary CLI/MCP reads.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public ReadOnlyMemory<byte> RawSourcePayload { get; init; }
+
     public required string Underlying { get; init; }
+    /// <summary>Explicit provider underlying last trade; distinct from chain publication/quote time.</summary>
+    public DateTimeOffset? UnderlyingLastTradeAt { get; init; }
     public double? UnderlyingPrice { get; init; }
     /// <summary>All expirations the source knows about.</summary>
     public required IReadOnlyList<DateOnly> Expirations { get; init; }
@@ -206,6 +226,11 @@ public enum EventDateStatus { Unknown, Estimated, SourceConfirmed }
 public sealed record Fundamentals : SourcedData
 {
     public required string Symbol { get; init; }
+    public string? FinancialCurrency { get; init; }
+    /// <summary>Source-reported EPS history and consensus estimates. Empty is unavailable, never zero.</summary>
+    public IReadOnlyList<EarningsObservation> Earnings { get; init; } = [];
+    public string? EarningsAvailability { get; init; }
+
     public string? Name { get; init; }
     public string? QuoteType { get; init; }
     public string? Exchange { get; init; }
@@ -235,6 +260,24 @@ public sealed record Fundamentals : SourcedData
     public EventDateStatus EarningsDateStatus { get; init; }
     public EventDateStatus ExDividendDateStatus { get; init; }
     public DateOnly? ExDividendDate { get; init; }
+}
+
+/// <summary>One source period. Actual and consensus are separate; a future estimate is not a reported result.</summary>
+public sealed record EarningsObservation
+{
+    public string? Currency { get; init; } // Only when the estimate/history source declares it.
+    public required string Metric { get; init; } // EPS or Revenue
+    public required string Period { get; init; } // source label, never a fabricated fiscal quarter
+    public DateOnly? PeriodEnd { get; init; }
+    public bool IsForecast { get; init; }
+    public bool Annual { get; init; }
+    public double? Actual { get; init; }
+    public double? Estimate { get; init; }
+    public double? Low { get; init; }
+    public double? High { get; init; }
+    public int? Analysts { get; init; }
+    public required string Source { get; init; }
+    public DateTimeOffset? FetchedAt { get; init; }
 }
 
 public enum FinancialStatementKind { Income, Balance, CashFlow }

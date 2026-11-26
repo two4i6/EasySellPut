@@ -25,7 +25,7 @@ using Meili.Mac.Platform;
 using NativeChart = Meili.Mac.Platform.WebChartControl;
 #endif
 
-internal static class Program
+internal static partial class Program
 {
     private static int _exitCode = 1;
     [STAThread]
@@ -110,6 +110,9 @@ internal static class Program
             await ProbeWebTabs(server);
             await ProbeChart(directory);
             await ProbeWorkbench(directory);
+            await ProbeQqqLocal(directory);
+            await ProbeQqqPopulated(directory);
+            await ProbePrivateApp(directory);
 #if !WINDOWS_READER
             await ProbeMenuBar();
 #endif
@@ -156,6 +159,27 @@ internal static class Program
             Console.WriteLine("PASS: native NSStatusItem title, AppKit menu actions, both color conventions, stale/missing quotes, PNG capture and disposal.");
         }
         finally{loc.Apply(original);}
+        var clicks = 0;
+        using (var anchored = new MacQuoteStatusItem(() => clicks++))
+        {
+            anchored.Update(MenuBarQuote.Create("QQQ", null, false, loc, DateTimeOffset.UtcNow), [], UpDownColorMode.RedUp);
+            await Task.Delay(150);
+            var probe = new Window { Width=320, Height=200 };
+            StatusItemAnchor anchor;
+            probe.Show();
+            try{
+                // Screen handles and the AppKit status-button window are native
+                // resources: a new, unshown Avalonia Window need not have them.
+                await Until(()=>anchored.Anchor.DisplayId!=0&&probe.Screens.All.Any(s=>s.TryGetPlatformHandle() is {HandleDescriptor:"CGDirectDisplayID"} h&&h.Handle.ToInt64()==anchored.Anchor.DisplayId),"native status item display registration");
+                anchor=anchored.Anchor;
+                var screen=probe.Screens.All.Single(s=>s.TryGetPlatformHandle() is {HandleDescriptor:"CGDirectDisplayID"} h&&h.Handle.ToInt64()==anchor.DisplayId);
+                if(!double.IsFinite(anchor.X)||!double.IsFinite(anchor.Y)||anchor.X<0||anchor.X>screen.Bounds.Width/screen.Scaling||anchor.Y<0||anchor.Y>screen.Bounds.Height/screen.Scaling)
+                    throw new Exception("Status item anchor is outside its actual display");
+            }finally{probe.Close();}
+            anchored.InvokePanel();
+            if (clicks != 1) throw new Exception("Status item panel target/action failed");
+            Console.WriteLine($"PASS: native status item anchor on display {anchor.DisplayId}, local points {anchor.X:0.##},{anchor.Y:0.##} and panel click.");
+        }
         using var recreated=new MacQuoteStatusItem();
         recreated.Update(MenuBarQuote.Create("AAPL",null,false,loc,DateTimeOffset.UtcNow),[],UpDownColorMode.RedUp);
         if(recreated.Title!="AAPL —")throw new Exception("Menu bar recreation failed");
@@ -231,6 +255,33 @@ internal static class Program
         }
     }
 
+    private static async Task ProbeQqqLocal(string directory)
+    {
+        await using var session=new QqqGexSession();
+#if WINDOWS_READER
+        var browser=new WebView2();
+#else
+        var browser=new NewsWebView();
+#endif
+        var window=new Window{Width=1200,Height=800,Content=browser};
+        try{
+            window.Show();
+#if WINDOWS_READER
+            var environment=await Microsoft.Web.WebView2.Core.CoreWebView2Environment.CreateAsync(null,Path.Combine(directory,"qqq-native-browser"));
+            await browser.EnsureCoreWebView2Async(environment);browser.CoreWebView2.Settings.AreHostObjectsAllowed=false;browser.CoreWebView2.Settings.IsWebMessageEnabled=false;
+            browser.CoreWebView2.Navigate(session.PageUri.AbsoluteUri);
+            await Until(()=>browser.CoreWebView2.DocumentTitle=="QQQ GEX · 缓存缺失","native GEX client local cache miss");
+#else
+            browser.Navigate(session.PageUri.AbsoluteUri);
+            await Until(()=>browser.DocumentTitle=="QQQ GEX · 缓存缺失","native GEX client local cache miss");
+#endif
+            Console.WriteLine("PASS: QQQ GEX local shell loads in the native engine and reports unavailable cache; original data view, native calculation and real-data acceptance are not implied.");
+        }finally{window.Content=null;window.Close();
+#if WINDOWS_READER
+            browser.Dispose();
+#endif
+        }
+    }
     private static async Task ProbeChart(string directory)
     {
 #if WINDOWS_READER
@@ -240,10 +291,10 @@ internal static class Program
 #endif
         var settings = new SettingsStore(directory);
         var vm = new ChartsViewModel(new WatchlistStore(settings), new ChartData(), LocalizationService.Current,
-            new SymbolContext(), settings, new ChartDrawingStore(directory));
+            new SymbolContext(), settings, new ChartDrawingStore(directory),applications:new ChartAppClient(directory));
         vm.SymbolText = "FIXTURE"; vm.Range = ChartRangeKind.Minute5;
         vm.ShowMa = vm.ShowEma = vm.ShowBoll = vm.ShowVolume = vm.ShowMacd = vm.ShowRsi = vm.ShowKdj = true;
-        await vm.LoadAsync();
+        await vm.ActivateAsync();
         ChartPalette Palette(bool dark, bool green)
         {
             var p = ThemePalette.For(dark); var (up, down) = p.UpDown(green ? UpDownColorMode.GreenUp : UpDownColorMode.RedUp);
@@ -267,7 +318,7 @@ internal static class Program
             window.Show(); chart.Start(vm, palette);
             await Until(() => Result(d => d.GetProperty("panes").GetInt32() == 5), "TradingView five panes: " + chart.LastDiagnostic);
             if (!Result(d => d.GetProperty("rows").GetInt32() == 120 && d.GetProperty("candles").GetInt32() == 119)) throw new Exception("Missing OHLC was fabricated");
-            await Until(() => Result(d => d.GetProperty("sidebarPermanent").GetBoolean() && d.GetProperty("sidebarViews").GetInt32() == 3 && d.GetProperty("events").GetInt32() == 3 && d.GetProperty("eventMarkers").GetInt32() == 2 && d.GetProperty("historyGroups").GetInt32() == 2 && d.GetProperty("historyStops").GetInt32() == 2), "News/calendar markers, date groups and history stops in native chart");
+            await Until(() => Result(d => d.GetProperty("sidebarPermanent").GetBoolean() && d.GetProperty("sidebarViews").GetInt32() == 4 && d.GetProperty("events").GetInt32() == 3 && d.GetProperty("eventMarkers").GetInt32() == 2 && d.GetProperty("historyGroups").GetInt32() == 2 && d.GetProperty("historyStops").GetInt32() == 2), "News/calendar markers, date groups and history stops in native chart");
             if(!Result(d=>d.GetProperty("sessionBands").GetInt32()>0 && d.GetProperty("sessionPanes").GetInt32()==5))throw new Exception("Session background primitives missing from native panes");
             vm.StartDrawingCommand.Execute(DrawingKind.TrendLine); vm.AddDrawingPoint(vm.Series!.Bars[10].Time, 105);
             await Until(() => Result(d => d.GetProperty("drawingPreview").GetBoolean() && d.GetProperty("drawingHandles").GetInt32() == 1), "Native first-anchor drawing preview");
@@ -310,6 +361,8 @@ internal static class Program
         {
             window.Show();chart.Start(vm,palette);
             await Until(()=>Result(d=>d.GetProperty("contracts").GetInt32()==18),"Native workspace document");
+            await Send(new{kind="set-columns",key=vm.WorkbenchKey,columns=new[]{"Be","Oi","Gamma"}});
+            await Until(()=>Result(d=>d.GetProperty("columns").GetArrayLength()==3&&d.GetProperty("visibleColumnCount").GetInt32()==6),"Native configurable chain fields");
             await Send(new{kind="add-contract",key=vm.WorkbenchKey,contract="Call100",side="Long",quantity=1});
             await Until(()=>Result(d=>d.GetProperty("legs").GetInt32()==1&&d.GetProperty("points").GetInt32()==vm.Curve!.Prices.Length&&d.GetProperty("renderedPoints").GetInt32()==vm.Curve.Prices.Length),"Native linked curve after first leg");
             await Send(new{kind="add-contract",key=vm.WorkbenchKey,contract="Call110",side="Short",quantity=1});
@@ -322,7 +375,7 @@ internal static class Program
             palette=WorkbenchFixture.Palette(false);chart.Update(palette);
             await Until(()=>Result(d=>d.GetProperty("background").GetString()==$"#{ThemePalette.Light.Chart & 0xFFFFFF:X6}"),"Workspace theme");
             chart.Stop();chart.Start(vm,palette);
-            await Until(()=>Result(d=>d.GetProperty("legs").GetInt32()==2),"Workspace reload preserves draft");
+            await Until(()=>Result(d=>d.GetProperty("legs").GetInt32()==2&&d.GetProperty("columns").GetArrayLength()==3&&d.GetProperty("visibleColumnCount").GetInt32()==6),"Workspace reload preserves draft and columns");
             Console.WriteLine("PASS: native linked workspace, chain, spread/Analytics payoff, quantity, what-if, theme and restart.");
         }
         catch(Exception){Console.Error.WriteLine("Workspace diagnostic: "+chart.LastDiagnostic);Console.Error.WriteLine($"Model legs={vm.Legs.Count}, points={vm.Curve?.Prices.Length}");throw;}

@@ -29,3 +29,17 @@ Installers/
 build/wt-*/
 
 __pycache__/
+
+node_modules/
+
+web/qqq-gex/test-results/
+
+web/qqq-gex/runtime-dist/
+
+web/market-liquidity/runtime-dist/
+
+web/news-fundamentals/runtime-dist/
+
+web/options-strategy/runtime-dist/
+
+web/charts/runtime-dist/

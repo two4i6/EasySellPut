@@ -44,7 +44,7 @@
 - `python tests/webcharts/test_renderer.py -v`：Playwright 真实 Chromium 验证组件数据、指标面板、空白、署名、鼠标缩放/画线/十字线、刷新视野、主题和本地资源加载；需安装 `playwright==1.56.0` 及 Chromium。
 - `bash build/test-headless.sh`：桌面、共享业务、指标、CLI/MCP 全量回归。
 - Windows/macOS 原生：`dotnet run --project tests/Meili.NewsBrowser.Smoke/Meili.NewsBrowser.Smoke.csproj -c Release`，同时验收新闻与实际图表组件，包括 120 根数据/119 根真实蜡烛、五面板、MA 结果、主题、指标显隐、停止后重新挂载。
-- CI 在 Windows x64/ARM64、macOS Intel/Apple Silicon 实际运行原生宿主；Linux 验证真实浏览器渲染、桌面无头回归及 CLI/MCP。固定测试数据不代表真实行情联网验证，也不保证所有供应商都提供所有周期。
+- CI 在 Windows x64、macOS Intel/Apple Silicon 实际运行原生宿主；Linux 验证真实浏览器渲染、桌面无头回归及 CLI/MCP。固定测试数据不代表真实行情联网验证，也不保证所有供应商都提供所有周期。
 
 ## UI/UX 一致性检查
 

@@ -18,7 +18,7 @@ public partial class MainWindow : Window
     public static readonly IReadOnlyList<AppPage> PageOrder =
     [
         AppPage.Dashboard, AppPage.Watchlist, AppPage.Charts, AppPage.Options, AppPage.Strategy,
-        AppPage.News, AppPage.Alerts, AppPage.DataSources, AppPage.Settings,
+        AppPage.News, AppPage.Alerts, AppPage.DataSources, AppPage.Settings, AppPage.QqqGex,
     ];
 
 
@@ -48,6 +48,7 @@ public partial class MainWindow : Window
         SetupWorkspace();
         SetupNewsSplit();
         SetupBackgroundLifecycle();
+        SetupUpdateNotifications();
         RestorePlacement();
         var hub = AppServices.Get<NavigationHub>();
         EventHandler<NavigationRequest> onRequest = (_, e) => Dispatcher.UIThread.Post(() => { if (!_closed) OnNavigateRequested(e); });
@@ -78,11 +79,14 @@ public partial class MainWindow : Window
 
     public void Navigate(AppPage page)
     {
+        if(!ModuleNavigation.IsAvailable(AppServices.Get<DataDirectoryInfo>().Path,page))page=AppPage.Settings;
         if (!_pages.TryGetValue(page, out var view))
             _pages[page] = view = CreatePage(page);
+        if(page==AppPage.News || CurrentPage==AppPage.News)CloseNewsArticle();
         CurrentPage = page;
         ShowMarketWorkspace();
         PageHost.Content = _presentationSuspended?null:view;
+        ConfigureNewsDefault((view as Meili.Mac.Views.NewsPage)?.FundamentalsContent);
     }
 
     private static Control CreatePage(AppPage page) => page switch
@@ -90,6 +94,7 @@ public partial class MainWindow : Window
         AppPage.Dashboard => new DashboardPage(),
         AppPage.Watchlist => new WatchlistPage(),
         AppPage.Charts => new ChartsPage(),
+        AppPage.QqqGex => new QqqGexPage(),
         AppPage.Options => new OptionsPage(),
         AppPage.Strategy => new StrategyPage(),
         AppPage.News => new NewsPage(),

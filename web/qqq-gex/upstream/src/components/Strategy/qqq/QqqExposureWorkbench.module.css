@@ -1,0 +1,165 @@
+.root {
+  display: flex; flex-direction: column; flex: 1; min-width: 0; min-height: 0;
+  color: var(--text-secondary); font-family: var(--font-mono); font-size: .65rem;
+}
+.coverageStatus { display:flex; flex-wrap:wrap; align-items:center; gap:4px 10px; padding:6px 10px; flex-shrink:0; font-size:.62rem; line-height:1.6; color:var(--text-secondary); background:var(--bg-secondary); border-bottom:1px solid var(--border-subtle); }
+.coverageWarning { color:#f0c17a; }
+.tabs { display: flex; flex-wrap:wrap; gap: 6px; align-items: center; padding: 5px 8px; border-bottom: 1px solid var(--border-subtle); flex-shrink: 0; }
+.tabs label { display:flex; align-items:center; gap:5px; font-size:.65rem; color:var(--text-secondary); }
+.tabs select { color:var(--text-primary); background:var(--bg-secondary); border:1px solid var(--border-subtle); border-radius:4px; padding:3px 5px; max-width:100%; }
+.tabs span { margin-left: auto; color: var(--text-tertiary); font-size: .6rem; }
+.root button, .root select {
+  background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 4px;
+  color: var(--text-secondary); padding: 4px 7px; font: inherit; cursor: pointer;
+}
+.root button:hover, .root select:hover { background: var(--bg-hover); color: var(--text-primary); }
+.root button[aria-pressed=true] { color: var(--accent-primary); border-color: var(--accent-primary); background: color-mix(in srgb, var(--accent-primary) 10%, transparent); }
+.root button:disabled { opacity: .4; cursor: default; }
+.root button:focus-visible, .root select:focus-visible, .root input:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
+.legacy { flex: 1; min-height: 0; min-width: 0; }
+.workbench { flex: 1; min-height: 0; min-width: 0; overflow: auto; background: #05070b; display: flex; flex-direction: column; }
+.traceHeader { margin: 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; padding: 9px 12px; flex-shrink: 0; background: var(--bg-secondary); border-bottom: 1px solid var(--border-subtle); }
+.traceHeader h2 { margin: 0 0 4px; font: inherit; font-size: .7rem; font-weight: 800; color: var(--text-primary); }
+.traceHeader small { color: var(--text-tertiary); font-size: .58rem; }
+.headerActions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.dateBadge { padding: 4px 7px; border: 1px solid var(--border-subtle); border-radius: 4px; color: var(--text-tertiary); font-size: .6rem; white-space: nowrap; }
+.toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px 16px; padding: 8px 12px; flex-shrink: 0; border-bottom: 1px solid var(--border-subtle); background: var(--bg-secondary); }
+.controlGroup { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; min-width: 0; }
+.toolbar label { display: inline-flex; align-items: center; gap: 5px; color: var(--text-secondary); font-size: .62rem; }
+.toolbar input[type=range] { width: 68px; height: 4px; margin: 0; accent-color: var(--accent-primary); cursor: pointer; }
+.toolbar .toggle { cursor: pointer; white-space: nowrap; }
+.toggle input { width: 12px; height: 12px; margin: 0; accent-color: var(--accent-primary); cursor: pointer; }
+.chartViewport { position: relative; width: 100%; min-width: 0; min-height: 340px; flex: 1 0 340px; }
+.chart { position: absolute; inset: 0; width: 100%; height: 100%; display: block; font-family: var(--font-mono); }
+.strikeTooltip { position: absolute; z-index: 5; pointer-events: none; width: 290px; max-width: calc(100% - 16px); box-sizing: border-box; padding: 10px 12px; border: 1px solid var(--border-subtle); border-radius: 6px; background: rgba(18, 20, 26, .97); box-shadow: 0 6px 24px #0008; font-size: .62rem; line-height: 1.7; color: var(--text-secondary); }
+.strikeTooltip strong { display: block; margin-bottom: 6px; color: var(--text-primary); }
+.strikeTooltip div { display: flex; justify-content: space-between; gap: 12px; }
+.strikeTooltip b { color: var(--text-primary); font-weight: 500; white-space: nowrap; }
+.strikeTooltip i { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 5px; }
+.strikeTooltip small { display: block; margin-top: 5px; color: var(--text-tertiary); font-size: .56rem; }
+.hover { font-size: .6rem; padding: 4px 12px; min-height: 21px; color: var(--text-tertiary); flex-shrink: 0; }
+.replay { display: flex; flex-wrap: wrap; min-width: 0; align-items: center; gap: 8px; padding: 7px 12px; font-size: .62rem; flex-shrink: 0; border-top: 1px solid var(--border-subtle); background: var(--bg-secondary); }
+.replay input { flex: 1; min-width: 50px; accent-color: var(--accent-primary); height: 4px; }
+.replay span { color: var(--text-primary); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.activityChart { width: 100%; height: 65px; flex-shrink: 0; border-top: 1px solid var(--border-subtle); }
+.activity { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding: 7px 12px; font-size: .6rem; }
+.activity small { color: var(--text-tertiary); }
+.activityBar { width: 130px; background: #fb923c; height: 6px; border-radius: 3px; overflow: hidden; }
+.activityBar i { display: block; background: #60a5fa; height: 100%; }
+.observationPanels { flex-shrink: 0; min-width: 0; }
+.observationCard { border: 0; padding: 8px 0; }
+.observationHeader { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; margin: 0; padding: 0 12px; }
+.observationHeader strong { color: var(--text-primary); }
+.observationHeader span { color: var(--text-tertiary); font-size: .58rem; }
+.observationHeader b { margin-left: auto; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.observationMetrics { display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 5px 12px 0; font-variant-numeric: tabular-nums; }
+.observationChart { display: block; width: 100%; height: 98px; }
+.responseChart { display: block; width: 100%; height: 100px; }
+.observationCard > small { display: block; padding: 0 12px; color: var(--text-tertiary); font-size: .56rem; line-height: 1.6; }
+.responseBadges { display: flex; flex-wrap: wrap; gap: 6px; padding: 7px 12px; }
+.responseBadges span { padding: 3px 7px; border-radius: 4px; background: #1c232c; color: var(--text-secondary); }
+.help { border-top: 1px solid var(--border-subtle); padding: 7px 12px; font-size: .58rem; line-height: 1.7; color: var(--text-tertiary); flex-shrink: 0; }
+.help summary { cursor: pointer; }
+.empty { display: grid; place-items: center; flex: 1; min-height: 200px; font-size: .75rem; padding: 12px; }
+.loadStatus { display: flex; align-items: center; gap: 8px; flex-shrink: 0; min-height: 26px; padding: 4px 12px; color: var(--accent-primary); border-bottom: 1px solid var(--border-subtle); background: var(--bg-secondary); font-size: .62rem; }
+.loadStatus button { margin-left: auto; }
+.spinner { width: 10px; height: 10px; border: 2px solid var(--border-subtle); border-top-color: var(--accent-primary); border-radius: 50%; animation: exposure-spin .8s linear infinite; }
+@keyframes exposure-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
+@media(max-width:760px) { .traceHeader { gap: 8px; } .toolbar { gap: 8px; } .controlGroup { gap: 8px; } .headerActions { gap: 6px; } .toolbar input[type=range] { width: 55px; } .replay { gap: 6px; } }
+
+.replay button, .replay select, .replay summary { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 4px; color: var(--text-secondary); padding: 4px 7px; font: inherit; cursor: pointer; }
+.replay label { display: inline-flex; align-items: center; gap: 5px; }
+.replay input { flex-basis: 100px; }
+.replay details { position: relative; }
+.replay details[open] button { position: absolute; right: 0; top: 100%; z-index: 10; white-space: nowrap; }
+
+/* Compact shared replay footer. */
+.replay{padding:3px 8px;gap:6px;min-height:28px}
+.replay button,.replay select{padding:2px 6px;min-height:22px}
+.replay label{gap:5px}
+.replay input[type=range]{margin:0;height:14px}
+
+/* The shared footer also renders through a portal, outside .root. */
+.replay .latestButton[aria-pressed=true] {
+  color: var(--accent-success, #34d399);
+  border-color: var(--accent-success, #34d399);
+  background: color-mix(in srgb, var(--accent-success, #34d399) 14%, var(--bg-card));
+}
+.replay .latestButton[aria-pressed=true]:hover {
+  background: color-mix(in srgb, var(--accent-success, #34d399) 22%, var(--bg-card));
+}
+
+/* Visual controls keep chart space stable; explanations live in focusable tooltips. */
+.visualLegend i { display: inline-block; width: 7px; height: 7px; border-radius: 2px; }
+.visualLegend { display: inline-flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; }
+.visualLegend > span { display: inline-flex; align-items: center; gap: 5px; }
+.hover { display: flex; align-items: center; min-height: 28px; }
+.dataStrip { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 14px; padding: 5px 12px; border-top: 1px solid var(--border-subtle); color: var(--text-tertiary); font-size: .58rem; flex-shrink: 0; }
+.dataStrip b { color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+.warningChip { color: #d4b16a !important; }
+.balanceBar { display: flex; height: 4px; margin: 6px 12px 0; gap: 2px; border-radius: 4px; overflow: hidden; background: #343943; }
+.balanceBar i { display: block; height: 100%; min-width: 0; }
+.intensity { display: inline-flex; gap: 8px; align-items: center; margin-left: auto; }
+.intensity meter { width: 60px; height: 10px; }
+.observationHeader strong { font-size: .7rem; }
+.observationHeader b { font-size: .78rem; }
+.observationCard { background: transparent; }
+.responseBadges span { border: 1px solid #343943; border-radius: 16px; }
+@media(max-width:760px) { .observationHeader b { font-size: .7rem; } .scopeChip { font-size: .5rem; } }
+
+.root button[data-info-tooltip] { background: transparent; border: 0; padding: 2px 4px; color: var(--text-tertiary); }
+.root button[data-info-tooltip]:hover { color: var(--text-primary); background: var(--bg-hover); }
+
+/* The center is one stable full-height chart; observation cards live in the left observation portal. */
+.workbench{position:relative;overflow:hidden}
+.chartViewport{flex:1 1 0;min-height:0}
+.hover{position:static;padding:2px 12px;min-height:22px;background:#05070b;pointer-events:auto}
+.sidebarIndicators{min-width:0;font-family:var(--font-mono);font-size:.65rem;color:var(--text-secondary)}
+.observationControls{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px 6px;margin:0 0 5px}
+.observationControls label{display:inline-flex;align-items:center;gap:6px;margin-left:auto}
+.observationControls select{padding:3px 6px;border:1px solid var(--border-subtle);border-radius:4px;background:var(--bg-card);color:var(--text-secondary)}
+.observationControls select:focus-visible{outline:2px solid var(--accent-primary);outline-offset:2px}
+.sidebarIndicators button,.sidebarIndicators select{font:inherit;cursor:pointer;color:inherit}
+.sidebarIndicators button[data-info-tooltip]{border:0;background:transparent;padding:2px 4px;color:var(--text-tertiary)}
+.sidebarIndicators .observationPanels{display:grid;gap:5px}
+.sidebarIndicators .observationCard{border:0;border-radius:0;background:transparent;margin:0;padding:6px 0;min-width:0}
+.sidebarIndicators .observationCard+.observationCard{border-top:1px solid var(--border-subtle)}
+.sidebarIndicators .observationHeader{display:flex;align-items:center;gap:3px 6px;margin:0 0 4px;padding:0;border:0}
+.sidebarIndicators .observationHeader>span{flex-basis:100%;order:2}
+.sidebarIndicators .observationMetrics{gap:4px 10px;padding:0}
+.sidebarIndicators .balanceBar{margin:4px 0 0}
+.sidebarIndicators .observationCard>small{padding:0;line-height:1.4}
+.sidebarIndicators .responseBadges{gap:4px;padding:2px 0 4px}
+.sidebarIndicators .responseBadges span{padding:2px 5px}
+.sidebarIndicators .dataStrip{gap:4px 8px;padding:5px 0}
+.sidebarIndicators .activity{gap:4px 8px;padding:4px 0}
+.distributionControls{display:grid;gap:3px;min-width:0;margin:0 0 6px;padding:4px 8px;border:1px solid var(--border-subtle);border-radius:6px;background:color-mix(in srgb,var(--bg-card) 65%,transparent);font:inherit}
+.distributionControls legend{padding:0 4px;color:var(--text-tertiary);font-size:.58rem}
+.distributionControls label{display:flex;align-items:center;gap:7px;min-width:0;min-height:24px;color:var(--text-secondary);font-size:.6rem;cursor:pointer}
+.distributionControls .settingSlider{display:grid;grid-template-columns:auto minmax(0,1fr) 42px;gap:8px;white-space:nowrap}
+.distributionControls input[type=range]{width:100%;min-width:0;height:14px;margin:0;accent-color:#d4b16a;cursor:pointer}
+.distributionControls input[type=checkbox]{appearance:none;position:relative;flex:none;width:27px;height:16px;margin:0;border:1px solid #737782;border-radius:12px;background:#565963;cursor:pointer}
+.distributionControls input[type=checkbox]::before{position:absolute;top:2px;left:2px;width:10px;height:10px;border-radius:50%;background:#d1d5db;content:''}
+.distributionControls input[type=checkbox]:checked{border-color:#d4b16a;background:#d4b16a}
+.distributionControls input[type=checkbox]:checked::before{left:13px;background:#171a20}
+.distributionControls output{color:var(--text-tertiary);font-size:.58rem;text-align:right;font-variant-numeric:tabular-nums}
+.distributionControls :where(input):focus-visible{outline:2px solid var(--accent-primary);outline-offset:2px}
+
+/* Independent indicator axes retain their scale; scroll only the chart when
+   the available width cannot hold them and a usable price plot. */
+.chartViewport{overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;min-height:180px}
+.chartViewport:focus-visible{outline:2px solid var(--accent-primary);outline-offset:-2px}
+.chart [tabindex="0"]:focus-visible{outline:2px solid #d4b16a;outline-offset:-2px}
+.coverageDetails{flex-basis:100%;min-width:0}
+.coverageDetails summary{cursor:pointer;min-height:24px;display:list-item;color:var(--text-secondary)}
+.coverageDetails summary:focus-visible{outline:2px solid var(--accent-primary);outline-offset:2px}
+.coverageDetails>div{display:flex;flex-wrap:wrap;gap:4px 10px;padding:4px 0}
+.replay button,.replay select{min-width:24px;min-height:28px}
+.replay input[type=range]{min-height:24px}
+@media(max-width:767px){
+  .replay button,.replay select{min-height:36px}
+  .replay input[type=range]{min-height:32px;flex-basis:140px}
+  .coverageStatus{gap:4px 8px;padding:6px 8px}
+  .hover{max-width:calc(100% - 28px)}
+}

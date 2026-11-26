@@ -21,7 +21,7 @@ public static class DataDirectoryResolver
     /// <summary>Folder used by builds before the product was renamed. Migrated automatically when possible.</summary>
     public const string LegacyAppFolderName = "TyuStockApp";
 
-    public static DataDirectoryInfo Resolve(IReadOnlyList<string> args, string exeDirectory, string localAppData)
+    public static DataDirectoryInfo Resolve(IReadOnlyList<string> args, string exeDirectory, string localAppData, bool migrateLegacy = true)
     {
         for (var i = 0; i < args.Count; i++)
         {
@@ -40,6 +40,7 @@ public static class DataDirectoryResolver
             var old = Path.Combine(localAppData, oldName);
             if (!Directory.Exists(modern) && Directory.Exists(old))
             {
+                if (!migrateLegacy) return new(old, DataDirectorySource.LocalAppData);
                 try
                 {
                     Directory.CreateDirectory(localAppData);

@@ -1,5 +1,5 @@
-name: Release · Prepare draft
-run-name: "Prepare release · main · CI ${{ inputs.ci_run_id || github.event.workflow_run.id }}"
+name: Release · Auto publish
+run-name: "Host release · main · CI ${{ inputs.ci_run_id || github.event.workflow_run.id }}"
 on:
   workflow_run:
     workflows: ['CI · Test & Package']
@@ -27,11 +27,13 @@ jobs:
     if: >-
       github.ref == 'refs/heads/main' &&
       (github.event_name == 'workflow_dispatch' ||
-       (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'))
+       (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && vars.HOST_AUTO_RELEASE == 'true'))
     runs-on: ubuntu-24.04
     outputs:
       sha: ${{ steps.tested.outputs.sha }}
       run_id: ${{ steps.tested.outputs.run_id }}
+      skip: ${{ steps.version.outputs.skip }}
+      version: ${{ steps.version.outputs.version }}
     env:
       GH_TOKEN: ${{ github.token }}
       RUN_ID: ${{ inputs.ci_run_id || github.event.workflow_run.id }}
@@ -43,6 +45,9 @@ jobs:
       - name: Verify CI source & all packages
         id: tested
         run: python3 build/release/policy.py --run-id "$RUN_ID" --output "$RUNNER_TEMP/release-source.json"
+      - name: Check host version
+        id: version
+        run: python3 build/release/host-version.py
       - name: Upload source provenance
         uses: actions/upload-artifact@v4
         with:
@@ -51,12 +56,11 @@ jobs:
           if-no-files-found: error
 
   packages:
-    name: ${{ matrix.label }} · Sign & Verify
-    if: github.ref == 'refs/heads/main'
+    name: ${{ matrix.label }} · Verify package
+    if: github.ref == 'refs/heads/main' && needs.source.outputs.skip != 'true'
     needs: source
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
-    environment: release
     strategy:
       fail-fast: false
       matrix:
@@ -69,10 +73,6 @@ jobs:
             rid: win-x64
             label: Windows x64
             desktop: Desktop-windows-latest
-          - os: windows-11-arm
-            rid: win-arm64
-            label: Windows ARM64
-            desktop: Desktop-windows-11-arm
           - os: macos-15-intel
             rid: osx-x64
             label: Mac Intel
@@ -111,21 +111,12 @@ jobs:
             gh run download $env:RUN_ID --repo $env:GITHUB_REPOSITORY --name $env:DESKTOP_ARTIFACT --dir "$env:RUNNER_TEMP/input/desktop"
             if ($LASTEXITCODE -ne 0) { throw 'Desktop artifact download failed' }
           }
-      - name: Sign & notarize packages
-        env:
-          APPLE_CERTIFICATE_P12_BASE64: ${{ runner.os == 'macOS' && secrets.APPLE_CERTIFICATE_P12_BASE64 || '' }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ runner.os == 'macOS' && secrets.APPLE_CERTIFICATE_PASSWORD || '' }}
-          APPLE_SIGNING_IDENTITY: ${{ runner.os == 'macOS' && secrets.APPLE_SIGNING_IDENTITY || '' }}
-          APPLE_NOTARY_KEY_P8: ${{ runner.os == 'macOS' && secrets.APPLE_NOTARY_KEY_P8 || '' }}
-          APPLE_NOTARY_KEY_ID: ${{ runner.os == 'macOS' && secrets.APPLE_NOTARY_KEY_ID || '' }}
-          APPLE_NOTARY_ISSUER: ${{ runner.os == 'macOS' && secrets.APPLE_NOTARY_ISSUER || '' }}
-          WINDOWS_CERTIFICATE_PFX_BASE64: ${{ runner.os == 'Windows' && secrets.WINDOWS_CERTIFICATE_PFX_BASE64 || '' }}
-          WINDOWS_CERTIFICATE_PASSWORD: ${{ runner.os == 'Windows' && secrets.WINDOWS_CERTIFICATE_PASSWORD || '' }}
+      - name: Prepare packages without publisher certificates
         run: |
           $version = ([xml](Get-Content Directory.Build.props -Raw)).Project.PropertyGroup.Version
-          python build/release/sign-packages.py --packages "$env:RUNNER_TEMP/input" --output build/out/release --rid $env:RID --version $version
-          if ($LASTEXITCODE -ne 0) { throw 'Platform signing/notarization failed; unsigned fallback is prohibited' }
-      - name: Test final signed packages
+          python build/release/sign-packages.py --packages "$env:RUNNER_TEMP/input" --output build/out/release --rid $env:RID --version $version --platform-signing none
+          if ($LASTEXITCODE -ne 0) { throw 'Explicit package preparation failed' }
+      - name: Test final packages
         run: |
           $hostRid = if ($IsWindows) { 'win' } elseif ($IsMacOS) { 'osx' } else { 'linux' }
           $hostRid += '-' + [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant()
@@ -135,23 +126,16 @@ jobs:
           $cli = "build/out/release/EasySellPut-CLI-$version-$env:RID$extension"
           $destination = 'build/out/release cli extracted with spaces'
           python tests/automation/check_cli_package.py --archive $cli --rid $env:RID --extract-to $destination
-          if ($LASTEXITCODE -ne 0) { throw 'Signed CLI package verification failed' }
+          if ($LASTEXITCODE -ne 0) { throw 'Final CLI package verification failed' }
           $binary = if ($IsWindows) { 'easysellput.exe' } else { 'easysellput' }
           $executable = Join-Path (Join-Path $destination "EasySellPut-CLI-$version-$env:RID") $binary
           python tests/automation/cli_mcp_smoke.py --executable $executable
           if ($LASTEXITCODE -ne 0) { throw 'Final CLI/MCP smoke failed' }
           if ($env:DESKTOP_ARTIFACT) {
             python tests/automation/check_desktop_package.py --archive "build/out/release/EasySellPut-Desktop-$version-$env:RID.zip" --rid $env:RID --extract-to 'build/out/release desktop extracted with spaces'
-            if ($LASTEXITCODE -ne 0) { throw 'Signed GUI, updater or bundled automation failed' }
+            if ($LASTEXITCODE -ne 0) { throw 'Final GUI, updater or bundled automation failed' }
           }
-          if ($IsMacOS) {
-            $app = (Get-ChildItem 'build/out/release desktop extracted with spaces' -Recurse -Filter EasySellPut.app -Directory | Select-Object -First 1).FullName
-            xcrun stapler validate $app
-            if ($LASTEXITCODE -ne 0) { throw 'Extracted app lost its notarization ticket' }
-            spctl --assess --type execute $app
-            if ($LASTEXITCODE -ne 0) { throw 'Extracted app Gatekeeper validation failed' }
-          }
-      - name: Upload signed package
+      - name: Upload verified package
         uses: actions/upload-artifact@v4
         with:
           name: Release-${{ matrix.rid }}
@@ -168,7 +152,7 @@ jobs:
   draft:
     name: Create release draft
     needs: [source, packages]
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && needs.source.outputs.skip != 'true'
     runs-on: ubuntu-24.04
     environment: release
     permissions:
@@ -189,14 +173,14 @@ jobs:
         run: |
           python3 build/release/policy.py --run-id "$RUN_ID" --output "$RUNNER_TEMP/release-source.json"
           python3 -c 'import json,os; assert json.load(open(os.environ["RUNNER_TEMP"]+"/release-source.json"))["sourceCommit"]==os.environ["TESTED_SHA"]'
-      - name: Download signed packages
+      - name: Download verified packages
         uses: actions/download-artifact@v4
         with:
           pattern: Release-*
           path: ${{ runner.temp }}/release-packages
       - name: Assemble release assets
         id: manifest
-        run: python3 build/release/assemble.py --packages "$RUNNER_TEMP/release-packages" --plan "$RUNNER_TEMP/release-source.json" --output "$RUNNER_TEMP/release-assets"
+        run: python3 build/release/assemble.py --packages "$RUNNER_TEMP/release-packages" --plan "$RUNNER_TEMP/release-source.json" --output "$RUNNER_TEMP/release-assets" --platform-signing none
       - name: Sign update & release indexes
         env:
           UPDATE_SIGNING_KEY: ${{ secrets.UPDATE_SIGNING_KEY }}
@@ -220,7 +204,7 @@ jobs:
           from policy import current_main, require
           require(current_main(os.environ['GITHUB_REPOSITORY'])==os.environ['TESTED_SHA'],'main advanced before draft creation')
           notes=os.environ['RELEASE_NOTES'] or subprocess.check_output(['gh','api','repos/'+os.environ['GITHUB_REPOSITORY']+'/commits/'+os.environ['TESTED_SHA'],'--jq','.commit.message'],text=True)
-          pathlib.Path(os.environ['RUNNER_TEMP'],'release-notes.md').write_text(notes+'\n\nSource: '+os.environ['TESTED_SHA']+'\nCI run: '+os.environ['RUN_ID']+'\n',encoding='utf-8')
+          pathlib.Path(os.environ['RUNNER_TEMP'],'release-notes.md').write_text(notes+'\n\nDistribution: Windows publisher signing and Apple Developer ID/notarization are not included. macOS retains ad-hoc integrity signing. Operating systems may warn or block opening. Update indexes and app packages remain cryptographically signed.\n\nSource: '+os.environ['TESTED_SHA']+'\nCI run: '+os.environ['RUN_ID']+'\n',encoding='utf-8')
           PY
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then echo 'Version already exists; bump Version for a new release. No overwrite.'; exit 1; fi
           existing=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG" --jq .object.sha 2>/dev/null || true)
@@ -230,3 +214,24 @@ jobs:
             gh api "repos/$GITHUB_REPOSITORY/git/refs" -f "ref=refs/tags/$TAG" -f "sha=$TESTED_SHA"
           fi
           gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --verify-tag --title "EasySellPut $TAG" --draft --notes-file "$RUNNER_TEMP/release-notes.md" "$RUNNER_TEMP/release-assets/"*
+
+  publish:
+    name: Verify & publish host
+    needs: [source, draft]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_run' && needs.source.outputs.skip != 'true'
+    runs-on: ubuntu-24.04
+    environment: release
+    permissions:
+      contents: write
+      actions: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_VERSION: ${{ needs.source.outputs.version }}
+    steps:
+      - name: Checkout tested source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.source.outputs.sha }}
+          persist-credentials: false
+      - name: Revalidate signed draft & publish
+        run: python3 build/release/publish.py --version "$RELEASE_VERSION" --publish

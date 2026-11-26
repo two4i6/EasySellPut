@@ -39,16 +39,19 @@ public class SymbolBoxTests
     {
         WpfHost.Run(async () =>
         {
-            var vm = AppServices.Get<Meili.Shared.ViewModels.OptionsViewModel>();
+            var context = AppServices.Get<Meili.Shared.Services.SymbolContext>();
+            var options = AppServices.Get<Meili.Shared.ViewModels.OptionsViewModel>();
             var page = new Meili.App.Views.Pages.OptionsPage();
-            PageLoadTests.Layout(page);
+            using var host = new OffscreenHost(page, 1280, 800);
             await WpfHost.Settle();
-            var box = (SymbolBox)page.FindName("SymbolInput");
-            vm.SymbolText = "NVDA";
+            var workspace = (MarketWorkspaceLayout)page.FindName("Workspace");
+            var box = (SymbolBox)workspace.FindName("SymbolInput");
+            context.Set("NVDA");
             Assert.Equal("NVDA", box.Text);
             box.Text = "AMD";
-            Assert.Equal("AMD", vm.SymbolText);
-            vm.SymbolText = "";
+            box.CommitCommand!.Execute(null);
+            Assert.Equal("AMD", context.Current);
+            Assert.Equal("AMD", options.SymbolText);
         });
     }
 }

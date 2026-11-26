@@ -8,6 +8,42 @@ namespace Meili.Data.Tests;
 public class YahooTests
 {
     [Fact]
+    public async Task Optional_earnings_denial_preserves_profile_and_is_cached_without_repeated_requests()
+    {
+        var handler=new FakeHandler().Enqueue(HttpStatusCode.NotFound,"").Enqueue(HttpStatusCode.OK,"crumb")
+            .Enqueue(_=>FakeHandler.Resp(HttpStatusCode.OK,Fx.Bytes("yahoo_quotesummary.json")))
+            .Enqueue(HttpStatusCode.Forbidden,"");
+        using var gateway=TestHttp.Gateway(handler);var provider=new YahooProvider(gateway,new ResponseCache());
+        var first=await provider.GetFundamentalsAsync("AAPL");var count=handler.Requests.Count;
+        var second=await provider.GetFundamentalsAsync("AAPL");
+        Assert.Equal("Apple Inc.",first.Name);Assert.Empty(first.Earnings);Assert.Equal("unavailable",first.EarningsAvailability);
+        Assert.Equal(count,handler.Requests.Count);Assert.Same(first,second);
+    }
+
+    [Fact]
+    public void Earnings_preserve_zero_negative_missing_consensus_ranges_and_source_periods()
+    {
+        using var json=System.Text.Json.JsonDocument.Parse("""
+        {"quoteSummary":{"result":[{"earningsHistory":{"history":[
+          {"currency":"USD","quarter":{"fmt":"2025-09-30"},"epsActual":{"raw":0},"epsEstimate":{"raw":-0.2}},
+          {"quarter":{"fmt":"2025-06-30"},"epsActual":{"raw":-0.5}},
+          {"epsActual":{"raw":1}}]},"earningsTrend":{"trend":[
+          {"period":"+1q","endDate":"2026-03-31","earningsEstimate":{"currency":"USD","avg":{"raw":2.5},"low":{"raw":2},"high":{"raw":3},"numberOfAnalysts":{"raw":12}},"revenueEstimate":{"avg":{"raw":2000000000}}},
+          {"period":"+1y","earningsEstimate":{"avg":null,"low":{"raw":3}}}]}}]}}
+        """);
+        var fetched=DateTimeOffset.Parse("2026-11-18T00:00:00Z");
+        var rows=YahooProvider.ParseEarnings(json.RootElement,fetched);
+        Assert.Equal(5,rows.Count);
+        var zero=Assert.Single(rows.Where(r=>r.Actual==0));Assert.Equal(-.2,zero.Estimate);Assert.False(zero.IsForecast);
+        var missing=Assert.Single(rows.Where(r=>r.Actual==-.5));Assert.Null(missing.Estimate);
+        var future=Assert.Single(rows.Where(r=>r.Metric=="EPS"&&r.Period=="+1q"));
+        Assert.Equal("USD",future.Currency);Assert.Null(Assert.Single(rows.Where(r=>r.Metric=="Revenue")).Currency);
+        Assert.Null(future.Actual);Assert.True(future.IsForecast);Assert.Equal(2.5,future.Estimate);Assert.Equal(12,future.Analysts);Assert.Equal(2,future.Low);Assert.Equal(3,future.High);
+        Assert.All(rows,r=>{Assert.Equal("yahoo",r.Source);Assert.Equal(fetched,r.FetchedAt);});
+        var annual=Assert.Single(rows.Where(r=>r.Period=="+1y"));Assert.Null(annual.Estimate);Assert.True(annual.Annual);Assert.False(future.Annual);
+    }
+
+    [Fact]
     public void Parses_batch_quotes_with_premarket_and_symbol_mapping()
     {
         using var d = Fx.Json("yahoo_quote.json");
@@ -70,7 +106,8 @@ public class YahooTests
     {
         using var d = Fx.Json("yahoo_chart_1m.json");
         var s = YahooProvider.ParseChart(d.RootElement, "AAPL", BarInterval.Minute1);
-        Assert.Equal(126, s.Bars.Count);
+        Assert.Equal(125, s.Bars.Count); // Excludes Yahoo's trailing quote-time point, not an interval candle.
+        Assert.All(s.Bars, b => Assert.Equal(0, b.Time.ToUnixTimeSeconds() % 60));
         Assert.All(s.Bars, b => Assert.True(b.Low <= b.Open && b.Low <= b.Close && b.High >= b.Open && b.High >= b.Close));
         Assert.True(s.Bars.Zip(s.Bars.Skip(1)).All(p => p.First.Time < p.Second.Time));
         // first bar is pre-market (before 09:30 New York)
@@ -151,5 +188,27 @@ public class YahooTests
         Assert.Contains(q, x => x.Symbol == "BRK.B");
         Assert.Contains("crumb=crumbB", h.Requests[^1].RequestUri!.Query);
         Assert.Contains("symbols=AAPL%2CBRK-B", h.Requests[^1].RequestUri!.Query);
+    }
+
+    [Fact]
+    public async Task Option_receipt_is_retained_across_cache_reads_without_relabeling_market_time()
+    {
+        var h = new FakeHandler().Enqueue(HttpStatusCode.NotFound, "")
+            .Enqueue(HttpStatusCode.OK, "crumb")
+            .Enqueue(_ => FakeHandler.Resp(HttpStatusCode.OK, Fx.Bytes("yahoo_options.json")));
+        using var gateway = TestHttp.Gateway(h);
+        var provider = new YahooProvider(gateway, new ResponseCache());
+        var before = DateTimeOffset.UtcNow;
+        var first = await provider.GetChainAsync("AAPL");
+        var second = await provider.GetChainAsync("AAPL");
+        Assert.NotNull(first.FetchedAt);
+        Assert.InRange(first.FetchedAt.Value, before, DateTimeOffset.UtcNow);
+        Assert.Equal(first.FetchedAt, second.FetchedAt);
+        using var source = Fx.Json("yahoo_options.json");
+        Assert.Equal(YahooProvider.ParseOptions(source.RootElement, "AAPL").AsOf, first.AsOf);
+        Assert.NotEqual(first.AsOf, first.FetchedAt);
+        Assert.Equal(3, h.Requests.Count);
+        Assert.False(first.IsRealtime);
+        Assert.Equal(15, first.DelayMinutes);
     }
 }

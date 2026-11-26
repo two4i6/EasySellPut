@@ -1,0 +1,165 @@
+{
+  "environment": {
+    "node": "v24.22.1",
+    "platform": "linux",
+    "arch": "x64",
+    "cpu": "INTEL(R) XEON(R) PLATINUM 8573C"
+  },
+  "dataset": {
+    "date": "2026-11-16",
+    "expiry": "2026-11-16",
+    "expirySnapshots": 174,
+    "strikePoints": 31806,
+    "bars": 9,
+    "provenance": "Previously captured real partial delayed CBOE observations; 29 expiries and six captures; no complete-day certification."
+  },
+  "responseBytesIdentical": true,
+  "trials": [
+    {
+      "scope": "selected",
+      "trial": 0,
+      "version": "before",
+      "elapsedMs": 1640.632993,
+      "peakRssKiB": 200196,
+      "heapUsed": 122572544,
+      "responseBytes": 57534,
+      "sha256": "480d134571399ff15dba763bf00e5e6efedbb3bbc1ff19236e4a3a750f97b95d"
+    },
+    {
+      "scope": "selected",
+      "trial": 0,
+      "version": "after",
+      "elapsedMs": 176.5945690000001,
+      "peakRssKiB": 57880,
+      "heapUsed": 16144888,
+      "responseBytes": 57534,
+      "sha256": "480d134571399ff15dba763bf00e5e6efedbb3bbc1ff19236e4a3a750f97b95d"
+    },
+    {
+      "scope": "selected",
+      "trial": 1,
+      "version": "before",
+      "elapsedMs": 920.0535560000003,
+      "peakRssKiB": 202700,
+      "heapUsed": 66446616,
+      "responseBytes": 57534,
+      "sha256": "480d134571399ff15dba763bf00e5e6efedbb3bbc1ff19236e4a3a750f97b95d"
+    },
+    {
+      "scope": "selected",
+      "trial": 1,
+      "version": "after",
+      "elapsedMs": 133.29161000000022,
+      "peakRssKiB": 57284,
+      "heapUsed": 16236880,
+      "responseBytes": 57534,
+      "sha256": "480d134571399ff15dba763bf00e5e6efedbb3bbc1ff19236e4a3a750f97b95d"
+    },
+    {
+      "scope": "selected",
+      "trial": 2,
+      "version": "before",
+      "elapsedMs": 738.9542369999999,
+      "peakRssKiB": 200544,
+      "heapUsed": 63487736,
+      "responseBytes": 57534,
+      "sha256": "480d134571399ff15dba763bf00e5e6efedbb3bbc1ff19236e4a3a750f97b95d"
+    },
+    {
+      "scope": "selected",
+      "trial": 2,
+      "version": "after",
+      "elapsedMs": 131.73237900000004,
+      "peakRssKiB": 57376,
+      "heapUsed": 16018320,
+      "responseBytes": 57534,
+      "sha256": "480d134571399ff15dba763bf00e5e6efedbb3bbc1ff19236e4a3a750f97b95d"
+    },
+    {
+      "scope": "all",
+      "trial": 0,
+      "version": "before",
+      "elapsedMs": 824.8168720000003,
+      "peakRssKiB": 200468,
+      "heapUsed": 60512824,
+      "responseBytes": 43480,
+      "sha256": "02d3688c7a6d64c956284d421576612bfd6650cffac9dab8ada807d933aee839"
+    },
+    {
+      "scope": "all",
+      "trial": 0,
+      "version": "after",
+      "elapsedMs": 794.1013099999991,
+      "peakRssKiB": 200264,
+      "heapUsed": 62535080,
+      "responseBytes": 43480,
+      "sha256": "02d3688c7a6d64c956284d421576612bfd6650cffac9dab8ada807d933aee839"
+    },
+    {
+      "scope": "all",
+      "trial": 1,
+      "version": "before",
+      "elapsedMs": 709.8880579999995,
+      "peakRssKiB": 200152,
+      "heapUsed": 65353216,
+      "responseBytes": 43480,
+      "sha256": "02d3688c7a6d64c956284d421576612bfd6650cffac9dab8ada807d933aee839"
+    },
+    {
+      "scope": "all",
+      "trial": 1,
+      "version": "after",
+      "elapsedMs": 836.3723129999998,
+      "peakRssKiB": 202656,
+      "heapUsed": 63663232,
+      "responseBytes": 43480,
+      "sha256": "02d3688c7a6d64c956284d421576612bfd6650cffac9dab8ada807d933aee839"
+    },
+    {
+      "scope": "all",
+      "trial": 2,
+      "version": "before",
+      "elapsedMs": 819.0684250000004,
+      "peakRssKiB": 202764,
+      "heapUsed": 65962208,
+      "responseBytes": 43480,
+      "sha256": "02d3688c7a6d64c956284d421576612bfd6650cffac9dab8ada807d933aee839"
+    },
+    {
+      "scope": "all",
+      "trial": 2,
+      "version": "after",
+      "elapsedMs": 819.6739929999994,
+      "peakRssKiB": 200684,
+      "heapUsed": 61798632,
+      "responseBytes": 43480,
+      "sha256": "02d3688c7a6d64c956284d421576612bfd6650cffac9dab8ada807d933aee839"
+    }
+  ],
+  "limitations": "Only MCP exposure query process memory; not desktop server/renderer memory. Dataset provenance must be supplied alongside report. OS page cache warm, no complete-day claim.",
+  "baselineCommit": "a09036c66da29dd6dce9945eaea44e8535fe4229",
+  "baselineBuild": "61041a4 clean build; production runtime bundles verified byte-identical to a09036c before this change",
+  "change": "Filter metadata references by requested expiry before decompression for independently scoped original kernels; all scope retains every expiry; protected archive unchanged.",
+  "medians": {
+    "selected": {
+      "before": {
+        "elapsedMs": 920.0535560000003,
+        "peakRssKiB": 200544
+      },
+      "after": {
+        "elapsedMs": 133.29161000000022,
+        "peakRssKiB": 57376
+      }
+    },
+    "all": {
+      "before": {
+        "elapsedMs": 819.0684250000004,
+        "peakRssKiB": 200468
+      },
+      "after": {
+        "elapsedMs": 819.6739929999994,
+        "peakRssKiB": 200684
+      }
+    }
+  }
+}

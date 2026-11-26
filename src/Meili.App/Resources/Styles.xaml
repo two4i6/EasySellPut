@@ -32,36 +32,40 @@
 
     <Style x:Key="PageTitle" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{DynamicResource HeadingFont}"/>
-        <Setter Property="FontSize" Value="{StaticResource DisplayFontSize}" />
+        <Setter Property="FontSize" Value="{DynamicResource DisplayFontSize}" />
         <Setter Property="FontWeight" Value="Normal" />
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
         <Setter Property="Margin" Value="0,0,0,4" />
     </Style>
     <Style x:Key="SectionTitle" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="{StaticResource TitleFontSize}" />
+        <Setter Property="FontSize" Value="{DynamicResource TitleFontSize}" />
         <Setter Property="FontWeight" Value="Normal" />
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
         <Setter Property="Margin" Value="0,20,0,8" />
     </Style>
     <Style x:Key="CardTitle" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="{StaticResource BodyFontSize}" />
+        <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
     </Style>
     <Style x:Key="Body" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="{StaticResource BodyFontSize}" />
+        <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
         <Setter Property="TextWrapping" Value="Wrap" />
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
     </Style>
     <Style x:Key="Secondary" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="{StaticResource BodyFontSize}" />
+        <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
         <Setter Property="TextWrapping" Value="Wrap" />
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
     </Style>
     <Style x:Key="Caption" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="{StaticResource CaptionFontSize}" />
+        <Setter Property="FontSize" Value="{DynamicResource CaptionFontSize}" />
         <Setter Property="TextWrapping" Value="Wrap" />
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+    </Style>
+    <Style x:Key="StatusText" TargetType="TextBlock" BasedOn="{StaticResource Caption}">
+        <Setter Property="LineHeight" Value="{StaticResource StatusLineHeight}"/><Setter Property="LineStackingStrategy" Value="BlockLineHeight"/>
+        <Setter Property="VerticalAlignment" Value="Center"/><Setter Property="TextWrapping" Value="NoWrap"/>
     </Style>
     <Style x:Key="PageScroller" TargetType="ScrollViewer">
         <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
@@ -69,7 +73,7 @@
         <Setter Property="Padding" Value="32,24,32,32" />
     </Style>
         <Style x:Key="WorkspaceTile" TargetType="ToggleButton">
-            <Setter Property="Width" Value="56"/><Setter Property="Height" Value="52"/><Setter Property="FontSize" Value="18"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
+            <Setter Property="Width" Value="56"/><Setter Property="Height" Value="52"/><Setter Property="FontSize" Value="{DynamicResource FontSize18}"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
             <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ToggleButton"><Grid>
                 <Border x:Name="Pill" Width="4" Height="8" HorizontalAlignment="Left" VerticalAlignment="Center" CornerRadius="2" Background="{DynamicResource TextFillColorPrimaryBrush}" Opacity="0"/>
                 <Border x:Name="Tile" Width="44" Height="44" CornerRadius="22" Background="{DynamicResource ControlFillColorSecondaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -82,7 +86,7 @@
             </ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
         </Style>
     <Style x:Key="StatusAction" TargetType="p:ButtonBase"><Setter Property="ux:ComponentMotion.Enabled" Value="True"/>
-        <Setter Property="Width" Value="28"/><Setter Property="Height" Value="24"/><Setter Property="MinWidth" Value="28"/><Setter Property="MinHeight" Value="24"/><Setter Property="Padding" Value="0"/><Setter Property="Margin" Value="2,0,0,0"/><Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/><Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Width" Value="28"/><Setter Property="Height" Value="{StaticResource StatusItemHeight}"/><Setter Property="MinWidth" Value="28"/><Setter Property="MinHeight" Value="{StaticResource StatusItemHeight}"/><Setter Property="Padding" Value="0"/><Setter Property="Margin" Value="2,0,0,0"/><Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/><Setter Property="Background" Value="Transparent"/>
         <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="p:ButtonBase"><Border x:Name="Surface" CornerRadius="6" Background="{TemplateBinding Background}" BorderBrush="Transparent" BorderThickness="1"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><ControlTemplate.Triggers>
             <Trigger Property="IsMouseOver" Value="True"><Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}"/></Trigger>
             <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Surface" Property="BorderBrush" Value="{DynamicResource AccentFillColorDefaultBrush}"/></Trigger>

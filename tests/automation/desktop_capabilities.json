@@ -44,6 +44,25 @@
       }
     },
     {
+      "path": "src/Meili.Shared/ViewModels/AppManagementViewModel.cs",
+      "operations": [],
+      "scope": "Explicit local signed application maintenance shared with CLI apps commands. Executable installation, disable and removal are intentionally excluded from market/business MCP tools. Selection, native file picker and confirmation are presentation.",
+      "commands": {
+        "RefreshAppsAsync": {
+          "uiOnly": "Inspect the local module registry; equivalent explicit CLI maintenance is apps list/doctor, never an MCP installation tool."
+        },
+        "InstallAppAsync": {
+          "uiOnly": "User selects a local signed app package; CLI apps install/update provides the same verification without an MCP self-modification endpoint."
+        },
+        "ToggleAppAsync": {
+          "uiOnly": "Explicitly enable/disable installed executable code under execution leases; equivalent apps enable/disable remains CLI-only maintenance."
+        },
+        "UninstallAppAsync": {
+          "uiOnly": "Confirm code removal while retaining observations, data and backups; equivalent apps uninstall remains CLI-only maintenance."
+        }
+      }
+    },
+    {
       "path": "src/Meili.Shared/ViewModels/ChartsViewModel.cs",
       "operations": [
         "get_chart_analysis",
@@ -54,9 +73,11 @@
         "clear_chart_drawings",
         "update_preferences",
         "update_chart_drawing",
-        "delete_chart_drawing"
+        "delete_chart_drawing",
+        "get_live_quotes",
+        "get_live_bars"
       ],
-      "scope": "Business data and calculations are mapped; transient selection, the chart inspector, drawing-tool selection, responsive event panels, window layout, theme rendering and native navigation are presentation.",
+      "scope": "Chart core owns eight unchanged public contracts. Native full receipts, shared Analytics, live stitching and drawing gestures remain host capabilities under an authenticated visible-domain lease; hide releases it and permits updates. Native direct drawing gestures retain the same store/revision protection; CLI/MCP writes use exact-request single-use grants. Transient selection, the chart inspector, drawing-tool selection, responsive event panels, window layout, theme rendering and native navigation are presentation.",
       "commands": {
         "SelectRange": {
           "operations": [
@@ -77,6 +98,9 @@
         },
         "ExportAsync": {
           "uiOnly": "Native save dialog and CSV layout are presentation; mapped operations expose the underlying structured data for client-side export, without arbitrary file-write tools."
+        },
+        "CancelDrawing": {
+          "uiOnly": "Return to pan/select and cancel an unfinished gesture without changing persisted annotations."
         },
         "StartDrawing": {
           "uiOnly": "Choosing a drawing mode is UI state; persisted annotations are covered by get/add/clear_chart_drawings."
@@ -104,7 +128,8 @@
         "get_quotes",
         "get_watchlists",
         "get_settings",
-        "update_preferences"
+        "update_preferences",
+        "get_live_quotes"
       ],
       "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation.",
       "commands": {
@@ -154,12 +179,51 @@
       }
     },
     {
+      "path": "src/Meili.Shared/ViewModels/FinancialChart.cs",
+      "operations": [
+        "get_fundamentals",
+        "get_financials"
+      ],
+      "scope": "Presentation-only signed column scaling, source labels and exact accessible values for existing read-only fundamentals and financial statements; no forecast calculation or execution capability.",
+      "commands": {}
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/LiquidityViewModel.cs",
+      "operations": [
+        "get_market_liquidity"
+      ],
+      "scope": "Shared application liquidity report and Analytics math are identical across desktop, CLI and MCP. Card layout, bounded page lifecycle, colors and chart navigation are presentation. Six US macro indicators retain dated FRED inputs; sector ETF turnover/Amihud are daily proxies, not executable depth or flows.",
+      "commands": {
+        "RefreshAsync": {
+          "operations": [
+            "get_market_liquidity"
+          ]
+        },
+        "OpenSector": {
+          "uiOnly": "Navigate to the selected sector ETF chart in the desktop; bar/indicator data remain available through get_bars/get_chart_analysis."
+        },
+        "OpenSources": {
+          "uiOnly": "Navigate to existing source health diagnostics; source health data remain available through get_source_health."
+        }
+      }
+    },
+    {
+      "path": "src/Meili.Shared/ViewModels/NewsViewModel.Charts.cs",
+      "operations": [
+        "get_fundamentals",
+        "get_financials"
+      ],
+      "scope": "Projects unchanged provider statement values and additive source-reported earnings/consensus fields into separate annual/quarterly charts; selection, labels and chart geometry are native presentation.",
+      "commands": {}
+    },
+    {
       "path": "src/Meili.Shared/ViewModels/NewsViewModel.cs",
       "operations": [
         "get_news",
         "get_market_events",
         "get_fundamentals",
-        "get_financials"
+        "get_financials",
+        "get_live_quotes"
       ],
       "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation.",
       "commands": {
@@ -194,6 +258,29 @@
       }
     },
     {
+      "path": "src/Meili.Shared/ViewModels/MarketWorkspaceViewModel.cs",
+      "scope": "Shared desktop layout for Charts and Option chain. Watchlist groups, chart sidebar quotes and price history use existing operations. The persisted divider width, session metrics shown in the watchlist, and indicator overlays are desktop projections of existing bars.",
+      "operations": [
+        "get_quotes",
+        "get_watchlists",
+        "get_bars"
+      ],
+      "commands": {
+        "ApplyMiniIndicators": {
+          "uiOnly": "Saves moving-average and VWAP display preferences for the shared watchlist mini charts."
+        },
+        "SubmitSymbol": {
+          "uiOnly": "Commits the selected symbol to the desktop navigation context."
+        },
+        "Previous": {
+          "uiOnly": "Moves to the previous page of visible watchlist rows."
+        },
+        "Next": {
+          "uiOnly": "Moves to the next page of visible watchlist rows."
+        }
+      }
+    },
+    {
       "path": "src/Meili.Shared/ViewModels/OptionsViewModel.Insights.cs",
       "operations": [
         "get_option_chain",
@@ -220,7 +307,8 @@
         "build_strategy",
         "update_preferences",
         "analyze_strategy",
-        "save_strategy"
+        "save_strategy",
+        "get_live_quotes"
       ],
       "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation.",
       "commands": {
@@ -253,12 +341,25 @@
       }
     },
     {
+      "path": "src/Meili.Shared/ViewModels/QuotePanelViewModel.cs",
+      "operations": [
+        "get_quotes",
+        "get_bars",
+        "get_watchlists",
+        "get_live_quotes"
+      ],
+      "scope": "Native macOS menu bar / Windows tray and pinned window are desktop-only presentation. Quotes, intraday bars and watchlist remain available through existing CLI/MCP operations; timestamped extended-price selection, Auto/Pre/Regular/Post/Overnight chart switching and matching-session sparklines are UI projections only; live tails reuse LiveBarStitcher (get_live_bars); absent overnight data is never inferred from postmarket; get_quotes retains separate regular/extended fields. They add no indicator or new business mutation. Visibility, selection, paging and pinning do not launch competing market loops.",
+      "commands": {}
+    },
+    {
       "path": "src/Meili.Shared/ViewModels/SettingsViewModel.cs",
       "operations": [
         "get_settings",
-        "update_preferences"
+        "update_preferences",
+        "get_cache_status",
+        "clear_cache"
       ],
-      "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation.",
+      "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation. ReduceMotionEnabled controls desktop/embedded presentation through the existing web-workspace preference; it is not a business operation or a remote browser capability.",
       "commands": {
         "OpenAiHelp": {
           "uiOnly": "Opens the fixed official client installation page with an explicit user action."
@@ -287,23 +388,25 @@
         "CopyClaudeAsync": {
           "uiOnly": "Copies a user-executed Claude Code setup command: preflight the client and local read-only MCP, install/upgrade the unedited bundled skill, then register and verify read-only stdio MCP. The application does not execute it or alter client configuration."
         },
-        "CheckUpdatesAsync": {
-          "uiOnly": "Explicit desktop software maintenance: reads signed official releases, verifies/downloads packages, or confirms an external installer and normal restart. Replacing executable code is not a market/business MCP operation; CLI update check/download provides local maintenance access without MCP self-modification."
+        "RefreshCacheAsync": {
+          "operations": [
+            "get_cache_status"
+          ]
         },
-        "DownloadUpdateAsync": {
-          "uiOnly": "Explicit desktop software maintenance: reads signed official releases, verifies/downloads packages, or confirms an external installer and normal restart. Replacing executable code is not a market/business MCP operation; CLI update check/download provides local maintenance access without MCP self-modification."
+        "ClearCacheAsync": {
+          "operations": [
+            "clear_cache"
+          ]
         },
-        "InstallUpdateAsync": {
-          "uiOnly": "Explicit desktop software maintenance: reads signed official releases, verifies/downloads packages, or confirms an external installer and normal restart. Replacing executable code is not a market/business MCP operation; CLI update check/download provides local maintenance access without MCP self-modification."
+        "ClearExpiredCacheAsync": {
+          "operations": [
+            "clear_cache"
+          ]
         },
-        "CancelUpdate": {
-          "uiOnly": "Explicit desktop software maintenance: reads signed official releases, verifies/downloads packages, or confirms an external installer and normal restart. Replacing executable code is not a market/business MCP operation; CLI update check/download provides local maintenance access without MCP self-modification."
-        },
-        "OpenUpdateHistory": {
-          "uiOnly": "Explicit desktop software maintenance: reads signed official releases, verifies/downloads packages, or confirms an external installer and normal restart. Replacing executable code is not a market/business MCP operation; CLI update check/download provides local maintenance access without MCP self-modification."
-        },
-        "OpenUpdateFolder": {
-          "uiOnly": "Opens the already verified local download folder for explicit manual installation/recovery; never accepts arbitrary URLs or exposes executable replacement through MCP."
+        "CompactGexCacheAsync": {
+          "operations": [
+            "clear_cache"
+          ]
         }
       }
     },
@@ -311,12 +414,16 @@
       "path": "src/Meili.Shared/ViewModels/ShellViewModel.cs",
       "operations": [
         "get_quotes",
-        "get_watchlists"
+        "get_watchlists",
+        "get_qqq_gex_view"
       ],
-      "scope": "Shell window/navigation actions and the shared Claude-inspired component/theme system (cards, selects, forms, drawers, modals, loading and motion) are UI-only. The single Discord-style rail for built-in pages and websites, local web-workspace.json bookmarks/order/motion preferences, unprivileged browser tab navigation and tab management are desktop presentation, not market operations; intentionally no CLI/MCP arbitrary-URL browser execution, session/cookie access or window controls. The macOS shell MenuBarQuoteController presents quotes and watchlist choices through the existing QuoteHub; status-item rendering, current-symbol selection, hide/show and native lifecycle have no MCP window-control tools. Background window visibility, chrome timers and native restore controls are desktop presentation; closeAction remains update_preferences.",
+      "scope": "Shell window/navigation actions and the shared Claude-inspired component/theme system (cards, selects, forms, drawers, modals, loading and motion) are UI-only. The single Discord-style rail for built-in pages and websites, local web-workspace.json bookmarks/order/motion preferences, unprivileged browser tab navigation and tab management are desktop presentation, not market operations; intentionally no CLI/MCP arbitrary-URL browser execution, session/cookie access or window controls. The macOS shell MenuBarQuoteController presents quotes and watchlist choices through the existing QuoteHub; status-item rendering, current-symbol selection, hide/show and native lifecycle have no MCP window-control tools. Background window visibility, chrome timers and native restore controls are desktop presentation; closeAction remains update_preferences. QQQ GEX unified-date partial-workspace selection, snapshot/page state (resource=workspace), same archive snapshots/profile/bars/extendedBars, bounded hover/focus state and timestamped native capture/quote/palette observations are readable through get_qqq_gex_view resource=workspace; this does not grant global input capture or desktop controls. Native physical-input and instantaneous-screen acceptance remains in web/qqq-gex/MIGRATION-MATRIX.md, without an assumed user waiver.",
       "commands": {
         "CopyMcpSetupAsync": {
           "uiOnly": "Copies harness-neutral read-only MCP and skill setup instructions to the clipboard; local diagnostic status is not market health or authorization."
+        },
+        "OpenDataSources": {
+          "uiOnly": "Navigates from the sole footer source-health entry to the desktop status page. Automatic sweep scheduling is desktop lifecycle presentation; existing get_source_health and probe_data_sources remain the shared CLI/MCP operations."
         }
       }
     },
@@ -365,7 +472,7 @@
       ],
       "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation.",
       "commands": {
-        "SaveStrategy": {
+        "SaveStrategyAsync": {
           "operations": [
             "save_strategy"
           ]
@@ -376,7 +483,7 @@
             "analyze_strategy"
           ]
         },
-        "DeleteSaved": {
+        "DeleteSavedAsync": {
           "operations": [
             "delete_strategy"
           ]
@@ -425,7 +532,7 @@
         "delete_strategy",
         "update_preferences"
       ],
-      "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation.",
+      "scope": "Business data and calculations are mapped. Workbench columns, Call/Put layout and ATM viewport positioning are GUI-only presentation preferences; expiry selection reuses get_option_chain and existing pricing. No GUI control MCP tool or new write permission.",
       "commands": {}
     },
     {
@@ -441,7 +548,8 @@
         "save_strategy",
         "get_saved_strategies",
         "delete_strategy",
-        "update_preferences"
+        "update_preferences",
+        "get_live_quotes"
       ],
       "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation.",
       "commands": {
@@ -495,6 +603,37 @@
       }
     },
     {
+      "path": "src/Meili.Shared/ViewModels/UpdateViewModel.cs",
+      "scope": "Desktop-owned verified update checks, shared footer/dialog/settings state, downloads and explicit installer handoff; never exposed via MCP.",
+      "operations": [],
+      "commands": {
+        "CheckUpdatesAsync": {
+          "uiOnly": "Explicit desktop software maintenance: reads signed official releases, verifies/downloads packages, or confirms an external installer and normal restart. Replacing executable code is not a market/business MCP operation; CLI update check/download provides local maintenance access without MCP self-modification."
+        },
+        "DownloadUpdateAsync": {
+          "uiOnly": "Explicit desktop software maintenance: reads signed official releases, verifies/downloads packages, or confirms an external installer and normal restart. Replacing executable code is not a market/business MCP operation; CLI update check/download provides local maintenance access without MCP self-modification."
+        },
+        "InstallUpdateAsync": {
+          "uiOnly": "Explicit desktop software maintenance: reads signed official releases, verifies/downloads packages, or confirms an external installer and normal restart. Replacing executable code is not a market/business MCP operation; CLI update check/download provides local maintenance access without MCP self-modification."
+        },
+        "CancelUpdate": {
+          "uiOnly": "Explicit desktop software maintenance: reads signed official releases, verifies/downloads packages, or confirms an external installer and normal restart. Replacing executable code is not a market/business MCP operation; CLI update check/download provides local maintenance access without MCP self-modification."
+        },
+        "OpenUpdateFolder": {
+          "uiOnly": "Opens the already verified local download folder for explicit manual installation/recovery; never accepts arbitrary URLs or exposes executable replacement through MCP."
+        },
+        "OpenUpdateHistory": {
+          "uiOnly": "Explicit desktop software maintenance: reads signed official releases, verifies/downloads packages, or confirms an external installer and normal restart. Replacing executable code is not a market/business MCP operation; CLI update check/download provides local maintenance access without MCP self-modification."
+        },
+        "OpenUpdatePrompt": {
+          "uiOnly": "Desktop update reminder visibility only; no business mutation, installation or MCP equivalent."
+        },
+        "DismissUpdatePrompt": {
+          "uiOnly": "Desktop update reminder visibility only; no business mutation, installation or MCP equivalent."
+        }
+      }
+    },
+    {
       "path": "src/Meili.Shared/ViewModels/WatchlistViewModel.cs",
       "operations": [
         "get_watchlists",
@@ -505,7 +644,8 @@
         "delete_watchlist_group",
         "add_watchlist_symbol",
         "remove_watchlist_symbol",
-        "move_watchlist_symbol"
+        "move_watchlist_symbol",
+        "get_live_quotes"
       ],
       "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation.",
       "commands": {
@@ -592,16 +732,6 @@
         "strategy_what_if"
       ],
       "scope": "Business data and calculations are mapped; transient selection, window layout, theme rendering and native navigation are presentation.",
-      "commands": {}
-    },
-    {
-      "path": "src/Meili.Shared/ViewModels/QuotePanelViewModel.cs",
-      "operations": [
-        "get_quotes",
-        "get_bars",
-        "get_watchlists"
-      ],
-      "scope": "Native macOS menu bar / Windows tray and pinned window are desktop-only presentation. Quotes, intraday bars and watchlist remain available through existing CLI/MCP operations; latest-session sparklines add no indicator or new business mutation. Visibility, selection, paging and pinning do not launch competing market loops.",
       "commands": {}
     }
   ]

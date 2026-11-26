@@ -28,7 +28,11 @@ public class ChartsRefreshTests
         WpfHost.Run(async () =>
         {
             var vm = AppServices.Get<ChartsViewModel>();
+            vm.Deactivate();
             vm.SymbolText = "AAPL";
+            // Establish a known series on the shared fixture. Switching away from a previous
+            // test’s symbol intentionally redraws the empty plot before the real fit.
+            await vm.LoadAsync();
             var events = new List<bool>();
             void Handler(object? s, EventArgs e) => events.Add(vm.PreserveView);
             vm.PlotChanged += Handler;

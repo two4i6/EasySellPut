@@ -25,8 +25,8 @@ public sealed class ButtonAlignmentTests
         {
             var page=window.CurrentView!;
             var tools=page.GetVisualDescendants().OfType<Button>().Where(b=>b.Classes.Contains("DrawTool")).ToArray();
-            Assert.Equal(3,tools.Length);
-            Assert.All(tools,b=>{Assert.Equal(56,b.Bounds.Width);Assert.Equal(56,b.Bounds.Height);});
+            Assert.Equal(4,tools.Length);
+            Assert.All(tools,b=>{Assert.Equal(32,b.Bounds.Width);Assert.Equal(32,b.Bounds.Height);});
             var symbol=page.GetVisualDescendants().OfType<Meili.Mac.Views.Controls.SymbolBox>().First();
             var dropdown=symbol.GetVisualDescendants().OfType<Button>().Single();
             var input=symbol.GetVisualDescendants().OfType<TextBox>().First();

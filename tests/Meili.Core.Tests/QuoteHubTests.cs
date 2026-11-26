@@ -186,4 +186,53 @@ public class QuoteHubTests
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => t);
         Assert.Equal(0, hub.ConsecutiveFailures);
     }
+    [Fact] public async Task Cache_invalidation_retains_subscriptions_and_last_display_but_refetches()
+    {
+        var (hub, data, _, _) = Make(); hub.Subscribe("alerts", ["AAPL"]);
+        await hub.GetQuotesAsync(["AAPL"]);
+        Assert.Equal(1, hub.Clear(false).Invalidated);
+        Assert.True(hub.TryGetCached("AAPL", out _)); Assert.Single(hub.SubscribedSymbols);
+        await hub.GetQuotesAsync(["AAPL"]); Assert.Equal(2, data.Calls.Count);
+    }
+    [Fact] public async Task Clear_during_request_does_not_cancel_waiters_or_make_old_response_fresh()
+    {
+        var (hub, data, _, _) = Make(); var gate = new TaskCompletionSource(); data.Gate = gate;
+        var updates = 0; hub.Updated += (_, _) => updates++;
+        var pending = hub.GetQuotesAsync(["AAPL"]); hub.Clear(false); gate.SetResult();
+        Assert.Single(await pending); Assert.Equal(1, hub.Inspect().Expired); Assert.Equal(0, updates);
+        data.Gate = null; await hub.GetQuotesAsync(["AAPL"]); Assert.Equal(2, data.Calls.Count);
+    }
+    [Fact]public async Task Pushed_price_survives_late_rest_snapshot_and_unsubscribed_or_out_of_order_ticks_are_ignored()
+    {
+        var(hub,data,clock,_)=Make();hub.Subscribe("view",["AAPL"]);data.Gate=new TaskCompletionSource();
+        var loading=hub.PollAsync();var tick=new QuoteTick("AAPL",102,clock(),MarketState.Regular,2,2,1000,Source:"yahoo");
+        hub.ApplyTicks([tick]);data.Gate.SetResult();var response=await loading;
+        Assert.Equal(102,Assert.Single(response!.Quotes).Price);Assert.True(hub.TryGetCached("AAPL",out var cached));Assert.Equal("websocket",cached.Delivery);Assert.False(cached.IsRealtime);Assert.Equal("yahoo",cached.Source);Assert.Equal("x",cached.SnapshotSource);Assert.Equal(clock(),cached.SnapshotFetchedAt);
+        hub.ApplyTicks([tick with{Price=1,Time=clock().AddSeconds(-1)},tick with{Symbol="MSFT"},tick with{Price=double.NaN},tick with{Time=clock().AddMinutes(2)}]);
+        Assert.True(hub.TryGetCached("AAPL",out cached));Assert.Equal(102,cached.Price);Assert.False(hub.TryGetCached("MSFT",out _));
+        Assert.Equal(102,Assert.Single((await hub.PollAsync())!.Quotes).Price);Assert.Single(data.Calls); // Cached broadcast retains alert cadence without duplicate HTTP.
+        hub.MarkStreamInterrupted(["AAPL"]);Assert.True(hub.TryGetCached("AAPL",out cached));Assert.Equal(102,cached.Price);Assert.Equal("reconnecting",cached.StreamState);
+        hub.ApplyTicks([tick with{Time=clock().AddMilliseconds(1)}]);Assert.True(hub.TryGetCached("AAPL",out cached));Assert.Equal("active",cached.StreamState);
+        hub.Unsubscribe("view");hub.ApplyTicks([tick with{Price=103,Time=clock().AddSeconds(1)}]);Assert.True(hub.TryGetCached("AAPL",out cached));Assert.Equal(102,cached.Price);
+    }
+    [Theory][InlineData(MarketState.PreMarket)][InlineData(MarketState.AfterHours)][InlineData(MarketState.Overnight)]public async Task Extended_push_retains_regular_close_and_source_then_new_regular_session_clears_extended_fields(MarketState session)
+    {
+        var(hub,_,clock,_)=Make();hub.Subscribe("view",["AAPL"]);await hub.PollAsync();
+        var ext=new QuoteTick("AAPL",105,clock(),session,Source:"yahoo");hub.ApplyTicks([ext]);
+        Assert.True(hub.TryGetCached("AAPL",out var cached));Assert.Equal(100,cached.Price);Assert.Equal(105,cached.ExtendedPrice);Assert.Equal("x",cached.Source);Assert.Equal("yahoo",cached.ExtendedSource);Assert.Equal("websocket",cached.ExtendedDelivery);
+        hub.ApplyTicks([ext with{Price=1,Time=clock().AddSeconds(-1)}]);Assert.True(hub.TryGetCached("AAPL",out cached));Assert.Equal(105,cached.ExtendedPrice);
+        hub.ApplyTicks([ext with{Session=MarketState.Regular,Time=clock().AddSeconds(-1),Price=1}]);Assert.True(hub.TryGetCached("AAPL",out cached));Assert.Equal(100,cached.Price);
+        hub.ApplyTicks([ext with{Session=MarketState.Regular,Time=clock().AddSeconds(1),Price=106}]);Assert.True(hub.TryGetCached("AAPL",out cached));Assert.Equal(106,cached.Price);Assert.Null(cached.ExtendedPrice);Assert.Null(cached.ExtendedDelivery);
+    }
+
+    [Fact]public async Task Overnight_can_arrive_before_regular_reference_and_cache_reopen_does_not_lose_received_points()
+    {
+        var(hub,_,clock,advance)=Make();hub.Subscribe("menu",["AAPL"]);
+        var tick=new QuoteTick("AAPL",105,clock().AddSeconds(1),MarketState.Overnight,1,1,Source:"yahoo");hub.ApplyTicks([tick]);
+        Assert.True(hub.TryGetCached("AAPL",out var partial));Assert.True(double.IsNaN(partial.Price));Assert.Null(partial.AsOf);Assert.Equal(105,partial.ExtendedPrice);
+        var received=partial.FetchedAt;advance(1);await hub.PollAsync();Assert.True(hub.TryGetCached("AAPL",out var combined));Assert.Equal(100,combined.Price);Assert.Equal(105,combined.ExtendedPrice);Assert.Equal(received,combined.FetchedAt);Assert.Equal(MarketState.Overnight,combined.MarketState);
+        Assert.Single(hub.GetOvernightObservations("AAPL"));hub.Subscribe("panel",["AAPL"]);hub.Unsubscribe("panel");
+        advance(1);hub.ApplyTicks([tick with{Time=clock(),Price=106}]);Assert.Equal(2,hub.GetOvernightObservations("AAPL").Count);
+        Assert.Equal(2,hub.Clear(false).Removed);Assert.Empty(hub.GetOvernightObservations("AAPL"));Assert.True(hub.TryGetCached("AAPL",out _));Assert.Single(hub.SubscribedSymbols);
+    }
 }

@@ -53,8 +53,13 @@ class ReleasePolicyTests(unittest.TestCase):
         with mock.patch.object(policy, 'gh_json', return_value={'object': {'type': 'tag', 'sha': annotated}}), self.assertRaisesRegex(ValueError, 'nested'):
             policy.resolve_tag('owner/repo', 'v0.7.0')
 
-    def test_artifact_identity_expiry_duplicates_and_all_nine_targets(self):
-        self.assertEqual(len(policy.validate_artifacts(self.artifacts)), 9)
+    def test_release_matrix_contains_only_current_official_platforms(self):
+        self.assertEqual(set(policy.CLI_RIDS), {'linux-x64','win-x64','osx-x64','osx-arm64'})
+        lock=json.loads((ROOT/'web/qqq-gex/node-runtime-lock.json').read_text())
+        self.assertEqual(set(lock['platforms']), set(policy.CLI_RIDS)|{'linux-arm64'})
+
+    def test_artifact_identity_expiry_duplicates_and_all_supported_targets(self):
+        self.assertEqual(len(policy.validate_artifacts(self.artifacts)), 7)
         for artifacts in [self.artifacts[:-1], self.artifacts + [self.artifacts[0]],
                           [dict(a, expired=True) if i == 0 else a for i, a in enumerate(self.artifacts)],
                           [dict(a, size_in_bytes=0) if i == 0 else a for i, a in enumerate(self.artifacts)]]:
@@ -91,12 +96,23 @@ class ReleasePolicyTests(unittest.TestCase):
             output = root / 'out'
             with mock.patch.object(assemble, 'shutil', wraps=assemble.shutil):
                 index = assemble.prepare(packages, output, '0.7.0', plan)
-            self.assertEqual(len(index['assets']), 9)
+            self.assertEqual(len(index['assets']), 7)
             self.assertEqual(index['sourceCommit'], self.sha)
+            unsigned = assemble.prepare(packages, root/'unsigned', '0.7.0', plan, platform_signing='none')
+            self.assertIn('No Developer ID', unsigned['platformSigning'])
+            self.assertIn('ad-hoc', unsigned['platformSigning'])
+            self.assertEqual(unsigned['assets'], index['assets'])
             # The real publish verifier accepts only the complete attachment set.
             for name in ('EasySellPut-update.json.sig', 'EasySellPut-release.json.sig'):
                 (output / name).write_bytes(b'signature tested separately by openssl')
             publish.verify_assets(output, index)
+            update_file = output / 'EasySellPut-update.json'
+            update_index = json.loads(update_file.read_text())
+            self.assertEqual(update_index['repository'], plan['repository'])
+            for wrong_repository in ('other/repo', None):
+                update_file.write_text(json.dumps(update_index | {'repository': wrong_repository}))
+                with self.assertRaises(ValueError): publish.verify_assets(output, index)
+            update_file.write_text(json.dumps(update_index))
             victim = output / index['assets'][-1]['fileName']
             victim.write_bytes(b'tampered')
             with self.assertRaises(ValueError):

@@ -1,0 +1,89 @@
+{
+  "kind": "actual-independent-provider-audit-and-cloud-observer",
+  "sources": [
+    {
+      "provider": "yahoo",
+      "began": "2026-11-17T06:56:10.8632324+00:00",
+      "completed": "2026-11-17T06:56:11.8274658+00:00",
+      "status": "observed",
+      "expiries": 28,
+      "expiry": "2026-11-17",
+      "AsOf": "2026-11-16T21:00:00+00:00",
+      "UnderlyingLastTradeAt": null,
+      "FetchedAt": "2026-11-17T06:56:11.8254037+00:00",
+      "DelayMinutes": 15,
+      "IsRealtime": false,
+      "contracts": 286,
+      "missingIvWithOi": 0,
+      "missingOi": 0,
+      "raw": null,
+      "coverage": "one earliest expiry; independent source observation, no cross-provider filling or complete-history claim"
+    },
+    {
+      "provider": "cboe",
+      "began": "2026-11-17T06:56:11.8927625+00:00",
+      "completed": "2026-11-17T06:56:12.8975372+00:00",
+      "status": "observed",
+      "expiries": 28,
+      "expiry": "2026-11-17",
+      "AsOf": "2026-11-17T04:58:10+00:00",
+      "UnderlyingLastTradeAt": "2026-11-16T15:59:59-05:00",
+      "FetchedAt": "2026-11-17T06:56:12.3691211+00:00",
+      "DelayMinutes": 15,
+      "IsRealtime": false,
+      "contracts": 348,
+      "missingIvWithOi": 23,
+      "missingOi": 0,
+      "raw": {
+        "publication": "2026-11-17 04:58:10",
+        "underlyingLastTrade": "2026-11-16T15:59:59",
+        "sha256": "FE915C0C5E908D7D1E1EF446E9860AEBCDB93E40B733E26E876C8C32C6F79A2E"
+      },
+      "coverage": "one earliest expiry; independent source observation, no cross-provider filling or complete-history claim"
+    },
+    {
+      "provider": "nasdaq",
+      "began": "2026-11-17T06:56:12.9020145+00:00",
+      "completed": "2026-11-17T06:56:15.7186831+00:00",
+      "status": "observed",
+      "expiries": 28,
+      "expiry": "2026-11-17",
+      "AsOf": null,
+      "UnderlyingLastTradeAt": null,
+      "FetchedAt": null,
+      "DelayMinutes": 15,
+      "IsRealtime": false,
+      "contracts": 348,
+      "missingIvWithOi": 265,
+      "missingOi": 83,
+      "raw": null,
+      "coverage": "one earliest expiry; independent source observation, no cross-provider filling or complete-history claim"
+    }
+  ],
+  "shortCloudObserver": {
+    "start": "2026-11-17T06:55:36.722Z",
+    "end": "2026-11-17T06:56:41.000Z",
+    "finishedAt": "2026-11-17T06:56:41.208Z",
+    "interrupted": false,
+    "exitCode": 0,
+    "samples": 1,
+    "distinctPublicationCutoffs": [
+      "2026-11-17T04:58:10+00:00"
+    ],
+    "sourceQualityComplete": false,
+    "errors": [],
+    "fullSessionCertified": false,
+    "notificationDeliveryCertified": false,
+    "limitations": "Inspect actual source-time coverage, missing IV, all observation gaps and canonical signal/notification timestamps. Enabling sound is a test tone. Browser constructor/oscillator calls do not prove audible sound or native OS delivery. No qualifying event may occur; never synthesize one. Finite cloud process depends on runner lifetime; no automatic scheduling or deployment."
+  },
+  "observedSignals": 0,
+  "observedNotificationConstructors": 0,
+  "observedOscillatorStarts": 0,
+  "notes": [
+    "Yahoo first expiry has no missing IV among returned OI contracts but fewer contracts than CBOE; independent incomplete universes must not be joined silently.",
+    "CBOE publication 04:58Z versus prior-day 15:59:59 Eastern last trade is actual provider content, not a parser timezone error.",
+    "Raw CBOE invalid IV values are zero, not omitted numeric fields. Full raw response includes expired contracts; application excludes expired dates.",
+    "Nasdaq has missing source timestamp, IV and OI; not a viable completeness repair.",
+    "No genuine qualifying signal or sound/OS notification delivery is certified."
+  ]
+}

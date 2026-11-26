@@ -24,6 +24,7 @@ public static partial class OperationCatalog
         return new() { ["type"] = "array", ["items"] = item, ["maxItems"] = 1000 };
     }
     private static Operation[] CoverageOperations() => [
+        ..Apps.QqqGex.GexContracts.All,
         Op("probe_data_sources","Actively probe configured provider identities using the desktop router. Results apply to this process and the probed endpoint only; not a test of every capability. No arbitrary URLs.",false,("sourceId",S("Optional registered provider id; omitted probes all"))),
         Op("clear_alert_history","Clear local alert history, retaining alert rules and monitor state. Explicit write.",true),
         Op("move_watchlist_symbol","Reorder one symbol within a watchlist group; target index is zero-based. Conflict-safe local write.",true,("groupId!",S()),("symbol!",S()),("toIndex!",Range(true,0,10000))),

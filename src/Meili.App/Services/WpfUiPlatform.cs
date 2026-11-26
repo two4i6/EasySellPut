@@ -52,6 +52,12 @@ public sealed class WpfUiPlatform : IUiPlatform
     public void OpenFolder(string path) =>
         Process.Start(new ProcessStartInfo("explorer.exe", $"\"{path}\"") { UseShellExecute = true });
 
+    public Task<string?> PickOpenPathAsync(string title, string extension)
+    {
+        var dialog=new Microsoft.Win32.OpenFileDialog {Title=title,Filter="EasySellPut app|*."+extension,CheckFileExists=true,Multiselect=false};
+        return Task.FromResult(dialog.ShowDialog(Application.Current?.MainWindow)==true?dialog.FileName:null);
+    }
+
     public Task<string?> PickSavePathAsync(string title, string suggestedName)
     {
         var dlg = new SaveFileDialog

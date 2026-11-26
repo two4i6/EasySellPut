@@ -4,7 +4,7 @@ namespace Meili.Automation;
 
 public static class LocalPaths
 {
-    public static DataDirectoryInfo Resolve(string? explicitPath = null)
+    public static DataDirectoryInfo Resolve(string? explicitPath = null, bool migrateLegacy = true)
     {
         var exe = AppContext.BaseDirectory;
         var args = explicitPath is null ? Array.Empty<string>() : new[] { "--data-dir", Path.GetFullPath(explicitPath) };
@@ -16,6 +16,6 @@ public static class LocalPaths
             var dir = new DirectoryInfo(Path.TrimEndingDirectorySeparator(exe));
             if (dir is { Name: "MacOS", Parent: { Name: "Contents", Parent: { } app } }) exe = app.Parent!.FullName;
         }
-        return DataDirectoryResolver.Resolve(args, exe, baseDir);
+        return DataDirectoryResolver.Resolve(args, exe, baseDir, migrateLegacy);
     }
 }

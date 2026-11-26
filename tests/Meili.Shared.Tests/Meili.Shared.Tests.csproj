@@ -17,4 +17,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Meili.Shared\Meili.Shared.csproj" />
   </ItemGroup>
+  <ItemGroup><Compile Include="../Fixtures/LiquidityFixture.cs" Link="LiquidityFixture.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="../Fixtures/QuoteStreamFixture.cs" Link="QuoteStreamFixture.cs" /></ItemGroup>
 </Project>

@@ -7,6 +7,7 @@ using ScottPlot.WPF;
 using Meili.App.Services;
 using Meili.App.Views.Pages;
 using Meili.Core.Settings;
+using Meili.Shared.Services;
 using MColor = System.Windows.Media.Color;
 
 namespace Meili.App.Tests;
@@ -47,8 +48,8 @@ public class ChartThemeTests
                 var page = new ChartsPage();
                 using var host = new OffscreenHost(page, 1280, 800);
                 await ScreenRenderTests.Settle();
-                var tools = UiAudit.Descendants<System.Windows.Controls.Primitives.ButtonBase>(page).Where(b => b.Command == ((ChartsViewModel)page.DataContext).StartDrawingCommand || b.Command == ((ChartsViewModel)page.DataContext).ClearDrawingsCommand).ToArray();
-                Assert.Equal(3,tools.Length);Assert.All(tools,b=>{Assert.Equal(56,b.ActualWidth);Assert.Equal(56,b.ActualHeight);});
+                var tools = UiAudit.Descendants<System.Windows.Controls.Primitives.ButtonBase>(page).Where(b => b.Command == ((ChartsViewModel)page.DataContext).StartDrawingCommand || b.Command == ((ChartsViewModel)page.DataContext).ClearDrawingsCommand || b.Command == ((ChartsViewModel)page.DataContext).CancelDrawingCommand).ToArray();
+                Assert.Equal(4,tools.Length);Assert.All(tools,b=>{Assert.Equal(32,b.ActualWidth);Assert.Equal(32,b.ActualHeight);});
                 var symbol=UiAudit.Descendants<SymbolBox>(page).First();
                 var dropdown=UiAudit.Descendants<Wpf.Ui.Controls.Button>(symbol).Single(b=>System.Windows.Automation.AutomationProperties.GetAutomationId(b)=="SymbolBoxDropDown");
                 Assert.Equal(32,dropdown.ActualWidth);Assert.Equal(32,dropdown.ActualHeight);
@@ -95,7 +96,7 @@ public class ChartThemeTests
                     reader.OpenArticle("file:///blocked", "Blocked");
                     Assert.Equal(System.Windows.Visibility.Visible, status.Visibility);
                     Assert.Equal(loc["Reader_Blocked"], status.Text);
-                    Assert.All(toolbar.Children.OfType<Wpf.Ui.Controls.Button>(), b => Assert.True(b.FontSize >= 14 && b.MinHeight >= 32));
+                    Assert.All(toolbar.Children.OfType<Wpf.Ui.Controls.Button>(), b => Assert.True(b.FontSize >= DesignTypography.Size(14) && b.MinHeight >= 32));
                 }
                 loc.Apply("en-US");
                 Assert.Equal(loc["Reader_Blocked"], status.Text);

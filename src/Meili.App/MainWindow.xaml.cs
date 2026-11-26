@@ -30,6 +30,7 @@ public partial class MainWindow : FluentWindow
         SetupWorkspace();
         SetupNewsSplit();
         SetupBackgroundLifecycle();
+        SetupUpdateNotifications();
         RestorePlacement();
         RootNavigation.Loaded += (_, _) =>
         {
@@ -53,7 +54,7 @@ public partial class MainWindow : FluentWindow
         Closing += OnClosing;
         _nav.Requested += OnNavigateRequested;
         _notify.ExitRequested += (_, _) => RequestExit();
-        RootNavigation.Navigated += (_, e) => { _currentPage = e.Page as FrameworkElement; SyncMarketNavigation(); };
+        RootNavigation.Navigated += (_, e) => { if(e.Page is Meili.App.Views.Pages.NewsPage || _currentPage is Meili.App.Views.Pages.NewsPage)CloseNewsArticle(); _currentPage = e.Page as FrameworkElement; SyncMarketNavigation(); ConfigureNewsDefault((_currentPage as Meili.App.Views.Pages.NewsPage)?.FundamentalsContent); };
         WizardBox.WatchSymbols = AppServices.Get<WatchlistStore>().AllSymbols;
         WizardBox.CommitCommand = new RelayCommand(CommitWizard);
         PreviewKeyDown += OnShortcutKeyDown;
@@ -188,6 +189,7 @@ public partial class MainWindow : FluentWindow
         AppPage.Dashboard => typeof(DashboardPage),
         AppPage.Watchlist => typeof(WatchlistPage),
         AppPage.Charts => typeof(ChartsPage),
+        AppPage.QqqGex => typeof(QqqGexPage),
         AppPage.Options => typeof(OptionsPage),
         AppPage.Strategy => typeof(StrategyPage),
         AppPage.News => typeof(NewsPage),
@@ -205,7 +207,7 @@ public partial class MainWindow : FluentWindow
             if (!string.IsNullOrWhiteSpace(e.Symbol) && e.Page != AppPage.Alerts)
                 AppServices.Get<SymbolContext>().Set(e.Symbol);
             ShowMarketWorkspace();
-            RootNavigation.Navigate(PageType(e.Page));
+            RootNavigation.Navigate(PageType(ModuleNavigation.IsAvailable(AppServices.Get<DataDirectoryInfo>().Path,e.Page)?e.Page:AppPage.Settings));
             if (!string.IsNullOrWhiteSpace(e.Symbol) && e.Page == AppPage.Alerts)
                 AppServices.Get<AlertsViewModel>().PrepareForSymbol(e.Symbol);
         });
@@ -250,7 +252,7 @@ public partial class MainWindow : FluentWindow
             var box = new Wpf.Ui.Controls.MessageBox
             {
                 Title = _loc["Close_AskTitle"],
-                Content = new System.Windows.Controls.TextBlock { Text = _loc["Close_AskBody"], TextWrapping = TextWrapping.Wrap, MaxWidth = 420, FontSize = 14 },
+                Content = new System.Windows.Controls.TextBlock { Text = _loc["Close_AskBody"], TextWrapping = TextWrapping.Wrap, MaxWidth = 420 }.WithFontSize(14),
                 PrimaryButtonText = _loc["Close_ToTray"],
                 SecondaryButtonText = _loc["Close_Exit"],
                 CloseButtonText = _loc["Close_Cancel"],

@@ -59,7 +59,7 @@ easysellput probe_data_sources --source-id yahoo --json
 
 `capability_cases.json` 为 45 个操作各提供一个有效场景、结果断言和双传输比较路径。新工具未登记场景仍失败；MCP 初始化、发现、权限、schema 与 CLI 目录逐项匹配。单元测试另外验证完整指标分页、真实 Analytics Greeks、IV 历史不被只读查询写入、全部预设可构建并直接保存、逐腿未来估值、偏好安全合并及画线冲突保护。
 
-沿用完整离线回归、真实 CLI/MCP 进程检查和 Windows x64/ARM64、macOS Intel/Apple Silicon 的实际发行包与原生 WebView CI。离线固定数据不证明实时联网可用。
+沿用完整离线回归、真实 CLI/MCP 进程检查和 Windows x64、macOS Intel/Apple Silicon 的实际发行包与原生 WebView CI。离线固定数据不证明实时联网可用。
 
 本地验收记录：完整回归 `build/out/tests/run-9bvyOrqU` 通过；补跑 Shared 的画线冲突展示测试通过，累计 Core 173、Data 97、Analytics 206、Shared 42、Mac 60、Automation 30，共 608 项离线测试通过。另有 14 项 Python guard、43 项真实 CLI/MCP 场景及既有真实浏览器工作台/时间线交互回归。Live 分类未计入离线通过数。
 

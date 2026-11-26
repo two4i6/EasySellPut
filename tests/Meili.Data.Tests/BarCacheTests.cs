@@ -21,18 +21,22 @@ public sealed class BarCacheTests : IDisposable
         public List<BarRequest> Requests { get; } = [];
         public Func<BarRequest, BarSeries>? Make { get; set; }
         public bool Down { get; set; }
+        public TaskCompletionSource? Gate { get; set; }
+        public TaskCompletionSource? Started { get; set; }
         public int Days { get; set; } = 40;
         public double Scale { get; set; } = 1;
         public string Source { get; set; } = "yahoo";
         public PriceAdjustment Basis { get; set; } = PriceAdjustment.Split;
 
-        public Task<BarSeries> GetBarsAsync(BarRequest r, CancellationToken ct = default)
+        public async Task<BarSeries> GetBarsAsync(BarRequest r, CancellationToken ct = default)
         {
             Requests.Add(r);
+            Started?.TrySetResult();
+            if (Gate is { } gate) await gate.Task.WaitAsync(ct);
             if (Down) throw new HttpRequestException("offline");
             var bars = Enumerable.Range(0, Days).Select(d => Bar.FromSource(D0.AddDays(d), 100 + d, 101 + d, 99 + d, (100.5 + d) * Scale, 1000))
                 .Where(b => r.From is null || b.Time >= r.From).ToList();
-            return Task.FromResult(new BarSeries { Symbol = r.Symbol, Interval = r.Interval, Bars = bars, Source = Source, FetchedAt = D0.AddDays(Days), Adjustment = Basis });
+            return new BarSeries { Symbol = r.Symbol, Interval = r.Interval, Bars = bars, Source = Source, FetchedAt = D0.AddDays(Days), Adjustment = Basis };
         }
         public Task<IReadOnlyList<Quote>> GetQuotesAsync(IReadOnlyList<string> symbols, CancellationToken ct = default) => Task.FromResult<IReadOnlyList<Quote>>([]);
         public Task<IReadOnlyList<DateOnly>> GetExpirationsAsync(string symbol, CancellationToken ct = default) => throw new NotSupportedException();
@@ -47,6 +51,21 @@ public sealed class BarCacheTests : IDisposable
     {
         var inner = new Inner();
         return (new CachedMarketData(inner, new MarketDb(Path.Combine(_dir, "market.db"))), inner);
+    }
+
+    [Fact]
+    public async Task Legacy_Yahoo_quote_time_point_is_not_an_offline_candle_and_cache_evidence_is_preserved()
+    {
+        var (svc, inner) = Make();
+        var bars = Enumerable.Range(0, 7).Select(i => new Bar(D0.AddMinutes(i), 100, 101, 99, 100, 10))
+            .Append(new(D0.AddMinutes(7).AddSeconds(16), 102, 102, 102, 102, 0)).ToArray();
+        svc.Db.SaveBars("AAPL", BarInterval.Minute1, bars, new BarCacheMeta("yahoo", D0, D0, null, false));
+        inner.Down = true;
+        var result = await svc.GetBarsAsync(new("AAPL", BarInterval.Minute1));
+        Assert.True(result.OfflineCache);
+        Assert.Equal(7, result.Bars.Count);
+        Assert.All(result.Bars, b => Assert.Equal(0, b.Time.Second));
+        Assert.Equal(8, svc.Db.LoadBars("AAPL", BarInterval.Minute1).Bars.Count);
     }
 
     [Fact]
@@ -443,6 +462,25 @@ public sealed class BarCacheTests : IDisposable
         Assert.Equal(rows, same);                              // no bars, no deletes: metadata only
         Assert.Equal(D0.AddHours(2), m2!.FetchedAt);
     }
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Clearing_during_full_or_tail_download_does_not_repopulate_the_database(bool seeded)
+    {
+        var (service, inner) = Make();
+        if (seeded) await service.GetBarsAsync(new("AAPL", BarInterval.Day1));
+        inner.Gate = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        inner.Started = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        var pending = service.GetBarsAsync(new("AAPL", BarInterval.Day1));
+        await inner.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        new MarketDb(service.Db.FilePath).ClearBars("AAPL"); inner.Gate.SetResult();
+        Assert.NotEmpty((await pending).Bars);
+        Assert.Empty(service.Db.LoadBars("AAPL", BarInterval.Day1).Bars);
+        inner.Gate = null;
+        Assert.NotEmpty((await service.GetBarsAsync(new("AAPL", BarInterval.Day1))).Bars);
+        Assert.NotEmpty(service.Db.LoadBars("AAPL", BarInterval.Day1).Bars);
+    }
+
 }
 
 /// <summary>B6: open interest per contract and day, compared with the previous stored day.</summary>

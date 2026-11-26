@@ -1,6 +1,6 @@
 namespace Meili.Core.Time;
 
-public enum MarketSession { Closed, PreMarket, Regular, AfterHours }
+public enum MarketSession { Closed, PreMarket, Regular, AfterHours, Overnight }
 
 /// <summary>US equity market calendar in America/New_York (NYSE/Nasdaq full-day holidays; early closes not modelled).</summary>
 public static class MarketClock
@@ -28,12 +28,25 @@ public static class MarketClock
     {
         var et = ToEastern(now);
         if (!IsTradingDay(DateOnly.FromDateTime(et))) return MarketSession.Closed;
-        var t = et.TimeOfDay;
-        if (t >= PreOpen && t < Open) return MarketSession.PreMarket;
-        if (t >= Open && t < Close) return MarketSession.Regular;
-        if (t >= Close && t < PostClose) return MarketSession.AfterHours;
-        return MarketSession.Closed;
+        return ClassifyUsSession(et.TimeOfDay);
     }
+
+    /// <summary>Classifies a provider's already-dated US bar without filtering the provider's trading day.</summary>
+    public static MarketSession ClassifyUsSession(TimeSpan easternTime) => easternTime switch
+    {
+        var t when t >= PreOpen && t < Open => MarketSession.PreMarket,
+        var t when t >= Open && t < Close => MarketSession.Regular,
+        var t when t >= Close && t < PostClose => MarketSession.AfterHours,
+        _ => MarketSession.Closed
+    };
+
+    public static (TimeSpan Start, TimeSpan End) UsSessionBounds(MarketSession session) => session switch
+    {
+        MarketSession.PreMarket => (PreOpen, Open),
+        MarketSession.Regular => (Open, Close),
+        MarketSession.AfterHours => (Close, PostClose),
+        _ => throw new ArgumentOutOfRangeException(nameof(session))
+    };
 
     /// <summary>Adaptive quote poll interval: 5 s regular, 10 s extended hours, 60 s when closed.</summary>
     public static TimeSpan QuoteRefreshInterval(DateTimeOffset now) => GetSession(now) switch

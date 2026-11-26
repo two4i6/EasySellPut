@@ -33,6 +33,8 @@ public interface IUiPlatform
     Task CopyTextAsync(string text) => Task.FromException(new NotSupportedException("Clipboard unavailable"));
 
     /// <summary>Native save dialog offering .xlsx and .csv. Null when the user cancels.</summary>
+    Task<string?> PickOpenPathAsync(string title, string extension) => Task.FromException<string?>(new NotSupportedException("File selection unavailable"));
+
     Task<string?> PickSavePathAsync(string title, string suggestedName);
 }
 
@@ -69,4 +71,4 @@ public static class Ui
 }
 
 /// <summary>Pages the view-models can ask the shell to show (each front end maps them to its own page types).</summary>
-public enum AppPage { Dashboard, Watchlist, Charts, Options, Strategy, News, Alerts, DataSources, Settings }
+public enum AppPage { Dashboard, Watchlist, Charts, Options, Strategy, News, Alerts, DataSources, Settings, QqqGex }

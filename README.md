@@ -9,6 +9,7 @@ Current version: **0.6.0**
 ## Features
 
 - Watchlists, quote overview, and K-line charts
+- [US market liquidity](docs/52-市场流动性与行业热力图.md): experimental 0–100 funding-pressure gauge, six dated macro indicators and 11 sector ETF activity proxies (desktop, CLI and MCP)
 - Options chain, implied volatility, and a linked multi-leg strategy/payoff workbench
 - Price / IV alerts, news and fundamentals, and data-source status
 - Chinese and English UI, light and dark themes
@@ -16,9 +17,11 @@ Current version: **0.6.0**
 
 Open **Strategy → Linked workbench** to add contracts, edit quantities and inspect payoff/Greeks without switching pages. Existing inputs and per-leg analysis remain under **Detailed analysis**. [使用与改造说明](docs/15-期权链与策略联动工作台.md)
 
+[Independent apps: install, update and GitHub delivery](docs/app-runtime-research/app-distribution.md) · [独立子应用与 GitHub 配置](docs/57-独立子应用安装与GitHub分发.md)
+
 ## Build from source
 
-Requirements: Windows 10+ (for the Windows app) or macOS 26+ (for the Mac app), and the repo-local .NET 10 SDK installed by the setup script (no admin rights required).
+Requirements: Windows 10+ x64 (for the Windows app) or macOS 26+ (for the Mac app), and the repo-local .NET 10 SDK installed by the setup script (no admin rights required).
 
 ```powershell
 # Windows: install the local toolchain, then build and test
@@ -31,14 +34,17 @@ powershell -ExecutionPolicy Bypass -File build\build.ps1 -Test
 powershell -ExecutionPolicy Bypass -File build\run-dev.ps1
 ```
 
-Release packs (installers and portable zips) are produced by `build/pack.ps1` and `build/pack-mac.sh`. Those artifacts are not stored in this repository; publish them with GitHub Releases if needed.
+Ordinary `dotnet build src/Meili.Cli` does not invoke npm or rebuild optional applications. Full desktop/package scripts explicitly prepare their bundled compatibility assets with `python build/prepare-app-seed.py --if-current` (Node/npm and Python required). Independently signed app artifacts are built with `build/pack-app.py`; see `TODO.md` for migration readiness.
+
+Official releases use the main-only GitHub Actions signing/draft/publish flow in [the release guide](docs/44-GitHubActions主分支发布流程.md). Local or work-branch artifacts do not publish releases.
 
 ## CLI and MCP
 
-Version 0.6.0 adds a local CLI and stdio MCP server for **Windows x64/ARM64 and macOS Intel/Apple Silicon**, with Linux support as well. They share the desktop market-data adapters and analytics; no GUI, Web server or separate .NET installation is required for self-contained packages.
+Version 0.6.0 adds a local CLI and stdio MCP server for **Windows x64 and macOS Intel/Apple Silicon**, with Linux support as well. They share the desktop market-data adapters and analytics; no GUI, Web server or separate .NET installation is required for self-contained packages.
 
 ```bash
 easysellput quote AAPL MSFT --json
+easysellput liquidity --json
 easysellput strategy analyze --input analysis.json --json
 easysellput mcp serve --data-dir /path/to/EasySellPut-data
 ```
@@ -62,3 +68,5 @@ Installed / normal mode stores settings under `%LOCALAPPDATA%\EasySellPut` on Wi
 [MIT](LICENSE) © 2026 Carl Yu
 
 This software is not investment advice. Market data comes from third-party public endpoints and may be delayed, interrupted, or incorrect. Follow each data source's terms; do not redistribute that data commercially.
+
+股票最新价支持 [Yahoo 免费 Live WebSocket 与全应用共享订阅](docs/53-Yahoo免费Live与全应用行情订阅.md)，CLI 使用 `live`，MCP 使用 `get_live_quotes`。

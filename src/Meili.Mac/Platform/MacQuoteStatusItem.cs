@@ -29,9 +29,19 @@ public sealed class MacQuoteStatusItem : IQuoteStatusItem
         }
         catch { Dispose(); throw; }
     }
-    public (double X,double Y) Anchor
+    public StatusItemAnchor Anchor
     {
-        get{var frame=Native.Frame(Native.Send(Native.Send(_status,"button"),"window"));var main=Native.Frame(Native.Send(Native.Send(Native.Class("NSScreen"),"screens"),"objectAtIndex:",IntPtr.Zero));return(frame.X+frame.Width/2,main.Height-frame.Y);}
+        get
+        {
+            var window = Native.Send(Native.Send(_status, "button"), "window");
+            var frame = Native.Frame(window);
+            var screen = Native.Send(window, "screen");
+            var bounds = Native.Frame(screen);
+            var device = Native.Send(Native.Send(screen, "deviceDescription"), "objectForKey:", Native.ScreenNumberKey);
+            var displayId = Native.Send(device, "unsignedIntValue").ToInt64();
+            // AppKit points, local to this display's top-left. Never scale global desktop coordinates.
+            return new(displayId, frame.X + frame.Width / 2 - bounds.X, bounds.Y + bounds.Height - frame.Y);
+        }
     }
     public void InvokePanel()=>Native.Send(Native.Send(_status,"button"),"performClick:",IntPtr.Zero);
     public string Title => Native.Text(Native.Send(Native.Send(_status, "button"), "title"));
@@ -100,6 +110,7 @@ public sealed class MacQuoteStatusItem : IQuoteStatusItem
         private const string ObjC = "/usr/lib/libobjc.A.dylib";
         internal static readonly Dictionary<IntPtr, MacQuoteStatusItem> Owners = [];
         internal static IntPtr TargetClass;
+        internal static readonly IntPtr ScreenNumberKey = String("NSScreenNumber");
         [DllImport(ObjC, EntryPoint = "objc_getClass")] internal static extern IntPtr Class(string name);
         [DllImport(ObjC, EntryPoint = "sel_registerName")] internal static extern IntPtr Sel(string name);
         [DllImport(ObjC)] private static extern IntPtr objc_allocateClassPair(IntPtr parent, string name, nuint size);

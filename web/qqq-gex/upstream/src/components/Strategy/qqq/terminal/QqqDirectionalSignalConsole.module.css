@@ -1,0 +1,32 @@
+.console{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:5px;padding:12px;color:var(--text-primary);font-family:var(--font-mono);min-width:0}
+.console :global(.qqq-dir-head){display:flex;align-items:center;justify-content:space-between;gap:8px}
+.console :global(.qqq-dir-kicker){display:flex;align-items:center;gap:8px;font-size:.72rem}
+.console :global(.qqq-dir-kicker span){font-size:.6rem;color:var(--text-tertiary);border:1px solid var(--border-subtle);padding:2px 5px;border-radius:3px}
+.console :global(.qqq-dir-alert){display:flex;align-items:center;gap:5px;color:var(--text-secondary);background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:4px;padding:5px 7px;font:inherit;font-size:.62rem;cursor:pointer}
+.console :global(.qqq-dir-alert[aria-pressed=true]){color:var(--accent-primary)}
+.console :global(.qqq-dir-tabs){display:flex;gap:3px;margin:12px 0;border-bottom:1px solid var(--border-subtle)}
+.console :global(.qqq-dir-tabs button){padding:7px 6px;border:0;border-bottom:2px solid transparent;background:transparent;color:var(--text-secondary);font:inherit;font-size:.65rem;cursor:pointer;flex:1;white-space:nowrap}
+.console :global(.qqq-dir-tabs button[aria-selected=true]){border-bottom-color:var(--accent-primary);color:var(--accent-primary)}
+.console :global(button:focus-visible){outline:2px solid var(--accent-primary);outline-offset:2px}
+.console :global([hidden]){display:none!important}
+.console :global(.qqq-dir-action){font-size:1rem;font-weight:650;line-height:1.4;margin:12px 0 8px}
+.console :global(.qqq-dir-action-strip){border-left:2px solid var(--accent-primary);background:var(--bg-subtle);padding:9px 10px;margin:8px 0 10px}
+.console :global(.qqq-dir-action-strip span){font-size:.6rem;color:var(--text-tertiary)}
+.console :global(.qqq-dir-action-strip p){font-size:.75rem;color:var(--text-primary);line-height:1.65;margin:4px 0 0}
+.console :global(.qqq-dir-progress){display:flex;list-style:none;gap:6px;margin:12px 0;padding:0}
+.console :global(.qqq-dir-progress li){font-size:.58rem;color:var(--text-tertiary);flex:1;line-height:1.5}
+.console :global(.qqq-dir-progress li span){display:block;width:18px;height:18px;border:1px solid var(--border-subtle);border-radius:50%;text-align:center;line-height:16px;margin-bottom:5px}
+.console :global(.qqq-dir-progress li[data-complete=true]){color:var(--accent-primary)}
+.console :global(.qqq-dir-grid){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.console :global(.qqq-dir-metric){padding:8px;border:1px solid var(--border-subtle);background:var(--bg-subtle);border-radius:4px;min-width:0}
+.console :global(.qqq-dir-metric span){display:block;font-size:.6rem;color:var(--text-secondary)}
+.console :global(.qqq-dir-metric strong){display:block;margin-top:6px;font-size:.85rem;font-weight:600;font-variant-numeric:tabular-nums;color:var(--text-primary)}
+.console :global(.qqq-dir-meta){border-top:1px solid var(--border-subtle);margin-top:12px;padding-top:8px;display:flex;flex-wrap:wrap;gap:3px 10px;font-size:.6rem;color:var(--text-tertiary);line-height:1.6}
+.console :global(.qqq-dir-deadline),.console :global(.qqq-dir-reasons),.console :global(.qqq-dir-empty){font-size:.65rem;line-height:1.65;color:var(--text-secondary);margin:8px 0}
+.console :global(.qqq-dir-summary-count){font-size:.6rem;line-height:1.65;color:var(--text-tertiary);margin:6px 0}
+.console :global(.qqq-dir-filter-bar){display:flex;gap:5px;margin:8px 0}
+.console :global(.qqq-dir-filter){padding:4px 7px;border:1px solid var(--border-subtle);border-radius:3px;background:var(--bg-subtle);color:var(--text-secondary);font:inherit;font-size:.6rem;cursor:pointer}
+.console :global(.qqq-dir-filter[aria-pressed=true]){border-color:var(--accent-primary);color:var(--accent-primary)}
+.console :global(.qqq-dir-log-list){max-height:280px;overflow:auto}
+.console :global(.qqq-dir-log-row){display:grid;grid-template-columns:38px minmax(0,1fr);gap:4px 8px;padding:9px 6px;border-bottom:1px solid var(--border-subtle);font-size:.62rem;line-height:1.6}
+.console :global(.qqq-dir-log-zone),.console :global(.qqq-dir-log-outcome){grid-column:2;color:var(--text-secondary);overflow-wrap:anywhere}

@@ -14,6 +14,22 @@ namespace Meili.Mac.Tests;
 
 public sealed class UxInteractionTests
 {
+    [AvaloniaFact]
+    public async Task Selected_contract_actions_open_in_shared_popover_and_disable_without_selection()
+    {
+        MacHost.EnsureComposed();var prior=new MainWindow();prior.Show();prior.Navigate(AppPage.Options);await Settle();prior.Close();var window=new MainWindow();window.Show();
+        try
+        {
+            window.Navigate(AppPage.Options);await Settle();var page=window.CurrentView!;var vm=AppServices.Get<OptionsViewModel>();
+            await vm.LoadAsync();await Settle();var chain=page.FindControl<DataGrid>("ChainList")!;Assert.NotEmpty(chain.ItemsSource!.Cast<object>());chain.SelectedIndex=0;await Settle();Assert.True(vm.SelectedRow is not null,$"Selection: index={chain.SelectedIndex}, item={chain.SelectedItem}, rows={vm.Rows.Count}, busy={vm.IsBusy}, context={ReferenceEquals(page.DataContext,vm)}");
+            var ticket=page.FindControl<AppPopover>("StrategyActionsPopover")!;Assert.True(ticket.IsEnabled);ticket.IsExpanded=true;await Settle();
+            var actions=((Control)ticket.PopupContent!).GetVisualDescendants().OfType<Button>().Where(b=>b.Command==vm.BuildStrategyCommand).ToArray();Assert.Equal(4,actions.Length);Assert.All(actions,b=>Assert.True(b.IsEffectivelyEnabled));
+            ticket.IsExpanded=false;vm.SelectedRow=null;await Settle();Assert.False(ticket.IsEnabled);Assert.All(actions,b=>Assert.False(b.IsEffectivelyEnabled));
+            window.Navigate(AppPage.Dashboard);await Settle();Assert.Null(chain.ItemsSource);
+            window.Navigate(AppPage.Options);await Settle();await vm.LoadAsync();await Settle();Assert.NotEmpty(chain.ItemsSource!.Cast<object>());chain.SelectedIndex=0;await Settle();Assert.NotNull(vm.SelectedRow);Assert.True(ticket.IsEnabled);
+        }
+        finally{window.Close();}
+    }
     private static async Task Settle()
     {
         for(var i=0;i<6;i++){await Task.Delay(40);MacHost.Pump();}
@@ -59,7 +75,17 @@ public sealed class UxInteractionTests
         {
             w.Navigate(AppPage.Dashboard);await Settle();var dashboard=(DashboardViewModel)w.CurrentView!.DataContext!;
             var quote=w.CurrentView!.GetVisualDescendants().OfType<Button>().First(b=>b.Command==dashboard.OpenChartCommand);
-            Assert.False(string.IsNullOrEmpty(quote.CommandParameter as string));quote.Command!.Execute(quote.CommandParameter);MacHost.Pump();Assert.Equal(AppPage.Charts,w.CurrentPage);Assert.Equal(quote.CommandParameter,AppServices.Get<SymbolContext>().Current);
+            // A refreshed/recycled dashboard card can change its binding after navigation.
+            // Assert the symbol actually supplied to the click, not a later binding value.
+            // NavigationHub posts to the dispatcher; allow its target bindings to settle as on later page changes.
+            var clickedSymbol=Assert.IsType<string>(quote.CommandParameter);Assert.False(string.IsNullOrEmpty(clickedSymbol));
+            var context=AppServices.Get<SymbolContext>();var transitions=new List<string>();
+            EventHandler<string> changed=(_,symbol)=>transitions.Add(symbol+Environment.NewLine+Environment.StackTrace);
+            context.Changed+=changed;
+            try{quote.Command!.Execute(clickedSymbol);await Settle();}
+            finally{context.Changed-=changed;}
+            Assert.Equal(AppPage.Charts,w.CurrentPage);
+            Assert.True(clickedSymbol==context.Current,"Expected "+clickedSymbol+", actual "+context.Current+Environment.NewLine+string.Join(Environment.NewLine,transitions));
             w.Navigate(AppPage.Watchlist);await Settle();var vm=AppServices.Get<WatchlistViewModel>();var page=w.CurrentView!;
             vm.SelectedRow=null;MacHost.Pump();var remove=page.GetVisualDescendants().OfType<Button>().First(b=>b.Command==vm.RemoveSelectedCommand);Assert.False(remove.IsEnabled);
             vm.SelectedRow=vm.Rows.FirstOrDefault();MacHost.Pump();if(vm.SelectedRow is not null)Assert.True(remove.IsEnabled);

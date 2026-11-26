@@ -16,3 +16,6 @@ src/Meili.Shared/Assets/NavigationIcons/** -text
 # Preserve licensed bundled font files and notices.
 src/Meili.Shared/Assets/Fonts/** -text -whitespace
 *.ttf binary
+
+# Pinned source fidelity uses exact upstream bytes on every platform.
+web/qqq-gex/upstream/** -text -whitespace

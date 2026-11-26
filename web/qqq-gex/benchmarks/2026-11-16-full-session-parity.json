@@ -1,0 +1,14 @@
+[
+  {
+    "rows": 5655,
+    "sourceRowDigest": "739592c5802a3f6577ee9f64c0db08ae4821ef54c461e006ada3594ef82c1fc8",
+    "metadataBytes": 85062990,
+    "importVersion": "v6 eager"
+  },
+  {
+    "rows": 5655,
+    "sourceRowDigest": "739592c5802a3f6577ee9f64c0db08ae4821ef54c461e006ada3594ef82c1fc8",
+    "metadataBytes": 7050743,
+    "importVersion": "v7 lazy"
+  }
+]

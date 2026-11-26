@@ -18,11 +18,11 @@
         </Style>
     </UserControl.Styles>
     <Grid RowDefinitions="Auto,*">
-        <StackPanel x:Name="HeaderPanel" Grid.Row="0" Margin="32,16,32,4">
+        <StackPanel x:Name="HeaderPanel" Grid.Row="0" Margin="24,16,24,8">
             <ux:AppFormHeader Title="{DynamicResource St_Title}" HelpText="{DynamicResource St_Hint}" IsPageTitle="True" Margin="0,0,0,4"/>
             <DockPanel Margin="0,0,0,8">
-                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding RefreshCommand}" Content="{DynamicResource St_Refresh}"  IsEnabled="{Binding !IsBusy}"/>
-                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Content="{DynamicResource St_SavedMenu}">
+                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding RefreshCommand}" Width="36" Height="36" Padding="0" AutomationProperties.Name="{DynamicResource St_Refresh}" ToolTip.Tip="{DynamicResource St_Refresh}" IsEnabled="{Binding !IsBusy}"><ux:LucideIcon Kind="Refresh" Width="18" Height="18"/></Button>
+                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Width="36" Height="36" Padding="0" AutomationProperties.Name="{DynamicResource St_SavedMenu}" ToolTip.Tip="{DynamicResource St_SavedMenu}"><Button.Content><ux:LucideIcon Kind="Folder" Width="18" Height="18"/></Button.Content>
                     <Button.Flyout>
                         <Flyout Placement="BottomEdgeAlignedRight">
                             <StackPanel Width="320" Spacing="8">
@@ -41,13 +41,13 @@
                         </Flyout>
                     </Button.Flyout>
                 </Button>
-                <NumericUpDown DockPanel.Dock="Right" Value="{Binding Quantity}" Minimum="1" Maximum="1000" Increment="1"
-                               FormatString="0" Width="110" Margin="8,0,0,0" />
-                <TextBlock DockPanel.Dock="Right" Classes="Caption" VerticalAlignment="Center" Margin="8,0,0,0" Text="{DynamicResource St_Quantity}" />
-                <ds:AppSelect DockPanel.Dock="Right" MinWidth="180" Margin="8,0,0,0" ItemsSource="{Binding Presets}"
+                <NumericUpDown DockPanel.Dock="Right" AutomationProperties.Name="{DynamicResource St_Quantity}" ToolTip.Tip="{DynamicResource St_Quantity}" Value="{Binding Quantity}" Minimum="1" Maximum="1000" Increment="1"
+                               FormatString="0" Width="72" Margin="8,0,0,0" />
+
+                <ds:AppSelect DockPanel.Dock="Right" MinWidth="140" Margin="8,0,0,0" AutomationProperties.Name="{DynamicResource St_Preset}" ToolTip.Tip="{DynamicResource St_Preset}" ItemsSource="{Binding Presets}"
                           SelectedItem="{Binding SelectedPreset}" DisplayMemberBinding="{Binding Label, x:DataType=vm:PresetChoice}" />
-                <TextBlock DockPanel.Dock="Right" Classes="Caption" VerticalAlignment="Center" Margin="8,0,0,0" Text="{DynamicResource St_Preset}" />
-                <ds:AppSelect DockPanel.Dock="Right" MinWidth="180" Margin="8,0,0,0" IsVisible="{Binding NeedsFarExpiration}"
+
+                <ds:AppSelect DockPanel.Dock="Right" MinWidth="140" Margin="8,0,0,0" IsVisible="{Binding NeedsFarExpiration}"
                           ItemsSource="{Binding FarExpirations}" SelectedItem="{Binding SelectedFarExpiration}"
                           DisplayMemberBinding="{Binding Label, x:DataType=vm:ExpirationChoice}" />
                 <TextBlock DockPanel.Dock="Right" Classes="Caption" VerticalAlignment="Center" Margin="8,0,0,0"
@@ -58,7 +58,7 @@
                         IsVisible="{Binding IsExpirationToday}">
                     <TextBlock Classes="Caption" Foreground="{DynamicResource DownBrush}" Text="{DynamicResource St_ExpiresToday}" />
                 </Border>
-                <ds:AppSelect DockPanel.Dock="Right" MinWidth="200" Margin="8,0,0,0" ItemsSource="{Binding Expirations}"
+                <ds:AppSelect DockPanel.Dock="Right" MinWidth="150" Margin="8,0,0,0" ItemsSource="{Binding Expirations}"
                           SelectedItem="{Binding SelectedExpiration}" DisplayMemberBinding="{Binding Label, x:DataType=vm:ExpirationChoice}" />
                 <controls:SymbolBox x:Name="SymbolInput" MinWidth="160" Text="{Binding SymbolText}" WatchSymbols="{Binding WatchSymbols}"
                                     CommitCommand="{Binding LoadFromBoxCommand}" />
@@ -67,7 +67,7 @@
                 <controls:AppLoading Margin="0,0,8,4" IsVisible="{Binding IsBusy}" />
                 <TextBlock Classes="Caption" Text="{Binding Headline}" TextWrapping="NoWrap" VerticalAlignment="Center" Margin="0,0,12,4" />
                 <TextBlock Classes="Caption" Text="{Binding LivePriceText}" TextWrapping="NoWrap" VerticalAlignment="Center" Margin="0,0,8,4"
-                           ToolTip.Tip="{DynamicResource Op_LivePriceTip}" />
+                           ToolTip.Tip="{Binding LivePriceTip}" />
                 <Border Margin="0,0,8,4" CornerRadius="4" Padding="8,2" VerticalAlignment="Center"
                         Background="{DynamicResource ControlFillColorSecondaryBrush}" IsVisible="{Binding HasDelay}">
                     <TextBlock Classes="Caption" Text="{Binding DelayText}" TextWrapping="NoWrap" />
@@ -82,7 +82,7 @@
             </WrapPanel>
         </StackPanel>
 
-        <TabControl x:Name="SurfaceTabs" Grid.Row="1" Margin="16,0,16,12">
+        <TabControl x:Name="SurfaceTabs" Grid.Row="1" Margin="24,0,24,16">
             <TabItem x:Name="WorkbenchTab" Header="{DynamicResource Wb_Workbench}" IsSelected="True">
                 <platform:WebChartControl x:Name="Workspace" MinHeight="300" />
             </TabItem>
@@ -92,7 +92,7 @@
             <Grid ColumnDefinitions="*,20,*">
                 <DockPanel Grid.Column="0">
                     <TextBlock DockPanel.Dock="Top" Classes="Caption" Text="{DynamicResource St_Summary}" Margin="0,0,0,4" />
-                    <TextBlock DockPanel.Dock="Top" Classes="Secondary" FontSize="14" TextWrapping="Wrap" Text="{Binding StrategySummaryText}" Margin="0,0,0,10" />
+                    <TextBlock DockPanel.Dock="Top" Classes="Secondary" FontSize="{DynamicResource FontSize14}" TextWrapping="Wrap" Text="{Binding StrategySummaryText}" Margin="0,0,0,10" />
                     <WrapPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
                         <Button Margin="0,0,8,0" Command="{Binding AddCallCommand}" Content="{DynamicResource St_AddCall}" />
                         <Button Margin="0,0,8,0" Command="{Binding AddPutCommand}" Content="{DynamicResource St_AddPut}" />
@@ -102,10 +102,10 @@
                     <DataGrid x:Name="LegsGrid" ItemsSource="{Binding Legs}" SelectedItem="{Binding SelectedLeg}"
                               SelectionMode="Single" GridLinesVisibility="Horizontal" CanUserSortColumns="False">
                         <DataGrid.Columns>
-                            <DataGridTemplateColumn local:Loc.Header="St_Type" Width="110">
+                            <DataGridTemplateColumn local:Loc.Header="St_Type" Width="72">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate x:DataType="vm:StrategyLegRow">
-                                        <TextBlock Text="{Binding TypeLabel}" FontSize="14" VerticalAlignment="Center" Margin="8,0" />
+                                        <TextBlock Text="{Binding TypeLabel}" FontSize="{DynamicResource FontSize14}" VerticalAlignment="Center" Margin="8,0" />
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                                 <DataGridTemplateColumn.CellEditingTemplate>
@@ -119,7 +119,7 @@
                             <DataGridTemplateColumn local:Loc.Header="St_Side" Width="100">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate x:DataType="vm:StrategyLegRow">
-                                        <TextBlock Text="{Binding SideLabel}" FontSize="14" VerticalAlignment="Center" Margin="8,0" />
+                                        <TextBlock Text="{Binding SideLabel}" FontSize="{DynamicResource FontSize14}" VerticalAlignment="Center" Margin="8,0" />
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                                 <DataGridTemplateColumn.CellEditingTemplate>
@@ -142,34 +142,34 @@
                     <UniformGrid Columns="3" Margin="0,0,0,10">
                         <StackPanel Margin="0,0,12,0">
                             <TextBlock Classes="Caption" Text="{DynamicResource St_MaxProfit}" />
-                            <TextBlock Classes="CardTitle Num Profit" FontSize="20" Text="{Binding MaxProfitText}" />
+                            <TextBlock Classes="CardTitle Num Profit" FontSize="{DynamicResource TitleFontSize}" Text="{Binding MaxProfitText}" />
                             <TextBlock Classes="Caption" TextWrapping="Wrap" Text="{Binding MaxProfitConditionText}" />
                         </StackPanel>
                         <StackPanel Margin="0,0,12,0">
                             <TextBlock Classes="Caption" Text="{DynamicResource St_MaxLoss}" />
-                            <TextBlock Classes="CardTitle Num Loss" FontSize="20" Text="{Binding MaxLossText}" />
+                            <TextBlock Classes="CardTitle Num Loss" FontSize="{DynamicResource TitleFontSize}" Text="{Binding MaxLossText}" />
                             <TextBlock Classes="Caption" TextWrapping="Wrap" Text="{Binding MaxLossConditionText}" />
                         </StackPanel>
                         <StackPanel>
                             <TextBlock Classes="Caption" Text="{DynamicResource St_Breakeven}" />
-                            <TextBlock Classes="CardTitle Num" FontSize="16" TextWrapping="Wrap" Text="{Binding BreakevenText}" />
+                            <TextBlock Classes="CardTitle Num" FontSize="{DynamicResource SubtitleFontSize}" TextWrapping="Wrap" Text="{Binding BreakevenText}" />
                             <TextBlock Classes="Caption" TextWrapping="Wrap" Text="{Binding BreakevenConditionText}" />
                         </StackPanel>
                     </UniformGrid>
                     <UniformGrid Columns="2" Margin="0,0,0,10">
                         <StackPanel Margin="0,0,12,0" ToolTip.Tip="{DynamicResource St_PopTip}">
                             <TextBlock Classes="Caption" Text="{DynamicResource St_Pop}" />
-                            <TextBlock Classes="CardTitle Num" FontSize="16" Text="{Binding PopText}" />
+                            <TextBlock Classes="CardTitle Num" FontSize="{DynamicResource SubtitleFontSize}" Text="{Binding PopText}" />
                         </StackPanel>
                         <StackPanel>
                             <TextBlock Classes="Caption" Text="{DynamicResource St_Capital}" />
-                            <TextBlock Classes="CardTitle Num" FontSize="16" Text="{Binding CapitalText}" />
+                            <TextBlock Classes="CardTitle Num" FontSize="{DynamicResource SubtitleFontSize}" Text="{Binding CapitalText}" />
                             <TextBlock Classes="Caption" TextWrapping="Wrap" Text="{Binding CapitalDetailText}" IsVisible="{Binding HasStockCapital}" />
                         </StackPanel>
                     </UniformGrid>
                     <StackPanel Margin="0,0,0,4" ToolTip.Tip="{Binding MarginTip}">
                         <TextBlock Classes="Caption" Text="{DynamicResource St_Margin}" />
-                        <TextBlock Classes="Caption" FontSize="14" Text="{Binding MarginText}" />
+                        <TextBlock Classes="Caption" FontSize="{DynamicResource FontSize14}" Text="{Binding MarginText}" />
                     </StackPanel>
                     <TextBlock Classes="Caption" Text="{Binding RewardText}" TextWrapping="Wrap" />
                     <TextBlock Classes="Caption" Text="{Binding GreeksText}" TextWrapping="Wrap" />
@@ -177,7 +177,7 @@
             </Grid>
         </ScrollViewer>
 
-        <DockPanel Grid.Row="1" Margin="16,0,16,12">
+        <DockPanel Grid.Row="1" Margin="24,0,24,16">
             <WrapPanel DockPanel.Dock="Top" Margin="16,0,16,6">
                 <TextBlock Classes="Caption" VerticalAlignment="Center" Margin="0,0,10,0" Text="{DynamicResource St_Horizon}" />
                 <Button x:Name="Tn0" Classes="Chip" Padding="10,6" Margin="0,0,6,0" Content="{DynamicResource St_TnNow}" Command="{Binding SelectHorizonCommand}" />
@@ -186,7 +186,7 @@
                 <Button x:Name="Tn30" Classes="Chip" Padding="10,6" Margin="0,0,6,0" Content="{DynamicResource St_Tn30}" Command="{Binding SelectHorizonCommand}" />
                 <StackPanel Orientation="Horizontal" Margin="16,0,16,0">
                     <TextBlock Classes="Caption" VerticalAlignment="Center" Margin="0,0,8,0" Text="{DynamicResource St_WhatIf}" />
-                    <TextBox Width="90" FontSize="14" Text="{Binding WhatIfPriceText}" />
+                    <TextBox Width="90" FontSize="{DynamicResource FontSize14}" Text="{Binding WhatIfPriceText}" />
                     <TextBlock Classes="Caption" VerticalAlignment="Center" Margin="8,0,0,0" Text="{Binding WhatIfPercentText}" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
@@ -205,21 +205,21 @@
                 <ScrollViewer Grid.Column="2" Margin="12,0,0,0" VerticalScrollBarVisibility="Auto" IsVisible="{Binding HasWhatIf}">
                     <StackPanel>
                         <TextBlock Classes="Caption" Text="{DynamicResource St_WhatIfValue}" />
-                        <TextBlock Classes="CardTitle Num" FontSize="16" Text="{Binding WhatIfValueText}" />
+                        <TextBlock Classes="CardTitle Num" FontSize="{DynamicResource SubtitleFontSize}" Text="{Binding WhatIfValueText}" />
                         <TextBlock Classes="Caption" Margin="0,8,0,0" Text="{DynamicResource St_WhatIfPnl}" />
-                        <TextBlock Classes="Num" FontSize="22" FontWeight="SemiBold" Text="{Binding WhatIfPnlText}"
+                        <TextBlock Classes="Num" FontSize="{DynamicResource FontSize22}" FontWeight="SemiBold" Text="{Binding WhatIfPnlText}"
                                    Classes.Profit="{Binding WhatIfPnlIsProfit}" Classes.Loss="{Binding WhatIfPnlIsLoss}" />
                         <ItemsControl Margin="0,12,0,0" ItemsSource="{Binding WhatIfLegs}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="vm:WhatIfLegRow">
                                     <StackPanel Margin="0,0,0,10">
-                                        <TextBlock FontSize="14" FontWeight="SemiBold" Text="{Binding Label}" />
+                                        <TextBlock FontSize="{DynamicResource FontSize14}" FontWeight="SemiBold" Text="{Binding Label}" />
                                         <DockPanel>
                                             <TextBlock DockPanel.Dock="Left" Classes="Caption" Text="{Binding PriceText}" />
-                                            <TextBlock FontSize="14" HorizontalAlignment="Right" Text="{Binding PnlText}"
+                                            <TextBlock FontSize="{DynamicResource FontSize14}" HorizontalAlignment="Right" Text="{Binding PnlText}"
                                                        Classes.Profit="{Binding IsProfit}" Classes.Loss="{Binding IsLoss}" />
                                         </DockPanel>
-                                        <TextBlock Classes="Secondary" FontSize="14" TextWrapping="Wrap" Text="{Binding Reason}" />
+                                        <TextBlock Classes="Secondary" FontSize="{DynamicResource FontSize14}" TextWrapping="Wrap" Text="{Binding Reason}" />
                                     </StackPanel>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>

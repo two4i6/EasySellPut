@@ -1,3 +1,5 @@
+using Meili.Shared.Services;
+using Meili.Core.Settings;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
@@ -10,6 +12,68 @@ namespace Meili.Shared.ViewModels;
 public partial class StrategyViewModel
 {
     public StrategyGreeks? WorkbenchGreeks { get; private set; }
+    private long _quoteCacheRevision = -1;
+    internal long WorkbenchQuoteVersion { get; private set; }
+    private DateOnly? _quoteCacheExpiry;
+    private double? _quoteCacheSpot;
+    internal string? WorkbenchCompanyName => _hdrQuote?.Name;
+    private IReadOnlyList<WorkbenchQuote> _quoteCache = [];
+    internal IReadOnlyList<WorkbenchQuote> WorkbenchQuotes
+    {
+        get
+        {
+            if (_quoteCacheRevision != _workbenchChainRevision || _quoteCacheExpiry != SelectedExpiration?.Date || _quoteCacheSpot != Spot)
+            {
+                WorkbenchQuoteVersion++;
+                _quoteCache = StrategyWorkbench.BuildQuotes(_hdrChain, SelectedExpiration?.Date, Spot, _inputs);
+                _quoteCacheRevision = _workbenchChainRevision;
+                _quoteCacheExpiry = SelectedExpiration?.Date;
+                _quoteCacheSpot = Spot;
+            }
+            return _quoteCache;
+        }
+    }
+    public IReadOnlyList<string> WorkbenchVisibleColumns => WorkbenchColumns.Normalize(_settings.Current.Options.WorkbenchColumns);
+    public bool SelectWorkbenchExpiration(DateOnly date)
+    {
+        if (IsBusy || Expirations.FirstOrDefault(e => e.Date == date) is not { } choice) return false;
+        if (SelectedExpiration == choice) { ChartChanged?.Invoke(this, EventArgs.Empty); return true; }
+        SelectedExpiration = choice;
+        return true;
+    }
+    public long WorkbenchColumnsRevision { get; private set; }
+    public string WorkbenchColumnsError { get; private set; } = "";
+    public bool SetWorkbenchColumns(IReadOnlyList<string> columns)
+    {
+        if (columns.Count > WorkbenchColumns.Available.Count || columns.Distinct().Count() != columns.Count || columns.Any(c => !WorkbenchColumns.Available.Contains(c))) return false;
+        WorkbenchColumnsRevision++;
+        WorkbenchColumnsError = "";
+        var previous = _settings.Current.Options.WorkbenchColumns;
+        try
+        {
+            _settings.Update(s => s.Options.WorkbenchColumns = WorkbenchColumns.Normalize(columns));
+            WorkbenchMessage = "";
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            _settings.Current.Options.WorkbenchColumns = previous;
+            // Read the winning snapshot for review; never retry a conflicted write silently.
+            var refreshed = false;
+            if (ex is DataConflictException)
+            {
+                try { _settings.ReloadForEditing(); refreshed = true; }
+                catch (Exception readError) when (readError is IOException or UnauthorizedAccessException or System.Text.Json.JsonException or NotSupportedException)
+                { Meili.Core.Diagnostics.AppLog.Warn("strategy", "column preferences could not be reloaded", readError); }
+            }
+            Meili.Core.Diagnostics.AppLog.Warn("strategy", "column preferences could not be saved", ex);
+            WorkbenchColumnsError = WorkbenchMessage = _loc[refreshed ? "Wb_ColumnsConflict" : "Wb_ColumnsFailed"];
+            ChartChanged?.Invoke(this, EventArgs.Empty);
+            return false;
+        }
+        ChartChanged?.Invoke(this, EventArgs.Empty);
+        return true;
+    }
+
     private long _workbenchChainRevision;
     private string? _workbenchDraftSymbol;
     public string WorkbenchDraftSymbol => _workbenchDraftSymbol ?? _loadedSymbol ?? SymbolText;
@@ -27,7 +91,7 @@ public partial class StrategyViewModel
     }
 
     /// <summary>Append only a real contract in the current chain. Prices are selected in C#, never accepted from HTML.</summary>
-    public bool AddWorkbenchContract(string contractSymbol, PositionSide side, int quantity)
+    public bool AddWorkbenchContract(string contractSymbol, PositionSide side, int quantity, string quoteSide="reference")
     {
         var chain = _hdrChain;
         var contract = chain?.Contracts.FirstOrDefault(c => c.ContractSymbol == contractSymbol && c.Expiration == SelectedExpiration?.Date);
@@ -36,7 +100,8 @@ public partial class StrategyViewModel
             || quantity is < 1 or > 1000 || !Enum.IsDefined(side) || Legs.Count >= 32)
             return RejectWorkbench("Wb_Stale");
         // An observed mid/last is required for a click-to-add. Model-only estimates remain visible, never become a fabricated execution price.
-        var premium = OptionEntryReference.From(contract).Price;
+        if(quoteSide is not ("reference" or "bid" or "ask") || quoteSide=="bid" && side!=PositionSide.Short || quoteSide=="ask" && side!=PositionSide.Long)return RejectWorkbench("Wb_Stale");
+        var premium = (quoteSide=="reference"?OptionEntryReference.From(contract):OptionEntryReference.FromQuoteSide(contract,quoteSide)).Price;
         if (premium is not { } price || !double.IsFinite(price)) return RejectWorkbench("Wb_NoQuote");
         var enriched = ToListed(contract, Spot ?? 0, _inputs.Enrichment(DateTimeOffset.Now, chain));
         var leg = contract.Right == Meili.Core.Models.OptionRight.Call
@@ -47,6 +112,16 @@ public partial class StrategyViewModel
         finally { _suppress = false; }
         CommitWorkbenchEdit();
         return true;
+    }
+
+    public bool ToggleWorkbenchContract(string contractSymbol,PositionSide side,int quantity,string quoteSide)
+    {
+        var contract=_hdrChain?.Contracts.FirstOrDefault(c=>c.ContractSymbol==contractSymbol && c.Expiration==SelectedExpiration?.Date);
+        if(IsBusy || contract is null || !Enum.IsDefined(contract.Right) || !Enum.IsDefined(side) || quantity is <1 or >1000 || !double.IsFinite(contract.Strike) || contract.Strike<=0 || !string.Equals(contract.Underlying,_hdrChain?.Underlying,StringComparison.OrdinalIgnoreCase) || !WorkbenchSymbolMatches || !string.Equals(_hdrChain?.Underlying,SymbolText,StringComparison.OrdinalIgnoreCase)
+            || quoteSide=="bid"&&side!=PositionSide.Short || quoteSide=="ask"&&side!=PositionSide.Long || quoteSide is not ("bid" or "ask"))return RejectWorkbench("Wb_Stale");
+        var type=contract.Right==Meili.Core.Models.OptionRight.Call?LegType.Call:LegType.Put;
+        var existing=Legs.FirstOrDefault(row=>row.TryToLeg(out var leg,out _) && leg is not null && leg.Type==type && leg.Side==side && leg.Strike==contract.Strike && leg.Expiry==contract.Expiration);
+        return existing is null?AddWorkbenchContract(contractSymbol,side,quantity,quoteSide):EditWorkbenchLeg(existing.Id,"remove");
     }
 
     public bool EditWorkbenchLeg(Guid id, string field, int quantity = 0, PositionSide side = PositionSide.Long)

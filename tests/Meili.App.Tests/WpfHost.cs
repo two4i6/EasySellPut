@@ -65,10 +65,14 @@ public static class WpfHost
         services.AddSingleton(new AppLaunchOptions { NoAlerts = true, ExitOnClose = true });
         AppComposition.Register(services, dataDir);
         services.AddSingleton<IMarketDataService>(Data);
+        services.AddSingleton<IQuoteStreamSource>(new Meili.Testing.QuoteStreamFixture());
+        services.AddSingleton<ILiquiditySeriesSource>(new Meili.Testing.LiquidityFixture());
+        services.AddSingleton(sp=>new MarketLiquidityService(sp.GetRequiredService<ILiquiditySeriesSource>(),sp.GetRequiredService<IMarketDataService>(),Meili.Testing.LiquidityFixture.Clock));
         services.AddSingleton<IIvSource>(Iv);
         services.AddSingleton<INetworkController>(Network);
         AppServices.Provider = services.BuildServiceProvider();
         var settings = AppServices.Get<SettingsStore>().Load();
+        NativeTypography.Initialize(settings.TextSizePercent);
         AppServices.Get<LocalizationService>().Apply(settings.Language);
         ThemeService.ApplyUpDownColors(settings.UpDownColors);
     }

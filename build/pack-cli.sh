@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Publish one self-contained CLI/MCP distribution. No trimming; preserve SDK reflection metadata.
-# Usage: build/pack-cli.sh [linux-x64|linux-arm64|win-x64|win-arm64|osx-x64|osx-arm64] [output-parent]
+# Usage: build/pack-cli.sh [linux-x64|linux-arm64|win-x64|osx-x64|osx-arm64] [output-parent]
 set -euo pipefail
 root=$(cd "$(dirname "$0")/.." && pwd)
 source "$root/tools/env.sh"
@@ -18,7 +18,7 @@ else
   esac
   rid="$target_os-$target_arch"
 fi
-case "$rid" in linux-x64|linux-arm64|win-x64|win-arm64|osx-x64|osx-arm64) ;; *) echo 'Unsupported runtime identifier' >&2; exit 2 ;; esac
+case "$rid" in linux-x64|linux-arm64|win-x64|osx-x64|osx-arm64) ;; *) echo 'Unsupported runtime identifier' >&2; exit 2 ;; esac
 version=$(python3 -c 'import xml.etree.ElementTree as E; print(E.parse("Directory.Build.props").find(".//Version").text)')
 parent=${2:-$root/build/out/cli}
 mkdir -p "$parent"
@@ -27,8 +27,10 @@ name="EasySellPut-CLI-$version-$rid"
 work=$(mktemp -d "$parent/.publish-XXXXXXXX")
 trap 'rm -rf "$work"' EXIT
 payload="$work/$name"
+python3 build/prepare-app-seed.py --if-current
 dotnet publish src/Meili.Cli/Meili.Cli.csproj -c Release -r "$rid" --self-contained true -m:3 \
   -p:PublishTrimmed=false -p:PublishSingleFile=false -p:PackAsTool=false -o "$payload" -v minimal
+python3 build/bundle-qqq-runtime.py "$rid" "$payload"
 mkdir -p "$payload/skills/easysellput-local"
 cp skills/easysellput-local/SKILL.md "$payload/skills/easysellput-local/SKILL.md"
 cp LICENSE "$payload/LICENSE"

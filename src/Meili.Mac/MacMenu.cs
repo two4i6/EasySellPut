@@ -31,7 +31,7 @@ public static class MacMenu
             for (var i = 0; i < order.Count; i++)
             {
                 var page = order[i];
-                pages.Add(Item(loc[MainWindow.TitleKey(page)], $"Meta+D{i + 1}", () => window.Navigate(page)));
+                pages.Add(Item(loc[MainWindow.TitleKey(page)], PageShortcut(i), () => window.Navigate(page)));
             }
             pages.Add(new NativeMenuItemSeparator());
             pages.Add(Item(loc["Menu_Refresh"], "Meta+R", window.RefreshCurrent));
@@ -53,6 +53,8 @@ public static class MacMenu
         Build();
         loc.LanguageChanged += (_, _) => Build();
     }
+
+    internal static string? PageShortcut(int index)=>index is >=0 and <9?$"Meta+D{index+1}":null;
 
     private static NativeMenuItem Item(string header, string? gesture, Action action)
     {

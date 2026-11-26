@@ -10,11 +10,14 @@ def outputs():
     for name,palette in data['themes'].items():
         code+='    public static readonly ThemePalette '+name.title()+' = new(\n        '+',\n        '.join(k+': '+(str(v) if isinstance(v,int) else argb(v)) for k,v in palette.items())+');\n'
     for key,value in data['metrics'].items():code+=f'    public const double {key} = {value};\n'
+    fonts=[k for k in data['metrics'] if k.endswith('FontSize') or k.startswith('FontSize')]
+    code+='    internal static IEnumerable<(string Key, double Size)> FontSizes { get; } = new (string, double)[]\n    {\n'
+    code+=''.join(f'        (nameof({key}), {key}),\n' for key in fonts)+'    };\n'
     code+='    public static IEnumerable<(string Key,uint Argb)> ComponentBrushes(bool dark) => dark ? DarkBrushes : LightBrushes;\n'
     aliases={'Brand':'BrandBrush','BrandHover':'BrandHoverBrush','Focus':'FocusBrush','Link':'LinkBrush','Input':'InputBackgroundBrush','Hover':'HoverBrush','Pressed':'PressedBrush','Danger':'DangerBrush','Overlay':'OverlayBrush'}
     aliases.update({'Focus':'FocusBrush','Danger':'DangerBrush'})
     for name,colors in data['components'].items():
-        code+='    private static readonly (string Key,uint Argb)[] '+name.title()+'Brushes =\n    [\n'+''.join(f'        ("{aliases[k]}", {argb(v)}),\n' for k,v in colors.items())+f'        ("TextControlBorderBrushFocused", {argb(colors["Focus"])}),\n        ("SystemControlErrorTextForegroundBrush", {argb(colors["Danger"])}),\n'+'    ];\n'
+        code+='    private static readonly (string Key,uint Argb)[] '+name.title()+'Brushes =\n    [\n'+''.join(f'        ("{aliases.get(k,k+'Brush')}", {argb(v)}),\n' for k,v in colors.items())+f'        ("TextControlBorderBrushFocused", {argb(colors["Focus"])}),\n        ("SystemControlErrorTextForegroundBrush", {argb(colors["Danger"])}),\n'+'    ];\n'
     code+='}\n'
     result={'src/Meili.Shared/Services/DesignTokens.cs':code}
     for platform in ['App','Mac']:
@@ -49,6 +52,16 @@ def outputs():
     for role,key in {'Window':'background','PrimaryText':'text','MutedText':'muted','Control':'control','Border':'border','Accent':'accent'}.items():css+='--'+key+':'+data['themes']['dark'][role]+';'
     for role,value in data['components']['dark'].items():css+='--'+role.lower()+':'+value+';'
     css+='}\n';result['src/Meili.Shared/WebCharts/design-tokens.css']=css
+    # The same defaults feed native private documents and the UI-free source host.
+    presentations={}
+    for name,palette in data['themes'].items():
+        components=data['components'][name]
+        def rgba(value):return '#'+value[3:]+value[1:3] if len(value)==9 else value
+        theme={k:components[k.title()] for k in ['brand','focus','link','input','hover','pressed','danger']}
+        theme.update(dark=name=='dark',control=palette['Control'],border=palette['Border'],accent=palette['Accent'],errorBackground=palette['ErrorBar'],errorText=palette['Degraded'],sessionPre=rgba(palette['PreMarketTint']),sessionPost=rgba(palette['AfterHoursTint']),background=palette['Chart'],text=palette['PrimaryText'],muted=palette['MutedText'],grid=palette['PrimaryText']+format(palette['GridAlpha'],'02X'),up=palette['Up'],down=palette['Down'],colors=[palette['Series'+str(i)] for i in range(1,7)])
+        theme.update({key:components[role] for key,role in {'tradingCanvas':'TradingCanvas','tradingSurface':'TradingSurface','tradingEdge':'TradingEdge','tradingMuted':'TradingMuted','buyQuote':'BuyQuote','sellQuote':'SellQuote'}.items()})
+        presentations[name]=theme
+    result['src/Meili.Application/Modules/app-theme-defaults.json']=json.dumps(presentations,indent=2)+'\n'
     return result
 
 def main():

@@ -20,7 +20,7 @@ public partial class StrategyViewModel
 {
     /// <summary>B7: save the current legs under <see cref="SaveName"/> (or "SYMBOL strategy date").</summary>
     [RelayCommand]
-    private void SaveStrategy()
+    private async Task SaveStrategyAsync()
     {
         if (!TryCompile(out var strategy, out var err))
         {
@@ -31,11 +31,14 @@ public partial class StrategyViewModel
         var name = SaveName.Trim();
         if (name.Length == 0) name = $"{symbol} {strategy!.Name} {DateTime.Now:yyyy-MM-dd HH:mm}";
         var saved = new SavedStrategy(name, symbol, strategy!.Kind, strategy.Legs.Select(SavedLeg.From).ToList(), DateTimeOffset.Now);
-        _store.Save(saved);
+        var requestedName=SaveName;
+        try {if(_applications is not null)await _applications.SaveAsync(saved);else _store.Save(saved);}
+        catch(Exception ex) when(ex is System.IO.IOException or InvalidOperationException or UnauthorizedAccessException or Meili.Automation.Modules.ModuleOperationFailure)
+        {AppLog.Warn("strategy","Save failed",ex);StatusText=string.Format(_loc["St_SaveFailed"],ex.Message);return;}
         Saved.Clear();
         foreach (var x in _store.All) Saved.Add(x);
         SelectedSaved = Saved[0];
-        SaveName = "";
+        if(SaveName==requestedName)SaveName = "";
         StatusText = string.Format(_loc["St_SavedOk"], name);
     }
 
@@ -64,10 +67,12 @@ public partial class StrategyViewModel
     }
 
     [RelayCommand]
-    private void DeleteSaved()
+    private async Task DeleteSavedAsync()
     {
         if (SelectedSaved is not { } saved) return;
-        _store.Delete(saved.Name);
+        try {if(_applications is not null)await _applications.DeleteAsync(saved.Name);else _store.Delete(saved.Name);}
+        catch(Exception ex) when(ex is System.IO.IOException or InvalidOperationException or UnauthorizedAccessException or Meili.Automation.Modules.ModuleOperationFailure)
+        {AppLog.Warn("strategy","Delete failed",ex);StatusText=string.Format(_loc["St_DeleteFailed"],ex.Message);return;}
         Saved.Remove(saved);
         SelectedSaved = Saved.FirstOrDefault();
     }

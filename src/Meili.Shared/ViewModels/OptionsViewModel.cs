@@ -21,11 +21,14 @@ public enum StrikeWindowKind { Near5 = 5, Near10 = 10, Near20 = 20, All = 0 }
 /// <summary>Options page: expiration picker, T-quote chain, local IV/Greeks fill-in.</summary>
 public partial class OptionsViewModel : ObservableObject
 {
+    public LiveQuotePresenter LiveQuote {get;}
+    public string LivePriceTip=>LiveQuote.Tooltip+"\n"+_loc["Op_LivePriceTip"];
     private readonly WatchlistStore _watchlist;
     private readonly IMarketDataService _data;
     private readonly LocalizationService _loc;
     private readonly SymbolContext _context;
     private readonly PricingAssumptions _pricing;
+    private readonly OptionsStrategyAppClient? _applications;
     private PricingInputs _inputs;
     private readonly IUiTimer _timer = Ui.Timer(RefreshCadence.OptionChain); // C3
     private CancellationTokenSource? _cts;
@@ -87,9 +90,9 @@ public partial class OptionsViewModel : ObservableObject
     private readonly VolatilityInsights _insights;
 
     public OptionsViewModel(WatchlistStore watchlist, IMarketDataService data, LocalizationService loc, SymbolContext context,
-        PricingAssumptions pricing, SettingsStore settings, VolatilityInsights insights)
+        PricingAssumptions pricing, SettingsStore settings, VolatilityInsights insights, Meili.Core.Quotes.QuoteHub? quotes=null, OptionsStrategyAppClient? applications=null)
     {
-        _watchlist = watchlist; _data = data; _loc = loc; _context = context; _pricing = pricing; _settings = settings; _insights = insights;
+        _applications=applications; _watchlist = watchlist; _data = data; _loc = loc; _context = context; _pricing = pricing; _settings = settings; _insights = insights; LiveQuote=new(quotes,loc,"options-live"); LiveQuote.Updated+=(_,_)=>{LivePriceText=LiveQuote.Text;OnPropertyChanged(nameof(LivePriceTip));};
         CompactColumns = settings.Current.Options.CompactColumns;
         _inputs = pricing.Initial;
         ModelText = PricingText.Model(_inputs.Rate, loc);
@@ -116,8 +119,9 @@ public partial class OptionsViewModel : ObservableObject
     public async Task ActivateAsync()
     {
         _active = true;
+        LiveQuote.Activate(SymbolText);
         if (_context.ShouldAdopt(SymbolText)) { await AdoptContextAsync(); return; }
-        if (Rows.Count == 0) await LoadAsync();
+        if (Rows.Count == 0 || _loadedSymbol != SymbolText) await LoadAsync();
         else _timer.Start();
     }
 
@@ -131,8 +135,9 @@ public partial class OptionsViewModel : ObservableObject
     public void Deactivate()
     {
         _active = false;
+        LiveQuote.Deactivate();
         _timer.Stop();
-        _cts?.Cancel();
+        CancelLoad();
     }
 
     private void RebuildWatchSymbols()
@@ -244,12 +249,22 @@ public partial class OptionsViewModel : ObservableObject
         TableChanged?.Invoke(this, EventArgs.Empty);
     }
 
+    private void CancelLoad()
+    {
+        var previous = _cts;
+        _cts = null;
+        previous?.Cancel();
+        previous?.Dispose();
+        IsBusy = false;
+    }
+
     public async Task LoadAsync(bool refreshOnly = false)
     {
         if (!WatchlistStore.TryNormalizeSymbol(SymbolText, out var symbol, out _))
         {
             if (!refreshOnly)
             {
+                CancelLoad();
                 _lastError = _loc["Op_InvalidSymbol"];
                 ClearTable();
                 UpdateStatus();
@@ -257,20 +272,34 @@ public partial class OptionsViewModel : ObservableObject
             return;
         }
         SymbolText = symbol;
+        if(_active)LiveQuote.Activate(symbol);
         _context.Set(symbol);
+        CancelLoad();
+        if (_loadedSymbol is { } previous && previous != symbol)
+        {
+            ClearTable();
+            Expirations.Clear();
+            SelectedExpiration = null;
+            TermPoints = [];
+            _ivRank = null;
+            RelabelIvRank();
+            _lastChain = null;
+            _loadedSymbol = null;
+            Spot = null;
+        }
         IsBusy = true;
         if (!refreshOnly || Rows.Count == 0) StatusText = _loc["Op_Loading"];
-        _cts?.Cancel();
         _cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
         var request = _cts;
         var ct = request.Token;
         try
         {
+            using var appLease=_applications is null?null:await _applications.AcquireAsync(ct);
             // A different symbol's expiration list does not apply: start from its nearest expiry.
             var exp = string.Equals(symbol, _loadedSymbol, StringComparison.OrdinalIgnoreCase) ? SelectedExpiration?.Date : null;
-            var chainTask = _data.GetChainAsync(symbol, exp, ct);
+            var chainTask = (_applications?.ChainAsync(symbol,exp,ct)??_data.GetChainAsync(symbol,exp,ct));
             var quoteTask = SafeQuotes(symbol, ct);
-            var pricingTask = _pricing.ForAsync(symbol, "options", ct);
+            var pricingTask = (_applications?.PricingAsync(symbol,"options",ct)??_pricing.ForAsync(symbol,"options",ct));
             var chain = await chainTask;
             ct.ThrowIfCancellationRequested();
             _loadedSymbol = symbol;
@@ -371,6 +400,7 @@ public partial class OptionsViewModel : ObservableObject
     private void ClearTable()
     {
         _allRows = [];
+        SelectedRow = null;
         Rows.Clear();
         SmilePoints = [];
         HasRows = false;
@@ -440,7 +470,7 @@ public partial class OptionsViewModel : ObservableObject
         var now = DateTimeOffset.Now;
         var u = UnderlyingText.Describe(_lastChain, _hdrQuote, _loc, now);
         Headline = u.Main.Length > 0 ? $"{symbol}   {u.Main}" : symbol;
-        LivePriceText = u.Live;
+        LivePriceText = LiveQuote.Text.Length>0?LiveQuote.Text:u.Live;
         DelayText = _lastChain is { } c ? FreshnessText.ChainTiming(c, _loc, now) : "";
         HasDelay = DelayText.Length > 0;
         LocalNote = _hdrLocal ? string.Format(_loc["Op_LocalGreeks"], _inputs.Rate.Rate) : "";

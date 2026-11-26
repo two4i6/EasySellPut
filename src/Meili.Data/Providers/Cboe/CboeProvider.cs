@@ -130,10 +130,11 @@ public sealed class CboeProvider(HttpGateway http, ResponseCache cache) : Provid
         return Cache.GetOrAddAsync($"cboe:opt:{sym}", RefreshCadence.OptionChainCache, async c =>
         {
             var payload = await GetAsync($"{Base}/options/{Enc(sym)}.json", c, timeout: TimeSpan.FromSeconds(45)).ConfigureAwait(false);
+            var receivedAt=DateTimeOffset.UtcNow; // Preserve actual download receipt across all cached expiry reads.
             // Large (AAPL ~1.5 MB, SPX ~14 MB): parse off the UI thread.
             var chain = await Task.Run(() => { using var doc = ParseJson(payload.Body); return ParseOptions(doc.RootElement, Norm(symbol), Eastern.Today); }, c).ConfigureAwait(false);
             if (chain.Contracts.Count == 0) throw NoData($"no options for {symbol}");
-            return chain;
+            return chain with { RawSourcePayload = payload.Body, FetchedAt=receivedAt };
         }, ct);
     }
 
@@ -141,21 +142,29 @@ public sealed class CboeProvider(HttpGateway http, ResponseCache cache) : Provid
     {
         var d = root.Prop("data");
         var list = new List<OptionContract>();
+        // Request-local indexing avoids repeatedly scanning every contract's JSON
+        // object; exact repeated timestamps share parsing, never another request's data.
+        var fields=new Dictionary<string,JsonElement>(StringComparer.Ordinal);
+        var times=new Dictionary<string,DateTimeOffset?>(StringComparer.Ordinal);
+        double? Number(string name)=>fields.TryGetValue(name,out var value)?value.Num():null;
+        string? Text(string name)=>fields.TryGetValue(name,out var value)?value.Str():null;
+        DateTimeOffset? TradeTime(string? text){if(text is null)return null;if(!times.TryGetValue(text,out var value))times[text]=value=Eastern.Parse(text);return value;}
         foreach (var o in d.Items("options"))
         {
             if (!OccSymbol.TryParse(o.Str("option"), out _, out var exp, out var right, out var strike) || exp < today) continue;
-            var iv = o.Num("iv");
+            fields.Clear();foreach(var property in o.EnumerateObject())fields[property.Name]=property.Value;
+            var iv = Number("iv");
             var hasIv = iv is > 0.0001 and < 20;
             list.Add(new OptionContract
             {
-                ContractSymbol = o.Str("option")!, Underlying = underlying, Right = right, Strike = strike, Expiration = exp,
-                Bid = Pos(o.Num("bid")), Ask = Pos(o.Num("ask")), BidSize = o.Num("bid_size"), AskSize = o.Num("ask_size"),
-                Last = Pos(o.Num("last_trade_price")), Change = o.Num("change"), ChangePercent = o.Num("percent_change"),
-                Volume = o.Num("volume"), OpenInterest = o.Num("open_interest"),
+                ContractSymbol = Text("option")!, Underlying = underlying, Right = right, Strike = strike, Expiration = exp,
+                Bid = Pos(Number("bid")), Ask = Pos(Number("ask")), BidSize = Number("bid_size"), AskSize = Number("ask_size"),
+                Last = Pos(Number("last_trade_price")), Change = Number("change"), ChangePercent = Number("percent_change"),
+                Volume = Number("volume"), OpenInterest = Number("open_interest"),
                 ImpliedVolatility = hasIv ? iv : null,
-                Delta = hasIv ? o.Num("delta") : null, Gamma = hasIv ? o.Num("gamma") : null, Theta = hasIv ? o.Num("theta") : null,
-                Vega = hasIv ? o.Num("vega") : null, Rho = hasIv ? o.Num("rho") : null,
-                TheoreticalPrice = Pos(o.Num("theo")), LastTradeTime = Eastern.Parse(o.Str("last_trade_time")),
+                Delta = hasIv ? Number("delta") : null, Gamma = hasIv ? Number("gamma") : null, Theta = hasIv ? Number("theta") : null,
+                Vega = hasIv ? Number("vega") : null, Rho = hasIv ? Number("rho") : null,
+                TheoreticalPrice = Pos(Number("theo")), LastTradeTime = TradeTime(Text("last_trade_time")),
             });
         }
         var spot = d?.Num("current_price");
@@ -164,7 +173,7 @@ public sealed class CboeProvider(HttpGateway http, ResponseCache cache) : Provid
                 list[i] = list[i] with { InTheMoney = list[i].Right == OptionRight.Call ? spot > list[i].Strike : spot < list[i].Strike };
         return new OptionChain
         {
-            Underlying = underlying, UnderlyingPrice = spot, Contracts = list,
+            Underlying = underlying, UnderlyingPrice = spot, UnderlyingLastTradeAt = Eastern.Parse(d?.Str("last_trade_time")), Contracts = list,
             Expirations = list.Select(c => c.Expiration).Distinct().Order().ToList(),
             Source = "cboe", DelayMinutes = 15, AsOf = Utc(root.Str("timestamp")),
         };

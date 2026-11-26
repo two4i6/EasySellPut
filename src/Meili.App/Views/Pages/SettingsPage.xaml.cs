@@ -9,5 +9,11 @@ public partial class SettingsPage : Page
     {
         InitializeComponent();
         DataContext = AppServices.Get<SettingsViewModel>();
+        Loaded += async (_, _) =>
+        {
+            if (DataContext is SettingsViewModel model && model.RefreshCacheCommand.CanExecute(null))
+                await model.RefreshCacheCommand.ExecuteAsync(null);
+            if (DataContext is SettingsViewModel settings) await settings.Applications.RefreshAppsCommand.ExecuteAsync(null);
+        };
     }
 }

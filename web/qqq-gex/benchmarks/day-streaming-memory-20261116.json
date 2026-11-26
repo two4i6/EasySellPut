@@ -1,0 +1,295 @@
+{
+  "kind": "same real retained partial day streaming/UTF8 decode follow-up",
+  "beforeDay": {
+    "runs": [
+      {
+        "elapsedMs": 533.7002,
+        "allocatedBytes": 107345088,
+        "responseBytes": 8307085,
+        "sha256": "7406FBC9FCBC41320B5669387F56AA34EE644F3C14D21371A1B56D7CAA1F5BCD",
+        "workingSetBytes": 119504896,
+        "managedBytes": 65695312,
+        "gcCommittedBytes": 46804992
+      },
+      {
+        "elapsedMs": 247.3581,
+        "allocatedBytes": 68801176,
+        "responseBytes": 8307085,
+        "sha256": "7406FBC9FCBC41320B5669387F56AA34EE644F3C14D21371A1B56D7CAA1F5BCD",
+        "workingSetBytes": 159338496,
+        "managedBytes": 115970176,
+        "gcCommittedBytes": 91697152
+      },
+      {
+        "elapsedMs": 287.7448,
+        "allocatedBytes": 68801176,
+        "responseBytes": 8307085,
+        "sha256": "7406FBC9FCBC41320B5669387F56AA34EE644F3C14D21371A1B56D7CAA1F5BCD",
+        "workingSetBytes": 238469120,
+        "managedBytes": 193101192,
+        "gcCommittedBytes": 91697152
+      },
+      {
+        "elapsedMs": 277.7721,
+        "allocatedBytes": 68801176,
+        "responseBytes": 8307085,
+        "sha256": "7406FBC9FCBC41320B5669387F56AA34EE644F3C14D21371A1B56D7CAA1F5BCD",
+        "workingSetBytes": 260775936,
+        "managedBytes": 71814392,
+        "gcCommittedBytes": 216043520
+      },
+      {
+        "elapsedMs": 165.0849,
+        "allocatedBytes": 68801176,
+        "responseBytes": 8307085,
+        "sha256": "7406FBC9FCBC41320B5669387F56AA34EE644F3C14D21371A1B56D7CAA1F5BCD",
+        "workingSetBytes": 296120320,
+        "managedBytes": 148942544,
+        "gcCommittedBytes": 216043520
+      }
+    ],
+    "peakWorkingSetBytes": 296124416
+  },
+  "afterDay": {
+    "runs": [
+      {
+        "elapsedMs": 381.7396,
+        "allocatedBytes": 62538432,
+        "responseBytes": 8307085,
+        "sha256": "7406FBC9FCBC41320B5669387F56AA34EE644F3C14D21371A1B56D7CAA1F5BCD",
+        "workingSetBytes": 97648640,
+        "managedBytes": 53232520,
+        "gcCommittedBytes": 32059392
+      },
+      {
+        "elapsedMs": 202.1938,
+        "allocatedBytes": 44280120,
+        "responseBytes": 8307085,
+        "sha256": "7406FBC9FCBC41320B5669387F56AA34EE644F3C14D21371A1B56D7CAA1F5BCD",
+        "workingSetBytes": 138346496,
+        "managedBytes": 95808816,
+        "gcCommittedBytes": 55459840
+      },
+      {
+        "elapsedMs": 151.0209,
+        "allocatedBytes": 44280120,
+        "responseBytes": 8307085,
+        "sha256": "7406FBC9FCBC41320B5669387F56AA34EE644F3C14D21371A1B56D7CAA1F5BCD",
+        "workingSetBytes": 191397888,
+        "managedBytes": 148410616,
+        "gcCommittedBytes": 55459840
+      },
+      {
+        "elapsedMs": 141.7945,
+        "allocatedBytes": 44280120,
+        "responseBytes": 8307085,
+        "sha256": "7406FBC9FCBC41320B5669387F56AA34EE644F3C14D21371A1B56D7CAA1F5BCD",
+        "workingSetBytes": 244723712,
+        "managedBytes": 201012672,
+        "gcCommittedBytes": 55459840
+      },
+      {
+        "elapsedMs": 132.0099,
+        "allocatedBytes": 44288264,
+        "responseBytes": 8307085,
+        "sha256": "7406FBC9FCBC41320B5669387F56AA34EE644F3C14D21371A1B56D7CAA1F5BCD",
+        "workingSetBytes": 265433088,
+        "managedBytes": 81125104,
+        "gcCommittedBytes": 197079040
+      }
+    ],
+    "peakWorkingSetBytes": 265437184
+  },
+  "beforePage": {
+    "environment": {
+      "node": "v24.22.1",
+      "platform": "linux",
+      "architecture": "x64",
+      "cpu": "INTEL(R) XEON(R) PLATINUM 8573C",
+      "logicalCpus": 5,
+      "systemMemoryBytes": 18882662400,
+      "chromium": "141.0.7390.37",
+      "hostFramework": ".NET 10"
+    },
+    "dataset": {
+      "days": 1,
+      "expirySnapshots": 174,
+      "strikePoints": 31806,
+      "bars": 9,
+      "quality": "Actual retained partial delayed sample; not a complete trading day"
+    },
+    "runs": [
+      {
+        "phase": "cold",
+        "firstCanvasMs": 2158.84602,
+        "rendererJsHeapSampleBytes": 34073748,
+        "longTasksMs": [
+          54,
+          77,
+          118,
+          174,
+          69,
+          67,
+          60,
+          95,
+          63,
+          81,
+          58,
+          64,
+          64
+        ],
+        "errors": [],
+        "recovery": null
+      },
+      {
+        "phase": "warm",
+        "firstCanvasMs": 2240.7484750000003,
+        "rendererJsHeapSampleBytes": 40189560,
+        "longTasksMs": [
+          55,
+          109,
+          171,
+          61,
+          52,
+          69,
+          68,
+          130,
+          52,
+          57,
+          60
+        ],
+        "errors": [],
+        "recovery": {
+          "pageFreezeResume": true,
+          "offlineOnline": true,
+          "hostPauseSeconds": 12,
+          "heartbeatResumed": true,
+          "retainedVisibleRows": 6
+        }
+      },
+      {
+        "phase": "warm-repeat",
+        "firstCanvasMs": 1044.828607000003,
+        "rendererJsHeapSampleBytes": 34628904,
+        "longTasksMs": [
+          73,
+          132,
+          52,
+          72,
+          50,
+          53,
+          53,
+          74
+        ],
+        "errors": [],
+        "recovery": null
+      }
+    ],
+    "serverPeakRssKiB": 435036,
+    "protectedProfileDigestUnchanged": true,
+    "processSampling": {
+      "sampleCount": 385,
+      "maxHostAnonymousBytes": 376557568,
+      "maxHostFileBytes": 38699008,
+      "maxObservedQueryChildrenRssBytes": 0
+    },
+    "managedSampling": null
+  },
+  "afterPage": {
+    "environment": {
+      "node": "v24.22.1",
+      "platform": "linux",
+      "architecture": "x64",
+      "cpu": "INTEL(R) XEON(R) PLATINUM 8573C",
+      "logicalCpus": 5,
+      "systemMemoryBytes": 18882662400,
+      "chromium": "141.0.7390.37",
+      "hostFramework": ".NET 10"
+    },
+    "dataset": {
+      "days": 1,
+      "expirySnapshots": 174,
+      "strikePoints": 31806,
+      "bars": 9,
+      "quality": "Actual retained partial delayed sample; not a complete trading day"
+    },
+    "runs": [
+      {
+        "phase": "cold",
+        "firstCanvasMs": 2026.820167,
+        "rendererJsHeapSampleBytes": 42745852,
+        "longTasksMs": [
+          51,
+          60,
+          56,
+          123,
+          50,
+          86,
+          50,
+          76
+        ],
+        "errors": [],
+        "recovery": null
+      },
+      {
+        "phase": "warm",
+        "firstCanvasMs": 1036.5661480000008,
+        "rendererJsHeapSampleBytes": 50748212,
+        "longTasksMs": [
+          67,
+          144,
+          56,
+          68,
+          54,
+          67,
+          96
+        ],
+        "errors": [],
+        "recovery": {
+          "pageFreezeResume": true,
+          "offlineOnline": true,
+          "hostPauseSeconds": 12,
+          "heartbeatResumed": true,
+          "retainedVisibleRows": 6
+        }
+      },
+      {
+        "phase": "warm-repeat",
+        "firstCanvasMs": 1125.5508199999967,
+        "rendererJsHeapSampleBytes": 36836276,
+        "longTasksMs": [
+          62,
+          124,
+          59,
+          60,
+          68
+        ],
+        "errors": [],
+        "recovery": null
+      }
+    ],
+    "serverPeakRssKiB": 414668,
+    "protectedProfileDigestUnchanged": true,
+    "processSampling": {
+      "sampleCount": 290,
+      "maxHostAnonymousBytes": 372609024,
+      "maxHostFileBytes": 38756352,
+      "maxObservedQueryChildrenRssBytes": 0
+    },
+    "managedSampling": {
+      "managedBytes": 232569216,
+      "heapBytes": 195007976,
+      "committedBytes": 243150848,
+      "fragmentedBytes": 93603112
+    }
+  },
+  "limits": [
+    "No history or full-profile field removed; original8,307,085-byte day SHA256 unchanged.",
+    "Standalone .NET cloud test host and Chromium, not native application/Mac RSS. No simultaneous build during page measurements.",
+    "Five read iterations and three page phases are samples, not a broad latency distribution. Warm timing varies. OS file cache was not cleared.",
+    "Before child process sampling used main thread; after checks all host threads. No child was observed, not proof against shorter-than100ms processes.",
+    "Managed GC info describes latest collections; max managed/RSS/file/heap values are different time snapshots and cannot be added. No forced collections.",
+    "Runtime buffer pool is temporary serialization memory, cleared on return, not a new persistent data cache. CacheManager/history retention unchanged.",
+    "CBOE sample remains partial/delayed; no fresh real alert delivery or full historical corpus acceptance."
+  ]
+}

@@ -13,18 +13,17 @@ public partial class MainWindow
     {
         Opened+=(_,_)=>UpdateBackgroundLifecycle();
         PropertyChanged+=(_,e)=>{if(e.Property==IsVisibleProperty||e.Property==WindowStateProperty)UpdateBackgroundLifecycle();};
-        Closed+=(_,_)=>{_windowActivity.SetVisible(_activityOwner,false);_windowShell.SetPresentationVisible(false);};
+        Closed+=(_,_)=>{_windowActivity.SetVisible(_activityOwner,false);_windowShell.SetPresentationVisible(false);_windowUpdates.SetPresentationVisible(false);};
     }
     private void UpdateBackgroundLifecycle()
     {
         var visible=IsVisible&&WindowState!=WindowState.Minimized;
-        _windowActivity.SetVisible(_activityOwner,visible);_windowShell.SetPresentationVisible(visible);
-        if(!visible && !_presentationSuspended){_presentationSuspended=true;PageHost.Content=null;_bannerTimer.Stop();}
-        else if(visible && _presentationSuspended){_presentationSuspended=false;if(_activeWebsite is null && _pages.TryGetValue(CurrentPage,out var page))PageHost.Content=page;}
+        _windowActivity.SetVisible(_activityOwner,visible);_windowShell.SetPresentationVisible(visible);_windowUpdates.SetPresentationVisible(visible);
+        if(!visible && !_presentationSuspended){_presentationSuspended=true;PageHost.Content=null;ModuleAppHost.Content=null;_bannerTimer.Stop();}
+        else if(visible && _presentationSuspended){_presentationSuspended=false;if(_activeModule is { } id&&_modulePages.TryGetValue(id,out var module))ModuleAppHost.Content=module;else if(_activeWebsite is null && _pages.TryGetValue(CurrentPage,out var page))PageHost.Content=page;}
         _articleReader?.SetPresentationActive(visible);
         foreach(var (id,pane) in _webTabs)pane.SetPresentationActive(visible && id==_activeWebsite);
     }
     internal void PrepareBackgroundStartup()=>UpdateBackgroundLifecycle();
     public void RunInBackground()=>HideToDock();
-    private void OnBackground(object? sender,RoutedEventArgs e)=>RunInBackground();
 }

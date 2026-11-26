@@ -36,12 +36,17 @@ public sealed class NetworkSettings
 public sealed class AppSettings
 {
     public const int CurrentVersion = 1;
+    public const int DefaultTextSizePercent = 100;
+    public static IReadOnlyList<int> TextSizeChoices { get; } = Array.AsReadOnly(new[] { 100, 110, 125, 150 });
 
     public int Version { get; set; } = CurrentVersion;
     /// <summary>"zh-CN" 或 "en-US"</summary>
     public string Language { get; set; } = "zh-CN";
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public AppThemeMode Theme { get; set; } = AppThemeMode.System;
+    public int TextSizePercent { get; set; } = DefaultTextSizePercent;
+    public int WorkspaceWatchlistWidth { get; set; } = 176;
+    public SparklineSettings WatchlistSparkline { get; set; } = new();
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public UpDownColorMode UpDownColors { get; set; } = UpDownColorMode.RedUp;
     /// <summary>
@@ -67,8 +72,8 @@ public sealed class AppSettings
     public PricingSettings Pricing { get; set; } = new();
     public ChartSettings Charts { get; set; } = new();
     public OptionsPageSettings Options { get; set; } = new();
-    /// <summary>D4: what the window's close button does. Default is <see cref="CloseAction.Exit"/> (the close button quits). The user can still choose to hide to the tray, in Settings.</summary>
-    public CloseAction CloseAction { get; set; } = CloseAction.Exit;
+    /// <summary>D4: what the window's close button does. Default is <see cref="CloseAction.MinimizeToTray"/>; explicit quit still exits. Existing saved close choices are preserved.</summary>
+    public CloseAction CloseAction { get; set; } = CloseAction.MinimizeToTray;
 
     public static IReadOnlyList<string> SupportedLanguages { get; } = ["zh-CN", "en-US"];
 
@@ -76,16 +81,23 @@ public sealed class AppSettings
     public AppSettings Normalize()
     {
         if (!SupportedLanguages.Contains(Language)) Language = "zh-CN";
+        TextSizePercent = NormalizeTextSize(TextSizePercent);
+        WorkspaceWatchlistWidth = Math.Clamp(WorkspaceWatchlistWidth, 176, 900);
+        WatchlistSparkline = (WatchlistSparkline ?? new SparklineSettings()).Normalized();
         Network ??= new NetworkSettings();
         Network.RequestTimeoutSeconds = Math.Clamp(Network.RequestTimeoutSeconds, 3, 120);
         Network.MaxRetries = Math.Clamp(Network.MaxRetries, 0, 5);
         Network.ManualProxy ??= "";
         Pricing ??= new PricingSettings();
         Charts ??= new ChartSettings();
+        Options ??= new OptionsPageSettings();
+        Options.WorkbenchColumns = WorkbenchColumns.Normalize(Options.WorkbenchColumns);
+        if (Charts.RightSidebarWidth is int width)
+            Charts.RightSidebarWidth = Math.Clamp(width, ChartSettings.MinimumSidebarWidth, ChartSettings.MaximumSidebarWidth);
         if (!double.IsFinite(Pricing.FixedRatePercent)) Pricing.FixedRatePercent = 4.0;
         Pricing.FixedRatePercent = Math.Clamp(Pricing.FixedRatePercent, -1, 20);
         if (!Enum.IsDefined(Pricing.RateMode)) Pricing.RateMode = RiskFreeRateMode.Treasury13Week;
-        if (!Enum.IsDefined(CloseAction)) CloseAction = CloseAction.Exit;
+        if (!Enum.IsDefined(CloseAction)) CloseAction = CloseAction.MinimizeToTray;
         if (!Enum.IsDefined(UpDownColors)) UpDownColors = UpDownColorMode.RedUp;
         // Files from before E1: a non-default choice can only have come from the user.
         if (UpDownColors != UpDownColorMode.RedUp) UpDownColorsChosen = true;
@@ -112,6 +124,8 @@ public sealed class AppSettings
         return this;
     }
 
+    public static int NormalizeTextSize(int percent) => TextSizeChoices.Contains(percent) ? percent : DefaultTextSizePercent;
+
     internal static List<string> CleanSymbols(IEnumerable<string>? raw) =>
         (raw ?? []).Where(s => !string.IsNullOrWhiteSpace(s)).Select(s => s.Trim().ToUpperInvariant()).Distinct().ToList();
 }
@@ -125,11 +139,29 @@ public sealed class WatchlistGroup
     public List<string> Symbols { get; set; } = [];
 }
 
+/// <summary>Display options for the watchlist's 5-minute session mini charts.</summary>
+public sealed record SparklineSettings(bool ShowMa = false, int MaPeriod = 20, bool ShowEma = true, int EmaPeriod = 9, bool ShowVwap = false)
+{
+    public const int MinimumPeriod = 2;
+    public const int MaximumPeriod = 60;
+
+    public SparklineSettings Normalized() => this with
+    {
+        MaPeriod = Math.Clamp(MaPeriod, MinimumPeriod, MaximumPeriod),
+        EmaPeriod = Math.Clamp(EmaPeriod, MinimumPeriod, MaximumPeriod)
+    };
+}
+
 public enum RiskFreeRateMode { Treasury13Week, Fixed }
 
 /// <summary>K-line page preferences.</summary>
 public sealed class ChartSettings
 {
+    public const int MinimumSidebarWidth = 200;
+    public const int MaximumSidebarWidth = 620;
+
+    public int? RightSidebarWidth { get; set; }
+
     /// <summary>F7: request dividend-adjusted (adjclose, total-return) daily+ bars instead of split-only.</summary>
     public bool DividendAdjusted { get; set; }
 
@@ -171,7 +203,8 @@ public sealed record IndicatorSettings
 public sealed class OptionsPageSettings
 {
     /// <summary>E6: compact T-table preset (narrow columns; volume/gamma/theta/vega hidden) for small or scaled screens.</summary>
-    public bool CompactColumns { get; set; }
+    public bool CompactColumns { get; set; } = true;
+    public List<string> WorkbenchColumns { get; set; } = global::Meili.Core.Settings.WorkbenchColumns.Default.ToList();
 }
 
 /// <summary>F5: risk-free rate for locally computed IV / Greeks / strategy curves.</summary>

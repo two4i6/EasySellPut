@@ -1,4 +1,4 @@
-# Build (and optionally test) the solution with the project-local SDK.
+﻿# Build (and optionally test) the solution with the project-local SDK.
 #   powershell -ExecutionPolicy Bypass -File build\build.ps1 [-Test] [-Live] [-Configuration Release]
 param([switch]$Test, [switch]$Live, [string]$Configuration = 'Debug')
 $ErrorActionPreference = 'Stop'
@@ -6,6 +6,8 @@ $root = Split-Path -Parent $PSScriptRoot
 . (Join-Path $root 'tools\env.ps1')
 Push-Location $root
 try {
+  python (Join-Path $root 'build/prepare-app-seed.py') --if-current
+  if ($LASTEXITCODE -ne 0) { throw 'App compatibility seed build failed' }
   dotnet build MeiliTerminal.slnx -c $Configuration -nologo -v q -clp:ErrorsOnly
   if ($LASTEXITCODE -ne 0) { throw "build failed" }
   if ($Test) {
