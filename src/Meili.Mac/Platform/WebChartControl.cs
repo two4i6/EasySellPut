@@ -15,14 +15,15 @@ public sealed class WebChartControl : UserControl
     public string? LastDiagnostic { get; private set; }
     public WebChartControl()
     {
-        _status.FontSize = 12;
+        _status.WithFontSize(12);
         _status.Margin = new Thickness(12, 8, 12, 8);
         _status.Padding = new Thickness(12, 8);
         _status.Bind(TextBlock.ForegroundProperty, new DynamicResourceExtension("TextFillColorSecondaryBrush"));
         _status.Bind(TextBlock.BackgroundProperty, new DynamicResourceExtension("InfoBarBrush"));
         DockPanel.SetDock(_status, Dock.Top); _root.Children.Add(_status); Content = _root;
     }
-    public void Start(ChartsViewModel vm, ChartPalette palette) => Start(() => new WebChartSession(vm), palette);
+    public void Start(ChartsViewModel vm, ChartPalette palette, MarketWorkspaceViewModel? workspace = null) =>
+        Start(() => new WebChartSession(vm, workspace), palette);
     public void Start(StrategyViewModel vm, ChartPalette palette) => Start(() => new WebChartSession(vm), palette);
     private void Start(Func<WebChartSession> create, ChartPalette palette)
     {

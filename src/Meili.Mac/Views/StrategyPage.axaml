@@ -92,7 +92,7 @@
             <Grid ColumnDefinitions="*,20,*">
                 <DockPanel Grid.Column="0">
                     <TextBlock DockPanel.Dock="Top" Classes="Caption" Text="{DynamicResource St_Summary}" Margin="0,0,0,4" />
-                    <TextBlock DockPanel.Dock="Top" Classes="Secondary" FontSize="14" TextWrapping="Wrap" Text="{Binding StrategySummaryText}" Margin="0,0,0,10" />
+                    <TextBlock DockPanel.Dock="Top" Classes="Secondary" FontSize="{DynamicResource FontSize14}" TextWrapping="Wrap" Text="{Binding StrategySummaryText}" Margin="0,0,0,10" />
                     <WrapPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
                         <Button Margin="0,0,8,0" Command="{Binding AddCallCommand}" Content="{DynamicResource St_AddCall}" />
                         <Button Margin="0,0,8,0" Command="{Binding AddPutCommand}" Content="{DynamicResource St_AddPut}" />
@@ -105,7 +105,7 @@
                             <DataGridTemplateColumn local:Loc.Header="St_Type" Width="72">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate x:DataType="vm:StrategyLegRow">
-                                        <TextBlock Text="{Binding TypeLabel}" FontSize="14" VerticalAlignment="Center" Margin="8,0" />
+                                        <TextBlock Text="{Binding TypeLabel}" FontSize="{DynamicResource FontSize14}" VerticalAlignment="Center" Margin="8,0" />
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                                 <DataGridTemplateColumn.CellEditingTemplate>
@@ -119,7 +119,7 @@
                             <DataGridTemplateColumn local:Loc.Header="St_Side" Width="100">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate x:DataType="vm:StrategyLegRow">
-                                        <TextBlock Text="{Binding SideLabel}" FontSize="14" VerticalAlignment="Center" Margin="8,0" />
+                                        <TextBlock Text="{Binding SideLabel}" FontSize="{DynamicResource FontSize14}" VerticalAlignment="Center" Margin="8,0" />
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                                 <DataGridTemplateColumn.CellEditingTemplate>
@@ -142,34 +142,34 @@
                     <UniformGrid Columns="3" Margin="0,0,0,10">
                         <StackPanel Margin="0,0,12,0">
                             <TextBlock Classes="Caption" Text="{DynamicResource St_MaxProfit}" />
-                            <TextBlock Classes="CardTitle Num Profit" FontSize="20" Text="{Binding MaxProfitText}" />
+                            <TextBlock Classes="CardTitle Num Profit" FontSize="{DynamicResource TitleFontSize}" Text="{Binding MaxProfitText}" />
                             <TextBlock Classes="Caption" TextWrapping="Wrap" Text="{Binding MaxProfitConditionText}" />
                         </StackPanel>
                         <StackPanel Margin="0,0,12,0">
                             <TextBlock Classes="Caption" Text="{DynamicResource St_MaxLoss}" />
-                            <TextBlock Classes="CardTitle Num Loss" FontSize="20" Text="{Binding MaxLossText}" />
+                            <TextBlock Classes="CardTitle Num Loss" FontSize="{DynamicResource TitleFontSize}" Text="{Binding MaxLossText}" />
                             <TextBlock Classes="Caption" TextWrapping="Wrap" Text="{Binding MaxLossConditionText}" />
                         </StackPanel>
                         <StackPanel>
                             <TextBlock Classes="Caption" Text="{DynamicResource St_Breakeven}" />
-                            <TextBlock Classes="CardTitle Num" FontSize="16" TextWrapping="Wrap" Text="{Binding BreakevenText}" />
+                            <TextBlock Classes="CardTitle Num" FontSize="{DynamicResource SubtitleFontSize}" TextWrapping="Wrap" Text="{Binding BreakevenText}" />
                             <TextBlock Classes="Caption" TextWrapping="Wrap" Text="{Binding BreakevenConditionText}" />
                         </StackPanel>
                     </UniformGrid>
                     <UniformGrid Columns="2" Margin="0,0,0,10">
                         <StackPanel Margin="0,0,12,0" ToolTip.Tip="{DynamicResource St_PopTip}">
                             <TextBlock Classes="Caption" Text="{DynamicResource St_Pop}" />
-                            <TextBlock Classes="CardTitle Num" FontSize="16" Text="{Binding PopText}" />
+                            <TextBlock Classes="CardTitle Num" FontSize="{DynamicResource SubtitleFontSize}" Text="{Binding PopText}" />
                         </StackPanel>
                         <StackPanel>
                             <TextBlock Classes="Caption" Text="{DynamicResource St_Capital}" />
-                            <TextBlock Classes="CardTitle Num" FontSize="16" Text="{Binding CapitalText}" />
+                            <TextBlock Classes="CardTitle Num" FontSize="{DynamicResource SubtitleFontSize}" Text="{Binding CapitalText}" />
                             <TextBlock Classes="Caption" TextWrapping="Wrap" Text="{Binding CapitalDetailText}" IsVisible="{Binding HasStockCapital}" />
                         </StackPanel>
                     </UniformGrid>
                     <StackPanel Margin="0,0,0,4" ToolTip.Tip="{Binding MarginTip}">
                         <TextBlock Classes="Caption" Text="{DynamicResource St_Margin}" />
-                        <TextBlock Classes="Caption" FontSize="14" Text="{Binding MarginText}" />
+                        <TextBlock Classes="Caption" FontSize="{DynamicResource FontSize14}" Text="{Binding MarginText}" />
                     </StackPanel>
                     <TextBlock Classes="Caption" Text="{Binding RewardText}" TextWrapping="Wrap" />
                     <TextBlock Classes="Caption" Text="{Binding GreeksText}" TextWrapping="Wrap" />
@@ -186,7 +186,7 @@
                 <Button x:Name="Tn30" Classes="Chip" Padding="10,6" Margin="0,0,6,0" Content="{DynamicResource St_Tn30}" Command="{Binding SelectHorizonCommand}" />
                 <StackPanel Orientation="Horizontal" Margin="16,0,16,0">
                     <TextBlock Classes="Caption" VerticalAlignment="Center" Margin="0,0,8,0" Text="{DynamicResource St_WhatIf}" />
-                    <TextBox Width="90" FontSize="14" Text="{Binding WhatIfPriceText}" />
+                    <TextBox Width="90" FontSize="{DynamicResource FontSize14}" Text="{Binding WhatIfPriceText}" />
                     <TextBlock Classes="Caption" VerticalAlignment="Center" Margin="8,0,0,0" Text="{Binding WhatIfPercentText}" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
@@ -205,21 +205,21 @@
                 <ScrollViewer Grid.Column="2" Margin="12,0,0,0" VerticalScrollBarVisibility="Auto" IsVisible="{Binding HasWhatIf}">
                     <StackPanel>
                         <TextBlock Classes="Caption" Text="{DynamicResource St_WhatIfValue}" />
-                        <TextBlock Classes="CardTitle Num" FontSize="16" Text="{Binding WhatIfValueText}" />
+                        <TextBlock Classes="CardTitle Num" FontSize="{DynamicResource SubtitleFontSize}" Text="{Binding WhatIfValueText}" />
                         <TextBlock Classes="Caption" Margin="0,8,0,0" Text="{DynamicResource St_WhatIfPnl}" />
-                        <TextBlock Classes="Num" FontSize="22" FontWeight="SemiBold" Text="{Binding WhatIfPnlText}"
+                        <TextBlock Classes="Num" FontSize="{DynamicResource FontSize22}" FontWeight="SemiBold" Text="{Binding WhatIfPnlText}"
                                    Classes.Profit="{Binding WhatIfPnlIsProfit}" Classes.Loss="{Binding WhatIfPnlIsLoss}" />
                         <ItemsControl Margin="0,12,0,0" ItemsSource="{Binding WhatIfLegs}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="vm:WhatIfLegRow">
                                     <StackPanel Margin="0,0,0,10">
-                                        <TextBlock FontSize="14" FontWeight="SemiBold" Text="{Binding Label}" />
+                                        <TextBlock FontSize="{DynamicResource FontSize14}" FontWeight="SemiBold" Text="{Binding Label}" />
                                         <DockPanel>
                                             <TextBlock DockPanel.Dock="Left" Classes="Caption" Text="{Binding PriceText}" />
-                                            <TextBlock FontSize="14" HorizontalAlignment="Right" Text="{Binding PnlText}"
+                                            <TextBlock FontSize="{DynamicResource FontSize14}" HorizontalAlignment="Right" Text="{Binding PnlText}"
                                                        Classes.Profit="{Binding IsProfit}" Classes.Loss="{Binding IsLoss}" />
                                         </DockPanel>
-                                        <TextBlock Classes="Secondary" FontSize="14" TextWrapping="Wrap" Text="{Binding Reason}" />
+                                        <TextBlock Classes="Secondary" FontSize="{DynamicResource FontSize14}" TextWrapping="Wrap" Text="{Binding Reason}" />
                                     </StackPanel>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>

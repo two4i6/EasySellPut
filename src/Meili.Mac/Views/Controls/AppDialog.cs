@@ -15,7 +15,7 @@ public class AppDialog : Window
         WindowStartupLocation=WindowStartupLocation.CenterOwner;ShowInTaskbar=false;
         this[!BackgroundProperty]=this.GetResourceObservable("CardBackgroundFillColorDefaultBrush").ToBinding();
         this[!ForegroundProperty]=this.GetResourceObservable("TextFillColorPrimaryBrush").ToBinding();
-        this[!FontFamilyProperty]=this.GetResourceObservable("AppFont").ToBinding();FontSize=DesignTokens.BodyFontSize;
+        this[!FontFamilyProperty]=this.GetResourceObservable("AppFont").ToBinding();this.WithFontSize(DesignTokens.BodyFontSize);
     }
     private void MotionChanged(object? sender,EventArgs e)=>Classes.Set("ReducedMotion",DesignMotion.Reduced);
 }

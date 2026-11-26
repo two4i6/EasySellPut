@@ -201,17 +201,17 @@ public sealed class NotificationService : IAlertNotifier, IDisposable
 
     private ContextMenu BuildMenu()
     {
-        var show = new MenuItem { Header = _loc["Tray_Show"], FontSize = 14 };
+        var show = new MenuItem { Header = _loc["Tray_Show"] }.WithFontSize(14);
         show.Click += (_, _) => Restore();
-        var exit = new MenuItem { Header = _loc["Tray_Exit"], FontSize = 14 };
+        var exit = new MenuItem { Header = _loc["Tray_Exit"] }.WithFontSize(14);
         exit.Click += (_, _) =>
         {
             if (ExitRequested is not null) ExitRequested.Invoke(this, EventArgs.Empty);
             else Application.Current?.Shutdown();
         };
-        var quotes=new MenuItem{Header=_loc["QP_Title"],FontSize=14};quotes.Click+=async(_,_)=>await ShowQuotePanelAsync();
-        var background=new MenuItem{Header=_loc["Bg_Run"],FontSize=14};background.Click+=(_,_)=>{if(Application.Current?.MainWindow is Meili.App.MainWindow main)main.RunInBackground();};
-        return new ContextMenu { Items = { quotes, show, background, exit }, FontSize = 14 };
+        var quotes=new MenuItem { Header=_loc["QP_Title"] }.WithFontSize(14);quotes.Click+=async(_,_)=>await ShowQuotePanelAsync();
+        var background=new MenuItem { Header=_loc["Bg_Run"] }.WithFontSize(14);background.Click+=(_,_)=>{if(Application.Current?.MainWindow is Meili.App.MainWindow main)main.RunInBackground();};
+        return new ContextMenu { Items = { quotes, show, background, exit } }.WithFontSize(14);
     }
 
     private void OnToastActivated(ToastNotificationActivatedEventArgsCompat e)

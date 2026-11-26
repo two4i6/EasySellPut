@@ -4,21 +4,43 @@ using System.Windows.Controls;
 using System.Windows;
 using System.Windows.Media;
 using Meili.Shared.Services;
+
 namespace Meili.App.Views.Controls;
+
 public sealed class QuoteSparkline : FrameworkElement
 {
-    private IntradaySparkline _data=IntradaySparkline.Empty;
+    public static readonly DependencyProperty DataProperty =
+        DependencyProperty.Register(nameof(Data), typeof(IntradaySparkline), typeof(QuoteSparkline),
+            new FrameworkPropertyMetadata(IntradaySparkline.Empty, FrameworkPropertyMetadataOptions.AffectsRender, (target, _) => ((QuoteSparkline)target).ClearTooltip()));
+    public static readonly DependencyProperty LineBrushProperty =
+        DependencyProperty.Register(nameof(LineBrush), typeof(Brush), typeof(QuoteSparkline),
+            new FrameworkPropertyMetadata(Brushes.Gray, FrameworkPropertyMetadataOptions.AffectsRender));
+    public static readonly DependencyProperty MaBrushProperty =
+        DependencyProperty.Register(nameof(MaBrush), typeof(Brush), typeof(QuoteSparkline),
+            new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
+    public static readonly DependencyProperty EmaBrushProperty =
+        DependencyProperty.Register(nameof(EmaBrush), typeof(Brush), typeof(QuoteSparkline),
+            new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
+    public static readonly DependencyProperty VwapBrushProperty =
+        DependencyProperty.Register(nameof(VwapBrush), typeof(Brush), typeof(QuoteSparkline),
+            new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
+
     private SparkPoint? _selected;
-    private readonly TextBlock _tipText=new(){MaxWidth=300,FontSize=DesignTokens.CaptionFontSize,TextWrapping=TextWrapping.Wrap};
+    private readonly TextBlock _tipText=new(){MaxWidth=300,TextWrapping=TextWrapping.Wrap};
     private readonly ToolTip _tip=new(){Placement=PlacementMode.MousePoint,MaxWidth=300};
-    public IntradaySparkline Data
-    {
-        get=>_data;
-        set{if(ReferenceEquals(value,_data))return;ClearTooltip();_data=value;InvalidateVisual();}
-    }
+    public IntradaySparkline Data { get => (IntradaySparkline)GetValue(DataProperty); set => SetValue(DataProperty, value); }
+    public Brush LineBrush { get => (Brush)GetValue(LineBrushProperty); set => SetValue(LineBrushProperty, value); }
+    public Brush? MaBrush { get => (Brush?)GetValue(MaBrushProperty); set => SetValue(MaBrushProperty, value); }
+    public Brush? EmaBrush { get => (Brush?)GetValue(EmaBrushProperty); set => SetValue(EmaBrushProperty, value); }
+    public Brush? VwapBrush { get => (Brush?)GetValue(VwapBrushProperty); set => SetValue(VwapBrushProperty, value); }
+
     public bool EnableTooltip { get=>Focusable; set=>Focusable=value; }
     public QuoteSparkline()
     {
+        SetResourceReference(MaBrushProperty, "SparklineMaBrush");
+        SetResourceReference(EmaBrushProperty, "SparklineEmaBrush");
+        SetResourceReference(VwapBrushProperty, "SparklineVwapBrush");
+        _tipText.SetResourceReference(TextBlock.FontSizeProperty,"CaptionFontSize");
         SetResourceReference(System.Windows.Automation.AutomationProperties.NameProperty,"QP_Intraday");
         _tip.PlacementTarget=this;_tip.Content=_tipText;ToolTip=_tip;ToolTipService.SetIsEnabled(this,false);
         _tipText.SetResourceReference(TextBlock.FontFamilyProperty,"AppFont");
@@ -51,13 +73,20 @@ public sealed class QuoteSparkline : FrameworkElement
     {
         _selected=null;_tip.IsOpen=false;_tip.Placement=PlacementMode.MousePoint;InvalidateVisual();
     }
-    public Brush LineBrush{get;set;}=Brushes.Gray;
     protected override void OnRender(DrawingContext context)
     {
         base.OnRender(context);context.DrawRectangle(Brushes.Transparent,null,new Rect(RenderSize));var w=ActualWidth;var h=ActualHeight;if(Data.Points.Count<1||w<=0||h<=0)return;
         if(Data.Baseline is { } b)context.DrawLine(new Pen(LineBrush,.6){DashStyle=DashStyles.Dash},new Point(0,b*h),new Point(w,b*h));
         // Solid strokes are observed segments. Dotted guides only link the endpoints of
         // missing intervals in a received-only window; they are not market observations.
+        DrawOverlay(Data.Ma, new Pen(MaBrush ?? Brushes.SteelBlue, 1.2) { DashStyle = DashStyles.Dash });
+        DrawOverlay(Data.Ema, new Pen(EmaBrush ?? Brushes.MediumPurple, 1.2));
+        DrawOverlay(Data.Vwap, new Pen(VwapBrush ?? Brushes.DarkOrange, 1.35) { DashStyle = DashStyles.DashDot });
+        void DrawOverlay(IReadOnlyList<SparkPoint> points, Pen pen)
+        {
+            for (var i = 1; i < points.Count; i++)
+                if (!points[i].Break) context.DrawLine(pen, new Point(points[i-1].X*w,points[i-1].Y*h),new Point(points[i].X*w,points[i].Y*h));
+        }
         SparkPoint? previous=null;
         for(var i=0;i<Data.Points.Count;i++)
         {

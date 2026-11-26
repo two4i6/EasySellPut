@@ -10,6 +10,9 @@ def outputs():
     for name,palette in data['themes'].items():
         code+='    public static readonly ThemePalette '+name.title()+' = new(\n        '+',\n        '.join(k+': '+(str(v) if isinstance(v,int) else argb(v)) for k,v in palette.items())+');\n'
     for key,value in data['metrics'].items():code+=f'    public const double {key} = {value};\n'
+    fonts=[k for k in data['metrics'] if k.endswith('FontSize') or k.startswith('FontSize')]
+    code+='    internal static IEnumerable<(string Key, double Size)> FontSizes { get; } = new (string, double)[]\n    {\n'
+    code+=''.join(f'        (nameof({key}), {key}),\n' for key in fonts)+'    };\n'
     code+='    public static IEnumerable<(string Key,uint Argb)> ComponentBrushes(bool dark) => dark ? DarkBrushes : LightBrushes;\n'
     aliases={'Brand':'BrandBrush','BrandHover':'BrandHoverBrush','Focus':'FocusBrush','Link':'LinkBrush','Input':'InputBackgroundBrush','Hover':'HoverBrush','Pressed':'PressedBrush','Danger':'DangerBrush','Overlay':'OverlayBrush'}
     aliases.update({'Focus':'FocusBrush','Danger':'DangerBrush'})

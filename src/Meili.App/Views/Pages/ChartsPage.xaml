@@ -8,7 +8,9 @@
       xmlns:controls="clr-namespace:Meili.App.Views.Controls"
 >
 
-    <Grid Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
+    <Grid x:Name="WorkspaceRoot">
+        <controls:MarketWorkspaceLayout x:Name="Workspace" UseNativeQuotePanel="False" Title="{DynamicResource Nav_Charts}"/>
+    <Grid x:Name="WorkspaceSurface" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -67,54 +69,54 @@
                             <WrapPanel Margin="0,8,0,0">
                                 <StackPanel Margin="0,0,12,8">
                                     <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Ch_PMa}" Margin="0,0,0,4"/>
-                                    <ui:NumberBox Width="104" Value="{Binding MaPeriod, UpdateSourceTrigger=LostFocus}" Minimum="1" Maximum="250" SmallChange="1" MaxDecimalPlaces="0" FontSize="13"/>
+                                    <ui:NumberBox Width="104" Value="{Binding MaPeriod, UpdateSourceTrigger=LostFocus}" Minimum="1" Maximum="250" SmallChange="1" MaxDecimalPlaces="0" FontSize="{DynamicResource FontSize13}"/>
                                 </StackPanel>
                                 <StackPanel Margin="0,0,12,8">
                                     <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Ch_PEma}" Margin="0,0,0,4"/>
-                                    <ui:NumberBox Width="104" Value="{Binding EmaPeriod, UpdateSourceTrigger=LostFocus}" Minimum="1" Maximum="250" SmallChange="1" MaxDecimalPlaces="0" FontSize="13"/>
+                                    <ui:NumberBox Width="104" Value="{Binding EmaPeriod, UpdateSourceTrigger=LostFocus}" Minimum="1" Maximum="250" SmallChange="1" MaxDecimalPlaces="0" FontSize="{DynamicResource FontSize13}"/>
                                 </StackPanel>
                                 <StackPanel Margin="0,0,12,8">
                                     <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Ch_PBoll}" Margin="0,0,0,4"/>
-                                    <ui:NumberBox Width="104" Value="{Binding BollPeriod, UpdateSourceTrigger=LostFocus}" Minimum="2" Maximum="250" SmallChange="1" MaxDecimalPlaces="0" FontSize="13"/>
+                                    <ui:NumberBox Width="104" Value="{Binding BollPeriod, UpdateSourceTrigger=LostFocus}" Minimum="2" Maximum="250" SmallChange="1" MaxDecimalPlaces="0" FontSize="{DynamicResource FontSize13}"/>
                                 </StackPanel>
                                 <StackPanel Margin="0,0,12,8">
                                     <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Ch_PBollWidth}" Margin="0,0,0,4"/>
-                                    <ui:NumberBox Width="104" Value="{Binding BollWidth, UpdateSourceTrigger=LostFocus}" Minimum="0.5" Maximum="5" SmallChange="0.1" MaxDecimalPlaces="2" FontSize="13"/>
+                                    <ui:NumberBox Width="104" Value="{Binding BollWidth, UpdateSourceTrigger=LostFocus}" Minimum="0.5" Maximum="5" SmallChange="0.1" MaxDecimalPlaces="2" FontSize="{DynamicResource FontSize13}"/>
                                 </StackPanel>
                                 <StackPanel Margin="0,0,12,8">
                                     <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Ch_PMacdFast}" Margin="0,0,0,4"/>
-                                    <ui:NumberBox Width="104" Value="{Binding MacdFast, UpdateSourceTrigger=LostFocus}" Minimum="1" Maximum="250" SmallChange="1" MaxDecimalPlaces="0" FontSize="13"/>
+                                    <ui:NumberBox Width="104" Value="{Binding MacdFast, UpdateSourceTrigger=LostFocus}" Minimum="1" Maximum="250" SmallChange="1" MaxDecimalPlaces="0" FontSize="{DynamicResource FontSize13}"/>
                                 </StackPanel>
                                 <StackPanel Margin="0,0,12,8">
                                     <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Ch_PMacdSlow}" Margin="0,0,0,4"/>
-                                    <ui:NumberBox Width="104" Value="{Binding MacdSlow, UpdateSourceTrigger=LostFocus}" Minimum="2" Maximum="251" SmallChange="1" MaxDecimalPlaces="0" FontSize="13"/>
+                                    <ui:NumberBox Width="104" Value="{Binding MacdSlow, UpdateSourceTrigger=LostFocus}" Minimum="2" Maximum="251" SmallChange="1" MaxDecimalPlaces="0" FontSize="{DynamicResource FontSize13}"/>
                                 </StackPanel>
                                 <StackPanel Margin="0,0,12,8">
                                     <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Ch_PMacdSignal}" Margin="0,0,0,4"/>
-                                    <ui:NumberBox Width="104" Value="{Binding MacdSignal, UpdateSourceTrigger=LostFocus}" Minimum="1" Maximum="250" SmallChange="1" MaxDecimalPlaces="0" FontSize="13"/>
+                                    <ui:NumberBox Width="104" Value="{Binding MacdSignal, UpdateSourceTrigger=LostFocus}" Minimum="1" Maximum="250" SmallChange="1" MaxDecimalPlaces="0" FontSize="{DynamicResource FontSize13}"/>
                                 </StackPanel>
                                 <StackPanel Margin="0,0,12,8">
                                     <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Ch_PRsi}" Margin="0,0,0,4"/>
-                                    <ui:NumberBox Width="104" Value="{Binding RsiPeriod, UpdateSourceTrigger=LostFocus}" Minimum="1" Maximum="250" SmallChange="1" MaxDecimalPlaces="0" FontSize="13"/>
+                                    <ui:NumberBox Width="104" Value="{Binding RsiPeriod, UpdateSourceTrigger=LostFocus}" Minimum="1" Maximum="250" SmallChange="1" MaxDecimalPlaces="0" FontSize="{DynamicResource FontSize13}"/>
                                 </StackPanel>
                                 <StackPanel Margin="0,0,12,8">
                                     <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Ch_PKdj}" Margin="0,0,0,4"/>
-                                    <ui:NumberBox Width="104" Value="{Binding KdjPeriod, UpdateSourceTrigger=LostFocus}" Minimum="1" Maximum="250" SmallChange="1" MaxDecimalPlaces="0" FontSize="13"/>
+                                    <ui:NumberBox Width="104" Value="{Binding KdjPeriod, UpdateSourceTrigger=LostFocus}" Minimum="1" Maximum="250" SmallChange="1" MaxDecimalPlaces="0" FontSize="{DynamicResource FontSize13}"/>
                                 </StackPanel>
                                 <StackPanel Margin="0,0,12,8">
                                     <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Ch_PKdjM1}" Margin="0,0,0,4"/>
-                                    <ui:NumberBox Width="104" Value="{Binding KdjM1, UpdateSourceTrigger=LostFocus}" Minimum="1" Maximum="250" SmallChange="1" MaxDecimalPlaces="0" FontSize="13"/>
+                                    <ui:NumberBox Width="104" Value="{Binding KdjM1, UpdateSourceTrigger=LostFocus}" Minimum="1" Maximum="250" SmallChange="1" MaxDecimalPlaces="0" FontSize="{DynamicResource FontSize13}"/>
                                 </StackPanel>
                                 <StackPanel Margin="0,0,12,8">
                                     <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Ch_PKdjM2}" Margin="0,0,0,4"/>
-                                    <ui:NumberBox Width="104" Value="{Binding KdjM2, UpdateSourceTrigger=LostFocus}" Minimum="1" Maximum="250" SmallChange="1" MaxDecimalPlaces="0" FontSize="13"/>
+                                    <ui:NumberBox Width="104" Value="{Binding KdjM2, UpdateSourceTrigger=LostFocus}" Minimum="1" Maximum="250" SmallChange="1" MaxDecimalPlaces="0" FontSize="{DynamicResource FontSize13}"/>
                                 </StackPanel>
                                 <ui:Button VerticalAlignment="Bottom" Margin="0,0,0,8" Appearance="Secondary" Padding="12,6" Content="{DynamicResource Ch_PReset}" Command="{Binding ResetIndicatorsCommand}"/>
                             </WrapPanel>
                         </Expander>
                         <StackPanel Margin="0,12,0,0">
                             <TextBlock Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0,0,8,0" Text="{DynamicResource Ch_Compare}"/>
-                            <ui:TextBox HorizontalAlignment="Stretch" Text="{Binding CompareText, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{DynamicResource Ch_ComparePlaceholder}" FontSize="13" Margin="0,6,0,6" AutomationProperties.AutomationId="ChartsCompare">
+                            <ui:TextBox HorizontalAlignment="Stretch" Text="{Binding CompareText, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{DynamicResource Ch_ComparePlaceholder}" FontSize="{DynamicResource FontSize13}" Margin="0,6,0,6" AutomationProperties.AutomationId="ChartsCompare">
                                 <ui:TextBox.InputBindings>
                                     <KeyBinding Key="Enter" Command="{Binding ApplyCompareCommand}"/>
                                 </ui:TextBox.InputBindings>
@@ -145,5 +147,6 @@
             </Grid>
           </StackPanel>
         </Border>
+    </Grid>
     </Grid>
 </Page>

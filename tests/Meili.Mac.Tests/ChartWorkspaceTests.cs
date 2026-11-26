@@ -6,9 +6,12 @@ using Avalonia.VisualTree;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Input;
+using Avalonia.Interactivity;
+using Meili.Core.Quotes;
 using Meili.Core.Settings;
 using Meili.Mac.Platform;
 using Meili.Mac.Views;
+using Meili.Mac.Views.Controls;
 using Meili.Shared.ViewModels;
 
 namespace Meili.Mac.Tests;
@@ -41,13 +44,14 @@ public sealed class ChartWorkspaceTests
             var tabs=page.FindControl<ItemsControl>("RangeTabs")!;
             Assert.True(toolbar.Bounds.Height<=56,$"Toolbar unexpectedly gained a row: {toolbar.Bounds}");
             var rangeButtons=tabs.GetVisualDescendants().OfType<Button>().ToArray();
-            Assert.Equal(8,rangeButtons.Length);
+            Assert.Equal(15,rangeButtons.Length);
             Assert.All(rangeButtons,b=>Assert.InRange(b.TranslatePoint(new Point(),page)!.Value.Y-rangeButtons[0].TranslatePoint(new Point(),page)!.Value.Y,-1,1));
-            var input=page.FindControl<Meili.Mac.Views.Controls.SymbolBox>("SymbolInput")!;
-            Assert.InRange(Math.Abs(input.TranslatePoint(new Point(),page)!.Value.Y-toggle.TranslatePoint(new Point(),page)!.Value.Y),0,18);
+            var workspace = page.FindControl<MarketWorkspaceLayout>("Workspace")!;
+            var input = workspace.FindControl<SymbolBox>("SymbolInput")!;
+            Assert.True(input.TranslatePoint(new Point(), page)!.Value.Y < toolbar.TranslatePoint(new Point(), page)!.Value.Y);
 
             Assert.True(chart.Bounds.Height>page.Bounds.Height*.72,$"Chart height: {chart.Bounds}, page: {page.Bounds}");
-            Assert.True(chart.Bounds.Width>page.Bounds.Width*.82);
+            Assert.True(chart.Bounds.Width > page.Bounds.Width * .65);
             Assert.Equal(loc["Ch_Tools"],Avalonia.Automation.AutomationProperties.GetName(toggle));
             Assert.Equal("Settings",Assert.IsType<Meili.Mac.Views.Controls.LucideIcon>(toggle.Content).Kind);
             Assert.Equal(48,page.FindControl<Border>("DrawingToolbar")!.Bounds.Width);
@@ -82,5 +86,76 @@ public sealed class ChartWorkspaceTests
             Assert.Equal(fullWidth,chart.Bounds.Width);
         }
         finally{window.Close();vm.ShowInspector=false;vm.DrawMode=null;loc.Apply(original);theme.Apply(AppThemeMode.System);}
+    }
+
+    [AvaloniaFact]
+    public async Task Independent_pages_share_watchlist_selection_quote_and_panel_preference()
+    {
+        MacHost.EnsureComposed();
+        var window = new MainWindow { Width = 1320, Height = 840 };
+        var model = AppServices.Get<MarketWorkspaceViewModel>();
+        var context = AppServices.Get<SymbolContext>();
+        var hub = AppServices.Get<QuoteHub>();
+        var previous = context.Current;
+        try
+        {
+            window.Show();
+            window.Navigate(AppPage.Charts);
+            MacHost.Pump(15);
+            var charts = Assert.IsType<ChartsPage>(window.CurrentView);
+            var chartFrame = charts.FindControl<MarketWorkspaceLayout>("Workspace")!;
+            var watch = chartFrame.FindControl<MarketWatchlist>("WatchlistView")!.FindControl<ListBox>("WorkspaceWatchRows")!;
+            var target = model.Rows.First(row => row.Symbol != context.Current);
+            watch.SelectedItem = target;
+            MacHost.Pump();
+            Assert.Equal(target.Symbol, context.Current);
+            Assert.Equal(target.Symbol, AppServices.Get<ChartsViewModel>().Series?.Symbol);
+            Assert.Equal(target.Symbol, model.Current?.Symbol);
+            Assert.Contains(target.Symbol, hub.SubscribedSymbols);
+
+            window.Navigate(AppPage.Options);
+            for (var i = 0; i < 20 && !AppServices.Get<OptionsViewModel>().HasRows; i++)
+            {
+                await Task.Delay(25);
+                MacHost.Pump();
+            }
+            var options = Assert.IsType<OptionsPage>(window.CurrentView);
+            Assert.Equal(AppPage.Options, window.CurrentPage);
+            var optionFrame = options.FindControl<MarketWorkspaceLayout>("Workspace")!;
+            Assert.Equal(target.Symbol, Assert.IsType<WorkspaceQuote>(optionFrame.FindControl<MarketWatchlist>("WatchlistView")!.FindControl<ListBox>("WorkspaceWatchRows")!.SelectedItem).Symbol);
+            var quote = optionFrame.FindControl<Border>("WorkspaceQuote")!;
+            Assert.True(quote.IsVisible);
+            var quoteToggle = optionFrame.FindControl<ToggleButton>("QuoteToggle")!;
+            quoteToggle.IsChecked = false;
+            quoteToggle.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Assert.False(quote.IsVisible);
+            Assert.Contains(target.Symbol, AppServices.Get<OptionsViewModel>().Headline);
+            Assert.True(options.FindControl<DataGrid>("ChainList")!.IsEffectivelyVisible);
+
+            var box = optionFrame.FindControl<SymbolBox>("SymbolInput")!;
+            box.Text = "invalid symbol!";
+            box.CommitCommand!.Execute(null);
+            Assert.Equal(target.Symbol, context.Current);
+            Assert.Equal(LocalizationService.Current["Ch_InvalidSymbol"], model.SymbolError);
+
+            box.Text = "TEST";
+            box.CommitCommand!.Execute(null);
+            MacHost.Pump();
+            Assert.Equal("TEST", context.Current);
+            Assert.Equal("TEST", model.Current?.Symbol);
+            Assert.Empty(model.SymbolError);
+            window.Navigate(AppPage.Charts);
+            MacHost.Pump();
+            Assert.Same(charts, window.CurrentView);
+            Assert.Equal("TEST", AppServices.Get<ChartsViewModel>().Series?.Symbol);
+            window.Navigate(AppPage.Settings);
+            Assert.DoesNotContain("TEST", hub.SubscribedSymbols);
+        }
+        finally
+        {
+            window.Close();
+            model.SetPanelPreference(compact: false, watchlist: true, quote: true);
+            if (previous is not null) context.Set(previous);
+        }
     }
 }

@@ -8,6 +8,8 @@
              Classes="ChartWorkspace"
              x:Class="Meili.Mac.Views.ChartsPage"
              x:DataType="vm:ChartsViewModel">
+    <controls:MarketWorkspaceLayout x:Name="Workspace" UseNativeQuotePanel="False" Title="{DynamicResource Nav_Charts}">
+        <controls:MarketWorkspaceLayout.WorkspaceContent>
     <Grid RowDefinitions="Auto,*,Auto" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
         <Border Grid.Row="0" Padding="12,8" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}">
             <Grid x:Name="ChartToolbar" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" ColumnDefinitions="Auto,*,Auto">
@@ -136,4 +138,6 @@
           </StackPanel>
         </Border>
     </Grid>
+        </controls:MarketWorkspaceLayout.WorkspaceContent>
+    </controls:MarketWorkspaceLayout>
 </UserControl>

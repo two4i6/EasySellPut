@@ -99,7 +99,7 @@ public sealed class QuotePanelTests
             Assert.Equal(phase,row.Graph.Session);Assert.NotEmpty(row.Graph.Points);var count=row.Graph.Points.Count;
             now=now.AddSeconds(10);hub.ApplyTicks([new("QQQ",row.Quote!.Price*1.02,now,overnight?MarketState.Overnight:MarketState.AfterHours,Source:"yahoo")]);MacHost.Pump();
             Assert.True(row.ChartObserved);Assert.False(row.ChartRepairing);Assert.True(row.Graph.Points.Count>count);Assert.Equal(overnight?now:now.AddSeconds(-10),row.Graph.AsOf);
-            var picker=panel.GetVisualDescendants().OfType<Meili.Mac.Views.Controls.AppSelect>().Single();picker.IsDropDownOpen=true;MacHost.Pump();Assert.True(panel.IsVisible);
+            var picker=panel.GetVisualDescendants().OfType<Meili.Mac.Views.Controls.AppSelect>().Single(picker => picker.Name == "GlanceSession");picker.IsDropDownOpen=true;MacHost.Pump();Assert.True(panel.IsVisible);
             panel.RaiseEvent(new Avalonia.Input.KeyEventArgs{Key=Avalonia.Input.Key.Escape,RoutedEvent=Avalonia.Input.InputElement.KeyDownEvent});MacHost.Pump();Assert.True(panel.IsVisible);Assert.False(picker.IsDropDownOpen);
             picker.SelectedIndex=4;MacHost.Pump();
             Assert.Equal(MarketSession.Overnight,row.Graph.Session);

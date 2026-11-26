@@ -12,10 +12,11 @@ using Meili.Core.Models;
 using Meili.Core.Settings;
 using Meili.Core.Time;
 using Meili.Data.Routing;
+using Meili.Data.Cache;
 
 namespace Meili.Shared.ViewModels;
 
-public enum ChartRangeKind { Session, Minute1, Minute5, Minute15, Hour1, Day1, Week1, Month1 }
+public enum ChartRangeKind { Session, Minute1, Minute5, Minute15, Hour1, Day1, Week1, Month1, FiveDays, Minute3, Minute10, Minute30, Hour2, Quarter1, Year1 }
 
 public partial class ChartRangeTab : ObservableObject
 {
@@ -72,6 +73,20 @@ public partial class ChartsViewModel : ObservableObject
     // Desktop presentation only: never changes chart calculations or MCP permissions.
     [ObservableProperty] public partial bool ShowInspector { get; set; }
 
+    public int? RightSidebarWidth => _settings.Current.Charts.RightSidebarWidth;
+
+    public void SaveRightSidebarWidth(int width)
+    {
+        var previous = RightSidebarWidth;
+        if (previous == width) return;
+        try { _settings.Update(settings => settings.Charts.RightSidebarWidth = width); }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            _settings.Current.Charts.RightSidebarWidth = previous;
+            AppLog.Warn("charts", "Could not save the right sidebar width", ex);
+        }
+    }
+
     public ObservableCollection<string> WatchSymbols { get; } = [];
     public ObservableCollection<ChartRangeTab> Ranges { get; } = [];
 
@@ -123,8 +138,19 @@ public partial class ChartsViewModel : ObservableObject
     /// <summary>Comparison closes rescaled so its first shared bar starts at the main symbol's close.</summary>
     public (DateTimeOffset[] Time, double[] Close)? CompareLine { get; private set; }
     public string CompareLabel { get; private set; } = "";
-    private (DateTimeOffset Time, double Price)? _trendStart;
+    private (DateTimeOffset Time, double Price)? _drawingStart;
+    public (DateTimeOffset Time, double Price)? DrawingTarget { get; private set; }
+    private void ResetDrawingAnchors()
+    {
+        _drawingStart = null;
+        DrawingTarget = null;
+    }
     private readonly ChartDrawingStore _drawings;
+    private readonly MarketDb? _marketDb;
+    private BarSeries? _ivSeries;
+    private ChartStudyLine? _ivLine;
+    public ChartStudyLine? RecordedIv => ReferenceEquals(_ivSeries, Series) ? _ivLine : null;
+    public bool HasIvStore => _marketDb is not null;
     private bool _loadingInd;
     private OhlcvBar[] _bars = [];
     private bool[] _incomplete = [];
@@ -196,9 +222,9 @@ public partial class ChartsViewModel : ObservableObject
         && a.Bars[^1] == b.Bars[^1];
 
     public ChartsViewModel(WatchlistStore watchlist, IMarketDataService data, LocalizationService loc, SymbolContext context, SettingsStore settings,
-        ChartDrawingStore drawings, Meili.Core.Quotes.QuoteHub? quotes=null, ChartAppClient? applications=null)
+        ChartDrawingStore drawings, Meili.Core.Quotes.QuoteHub? quotes=null, ChartAppClient? applications=null, MarketDb? marketDb=null)
     {
-        _watchlist = watchlist; _data = data; _applications=applications; _loc = loc; _context = context; _settings = settings; _drawings = drawings; LiveQuote=new(quotes,loc,"chart-live");LiveQuote.Updated+=OnLiveBar;
+        _watchlist = watchlist; _data = data; _marketDb = marketDb; _applications=applications; _loc = loc; _context = context; _settings = settings; _drawings = drawings; LiveQuote=new(quotes,loc,"chart-live");LiveQuote.Updated+=OnLiveBar;
         ApplyIndicators(settings.Current.Charts.Indicators.Normalized());
         DividendAdjusted = settings.Current.Charts.DividendAdjusted;
         // D1: follow the shared symbol while visible; when hidden, ActivateAsync adopts it on the next visit.
@@ -259,9 +285,9 @@ public partial class ChartsViewModel : ObservableObject
         _activation?.Cancel();_activation=null;
         _domainLease?.Dispose();_domainLease=null;
         LiveQuote.Deactivate();
-        _active = false; DrawingEpoch++; DrawMode = null; _trendStart = null;
+        _active = false; DrawingEpoch++; DrawMode = null; ResetDrawingAnchors();
         _timer.Stop();
-        _cts?.Cancel();
+        CancelLoad();
         var timelineCancellation = _timelineCts;
         _timelineCts = null; _timelineSymbol = null;
         timelineCancellation?.Cancel();
@@ -296,13 +322,20 @@ public partial class ChartsViewModel : ObservableObject
     private static (ChartRangeKind kind, string key)[] AllRanges() =>
     [
         (ChartRangeKind.Session, "Ch_Session"),
-        (ChartRangeKind.Minute1, "Ch_1m"),
-        (ChartRangeKind.Minute5, "Ch_5m"),
-        (ChartRangeKind.Minute15, "Ch_15m"),
-        (ChartRangeKind.Hour1, "Ch_1h"),
+        (ChartRangeKind.FiveDays, "Ch_5d"),
         (ChartRangeKind.Day1, "Ch_1d"),
         (ChartRangeKind.Week1, "Ch_1w"),
         (ChartRangeKind.Month1, "Ch_1mo"),
+        (ChartRangeKind.Quarter1, "Ch_1q"),
+        (ChartRangeKind.Year1, "Ch_1y"),
+        (ChartRangeKind.Minute1, "Ch_1m"),
+        (ChartRangeKind.Minute3, "Ch_3m"),
+        (ChartRangeKind.Minute5, "Ch_5m"),
+        (ChartRangeKind.Minute10, "Ch_10m"),
+        (ChartRangeKind.Minute15, "Ch_15m"),
+        (ChartRangeKind.Minute30, "Ch_30m"),
+        (ChartRangeKind.Hour1, "Ch_1h"),
+        (ChartRangeKind.Hour2, "Ch_2h"),
     ];
 
     [RelayCommand]
@@ -325,14 +358,60 @@ public partial class ChartsViewModel : ObservableObject
     {
         if (Series is null || Series.Bars.Count == 0)
         {
-            StatusText = _loc["Ex_NoData"];
+            ChartNotice = StatusText = _loc["Ex_NoData"];
             return;
         }
         var headers = new[] { _loc["Ex_Time"], "Open", "High", "Low", "Close", _loc["Ch_Volume"], _loc["Ex_Incomplete"] };
         var meta = ExportUi.Metadata(_loc, Series).Append(new(_loc["Ex_MetaAdjust"], FreshnessText.Adjustment(Series.Adjustment, _loc))).ToList();
         var table = MarketExport.Bars($"{SymbolText}-{Range}", headers, Series) with { Metadata = meta };
         var msg = await ExportUi.SaveAsync($"{SymbolText}-{Range}", [table], _loc);
-        if (msg is not null) StatusText = msg;
+        if (msg is not null) ChartNotice = StatusText = msg;
+    }
+
+    private readonly HashSet<string> _additionalStudies = new(StringComparer.Ordinal);
+    public IReadOnlyList<bool> IncompleteBars => _incomplete;
+
+    public bool StudyEnabled(string id) => id switch
+    {
+        "ma" => ShowMa, "ema" => ShowEma, "boll" => ShowBoll, "volume" => ShowVolume,
+        "macd" => ShowMacd, "kdj" => ShowKdj, "rsi" => ShowRsi,
+        _ => _additionalStudies.Contains(id),
+    };
+
+    public void ToggleStudy(string id)
+    {
+        switch (id)
+        {
+            case "ma": ShowMa = !ShowMa; return;
+            case "ema": ShowEma = !ShowEma; return;
+            case "boll": ShowBoll = !ShowBoll; return;
+            case "volume": ShowVolume = !ShowVolume; return;
+            case "macd": ShowMacd = !ShowMacd; return;
+            case "kdj": ShowKdj = !ShowKdj; return;
+            case "rsi": ShowRsi = !ShowRsi; return;
+        }
+        var study = ChartStudyCatalog.All.FirstOrDefault(item => item.Id == id);
+        if (study is null || !ChartStudyCatalog.Available(study, this)) return;
+        if (!_additionalStudies.Remove(id))
+        {
+            _additionalStudies.Add(id);
+            if (id == "iv" && Series is { } series) _ = LoadIvAsync(series);
+        }
+        PlotChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private async Task LoadIvAsync(BarSeries series)
+    {
+        if (_marketDb is null || !StudyEnabled("iv") || series.Interval != BarInterval.Day1) return;
+        try
+        {
+            var iv = await Task.Run(() => VolatilityInsights.RecordedDailyIv(_marketDb, series, DateTimeOffset.UtcNow));
+            if (!ReferenceEquals(Series, series)) return;
+            _ivSeries = series;
+            _ivLine = iv is { } observed ? new ChartStudyLine("IV % · " + observed.Basis, observed.Percent) : null;
+            PlotChanged?.Invoke(this, EventArgs.Empty);
+        }
+        catch (Exception ex) { AppLog.Warn("charts", "Could not load recorded daily IV", ex); }
     }
 
     partial void OnShowMaChanged(bool value) => PlotChanged?.Invoke(this, EventArgs.Empty);
@@ -343,6 +422,14 @@ public partial class ChartsViewModel : ObservableObject
     partial void OnShowRsiChanged(bool value) => PlotChanged?.Invoke(this, EventArgs.Empty);
     partial void OnShowKdjChanged(bool value) => PlotChanged?.Invoke(this, EventArgs.Empty);
 
+    private void CancelLoad()
+    {
+        var previous = _cts;
+        _cts = null;
+        previous?.Cancel();
+        IsBusy = false;
+    }
+
     public async Task LoadAsync(bool refreshOnly = false)
     {
         if(!await EnsureDomainAsync())return;
@@ -350,7 +437,8 @@ public partial class ChartsViewModel : ObservableObject
         {
             if (!refreshOnly)
             {
-                StatusText = _loc["Ch_InvalidSymbol"];
+                CancelLoad();
+                ChartNotice = StatusText = _loc["Ch_InvalidSymbol"];
                 _timelineCts?.Cancel(); Timeline = null; _timelineSymbol = null;
                 Series = null;
                 Snapshot = null;
@@ -361,18 +449,37 @@ public partial class ChartsViewModel : ObservableObject
         SymbolText = symbol;
         FollowQuote();
         _context.Set(symbol);
-        if (IsBusy) { _cts?.Cancel(); }
+        CancelLoad();
+        if (Series is { } previous && previous.Symbol != symbol)
+        {
+            DrawingEpoch++;
+            DrawMode = null;
+            ResetDrawingAnchors();
+            _timelineCts?.Cancel();
+            Timeline = null;
+            _timelineSymbol = null;
+            Series = null;
+            Snapshot = null;
+            CrosshairText = "";
+            AdjustText = "";
+            AdjustWarning = "";
+            PlotChanged?.Invoke(this, EventArgs.Empty);
+        }
         IsBusy = true;
+        if (!refreshOnly) ChartNotice = "";
         if (!refreshOnly || Series is null) StatusText = _loc["Ch_Loading"];
-        _cts = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+        using var requestCancellation = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+        _cts = requestCancellation;
+        var ct = requestCancellation.Token;
         var unchanged = false;
         try
         {
-            var request = BuildRequest(symbol, Range) with { Adjust = DividendAdjusted ? AdjustMode.Total : AdjustMode.Split };
+            var range = Range;
+            var request = BuildRequest(symbol, range) with { Adjust = DividendAdjusted ? AdjustMode.Total : AdjustMode.Split };
             // C2: the cache layer turns a refresh into a short tail download; nothing new → no recompute, no redraw.
-            var loading=_cts;
-            var series = await _data.GetBarsAsync(request, loading.Token);
-            if(loading.IsCancellationRequested || _cts!=loading || !DomainReady)return;
+            var series = await _data.GetBarsAsync(request, ct);
+            if (ct.IsCancellationRequested || _cts != requestCancellation || !DomainReady) return;
+            series = ProjectRange(series, range);
 
             if (refreshOnly && Series is { } shown && SameData(shown, series))
             {
@@ -386,17 +493,24 @@ public partial class ChartsViewModel : ObservableObject
             }
             var bars = series.Bars.Select(b => new OhlcvBar(b.Time, b.Open, b.High, b.Low, b.Close, b.Volume)).ToArray();
             if (!refreshOnly || Series is null || Series.Symbol != series.Symbol || Series.Interval != series.Interval || Series.Source != series.Source || Series.Adjustment != series.Adjustment)
-            { DrawingEpoch++; DrawMode = null; _trendStart = null; }
+            { DrawingEpoch++; DrawMode = null; ResetDrawingAnchors(); }
             Series = series;
             DescribeAdjustment(request, series);
             _bars = bars;
             _incomplete = series.Bars.Select(b => b.Incomplete || !b.IsConsistent()).ToArray();
             Snapshot = bars.Length == 0 ? null : KlineSnapshot.Compute(bars, IndicatorOptions(_ind), _incomplete);
             Drawings = _drawings.For(symbol);
-            await LoadCompareAsync(request, series, _cts.Token);
+            _ = LoadIvAsync(series);
+            await LoadCompareAsync(request, series, range, ct);
+            ct.ThrowIfCancellationRequested();
             CrosshairText = "";
             Headline = string.IsNullOrWhiteSpace(symbol) ? "" : symbol;
+            ChartNotice = "";
             _lastError = series.Bars.Count == 0 ? _loc["Ch_Empty"] : null;
+        }
+        catch (Exception ex) when (!ReferenceEquals(_cts, requestCancellation))
+        {
+            if (ex is not OperationCanceledException) AppLog.Warn("charts", "superseded load failed", ex);
         }
         catch (AllSourcesFailedException) { if (!refreshOnly || Series is null) Fail(_loc["Ch_AllFailed"]); }
         catch (OperationCanceledException) when (_active && !refreshOnly) { Fail(_loc["Ch_Timeout"]); }
@@ -404,21 +518,26 @@ public partial class ChartsViewModel : ObservableObject
         catch (Exception ex) { AppLog.Warn("charts", "load failed", ex); Fail(ex.Message); }
         finally
         {
-            IsBusy = false;
-            ArmTimer();
-            if (_active) _timer.Start();
-            UpdateStatus();
-            if (!unchanged)
+            if (ReferenceEquals(_cts, requestCancellation))
             {
-                PreserveView = refreshOnly;
-                if (Series?.Symbol == symbol) _ = RefreshTimelineAsync(symbol, callerWillRender: true);
-                PlotChanged?.Invoke(this, EventArgs.Empty);
-                PreserveView = true;
+                _cts = null;
+                IsBusy = false;
+                ArmTimer();
+                if (_active) _timer.Start();
+                UpdateStatus();
+                if (!unchanged)
+                {
+                    PreserveView = refreshOnly;
+                    if (Series?.Symbol == symbol) _ = RefreshTimelineAsync(symbol, callerWillRender: true);
+                    PlotChanged?.Invoke(this, EventArgs.Empty);
+                    PreserveView = true;
+                }
             }
         }
     }
 
     private string? _lastError;
+    [ObservableProperty] public partial string ChartNotice { get; set; } = "";
 
     partial void OnDividendAdjustedChanged(bool value)
     {
@@ -431,8 +550,8 @@ public partial class ChartsViewModel : ObservableObject
     {
         if(!DomainReady)return;
         DrawingEpoch++;
+        ResetDrawingAnchors();
         DrawMode = DrawMode == kind ? null : kind;
-        _trendStart = null;
         StatusText = DrawMode switch
         {
             DrawingKind.HorizontalLine => _loc["Ch_DrawHLineHint"],
@@ -447,7 +566,7 @@ public partial class ChartsViewModel : ObservableObject
         if (!DomainReady || Series is null) return;
         try { _drawings.Clear(Series.Symbol); }
         catch (DataConflictException) { ReportDrawingConflict(); return; }
-        Drawings = []; DrawMode = null; _trendStart = null;
+        Drawings = []; DrawMode = null; ResetDrawingAnchors();
         PlotChanged?.Invoke(this, EventArgs.Empty);
     }
 
@@ -455,22 +574,41 @@ public partial class ChartsViewModel : ObservableObject
     public bool AddDrawingPoint(DateTimeOffset time, double price)
     {
         if (!DomainReady || DrawMode is not { } mode || Series is null) return false;
-        if (mode == DrawingKind.TrendLine && _trendStart is null)
+        if (mode.NeedsSecondAnchor() && _drawingStart is null)
         {
-            _trendStart = (time, price);
+            _drawingStart = (time, price);
             StatusText = _loc["Ch_DrawTrendHint2"];
             PlotChanged?.Invoke(this, EventArgs.Empty);
             return true;
         }
-        if (mode == DrawingKind.TrendLine && _trendStart!.Value.Time == time) return false;
-        var drawing = mode == DrawingKind.HorizontalLine
-            ? new ChartDrawing(mode, price)
-            : new ChartDrawing(mode, _trendStart!.Value.Price, _trendStart.Value.Time, price, time);
+        var start = _drawingStart;
+        ChartDrawing drawing;
+        if (mode.IsPosition() && start is { } entry)
+        {
+            if (DrawingTarget is not { } target)
+            {
+                if (entry.Time == time || !mode.IsTarget(entry.Price, price)) return false;
+                DrawingTarget = (time, price);
+                PlotChanged?.Invoke(this, EventArgs.Empty);
+                return true;
+            }
+            if (!mode.IsStop(entry.Price, price)) return false;
+            drawing = new ChartDrawing(mode, entry.Price, entry.Time, target.Price, target.Time) { StopPrice = price };
+        }
+        else
+        {
+            if (start is { } anchor && (mode.NeedsSecondTime() && anchor.Time == time ||
+                mode.NeedsDistinctPrices() && anchor.Price == price))
+                return false;
+            drawing = start is { } first ? new ChartDrawing(mode, first.Price,
+                    mode.NeedsFirstTime() ? first.Time : null, price, mode.NeedsSecondTime() ? time : null)
+                : new ChartDrawing(mode, mode == DrawingKind.VerticalLine ? 0 : price, mode.NeedsFirstTime() ? time : null);
+        }
         try { _drawings.Add(Series.Symbol, drawing); }
         catch (DataConflictException) { ReportDrawingConflict(); return false; }
         Drawings = _drawings.For(Series.Symbol).ToList();
         DrawMode = null;
-        _trendStart = null;
+        ResetDrawingAnchors();
         UpdateStatus();
         PlotChanged?.Invoke(this, EventArgs.Empty);
         return true;
@@ -478,27 +616,36 @@ public partial class ChartsViewModel : ObservableObject
 
     public string ChartKey => $"{Series?.Symbol}|{Range}|{Series?.Source}|{Series?.Adjustment}";
     public long DrawingEpoch { get; private set; }
-    public (DateTimeOffset Time, double Price)? DrawingStart => _trendStart;
+    public (DateTimeOffset Time, double Price)? DrawingStart => _drawingStart;
     public string DrawingRevision => Series is null ? "" : _drawings.Revision(Series.Symbol);
     [RelayCommand]
     public void CancelDrawing()
     {
-        DrawingEpoch++; DrawMode = null; _trendStart = null; UpdateStatus(); PlotChanged?.Invoke(this, EventArgs.Empty);
+        DrawingEpoch++; DrawMode = null; ResetDrawingAnchors(); UpdateStatus(); PlotChanged?.Invoke(this, EventArgs.Empty);
     }
-    public void EditDrawing(int index, double? first, double? second, string revision)
+    public void EditDrawing(int index, double? first, double? second, string revision, DateTimeOffset? time1 = null, DateTimeOffset? time2 = null, double? stopPrice = null)
     {
         if (!DomainReady || Series is null || index < 0 || index >= Drawings.Count) return;
         var original = Drawings[index];
+        if (!ExistingOrVisible(time1, original.Time1) || !ExistingOrVisible(time2, original.Time2)) return;
         try
         {
-            _drawings.Edit(Series.Symbol, index, first is null ? null : original with { Price1 = first.Value, Price2 = second ?? original.Price2 }, revision);
+            _drawings.Edit(Series.Symbol, index, first is null ? null : original with
+            {
+                Price1 = first.Value, Price2 = second ?? original.Price2,
+                Time1 = time1 ?? original.Time1, Time2 = time2 ?? original.Time2, StopPrice = stopPrice ?? original.StopPrice,
+            }, revision);
             Drawings = _drawings.For(Series.Symbol).ToList(); PlotChanged?.Invoke(this, EventArgs.Empty);
         }
         catch (DataConflictException) { ReportDrawingConflict(); PlotChanged?.Invoke(this, EventArgs.Empty); }
+
+        bool ExistingOrVisible(DateTimeOffset? time, DateTimeOffset? current) =>
+            time is null || time.Value.ToUnixTimeSeconds() == current?.ToUnixTimeSeconds() ||
+            Series.Bars.Any(bar => bar.Time.ToUnixTimeSeconds() == time.Value.ToUnixTimeSeconds());
     }
     private void ReportDrawingConflict()
     {
-        DrawMode = null; _trendStart = null;
+        DrawMode = null; ResetDrawingAnchors();
         _lastError = _loc["Ch_DrawingConflict"];
         UpdateStatus();
     }
@@ -507,11 +654,11 @@ public partial class ChartsViewModel : ObservableObject
     private async Task ApplyCompareAsync()
     {
         if (!DomainReady || Series is null) return;
-        await LoadCompareAsync(BuildRequest(Series.Symbol, Range) with { Adjust = DividendAdjusted ? AdjustMode.Total : AdjustMode.Split }, Series, CancellationToken.None);
+        await LoadCompareAsync(BuildRequest(Series.Symbol, Range) with { Adjust = DividendAdjusted ? AdjustMode.Total : AdjustMode.Split }, Series, Range, CancellationToken.None);
         PlotChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    private async Task LoadCompareAsync(BarRequest request, BarSeries main, CancellationToken ct)
+    private async Task LoadCompareAsync(BarRequest request, BarSeries main, ChartRangeKind range, CancellationToken ct)
     {
         CompareLine = null;
         CompareLabel = "";
@@ -522,12 +669,15 @@ public partial class ChartsViewModel : ObservableObject
         try
         {
             var other = await _data.GetBarsAsync(request with { Symbol = cmp }, ct);
-            CompareLine = Rebase(main, other);
+            ct.ThrowIfCancellationRequested();
+            if (!ReferenceEquals(Series, main)) return;
+            CompareLine = Rebase(main, ProjectRange(other, range));
             if (CompareLine is null) CompareStatus = string.Format(_loc["Ch_CompareNoOverlap"], cmp);
             else CompareLabel = string.Format(_loc["Ch_CompareLabel"], cmp);
         }
         catch (AllSourcesFailedException ex)
         {
+            if (ct.IsCancellationRequested || !ReferenceEquals(Series, main)) return;
             AppLog.Warn("charts", $"compare {cmp} failed", ex);
             CompareStatus = string.Format(_loc["Ch_CompareFailed"], cmp);
         }
@@ -623,7 +773,7 @@ public partial class ChartsViewModel : ObservableObject
 
     private void Fail(string message)
     {
-        _lastError = message;
+        ChartNotice = _lastError = message;
         if (Series is null)
         {
             Snapshot = null;
@@ -636,7 +786,10 @@ public partial class ChartsViewModel : ObservableObject
         return range switch
         {
             ChartRangeKind.Session => new BarRequest(symbol, BarInterval.Minute1, SessionStart(), null),
-            ChartRangeKind.Minute1 => new BarRequest(symbol, BarInterval.Minute1),
+            ChartRangeKind.FiveDays => new BarRequest(symbol, BarInterval.Minute5, SessionStart(5)),
+            ChartRangeKind.Minute1 or ChartRangeKind.Minute3 => new BarRequest(symbol, BarInterval.Minute1),
+            ChartRangeKind.Minute10 => new BarRequest(symbol, BarInterval.Minute5),
+            ChartRangeKind.Minute30 or ChartRangeKind.Hour2 => new BarRequest(symbol, BarInterval.Minute30),
             ChartRangeKind.Minute5 => new BarRequest(symbol, BarInterval.Minute5),
             ChartRangeKind.Minute15 => new BarRequest(symbol, BarInterval.Minute15),
             ChartRangeKind.Hour1 => new BarRequest(symbol, BarInterval.Hour1),
@@ -646,12 +799,35 @@ public partial class ChartsViewModel : ObservableObject
         };
     }
 
-    private static DateTimeOffset SessionStart()
+    internal static BarSeries ProjectRange(BarSeries source, ChartRangeKind range)
+    {
+        var interval = range switch
+        {
+            ChartRangeKind.Minute3 => BarInterval.Minute3,
+            ChartRangeKind.Minute10 => BarInterval.Minute10,
+            ChartRangeKind.Hour2 => BarInterval.Hour2,
+            ChartRangeKind.Quarter1 => BarInterval.Quarter1,
+            ChartRangeKind.Year1 => BarInterval.Year1,
+            _ => source.Interval,
+        };
+        return interval == source.Interval ? source : source with
+        {
+            Interval = interval,
+            Bars = BarAggregator.Aggregate(source.Bars.OrderBy(bar => bar.Time).DistinctBy(bar => bar.Time).ToArray(), interval),
+        };
+    }
+
+    private static DateTimeOffset SessionStart(int sessions = 1)
     {
         var now = DateTimeOffset.Now;
         var et = MarketClock.ToEastern(now);
         var d = DateOnly.FromDateTime(et);
         if (et.TimeOfDay < new TimeSpan(4, 0, 0) || !MarketClock.IsTradingDay(d))
+        {
+            d = d.AddDays(-1);
+            while (!MarketClock.IsTradingDay(d)) d = d.AddDays(-1);
+        }
+        for (var counted = 1; counted < sessions; counted++)
         {
             d = d.AddDays(-1);
             while (!MarketClock.IsTradingDay(d)) d = d.AddDays(-1);

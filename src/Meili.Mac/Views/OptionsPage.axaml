@@ -36,6 +36,8 @@
             <Setter Property="Padding" Value="0" />
         </Style>
     </UserControl.Styles>
+    <controls:MarketWorkspaceLayout x:Name="Workspace" Title="{DynamicResource Op_Title}" HelpText="{DynamicResource Op_Desc}">
+        <controls:MarketWorkspaceLayout.WorkspaceContent>
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
     <DockPanel MinHeight="760" Height="{Binding $parent[ScrollViewer].Bounds.Height}">
         <StackPanel DockPanel.Dock="Top" Margin="24,16,24,8">
@@ -116,4 +118,6 @@
         </Panel>
     </DockPanel>
     </ScrollViewer>
+        </controls:MarketWorkspaceLayout.WorkspaceContent>
+    </controls:MarketWorkspaceLayout>
 </UserControl>

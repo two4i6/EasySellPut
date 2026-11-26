@@ -25,3 +25,9 @@ Local Shared 154 and real Chromium 19 passed (including drawings, 28-event group
 ## Integration corrections
 
 Final offline baseline run-c4kuGc2f passed all six suites (1,104 .NET cases plus two Windows-only skips), Python 80, SDK 9, all 58 real CLI/MCP capability cases and the complete cache/app update/retained-data/maintenance tail. Chromium 19 passed separately. Cross-platform integration then exposed a native compatibility gap: explicit LoadAsync calls before page activation must still work. They now acquire the same verified domain rather than being silently ignored; stale hidden gestures remain blocked after Deactivate. Activation adopts the shared symbol before reconnecting cached live quotes, preventing an old repair request from overriding a requested symbol. Shared 156 passed after these corrections; full Mac and exact-code CI reruns are required. No failed native check has been removed.
+
+## Chart workspace integration
+
+Charts 1.2 packages the workspace controls, per-pane readouts, indicator tools, replay and drawing editor in the verified renderer. The host shares the resizable watchlist between Charts, Options and Market Glance. Market Glance keeps its session picker and observed overnight chart. Replay hides the live price and observed tail.
+
+The new drawing kinds are available through the desktop drawing menu and persist through the shared revision-checked store. The existing signed CLI and MCP write schemas retain their original horizontal and trend line inputs for compatibility with installed Charts packages.

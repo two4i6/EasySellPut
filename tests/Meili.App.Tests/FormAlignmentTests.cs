@@ -50,4 +50,37 @@ public sealed class FormAlignmentTests
             }
         });
     }
+
+    [Fact]
+    public void TextSizeSelectionUpdatesTheOpenWindowAndPersists()
+    {
+        WpfHost.Run(async () =>
+        {
+            var page = new SettingsPage();
+            using var host = new OffscreenHost(page, 980, 620, asMainWindow: true);
+            await ScreenRenderTests.Settle();
+            var picker = UiAudit.Descendants<AppSelect>(page).Single(control =>
+                System.Windows.Automation.AutomationProperties.GetAutomationId(control) == "SettingsTextSize");
+            var original = picker.SelectedIndex;
+            try
+            {
+                picker.SetCurrentValue(ComboBox.SelectedIndexProperty, 0);
+                await ScreenRenderTests.Settle();
+                Assert.Equal(13.5, picker.FontSize);
+                picker.SetCurrentValue(ComboBox.SelectedIndexProperty, 3);
+                await ScreenRenderTests.Settle();
+                Assert.Equal(20.25, picker.FontSize);
+                var store = AppServices.Get<Meili.Core.Settings.SettingsStore>();
+                Assert.Equal(150, new Meili.Core.Settings.SettingsStore(System.IO.Path.GetDirectoryName(store.FilePath)!).Load().TextSizePercent);
+                var header = UiAudit.Descendants<AppFormHeader>(Ancestor<AppCard>(picker)).Single();
+                var title = UiAudit.Descendants<TextBlock>(header).Single(text => text.Text == header.Title);
+                Assert.InRange(Math.Abs(Center(title, host.Root) - Center(picker, host.Root)), 0, 1);
+            }
+            finally
+            {
+                picker.SetCurrentValue(ComboBox.SelectedIndexProperty, original);
+                await ScreenRenderTests.Settle();
+            }
+        });
+    }
 }

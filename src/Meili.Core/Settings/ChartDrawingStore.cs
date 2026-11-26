@@ -5,10 +5,35 @@ using System.Text.Json.Serialization;
 
 namespace Meili.Core.Settings;
 
-public enum DrawingKind { HorizontalLine, TrendLine }
+public enum DrawingKind { HorizontalLine, TrendLine, HorizontalRay, VerticalLine, Rectangle, FibonacciRetracement, LongPosition, ShortPosition, PriceRange }
+
+public static class DrawingKinds
+{
+    public static bool NeedsSecondAnchor(this DrawingKind kind) =>
+        kind is DrawingKind.TrendLine or DrawingKind.Rectangle or DrawingKind.FibonacciRetracement or DrawingKind.PriceRange || kind.IsPosition();
+
+    public static bool NeedsFirstTime(this DrawingKind kind) => kind is not (DrawingKind.HorizontalLine or DrawingKind.PriceRange);
+
+    public static bool NeedsSecondTime(this DrawingKind kind) => kind.NeedsSecondAnchor() && kind.NeedsFirstTime();
+
+    public static bool IsPosition(this DrawingKind kind) => kind is DrawingKind.LongPosition or DrawingKind.ShortPosition;
+
+    public static bool IsTarget(this DrawingKind kind, double entry, double target) =>
+        kind == DrawingKind.LongPosition ? target > entry : target < entry;
+
+    public static bool IsStop(this DrawingKind kind, double entry, double stop) =>
+        kind == DrawingKind.LongPosition ? stop < entry : stop > entry;
+
+    public static bool NeedsDistinctPrices(this DrawingKind kind) =>
+        kind is DrawingKind.Rectangle or DrawingKind.FibonacciRetracement or DrawingKind.PriceRange;
+}
 
 /// <summary>B5: a line the user drew on a symbol's K-line chart. A horizontal line only uses <see cref="Price1"/>.</summary>
-public sealed record ChartDrawing(DrawingKind Kind, double Price1, DateTimeOffset? Time1 = null, double Price2 = 0, DateTimeOffset? Time2 = null);
+public sealed record ChartDrawing(DrawingKind Kind, double Price1, DateTimeOffset? Time1 = null, double Price2 = 0, DateTimeOffset? Time2 = null)
+{
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public double? StopPrice { get; init; }
+}
 
 /// <summary>B5: drawings per symbol in <c>drawings.json</c> (single thread per instance; cross-process writes detect stale snapshots).</summary>
 public sealed class ChartDrawingStore
@@ -67,8 +92,14 @@ public sealed class ChartDrawingStore
     {
         if (!Enum.IsDefined(drawing.Kind) || !double.IsFinite(drawing.Price1) || drawing.Price1 < 0 || drawing.Price1 > 1e12 ||
             !double.IsFinite(drawing.Price2) || drawing.Price2 < 0 || drawing.Price2 > 1e12 ||
-            drawing.Kind == DrawingKind.TrendLine && (drawing.Time1 is null || drawing.Time2 is null || drawing.Time1 == drawing.Time2))
-            throw new ArgumentException("Invalid drawing anchors; trend timestamps must differ.");
+            drawing.Kind.NeedsFirstTime() && drawing.Time1 is null ||
+            drawing.Kind.NeedsSecondTime() && (drawing.Time2 is null || drawing.Time1 == drawing.Time2) ||
+            drawing.Kind.NeedsDistinctPrices() && drawing.Price1 == drawing.Price2)
+            throw new ArgumentException("Invalid drawing anchors.");
+        if (drawing.Kind.IsPosition() && (drawing.StopPrice is not { } stop || !double.IsFinite(stop) ||
+            stop is < 0 or > 1e12 || !drawing.Kind.IsTarget(drawing.Price1, drawing.Price2) ||
+            !drawing.Kind.IsStop(drawing.Price1, stop)))
+            throw new ArgumentException("A position needs a target and stop on opposite sides of entry, consistent with its direction.");
     }
     public void Clear(string symbol)
     {

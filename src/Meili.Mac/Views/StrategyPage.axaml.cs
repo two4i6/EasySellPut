@@ -40,6 +40,7 @@ public partial class StrategyPage : UserControl
                 vm.ChartChanged += _onChart;
                 vm.WhatIfChanged += _onWhatIf;
                 Ui.Platform.ColorsChanged += _onColors;
+                DesignTypography.Changed += _onColors;
                 _attached = true;
                 vm.PropertyChanged += OnVmPropertyChanged;
             }
@@ -54,6 +55,7 @@ public partial class StrategyPage : UserControl
                 vm.ChartChanged -= _onChart;
                 vm.WhatIfChanged -= _onWhatIf;
                 Ui.Platform.ColorsChanged -= _onColors;
+                DesignTypography.Changed -= _onColors;
                 _attached = false;
                 vm.PropertyChanged -= OnVmPropertyChanged;
                 Workspace.Stop();

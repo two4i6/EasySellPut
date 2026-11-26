@@ -44,7 +44,7 @@
                         <Button Classes="Subtle Icon" Width="24" Height="24" MinWidth="24" MinHeight="24" DockPanel.Dock="Right" Command="{Binding CancelUpdateCommand}" AutomationProperties.Name="{DynamicResource Upd_Cancel}" ToolTip.Tip="{DynamicResource Upd_Cancel}" Margin="8,0,0,0"><lucide:LucideIcon Kind="Close"/></Button>
                         <ProgressBar Minimum="0" Maximum="100" Value="{Binding UpdateProgress}" IsIndeterminate="{Binding IsUpdateIndeterminate}" Height="4" MinHeight="0" VerticalAlignment="Center"/>
                     </DockPanel>
-                    <Expander Header="{DynamicResource Upd_Notes}" IsVisible="{Binding HasUpdateNotes}" HorizontalAlignment="Stretch"><TextBlock Text="{Binding UpdateNotes}" FontSize="14" FontWeight="Normal" TextWrapping="Wrap" Margin="0,8,0,0"/></Expander>
+                    <Expander Header="{DynamicResource Upd_Notes}" IsVisible="{Binding HasUpdateNotes}" HorizontalAlignment="Stretch"><TextBlock Text="{Binding UpdateNotes}" FontSize="{DynamicResource FontSize14}" FontWeight="Normal" TextWrapping="Wrap" Margin="0,8,0,0"/></Expander>
                 </StackPanel>
             </ds:AppCard>
 
@@ -101,6 +101,15 @@
                 
 </DockPanel>
 </ds:AppCard>
+            <ds:AppCard Classes="Card FormRow" Padding="16,12" Margin="0,0,0,4">
+                <DockPanel>
+                    <ds:AppSelect DockPanel.Dock="Right" Width="{StaticResource FormFieldWidth}" Margin="16,0,0,0"
+                                  VerticalAlignment="Center" ItemsSource="{Binding TextSizeOptions}"
+                                  SelectedIndex="{Binding TextSizeIndex, Mode=TwoWay}" AutomationProperties.AutomationId="SettingsTextSize"
+                                  AutomationProperties.Name="{DynamicResource Set_TextSize}"/>
+                    <ux:AppFormHeader Title="{DynamicResource Set_TextSize}" HelpText="{DynamicResource Set_TextSizeDesc}"/>
+                </DockPanel>
+            </ds:AppCard>
             <ds:AppCard Classes="Card FormRow" Padding="16,12" Margin="0,0,0,4">
 <DockPanel>
 <StackPanel DockPanel.Dock="Right" VerticalAlignment="Center" Margin="16,0,0,0">
@@ -245,7 +254,7 @@
                     <WrapPanel>
                         <Border Width="280" Padding="12" Margin="0,0,12,8" CornerRadius="6" BorderThickness="1" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" Background="{DynamicResource ControlFillColorSecondaryBrush}">
                             <StackPanel>
-                                <DockPanel Margin="0,0,0,12"><Button DockPanel.Dock="Right" Classes="Icon" Width="24" Height="24" MinWidth="24" MinHeight="24" Command="{Binding OpenAiHelpCommand}" CommandParameter="codex" AutomationProperties.Name="{DynamicResource Set_AiHelp}" ToolTip.Tip="{DynamicResource Set_AiHelp}" Margin="8,0,0,0"><lucide:LucideIcon Kind="Help"/></Button><TextBlock DockPanel.Dock="Right" Classes="Caption" Text="{Binding CodexAvailability}" VerticalAlignment="Center"/><TextBlock Classes="CardTitle" FontSize="16" Text="Codex" VerticalAlignment="Center"/></DockPanel>
+                                <DockPanel Margin="0,0,0,12"><Button DockPanel.Dock="Right" Classes="Icon" Width="24" Height="24" MinWidth="24" MinHeight="24" Command="{Binding OpenAiHelpCommand}" CommandParameter="codex" AutomationProperties.Name="{DynamicResource Set_AiHelp}" ToolTip.Tip="{DynamicResource Set_AiHelp}" Margin="8,0,0,0"><lucide:LucideIcon Kind="Help"/></Button><TextBlock DockPanel.Dock="Right" Classes="Caption" Text="{Binding CodexAvailability}" VerticalAlignment="Center"/><TextBlock Classes="CardTitle" FontSize="{DynamicResource SubtitleFontSize}" Text="Codex" VerticalAlignment="Center"/></DockPanel>
                                 <WrapPanel>
                                     <Button x:Name="ConnectCodex" Content="{DynamicResource Set_AiCodex}" Command="{Binding CopyCodexCommand}" IsEnabled="{Binding CanConnectAi}" AutomationProperties.AutomationId="ConnectCodex" Margin="0,0,8,0"/>
                                     <Button Content="{DynamicResource Set_AiPrompt}" Command="{Binding CopyAiPromptCommand}" CommandParameter="codex" IsEnabled="{Binding CanConnectAi}"/>
@@ -254,7 +263,7 @@
                         </Border>
                         <Border Width="280" Padding="12" Margin="0,0,12,8" CornerRadius="6" BorderThickness="1" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" Background="{DynamicResource ControlFillColorSecondaryBrush}">
                             <StackPanel>
-                                <DockPanel Margin="0,0,0,12"><Button DockPanel.Dock="Right" Classes="Icon" Width="24" Height="24" MinWidth="24" MinHeight="24" Command="{Binding OpenAiHelpCommand}" CommandParameter="claude-code" AutomationProperties.Name="{DynamicResource Set_AiHelp}" ToolTip.Tip="{DynamicResource Set_AiHelp}" Margin="8,0,0,0"><lucide:LucideIcon Kind="Help"/></Button><TextBlock DockPanel.Dock="Right" Classes="Caption" Text="{Binding ClaudeAvailability}" VerticalAlignment="Center"/><TextBlock Classes="CardTitle" FontSize="16" Text="Claude Code" VerticalAlignment="Center"/></DockPanel>
+                                <DockPanel Margin="0,0,0,12"><Button DockPanel.Dock="Right" Classes="Icon" Width="24" Height="24" MinWidth="24" MinHeight="24" Command="{Binding OpenAiHelpCommand}" CommandParameter="claude-code" AutomationProperties.Name="{DynamicResource Set_AiHelp}" ToolTip.Tip="{DynamicResource Set_AiHelp}" Margin="8,0,0,0"><lucide:LucideIcon Kind="Help"/></Button><TextBlock DockPanel.Dock="Right" Classes="Caption" Text="{Binding ClaudeAvailability}" VerticalAlignment="Center"/><TextBlock Classes="CardTitle" FontSize="{DynamicResource SubtitleFontSize}" Text="Claude Code" VerticalAlignment="Center"/></DockPanel>
                                 <WrapPanel>
                                     <Button x:Name="ConnectClaude" Content="{DynamicResource Set_AiClaude}" Command="{Binding CopyClaudeCommand}" IsEnabled="{Binding CanConnectAi}" AutomationProperties.AutomationId="ConnectClaude" Margin="0,0,8,0"/>
                                     <Button Content="{DynamicResource Set_AiPrompt}" Command="{Binding CopyAiPromptCommand}" CommandParameter="claude-code" IsEnabled="{Binding CanConnectAi}"/>
@@ -329,7 +338,7 @@
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                         <Image Source="avares://MeiliMac/Assets/app-64.png" Width="40" Height="40" Margin="0,0,12,0" />
                         <StackPanel VerticalAlignment="Center">
-                            <TextBlock Classes="CardTitle" FontSize="16" Text="{DynamicResource App_Title}" />
+                            <TextBlock Classes="CardTitle" FontSize="{DynamicResource SubtitleFontSize}" Text="{DynamicResource App_Title}" />
                             <TextBlock Classes="Caption">
                                 <Run Text="{DynamicResource Set_Company}" />
                                 <Run Text="  ·  " />

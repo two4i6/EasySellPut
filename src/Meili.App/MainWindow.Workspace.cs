@@ -166,15 +166,15 @@ public partial class MainWindow
     internal void EditWebsite(WebWorkspaceTab? tab)
     {
         if (_workspace is null) return;
-        var dialog = new Meili.App.Views.Controls.AppDialog { Owner = this, Title = _loc[tab is null ? "Web_Add" : "Web_Edit"], Width = 440, MinWidth = 400, SizeToContent = SizeToContent.Height, ResizeMode = ResizeMode.NoResize, WindowStartupLocation = WindowStartupLocation.CenterOwner, FontSize = 14 };
+        var dialog = new Meili.App.Views.Controls.AppDialog { Owner = this, Title = _loc[tab is null ? "Web_Add" : "Web_Edit"], Width = 440, MinWidth = 400, SizeToContent = SizeToContent.Height, ResizeMode = ResizeMode.NoResize, WindowStartupLocation = WindowStartupLocation.CenterOwner }.WithFontSize(14);
         dialog.SetResourceReference(BackgroundProperty, "ApplicationBackgroundBrush"); dialog.SetResourceReference(ForegroundProperty, "TextFillColorPrimaryBrush");
         var body = new StackPanel { Margin = new Thickness(24) };
         var name = new TextBox { Text = tab?.Name ?? "", MaxLength = 40, Name = "WebsiteName", Padding = new Thickness(8), Margin = new Thickness(0, 6, 0, 12) };
         var url = new TextBox { Text = tab?.Url ?? "", MaxLength = 2048, Name = "WebsiteAddress", Padding = new Thickness(8), Margin = new Thickness(0, 6, 0, 12) };
-        var error = new TextBlock { Visibility = Visibility.Collapsed, TextWrapping = TextWrapping.Wrap, FontSize = 12, Margin = new Thickness(0, 8, 0, 8) };
+        var error = new TextBlock { Visibility = Visibility.Collapsed, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 8) }.WithFontSize(12);
         body.Children.Add(new TextBlock { Text = _loc["Web_Name"] }); body.Children.Add(name); body.Children.Add(new TextBlock { Text = _loc["Web_Address"] }); body.Children.Add(url);
         System.Windows.Automation.AutomationProperties.SetName(name, _loc["Web_Name"]); System.Windows.Automation.AutomationProperties.SetName(url, _loc["Web_Address"]);
-        body.Children.Add(new TextBlock { Text = _loc["Web_Privacy"], TextWrapping = TextWrapping.Wrap, FontSize = 12 }); body.Children.Add(error);
+        body.Children.Add(new TextBlock { Text = _loc["Web_Privacy"], TextWrapping = TextWrapping.Wrap }.WithFontSize(12)); body.Children.Add(error);
         var actions = new WrapPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 16, 0, 0) }; body.Children.Add(actions);
         Button Button(string key, Action action) { var button = new Button { Content = _loc[key], Padding = new Thickness(12, 6, 12, 6), Margin = new Thickness(0, 0, 8, 8) }; button.Click += (_, _) => action(); actions.Children.Add(button); return button; }
         void Fail(string key) { error.Text = _loc[key]; error.Visibility = Visibility.Visible; }

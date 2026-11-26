@@ -8,7 +8,7 @@
     <UserControl.Resources>
         <DataTemplate x:Key="StatementTemplate" x:DataType="vm:StatementBlock">
             <StackPanel IsVisible="{Binding HasData}" Margin="0,0,0,4">
-                <TextBlock Classes="CardTitle" FontSize="15" Text="{Binding Title}" Margin="0,0,0,6" />
+                <TextBlock Classes="CardTitle" FontSize="{DynamicResource BodyFontSize}" Text="{Binding Title}" Margin="0,0,0,6" />
                 <Grid ColumnDefinitions="1.6*,*,*,*,*" Margin="0,0,0,4">
                     <TextBlock Classes="Caption" Text="{DynamicResource Nf_Item}" />
                     <TextBlock Grid.Column="1" Classes="Caption" Text="{Binding H0}" TextAlignment="Right" />
@@ -20,7 +20,7 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="vm:StatementLine">
                             <Grid ColumnDefinitions="1.6*,*,*,*,*" Margin="0,3">
-                                <TextBlock FontSize="13" Text="{Binding Label}" TextWrapping="Wrap" />
+                                <TextBlock FontSize="{DynamicResource FontSize13}" Text="{Binding Label}" TextWrapping="Wrap" />
                                 <TextBlock Grid.Column="1" Classes="FinCell" Text="{Binding V0}" />
                                 <TextBlock Grid.Column="2" Classes="FinCell" Text="{Binding V1}" />
                                 <TextBlock Grid.Column="3" Classes="FinCell" Text="{Binding V2}" />
@@ -34,12 +34,12 @@
     </UserControl.Resources>
     <UserControl.Styles>
         <Style Selector="TextBlock.FinCell">
-            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontSize" Value="{DynamicResource FontSize13}" />
             <Setter Property="FontFamily" Value="{DynamicResource NumberFont}" />
             <Setter Property="TextAlignment" Value="Right" />
         </Style>
         <Style Selector="TextBlock.StatValue">
-            <Setter Property="FontSize" Value="16" />
+            <Setter Property="FontSize" Value="{DynamicResource SubtitleFontSize}" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="FontFamily" Value="{DynamicResource NumberFont}" />
             <Setter Property="TextWrapping" Value="Wrap" />
@@ -61,9 +61,9 @@
                                     CommitCommand="{Binding LoadFromBoxCommand}" />
             </DockPanel>
             <DockPanel Margin="0,0,0,6">
-                <TextBlock DockPanel.Dock="Right" FontSize="16" FontWeight="SemiBold" FontFamily="{DynamicResource NumberFont}"
+                <TextBlock DockPanel.Dock="Right" FontSize="{DynamicResource SubtitleFontSize}" FontWeight="SemiBold" FontFamily="{DynamicResource NumberFont}"
                            Text="{Binding ChangeText}" Foreground="{Binding ChangeBrush}" VerticalAlignment="Center" Margin="16,0,0,0" />
-                <TextBlock Classes="CardTitle" FontSize="18" Text="{Binding Headline}" VerticalAlignment="Center" TextWrapping="Wrap" />
+                <TextBlock Classes="CardTitle" FontSize="{DynamicResource FontSize18}" Text="{Binding Headline}" VerticalAlignment="Center" TextWrapping="Wrap" />
             </DockPanel>
             <TextBlock Classes="Caption" Text="{Binding LiveQuote.Text}" ToolTip.Tip="{Binding LiveQuote.Tooltip}" VerticalAlignment="Center" Margin="0,0,0,6"/>
             <TextBlock Classes="Caption" Text="{Binding MetaText}" IsVisible="{Binding HasMetaText}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding MetaText}" Margin="0,0,0,6" />
@@ -101,7 +101,7 @@
                             <TextBlock Classes="Caption" Text="{DynamicResource Nf_Website}" VerticalAlignment="Center" Margin="0,0,8,0" />
                             <HyperlinkButton Padding="0" Command="{Binding OpenWebsiteCommand}" Content="{Binding WebsiteText}" />
                         </StackPanel>
-                        <TextBlock Classes="Body" Text="{Binding Description}" TextWrapping="Wrap" FontSize="14" />
+                        <TextBlock Classes="Body" Text="{Binding Description}" TextWrapping="Wrap" FontSize="{DynamicResource FontSize14}" />
                     </StackPanel></ux:AppDisclosure>
 
                     <DockPanel Margin="0,16,0,8">

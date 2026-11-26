@@ -41,11 +41,22 @@ public static class BarAggregator
     private static double MaxKnown(double a, double b) => double.IsNaN(a) ? b : double.IsNaN(b) ? a : Math.Max(a, b);
     private static double MinKnown(double a, double b) => double.IsNaN(a) ? b : double.IsNaN(b) ? a : Math.Min(a, b);
 
-    private static DateTime Bucket(DateTime et, BarInterval target) => target switch
+    public static DateTime Bucket(DateTime et, BarInterval target) => target switch
     {
         BarInterval.Week1 => et.Date.AddDays(-(((int)et.DayOfWeek + 6) % 7)),
         BarInterval.Month1 => new DateTime(et.Year, et.Month, 1),
         BarInterval.Day1 => et.Date,
+        BarInterval.Quarter1 => new DateTime(et.Year, (et.Month - 1) / 3 * 3 + 1, 1),
+        BarInterval.Year1 => new DateTime(et.Year, 1, 1),
+        BarInterval.Hour2 => TwoHourBucket(et),
         _ => et.Date.AddMinutes(Math.Floor(et.TimeOfDay.TotalMinutes / target.Duration().TotalMinutes) * target.Duration().TotalMinutes),
     };
+
+    private static DateTime TwoHourBucket(DateTime eastern)
+    {
+        var session = MarketClock.ClassifyUsSession(eastern.TimeOfDay);
+        var start = session == MarketSession.Closed ? TimeSpan.Zero : MarketClock.UsSessionBounds(session).Start;
+        var hours = Math.Floor((eastern.TimeOfDay - start).TotalHours / 2) * 2;
+        return eastern.Date.Add(start).AddHours(hours);
+    }
 }

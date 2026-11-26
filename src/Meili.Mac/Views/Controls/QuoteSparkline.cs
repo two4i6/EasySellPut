@@ -1,24 +1,42 @@
 using Avalonia.Controls.Primitives;
-using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Data;
 using Avalonia.Media;
 using Meili.Shared.Services;
+
 namespace Meili.Mac.Views.Controls;
+
 public sealed class QuoteSparkline : Control
 {
-    private IntradaySparkline _data=IntradaySparkline.Empty;
+    public static readonly StyledProperty<IntradaySparkline> DataProperty =
+        AvaloniaProperty.Register<QuoteSparkline, IntradaySparkline>(nameof(Data), IntradaySparkline.Empty);
+    public static readonly StyledProperty<IBrush> LineBrushProperty =
+        AvaloniaProperty.Register<QuoteSparkline, IBrush>(nameof(LineBrush), Brushes.Gray);
+    public static readonly StyledProperty<IBrush?> MaBrushProperty =
+        AvaloniaProperty.Register<QuoteSparkline, IBrush?>(nameof(MaBrush));
+    public static readonly StyledProperty<IBrush?> EmaBrushProperty =
+        AvaloniaProperty.Register<QuoteSparkline, IBrush?>(nameof(EmaBrush));
+    public static readonly StyledProperty<IBrush?> VwapBrushProperty =
+        AvaloniaProperty.Register<QuoteSparkline, IBrush?>(nameof(VwapBrush));
+
+    static QuoteSparkline() => AffectsRender<QuoteSparkline>(DataProperty, LineBrushProperty, MaBrushProperty, EmaBrushProperty, VwapBrushProperty);
+
     private SparkPoint? _selected;
-    private readonly TextBlock _tip=new(){MaxWidth=300,FontSize=DesignTokens.CaptionFontSize,TextWrapping=TextWrapping.Wrap};
-    public IntradaySparkline Data
-    {
-        get=>_data;
-        set{if(ReferenceEquals(value,_data))return;ClearTooltip();_data=value;InvalidateVisual();}
-    }
+    private readonly TextBlock _tip=new(){MaxWidth=300,TextWrapping=TextWrapping.Wrap};
+    public IntradaySparkline Data { get => GetValue(DataProperty); set => SetValue(DataProperty, value); }
+    public IBrush? MaBrush { get => GetValue(MaBrushProperty); set => SetValue(MaBrushProperty, value); }
+    public IBrush? EmaBrush { get => GetValue(EmaBrushProperty); set => SetValue(EmaBrushProperty, value); }
+    public IBrush? VwapBrush { get => GetValue(VwapBrushProperty); set => SetValue(VwapBrushProperty, value); }
+
     public bool EnableTooltip { get=>Focusable; set=>Focusable=value; }
     public QuoteSparkline()
     {
+        this[!MaBrushProperty] = this.GetResourceObservable("SparklineMaBrush").ToBinding();
+        this[!EmaBrushProperty] = this.GetResourceObservable("SparklineEmaBrush").ToBinding();
+        this[!VwapBrushProperty] = this.GetResourceObservable("SparklineVwapBrush").ToBinding();
+        _tip[!TextBlock.FontSizeProperty]=this.GetResourceObservable("CaptionFontSize").ToBinding();
         this[!Avalonia.Automation.AutomationProperties.NameProperty]=this.GetResourceObservable("QP_Intraday").ToBinding();
         _tip[!TextBlock.FontFamilyProperty]=this.GetResourceObservable("AppFont").ToBinding();
         _tip[!TextBlock.ForegroundProperty]=this.GetResourceObservable("TextFillColorPrimaryBrush").ToBinding();
@@ -52,13 +70,26 @@ public sealed class QuoteSparkline : Control
         _selected=null;ToolTip.SetIsOpen(this,false);ToolTip.SetTip(this,null);
         ToolTip.SetPlacement(this,PlacementMode.Pointer);InvalidateVisual();
     }
-    public IBrush LineBrush{get;set;}=Brushes.Gray;
+    public IBrush LineBrush { get => GetValue(LineBrushProperty); set => SetValue(LineBrushProperty, value); }
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+        if (change.Property == DataProperty) ClearTooltip();
+    }
     public override void Render(DrawingContext context)
     {
         base.Render(context);context.DrawRectangle(Brushes.Transparent,null,new Rect(Bounds.Size));var w=Bounds.Width;var h=Bounds.Height;if(Data.Points.Count<1||w<=0||h<=0)return;
         if(Data.Baseline is { } b)context.DrawLine(new Pen(LineBrush,.6,new DashStyle([3,4],0)),new Point(0,b*h),new Point(w,b*h));
         // Solid strokes are observed segments. Dotted guides only link the endpoints of
         // missing intervals in a received-only window; they are not market observations.
+        DrawOverlay(Data.Ma, new Pen(MaBrush ?? Brushes.SteelBlue, 1.2, new DashStyle([3, 2], 0)));
+        DrawOverlay(Data.Ema, new Pen(EmaBrush ?? Brushes.MediumPurple, 1.2));
+        DrawOverlay(Data.Vwap, new Pen(VwapBrush ?? Brushes.DarkOrange, 1.35, new DashStyle([4, 2, 1, 2], 0)));
+        void DrawOverlay(IReadOnlyList<SparkPoint> points, Pen pen)
+        {
+            for (var i = 1; i < points.Count; i++)
+                if (!points[i].Break) context.DrawLine(pen, new Point(points[i-1].X*w,points[i-1].Y*h),new Point(points[i].X*w,points[i].Y*h));
+        }
         SparkPoint? previous=null;
         for(var i=0;i<Data.Points.Count;i++)
         {

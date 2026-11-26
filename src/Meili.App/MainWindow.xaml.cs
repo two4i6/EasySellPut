@@ -252,7 +252,7 @@ public partial class MainWindow : FluentWindow
             var box = new Wpf.Ui.Controls.MessageBox
             {
                 Title = _loc["Close_AskTitle"],
-                Content = new System.Windows.Controls.TextBlock { Text = _loc["Close_AskBody"], TextWrapping = TextWrapping.Wrap, MaxWidth = 420, FontSize = 14 },
+                Content = new System.Windows.Controls.TextBlock { Text = _loc["Close_AskBody"], TextWrapping = TextWrapping.Wrap, MaxWidth = 420 }.WithFontSize(14),
                 PrimaryButtonText = _loc["Close_ToTray"],
                 SecondaryButtonText = _loc["Close_Exit"],
                 CloseButtonText = _loc["Close_Cancel"],

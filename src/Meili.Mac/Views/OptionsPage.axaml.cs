@@ -7,6 +7,7 @@ using Avalonia.Data;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using ScottPlot;
 using Meili.Mac.Platform;
 
@@ -18,6 +19,8 @@ public partial class OptionsPage : UserControl
     private readonly ChartPainter _themePaint = new();
     private OptionColumnSet? _builtFor;
     private IDisposable? _rowsBinding, _selectionBinding;
+    private int _columnTextSize;
+    private bool _showStrike = true;
 
     /// <summary>Avalonia's column header reserves room for the sort glyph, which WPF's widths don't account for.</summary>
     private const double HeaderChrome = 14;
@@ -29,16 +32,19 @@ public partial class OptionsPage : UserControl
         DataContext = vm;
         EventHandler onTable = (_, _) => Dispatcher.UIThread.Post(Refresh);
         EventHandler onColors = (_, _) => Dispatcher.UIThread.Post(RenderSmile);
+        EventHandler onTextSize = (_, _) => Refresh();
         AttachedToVisualTree += async (_, _) =>
         {
             // Detached grids must not coerce a shared selection back to null or retain its rows.
             _rowsBinding = ChainList.Bind(DataGrid.ItemsSourceProperty, new Binding(nameof(vm.Rows)) { Source = vm });
             _selectionBinding = ChainList.Bind(DataGrid.SelectedItemProperty, new Binding(nameof(vm.SelectedRow)) { Source = vm, Mode = BindingMode.TwoWay });
+            _showStrike = true;
             vm.TableChanged += onTable;
             Ui.Platform.ColorsChanged += onColors;
+            DesignTypography.Changed += onTextSize;
             Refresh();
             await vm.ActivateAsync();
-            Refresh();
+            if (this.IsAttachedToVisualTree()) Refresh();
         };
         DetachedFromVisualTree += (_, _) =>
         {
@@ -47,6 +53,7 @@ public partial class OptionsPage : UserControl
             ChainList.ItemsSource = null;
             vm.TableChanged -= onTable;
             Ui.Platform.ColorsChanged -= onColors;
+            DesignTypography.Changed -= onTextSize;
             vm.Deactivate();
         };
         // The ATM strike row is highlighted; rows are recycled, so the class follows each row's data.
@@ -62,15 +69,30 @@ public partial class OptionsPage : UserControl
             b.Classes.Set("Selected", Vm.Window == kind);
         RenderSmile();
         // After the grid has laid out the new rows; scrolling before that is a no-op.
-        if (Vm.AtmRow is { } row) Dispatcher.UIThread.Post(() => ChainList.ScrollIntoView(row, null), DispatcherPriority.Background);
+        if (Vm.AtmRow is not { } row) return;
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (!this.IsAttachedToVisualTree() || Vm.AtmRow != row) return;
+            DataGridColumn? visibleColumn = null;
+            if (_showStrike)
+            {
+                var strike = OptionColumns.Side(call: true, Vm.ColumnSet).Count;
+                // Leave room for the first put quotes beside the strike.
+                visibleColumn = ChainList.Columns[Math.Min(strike + 4, ChainList.Columns.Count - 1)];
+                _showStrike = false;
+            }
+            ChainList.ScrollIntoView(row, visibleColumn);
+        }, DispatcherPriority.Background);
     }
 
     /// <summary>H1/G4: columns come from <see cref="OptionColumns"/>; only rebuilt when the column set changes.</summary>
     private void RebuildColumns()
     {
         var set = Vm.ColumnSet;
-        if (set == _builtFor) return;
+        if (set == _builtFor && _columnTextSize == DesignTypography.Percent) return;
+        _columnTextSize = DesignTypography.Percent;
         _builtFor = set;
+        _showStrike = true;
         ChainList.Columns.Clear();
         foreach (var c in OptionColumns.Side(call: true, set)) ChainList.Columns.Add(Column(c, set, side: true));
         foreach (var c in OptionColumns.Middle(set)) ChainList.Columns.Add(Column(c, set, side: null));
@@ -95,9 +117,9 @@ public partial class OptionsPage : UserControl
         {
             var text = new TextBlock
             {
-                Classes = { "Num" }, FontSize = strike ? 14 : 12, FontWeight = strike ? Avalonia.Media.FontWeight.SemiBold : Avalonia.Media.FontWeight.Normal,
+                Classes = { "Num" }, FontWeight = strike ? Avalonia.Media.FontWeight.SemiBold : Avalonia.Media.FontWeight.Normal,
                 TextAlignment = side is null ? TextAlignment.Center : TextAlignment.Right, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
-            };
+            }.WithFontSize(strike ? 14 : 12);
             if (tip is not null) ToolTip.SetTip(text, LocalizationService.Current[tip]);
             var grid = new Grid();
             Rectangle? bar = null;
@@ -122,7 +144,7 @@ public partial class OptionsPage : UserControl
             return cell;
         }, supportsRecycling: true);
 
-        var column = new DataGridTemplateColumn { CellTemplate = template, Width = new DataGridLength(OptionColumns.WidthOf(def, set) + HeaderChrome) };
+        var column = new DataGridTemplateColumn { CellTemplate = template, Width = new DataGridLength(DesignTypography.Size(OptionColumns.WidthOf(def, set) + HeaderChrome)) };
         Loc.SetHeader(column, def.HeaderKey);
         return column;
     }

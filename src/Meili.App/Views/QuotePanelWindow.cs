@@ -4,6 +4,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using Meili.Core.Models;
+using Meili.Core.Settings;
 using Meili.Shared.Services;
 using Meili.Shared.ViewModels;
 using Meili.App.Views.Controls;
@@ -13,15 +14,14 @@ namespace Meili.App.Views;
 public sealed class QuotePanelWindow : Window
 {
     private readonly QuotePanelViewModel _model;private readonly Action<string> _open;
-    private readonly LocalizationService _loc;private readonly StackPanel _rows=new(){};
-    private readonly Dictionary<string,RowView> _views=new();
-    private readonly TextBlock _title=new(),_name=new(),_price=new(),_change=new(),_source=new(),_asof=new(),_extended=new(),_date=new(),_status=new(),_page=new(),_empty=new();
+    private readonly LocalizationService _loc;
+    private readonly TextBlock _title=new(),_name=new(),_price=new(),_change=new(),_source=new(),_asof=new(),_extended=new(),_date=new(),_status=new(),_empty=new();
     private readonly QuoteSparkline _chart=new(){Height=DesignTokens.QuotePanelHeroSparkHeight,EnableTooltip=true};private readonly TextBlock[] _metrics=[new(),new(),new(),new()];
     private readonly Border _chartSurface = new() { CornerRadius = new(DesignTokens.ControlRadius), Padding = new(DesignTokens.SpaceXS) };
-    private readonly AppSelect _sessions = new() { MinHeight = 32, FontSize = 12, HorizontalAlignment = HorizontalAlignment.Stretch };
+    private readonly AppSelect _sessions = new() { Name = "GlanceSession", MinHeight = 32, FontSize = 12, HorizontalAlignment = HorizontalAlignment.Stretch };
     private readonly TextBlock[] _ticks = [new(), new(), new()];
     private readonly UniformGrid _metricGrid = new() { Columns = 4 };
-    private readonly Button _refresh,_previous,_next,_chartButton;private readonly ToggleButton _pin;
+    private readonly Button _refresh,_chartButton;private readonly ToggleButton _pin;
     private readonly DesktopActivity _activity=AppServices.Get<DesktopActivity>();
     private readonly string _activityOwner="quote-panel-window-"+Guid.NewGuid();
     public QuotePanelViewModel Model=>_model;
@@ -43,23 +43,21 @@ public sealed class QuotePanelWindow : Window
         hero.Children.Add(_sessions);
         _chartSurface.Child=_chart;hero.Children.Add(_chartSurface);var times=new UniformGrid{Columns=3};for(var i=0;i<3;i++){var tick=_ticks[i];tick.HorizontalAlignment=i==0?HorizontalAlignment.Left:i==1?HorizontalAlignment.Center:HorizontalAlignment.Right;Caption(tick);times.Children.Add(tick);}hero.Children.Add(times);hero.Children.Add(_empty);hero.Children.Add(_date);
         var metrics=_metricGrid;metrics.Margin=new Thickness(0,4,0,0);foreach(var t in _metrics){Caption(t);metrics.Children.Add(t);}hero.Children.Add(metrics);
-        var list=new ScrollViewer{Content=_rows,HorizontalScrollBarVisibility=ScrollBarVisibility.Disabled};
+        var list = new MarketWatchlist { DataContext = _model.ConnectWatchlist(AppServices.Get<SettingsStore>()), Owner = _model };
+        list.SelectionInvoked += (_, _) => OpenSelected();
         var footer=new DockPanel{LastChildFill=true,Margin=new Thickness(0,10,0,0)};var actions=new StackPanel{Orientation=Orientation.Horizontal};DockPanel.SetDock(actions,Dock.Right);footer.Children.Add(actions);
         _chartButton=new Button{Content=_loc["QP_Open"],FontSize=13};_chartButton.Click+=(_,_)=>OpenSelected();actions.Children.Add(_chartButton);
         var watch=new Button{FontSize=13};watch.SetResourceReference(ContentControl.ContentProperty,"QP_Watchlist");watch.Click+=(_,_)=>{HidePanel();watchlist();};actions.Children.Add(watch);
         var more=IconButton("More","QP_More",()=>{});var quitItem=new MenuItem{Header=_loc["Menu_Quit"]};quitItem.Click+=(_,_)=>quit();more.ContextMenu=new ContextMenu{Items={quitItem}};more.Click+=(_,_)=>more.ContextMenu.IsOpen=true;actions.Children.Add(more);
-        var paging=new StackPanel{Orientation=Orientation.Horizontal};_previous=IconButton("ChevronLeft","QP_Previous",async()=>await _model.MoveAsync(-1));_next=IconButton("ChevronRight","QP_Next",async()=>await _model.MoveAsync(1));paging.Children.Add(_previous);_page.VerticalAlignment=VerticalAlignment.Center;paging.Children.Add(_page);paging.Children.Add(_next);footer.Children.Add(paging);
         var content=RowsGrid();content.Children.Add(header);Grid.SetRow(hero,1);content.Children.Add(hero);Grid.SetRow(list,2);content.Children.Add(list);Grid.SetRow(_status,3);content.Children.Add(_status);Grid.SetRow(footer,4);content.Children.Add(footer);Caption(_status);
         foreach(FrameworkElement child in hero.Children)child.Margin=new Thickness(child.Margin.Left,child.Margin.Top,child.Margin.Right,child.Margin.Bottom+5);
         foreach(FrameworkElement child in tools.Children)child.Margin=new Thickness(0,0,4,0);
         foreach(FrameworkElement child in actions.Children)child.Margin=new Thickness(5,0,0,0);
-        foreach(FrameworkElement child in paging.Children)child.Margin=new Thickness(0,0,4,0);
         Content=new AppCard{Padding=new Thickness(16),Content=content};
         KeyDown+=(_,e)=>{if(e.Key==Key.Escape){if(_sessions.IsDropDownOpen)_sessions.IsDropDownOpen=false;else HidePanel();e.Handled=true;}};Deactivated+=(_,_)=>{if(_pin.IsChecked!=true && !more.ContextMenu.IsOpen && !_sessions.IsDropDownOpen)HidePanel();};
         Closed+=(_,_)=>{_activity.SetVisible(_activityOwner,false);_model.Changed-=OnChanged;_model.Dispose();};_model.Changed+=OnChanged;UpdateView();
     }
     private static Grid RowsGrid(){var g=new Grid();foreach(var value in new[]{"Auto","Auto","*","Auto","Auto"})g.RowDefinitions.Add(new RowDefinition{Height=value=="*"?new GridLength(1,GridUnitType.Star):GridLength.Auto});return g;}
-    private static Grid ColumnsGrid(){var g=new Grid();foreach(var n in new[]{0,72,100})g.ColumnDefinitions.Add(new ColumnDefinition{Width=n==0?new GridLength(1,GridUnitType.Star):new GridLength(n)});return g;}
     public async Task ShowPanelAsync()
     {
         var area=SystemParameters.WorkArea;Height=Math.Min(DesignTokens.QuotePanelHeight,area.Height-20);Left=area.Right-Width-12;Top=area.Bottom-Height-12;
@@ -74,14 +72,12 @@ public sealed class QuotePanelWindow : Window
     private static string Value(double? v)=>v is { } n&&double.IsFinite(n)?NumberDisplay.Price(n):"—";
     private void UpdateView()
     {
-        Title=_title.Text=_loc["QP_Title"];_refresh.IsEnabled=!_model.IsBusy;_status.Text=_model.IsBusy?_loc["QP_Refresh"]+"…":_model.Status;_page.Text=$"{_model.Page+1}/{_model.Pages}";_previous.IsEnabled=_model.Page>0;_next.IsEnabled=_model.Page+1<_model.Pages;
+        Title=_title.Text=_loc["QP_Title"];_refresh.IsEnabled=!_model.IsBusy;_status.Text=_model.IsBusy?_loc["QP_Refresh"]+"…":_model.Status;
         _pin.Content=_loc["QP_Pin"];_chartButton.Content=_loc["QP_Open"];
         for(var i=0;i<QuoteGlanceText.SessionKeys.Length;i++) ((ComboBoxItem)_sessions.Items[i]!).Content = _loc[QuoteGlanceText.SessionKeys[i]];
         _sessions.SelectedIndex = _model.ChartSessionIndex;
         _sessions.ToolTip = _loc["QP_ChartSessionHelp"];
         System.Windows.Automation.AutomationProperties.SetName(_sessions, _loc["QP_ChartSession"]);
-        if(!_views.Keys.SequenceEqual(_model.Rows.Select(r=>r.Symbol))){_rows.Children.Clear();_views.Clear();foreach(var row in _model.Rows){var view=new RowView(this,row);_views.Add(row.Symbol,view);_rows.Children.Add(view.Button);}}
-        foreach(var row in _model.Rows)_views[row.Symbol].Update(row,_model.Selected==row);
         var selected=_model.Selected;_chartButton.IsEnabled=selected is not null;if(selected is null)return;
         _name.Text=selected.Symbol+" · "+selected.Name;_price.Text=selected.Price;_change.Text=(selected.Display?.Snapshot is { } movementQuote && QuoteMovement.Values(movementQuote).Change is { } movement?NumberDisplay.SignedChange(movement,movementQuote.Price)+"  ":"")+selected.Change;_price.Foreground=_change.Foreground=Brush(selected.BrushKey);
         var q=selected.Quote;var display=selected.Display;
@@ -95,15 +91,4 @@ public sealed class QuotePanelWindow : Window
         _date.Text=GraphLabel(selected);_date.Visibility=selected.Graph.Day is not null?Visibility.Visible:Visibility.Collapsed;_metrics[0].Text=_loc["QP_OpenPrice"]+"  "+Value(q?.Open);_metrics[1].Text=_loc["QP_High"]+"  "+Value(q?.High);_metrics[2].Text=_loc["QP_Low"]+"  "+Value(q?.Low);_metrics[3].Text=_loc["QP_Volume"]+"  "+NumberDisplay.Compact(q?.Volume);
     }
     private string GraphLabel(PanelQuoteRow row)=>QuoteGlanceText.GraphLabel(row,_loc,_model.Now());
-    private sealed class RowView
-    {
-        public readonly Button Button;private readonly QuotePanelWindow _owner;private readonly TextBlock _name=new(),_price=new(),_change=new(),_date=new();private readonly QuoteSparkline _spark=new(){Width=DesignTokens.QuotePanelSparkWidth,Height=24};
-        public RowView(QuotePanelWindow owner,PanelQuoteRow row)
-        {
-            _owner=owner;Button=new Button{Margin=new Thickness(0,0,0,3),HorizontalAlignment=HorizontalAlignment.Stretch,HorizontalContentAlignment=HorizontalAlignment.Stretch,Padding=new Thickness(8,6,8,6)};
-            var grid=ColumnsGrid();var symbol=new TextBlock{Text=row.Symbol,FontSize=15,FontWeight=FontWeights.SemiBold};owner.Caption(_name);_name.TextTrimming=TextTrimming.CharacterEllipsis;var identity=new StackPanel{Children={symbol,_name}};grid.Children.Add(identity);
-            owner.Caption(_date);var mini=new StackPanel{Children={_spark,_date}};Grid.SetColumn(mini,1);grid.Children.Add(mini);_price.FontSize=16;_price.FontWeight=FontWeights.SemiBold;_price.VerticalAlignment=VerticalAlignment.Center;_price.HorizontalAlignment=HorizontalAlignment.Right;_change.FontSize=12;_change.VerticalAlignment=VerticalAlignment.Center;_change.HorizontalAlignment=HorizontalAlignment.Right;var values=new StackPanel{VerticalAlignment=VerticalAlignment.Center};values.Children.Add(_price);values.Children.Add(_change);Grid.SetColumn(values,2);grid.Children.Add(values);Button.Content=grid;Button.Click+=(_,_)=>owner._model.Select(row.Symbol);Button.MouseDoubleClick+=(_,_)=>{owner._model.Select(row.Symbol);owner.OpenSelected();};
-        }
-        public void Update(PanelQuoteRow row,bool selected){_name.Text=row.Name;_price.Text=row.Price;_price.FontSize=row.Price.Length>10?13:16;_change.Text=row.Change;_price.Foreground=_change.Foreground=_owner.Brush(row.BrushKey);_spark.Data=row.Graph;_spark.LineBrush=_owner.Brush(row.GraphBrushKey);_spark.InvalidateVisual();_date.Text=QuoteGlanceText.MiniLabel(row,_owner._loc)+(row.Failed||row.GraphFailed?" · !":"");Button.Background=selected?_owner.Brush("RowHighlightBrush"):Brushes.Transparent;Button.BorderBrush=selected?_owner.Brush("ControlStrokeColorDefaultBrush"):Brushes.Transparent;Button.ToolTip=row.Name+"\n"+(row.Quote is { } q?_owner._loc[row.Display!.SessionKey]+" · "+FreshnessText.SourceAndTiming(row.Display.Snapshot,_owner._loc,_owner._model.Now())+" · "+FreshnessText.AsOf(row.Display.Snapshot.AsOf,_owner._loc):_owner._loc["Mb_Unavailable"])+"\n"+_owner.GraphLabel(row);}
-    }
 }

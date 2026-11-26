@@ -47,6 +47,8 @@ class RendererTests(unittest.TestCase):
                     same=params.get('after',['-1'])[0]==str(cls.version)
                     if same and params.get('quote',['0'])[0]==str(cls.quote_version): self.send_response(204); self.end_headers(); return
                     body=json.dumps(dict(version=cls.version,data=None if same else cls.state,quoteVersion=cls.quote_version,quote=cls.quote)).encode(); mime='application/json'
+                elif route == '/quote':
+                    body=json.dumps(cls.quote).encode(); mime='application/json'
                 else:
                     file={'/index.html':'../../../web/charts/ui/index.html','/chart.js':'../../../web/charts/ui/chart.js','/chart.css':'../../../web/charts/ui/chart.css','/components.js':'components.js','/icons.js':'icons.js','/motion.js':'motion.js','/design-tokens.css':'design-tokens.css','/components.css':'components.css',**{'/fonts/'+name:'../Assets/Fonts/'+name for name in ['SourceSans3-Regular.ttf','SourceSans3-Semibold.ttf','SourceSerif4-Regular.ttf','SourceCodePro-Regular.ttf']},'/library.js':'vendor/lightweight-charts.js'}.get(route)
                     if file is None: self.send_error(404); return
@@ -82,8 +84,8 @@ class RendererTests(unittest.TestCase):
         for icon in result:
             self.assertEqual(icon['frame'],[18,18],icon['name']);self.assertEqual(icon['view'],'0 0 24 24');self.assertEqual(icon['stroke'],'2')
             x,y,w,h=icon['box'];self.assertGreaterEqual(x,-.1);self.assertGreaterEqual(y,-.1);self.assertLessEqual(x+w,24.1);self.assertLessEqual(y+h,24.1)
-        self.assertEqual(self.page.locator('#right-tools svg[data-lucide]').count(),3)
-        self.assertEqual(self.page.locator('#right-tools button > span').count(),3)
+        self.assertEqual(self.page.locator('#right-tools svg[data-lucide]').count(),4)
+        self.assertEqual(self.page.locator('#right-tools button > span').count(),4)
 
     def test_full_chart_indicators_gaps_and_attribution(self):
         p=self.page
@@ -92,9 +94,41 @@ class RendererTests(unittest.TestCase):
         self.assertTrue(all(height > 60 for height in p.evaluate('meiliChart.inspect().chart.panes().map(p=>p.getHeight())')), 'Indicator panes collapsed after autoSize')
         self.assertIsNone(result['gap']);self.assertIn('value',result['incomplete']);self.assertIsNone(result['warmup'])
         self.assertAlmostEqual(result['ma'],fixture()['rows'][-1]['ma']);self.assertEqual(result['rsi'],55)
-        self.assertTrue(p.locator('#attribution').is_visible());p.locator('#attribution').click()
+        self.assertEqual(p.locator('footer #attribution').count(),0)
+        self.assertTrue(p.evaluate('meiliChart.inspect().chart.options().layout.attributionLogo'))
+        p.locator('#attribution').click()
         p.wait_for_timeout(150);self.assertTrue(any(e['kind']=='attribution' for e in self.events))
         self.assertFalse(self.errors);self.assertTrue(all(url.startswith(self.origin+'/') for url in self.requests))
+    def test_values_follow_the_crosshair_in_their_own_chart_panes(self):
+        page = self.browser.new_page(viewport=dict(width=1280,height=800))
+        try:
+            page.goto(self.origin+'/index.html')
+            page.wait_for_function("window.meiliChart?.inspect().paneReadouts.length === 5")
+            self.assertEqual(page.locator('#toolbar #legend').count(), 0)
+
+            def texts():
+                return page.evaluate("meiliChart.inspect().paneReadouts.map(pane=>pane.values.map(value=>value.text))")
+
+            latest = texts()
+            self.assertTrue(any(value.startswith('MA') for value in latest[0]))
+            self.assertFalse(any(value.startswith(('MACD','RSI','Volume')) for value in latest[0]))
+            self.assertEqual(latest[1], ['Volume 2190.00'])
+            self.assertTrue(any(value.startswith('MACD') for value in latest[2]))
+            self.assertTrue(any(value.startswith('RSI') for value in latest[3]))
+            self.assertEqual(latest[4][:2], ['K 60.00', 'D 50.00'])
+
+            point = page.evaluate("""()=>{const {chart,state}=meiliChart.inspect();return chart.timeScale().timeToCoordinate(state.rows[70].time)}""")
+            box = page.locator('#chart').bounding_box()
+            page.mouse.move(box['x'] + point, box['y'] + 75)
+            page.wait_for_function("meiliChart.inspect().paneReadouts[1].values[0].text==='Volume 1700.00'")
+            self.assertIn('O —', texts()[0])
+
+            page.mouse.move(5, 5)
+            page.wait_for_function("meiliChart.inspect().paneReadouts[1].values[0].text==='Volume 2190.00'")
+            self.assertEqual(texts(), latest)
+        finally:
+            page.close()
+
     def test_interaction_theme_refresh_and_panes(self):
         p=self.page
         p.mouse.move(600,250);p.mouse.wheel(0,-500);p.wait_for_timeout(250)
@@ -127,7 +161,127 @@ class RendererTests(unittest.TestCase):
         self.assertEqual(p.locator('#empty').inner_text(),'No data')
         self.assertFalse(self.errors)
         p.evaluate('(s)=>meiliChart.render(s)',fixture())
-    def test_theme_tokens_keyboard_focus_and_compact_attribution_icon(self):
+    def test_quote_replaces_the_event_panel_and_updates_without_resetting_the_chart(self):
+        page = self.browser.new_page(viewport=dict(width=1280,height=800))
+        previous = type(self).quote
+        original = dict(symbol='FIXTURE',name='Fixture',price='123.45',change='+1.00%',direction='up',extended='After-hours 125.00')
+        snapshots = os.environ.get('MEILI_RENDER_DIR')
+        try:
+            type(self).quote = original
+            page.goto(self.origin+'/index.html')
+            quote = page.get_by_role('button', name='Quote', exact=True)
+            quote.click()
+            page.wait_for_function("document.getElementById('quote-price').textContent === '123.45'")
+            self.assertEqual(quote.get_attribute('aria-pressed'), 'true')
+            self.assertFalse(page.locator('#event-panel').is_visible())
+            self.assertEqual(page.locator('#quote-extended').inner_text(), original['extended'])
+            chart_box = page.locator('#chart').bounding_box()
+            before = page.evaluate('meiliChart.inspect().chart.timeScale().getVisibleLogicalRange()')
+            type(self).quote = dict(original, price='125.00')
+            page.wait_for_function("document.getElementById('quote-price').textContent === '125.00'")
+            self.assertEqual(before, page.evaluate('meiliChart.inspect().chart.timeScale().getVisibleLogicalRange()'))
+            if snapshots:
+                pathlib.Path(snapshots).mkdir(parents=True,exist_ok=True)
+                page.screenshot(path=str(pathlib.Path(snapshots)/'webchart-quote-tab.png'))
+            type(self).quote = dict(original, symbol='OTHER')
+            page.wait_for_function("!document.getElementById('quote-empty').hidden")
+            self.assertFalse(page.locator('#quote-body').is_visible())
+            page.get_by_role('button', name='News', exact=True).click()
+            self.assertTrue(page.locator('#event-panel').is_visible())
+            self.assertFalse(page.locator('#quote-panel').is_visible())
+            self.assertEqual(chart_box, page.locator('#chart').bounding_box())
+            page.get_by_role('button', name='Calendar', exact=True).click()
+            self.assertEqual(page.locator('#event-heading').inner_text(), 'Calendar')
+        finally:
+            type(self).quote = previous
+            page.close()
+
+    def test_display_tools_add_panes_switch_chart_type_and_replay_observed_bars(self):
+        page = self.browser.new_page(viewport=dict(width=1440, height=850), accept_downloads=True)
+        try:
+            page.goto(self.origin+'/index.html')
+            page.wait_for_function("window.meiliChart?.inspect().state?.rows.length === 120")
+            data = fixture()
+            data['studies'] = [
+                dict(id='bbi', label='BBI', enabled=True, available=True, overlay=True,
+                     lines=[dict(label='BBI', style='line', values=[row['close']-1 for row in data['rows']])]),
+                dict(id='dma', label='DMA', enabled=True, available=True, overlay=False,
+                     lines=[dict(label='DIF', style='line', values=[row['close']-100 for row in data['rows']])]),
+            ]
+            page.evaluate('(s) => meiliChart.render(s)', data)
+            self.assertEqual(page.evaluate("meiliChart.inspect().chart.panes().length"), 6)
+            self.assertEqual(page.locator('[data-study="dma"]').get_attribute('aria-pressed'), 'true')
+            page.locator('[data-study="dma"]').click()
+            page.wait_for_timeout(150)
+            self.assertTrue(any(event.get('kind') == 'toggle-study' and event.get('id') == 'dma' for event in self.events))
+            page.locator('#display-label').click()
+            page.locator('#chart-style').select_option('line')
+            self.assertFalse(page.evaluate("meiliChart.inspect().series.candles.options().visible"))
+            self.assertTrue(page.evaluate("meiliChart.inspect().series.closeLine.options().visible"))
+            page.locator('#chart-scale').select_option('percent')
+            self.assertEqual(page.evaluate("meiliChart.inspect().chart.priceScale('right',0).options().mode"), 2)
+            page.locator('#replay-toggle').click()
+            self.assertEqual(page.evaluate('meiliChart.inspect().state.rows.length'), 90)
+            page.locator('#replay-step').click()
+            self.assertEqual(page.evaluate('meiliChart.inspect().state.rows.length'), 91)
+            page.locator('#replay-toggle').click()
+            self.assertEqual(page.evaluate('meiliChart.inspect().state.rows.length'), 120)
+            with page.expect_download() as image:
+                page.locator('#chart-image').click()
+            self.assertTrue(image.value.suggested_filename.endswith('-chart.png'))
+            page.locator('#chart-focus').click()
+            self.assertFalse(page.locator('#timeline').is_visible())
+            page.locator('#chart-focus').click()
+            self.assertTrue(page.locator('#timeline').is_visible())
+            page.locator('#chart-style').select_option('candles')
+            page.locator('#chart-scale').select_option('price')
+            page.locator('#display-label').click()
+            if directory := os.environ.get('MEILI_RENDER_DIR'):
+                page.screenshot(path=str(pathlib.Path(directory)/'chart-tools-and-studies.png'))
+        finally:
+            page.close()
+
+    def test_right_sidebar_resizes_by_pointer_and_keyboard_and_keeps_the_selected_tab(self):
+        page = self.browser.new_page(viewport=dict(width=1280, height=800))
+        try:
+            page.goto(self.origin+'/index.html')
+            splitter = page.get_by_role('separator', name='Resize right sidebar')
+            sidebar = page.locator('#timeline')
+            chart = page.locator('#chart')
+            splitter.wait_for(state='visible')
+            page.locator('[data-view="news"]').click()
+            self.assertEqual(sidebar.bounding_box()['width'], 340)
+            original_chart_width = chart.bounding_box()['width']
+
+            handle = splitter.bounding_box()
+            x, y = handle['x'] + handle['width'] / 2, handle['y'] + 100
+            page.mouse.move(x, y)
+            page.mouse.down()
+            page.mouse.move(x - 90, y, steps=6)
+            page.mouse.up()
+            self.assertEqual(sidebar.bounding_box()['width'], 430)
+            self.assertEqual(chart.bounding_box()['width'], original_chart_width - 90)
+            self.assertEqual(page.locator('[data-view="news"]').get_attribute('aria-pressed'), 'true')
+
+            splitter.press('ArrowRight')
+            self.assertEqual(sidebar.bounding_box()['width'], 414)
+            self.assertEqual(splitter.get_attribute('aria-valuenow'), '414')
+            page.wait_for_timeout(150)
+            self.assertEqual([event['width'] for event in self.events if event['kind']=='resize-sidebar'][-2:], [430,414])
+
+            page.set_viewport_size(dict(width=480,height=800))
+            page.wait_for_function("document.getElementById('timeline').offsetWidth < 414")
+            self.assertGreaterEqual(chart.bounding_box()['width'], 210)
+            page.set_viewport_size(dict(width=1280,height=800))
+            page.wait_for_function("document.getElementById('timeline').offsetWidth === 414")
+            self.assertEqual(page.locator('[data-view="news"]').get_attribute('aria-pressed'), 'true')
+            if directory := os.environ.get('MEILI_RENDER_DIR'):
+                pathlib.Path(directory).mkdir(parents=True,exist_ok=True)
+                page.screenshot(path=str(pathlib.Path(directory)/'chart-sidebar-resized.png'))
+        finally:
+            page.close()
+
+    def test_theme_tokens_keyboard_focus_and_compact_footer(self):
         p=self.page
         for dark in [True,False]:
             data=fixture()
@@ -146,7 +300,7 @@ class RendererTests(unittest.TestCase):
             self.assertEqual(p.evaluate('getComputedStyle(document.documentElement).colorScheme'),'dark' if dark else 'light')
             output=os.environ.get('MEILI_RENDER_DIR')
             if output: p.screenshot(path=str(pathlib.Path(output)/('webchart-unified-dark.png' if dark else 'webchart-unified-light.png')))
-        self.assertEqual(p.locator('footer').count(),0)
+        self.assertEqual(p.locator('footer #attribution').count(),0)
         self.assertEqual(p.locator('#attribution').inner_text(),'')
         self.assertIn('TradingView',p.locator('#attribution').get_attribute('title'))
         p.locator('#attribution').focus()

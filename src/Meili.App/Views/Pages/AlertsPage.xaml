@@ -27,47 +27,47 @@
                         <ds:AppSelect ItemsSource="{Binding KindOptions}"
                                   SelectedItem="{Binding SelectedKind}"
                                   DisplayMemberPath="Title"
-                                  FontSize="14" MinHeight="32" />
+                                  FontSize="{DynamicResource FontSize14}" MinHeight="32" />
                     </StackPanel><StackPanel Margin="0,0,16,10" MinWidth="140">
                         <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Al_Threshold}" Margin="0,0,0,4" />
                         <ui:TextBox Text="{Binding ThresholdText, UpdateSourceTrigger=PropertyChanged}"
                                     PlaceholderText="{Binding ThresholdHint}"
-                                    FontSize="14" Padding="10,6,10,6" />
+                                    FontSize="{DynamicResource FontSize14}" Padding="10,6,10,6" />
                     </StackPanel><StackPanel Orientation="Horizontal" Margin="0,8,0,10" VerticalAlignment="Bottom">
                         <ui:Button Appearance="Primary" Padding="16,6" Margin="0,0,8,0"
-                                   Command="{Binding AddCommand}" Content="{DynamicResource Al_Add}" FontSize="14" />
+                                   Command="{Binding AddCommand}" Content="{DynamicResource Al_Add}" FontSize="{DynamicResource FontSize14}" />
                         <ui:Button Appearance="Secondary" Padding="16,6" Margin="0,0,8,0"
                                    Command="{Binding SaveCommand}" IsEnabled="{Binding HasSelection}"
-                                   Content="{DynamicResource Al_Save}" FontSize="14" />
+                                   Content="{DynamicResource Al_Save}" FontSize="{DynamicResource FontSize14}" />
                         <ui:Button Appearance="Secondary" Padding="16,6"
                                    Command="{Binding DeleteCommand}" IsEnabled="{Binding HasSelection}"
-                                   Content="{DynamicResource Al_Delete}" FontSize="14" />
+                                   Content="{DynamicResource Al_Delete}" FontSize="{DynamicResource FontSize14}" />
                     <ux:AppPopover x:Name="AlertAdvanced" IsExpanded="{Binding AdvancedExpanded, Mode=TwoWay}" Header="{DynamicResource UX_AlertMore}" Margin="8,0,0,0"><ux:AppPopover.PopupContent><StackPanel><WrapPanel><StackPanel Margin="0,0,16,10" MinWidth="140">
                         <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Al_Repeat}" Margin="0,0,0,4" />
                         <ds:AppSelect ItemsSource="{Binding RepeatOptions}"
                                   SelectedItem="{Binding SelectedRepeat}"
                                   DisplayMemberPath="Title"
-                                  FontSize="14" MinHeight="32" />
+                                  FontSize="{DynamicResource FontSize14}" MinHeight="32" />
                     </StackPanel><StackPanel Margin="0,0,16,10" MinWidth="120">
                         <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Al_Cooldown}" Margin="0,0,0,4" />
                         <ui:TextBox Text="{Binding CooldownText, UpdateSourceTrigger=PropertyChanged}"
-                                    FontSize="14" Padding="10,6,10,6" />
+                                    FontSize="{DynamicResource FontSize14}" Padding="10,6,10,6" />
                     </StackPanel><StackPanel Margin="0,0,16,10" MinWidth="180">
                         <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Al_Note}" Margin="0,0,0,4" />
                         <ui:TextBox Text="{Binding NoteText, UpdateSourceTrigger=PropertyChanged}"
-                                    FontSize="14" Padding="10,6,10,6" />
+                                    FontSize="{DynamicResource FontSize14}" Padding="10,6,10,6" />
                     </StackPanel><StackPanel Margin="0,8,16,10" VerticalAlignment="Bottom">
                         <CheckBox Content="{DynamicResource Al_Extended}"
                                   IsChecked="{Binding IncludeExtendedHours}" IsEnabled="{Binding IsQuoteKind}"
-                                  FontSize="14" VerticalAlignment="Center" />
-                    </StackPanel></WrapPanel><TextBlock Text="{Binding StatusText}" FontSize="12" TextWrapping="Wrap"/></StackPanel></ux:AppPopover.PopupContent></ux:AppPopover></StackPanel></WrapPanel></StackPanel>
+                                  FontSize="{DynamicResource FontSize14}" VerticalAlignment="Center" />
+                    </StackPanel></WrapPanel><TextBlock Text="{Binding StatusText}" FontSize="{DynamicResource CaptionFontSize}" TextWrapping="Wrap"/></StackPanel></ux:AppPopover.PopupContent></ux:AppPopover></StackPanel></WrapPanel></StackPanel>
             </ds:AppCard>
 
             <DockPanel Margin="0,10,0,0" LastChildFill="True">
                 <!-- F3: alerts ignore quotes older than this -->
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                     <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Al_MaxDelay}" VerticalAlignment="Center" Margin="0,0,8,0" />
-                    <ds:AppSelect ItemsSource="{Binding MaxDelayChoices}" SelectedItem="{Binding MaxDelayMinutes}" FontSize="14" MinWidth="80"
+                    <ds:AppSelect ItemsSource="{Binding MaxDelayChoices}" SelectedItem="{Binding MaxDelayMinutes}" FontSize="{DynamicResource FontSize14}" MinWidth="80"
                               AutomationProperties.AutomationId="AlertsMaxDelay" />
                     <TextBlock Style="{StaticResource Caption}" Text="{DynamicResource Al_Minutes}" VerticalAlignment="Center" Margin="8,0,0,0" />
                 </StackPanel>
@@ -97,7 +97,7 @@
                            Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}" />
                 <ListView x:Name="AlertList" ItemsSource="{Binding Rows}"
                           SelectedItem="{Binding SelectedRow}"
-                          FontSize="14"
+                          FontSize="{DynamicResource FontSize14}"
                           BorderThickness="1"
                           BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
                           Background="Transparent"
@@ -128,7 +128,7 @@
             <DockPanel Grid.Row="1" Margin="0,16,0,8">
                 <ui:Button DockPanel.Dock="Right" Appearance="Secondary" Padding="12,6"
                            Command="{Binding ClearHistoryCommand}"
-                           Content="{DynamicResource Al_ClearHistory}" FontSize="14"
+                           Content="{DynamicResource Al_ClearHistory}" FontSize="{DynamicResource FontSize14}"
                            IsEnabled="{Binding HistoryEmpty, Converter={StaticResource InverseBool}}" />
                 <TextBlock Style="{StaticResource SectionTitle}" Text="{DynamicResource Al_History}" Margin="0" VerticalAlignment="Center" />
             </DockPanel>
@@ -138,7 +138,7 @@
                            Text="{DynamicResource Al_HistoryEmpty}"
                            Visibility="{Binding HistoryEmpty, Converter={StaticResource BoolToVis}}" />
                 <ListView ItemsSource="{Binding History}"
-                          FontSize="14"
+                          FontSize="{DynamicResource FontSize14}"
                           BorderThickness="1"
                           BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
                           Background="Transparent"

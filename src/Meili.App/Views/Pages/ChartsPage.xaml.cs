@@ -12,6 +12,8 @@ public partial class ChartsPage : Page
     public ChartsPage()
     {
         InitializeComponent();
+        WorkspaceRoot.Children.Remove(WorkspaceSurface);
+        Workspace.WorkspaceContent = WorkspaceSurface;
         var vm = AppServices.Get<ChartsViewModel>(); DataContext = vm;
         Loaded += async (_, _) =>
         {
@@ -19,7 +21,7 @@ public partial class ChartsPage : Page
             _active = true;
             vm.PlotChanged += OnPlotChanged; vm.PropertyChanged += OnPropertyChanged;
             ThemeService.ColorsChanged += OnPlotChanged;
-            Chart.Start(vm, WpfChartPalette.Current(_theme.IsDark));
+            Chart.Start(vm, WpfChartPalette.Current(_theme.IsDark), Workspace.Model);
             await vm.ActivateAsync(); Render();
         };
         Unloaded += (_, _) =>

@@ -1,0 +1,143 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="using:Meili.Mac.Views.Controls"
+             xmlns:lucide="using:Meili.Mac.Views.Controls"
+             x:Class="Meili.Mac.Views.Controls.MarketWatchlist"
+             x:Name="Watchlist"
+             x:CompileBindings="False">
+    <UserControl.Styles>
+        <Style Selector="TextBlock.up">
+            <Setter Property="Foreground" Value="{DynamicResource UpBrush}"/>
+        </Style>
+        <Style Selector="TextBlock.down">
+            <Setter Property="Foreground" Value="{DynamicResource DownBrush}"/>
+        </Style>
+        <Style Selector="ListBox#WorkspaceWatchRows ListBoxItem">
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="10,4"/>
+            <Setter Property="MinHeight" Value="40"/>
+        </Style>
+        <Style Selector="ListBox#WorkspaceWatchRows ListBoxItem:selected /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource RowHighlightBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
+        </Style>
+        <Style Selector="controls|QuoteSparkline">
+            <Setter Property="LineBrush" Value="{DynamicResource TextFillColorSecondaryBrush}"/>
+        </Style>
+        <Style Selector="controls|QuoteSparkline.up">
+            <Setter Property="LineBrush" Value="{DynamicResource UpBrush}"/>
+        </Style>
+        <Style Selector="controls|QuoteSparkline.down">
+            <Setter Property="LineBrush" Value="{DynamicResource DownBrush}"/>
+        </Style>
+    </UserControl.Styles>
+    <Grid RowDefinitions="Auto,*,Auto">
+        <StackPanel Margin="10,8,10,4">
+            <DockPanel>
+                <controls:AppPopover x:Name="MiniIndicatorSettings" DockPanel.Dock="Right" Margin="4,0,0,0" PopupWidth="256"
+                                     Header="{DynamicResource Workspace_MiniIndicators}" IsVisible="{Binding ShowSparkline}">
+                    <controls:AppPopover.PopupContent>
+                        <StackPanel>
+                            <TextBlock Text="{DynamicResource Workspace_MiniIndicators}" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                            <DockPanel Margin="0,0,0,6">
+                                <controls:AppSelect DockPanel.Dock="Right" Width="76" ItemsSource="{Binding IndicatorPeriods}"
+                                                    SelectedItem="{Binding MiniMaPeriod, Mode=TwoWay}" IsEnabled="{Binding ShowMiniMa}"
+                                                    AutomationProperties.Name="{DynamicResource Workspace_MaPeriod}"/>
+                                <CheckBox Content="MA" IsChecked="{Binding ShowMiniMa, Mode=TwoWay}" VerticalAlignment="Center"/>
+                            </DockPanel>
+                            <DockPanel>
+                                <controls:AppSelect DockPanel.Dock="Right" Width="76" ItemsSource="{Binding IndicatorPeriods}"
+                                                    SelectedItem="{Binding MiniEmaPeriod, Mode=TwoWay}" IsEnabled="{Binding ShowMiniEma}"
+                                                    AutomationProperties.Name="{DynamicResource Workspace_EmaPeriod}"/>
+                                <CheckBox Content="EMA" IsChecked="{Binding ShowMiniEma, Mode=TwoWay}" VerticalAlignment="Center"/>
+                            </DockPanel>
+                            <CheckBox Content="VWAP" IsChecked="{Binding ShowMiniVwap, Mode=TwoWay}" Margin="0,6,0,0"/>
+                            <TextBlock Classes="Caption" Text="{DynamicResource Workspace_IndicatorPeriodHelp}" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                            <TextBlock Classes="Caption" Text="{Binding IndicatorError}" TextWrapping="Wrap" Foreground="{DynamicResource DegradedBrush}"
+                                       IsVisible="{Binding IndicatorError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                            <Button Content="{DynamicResource Workspace_ApplyIndicators}" Command="{Binding ApplyMiniIndicatorsCommand}"
+                                    HorizontalAlignment="Right" Margin="0,10,0,0"/>
+                        </StackPanel>
+                    </controls:AppPopover.PopupContent>
+                </controls:AppPopover>
+                <controls:AppSelect DockPanel.Dock="Right" Margin="6,0,0,0" ItemsSource="{Binding IntradayChoices}"
+                                    SelectedItem="{Binding IntradayChoice, Mode=TwoWay}" DisplayMemberBinding="{Binding Name}" IsVisible="{Binding ShowSparkline}"
+                                    AutomationProperties.Name="{DynamicResource Workspace_IntradayView}"/>
+                <controls:AppSelect ItemsSource="{Binding Groups}" SelectedItem="{Binding Group, Mode=TwoWay}" DisplayMemberBinding="{Binding Name}"
+                                AutomationProperties.Name="{DynamicResource QP_Watchlist}"/>
+            </DockPanel>
+            <StackPanel Orientation="Horizontal" IsVisible="{Binding ShowSparkline}">
+                <TextBlock Classes="Caption" Text="{Binding MiniMaLabel}" Foreground="{DynamicResource SparklineMaBrush}"
+                           Margin="0,4,8,0" IsVisible="{Binding MiniMaLabel, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                <TextBlock Classes="Caption" Text="{Binding MiniEmaLabel}" Foreground="{DynamicResource SparklineEmaBrush}"
+                           Margin="0,4,8,0" IsVisible="{Binding MiniEmaLabel, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                <TextBlock Classes="Caption" Text="{Binding MiniVwapLabel}" Foreground="{DynamicResource SparklineVwapBrush}"
+                           Margin="0,4,0,0" IsVisible="{Binding MiniVwapLabel, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+            </StackPanel>
+            <Grid Margin="0,8,0,0" ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+                <TextBlock Classes="Caption" Text="{DynamicResource Workspace_Symbol}" TextTrimming="CharacterEllipsis"/>
+                <Border Grid.Column="1" Width="84" IsVisible="{Binding ShowSparkline}"/>
+                <TextBlock Grid.Column="2" Width="{Binding NumberColumnWidth}" Classes="Caption" Text="{DynamicResource Workspace_Last}" TextAlignment="Right"/>
+                <TextBlock Grid.Column="3" Width="{Binding NumberColumnWidth}" Classes="Caption" Text="{DynamicResource Workspace_ChangePct}" TextAlignment="Right" IsVisible="{Binding ShowSparkline}"/>
+                <TextBlock Grid.Column="4" Width="{Binding NumberColumnWidth}" Classes="Caption" Text="{DynamicResource Workspace_ChangeAmount}" TextAlignment="Right" IsVisible="{Binding ShowAbsolute}"/>
+                <TextBlock Grid.Column="5" Width="{Binding NumberColumnWidth}" Classes="Caption" Text="{DynamicResource Workspace_Ytd}" TextAlignment="Right" IsVisible="{Binding ShowYear}"/>
+                <TextBlock Grid.Column="6" Width="{Binding NumberColumnWidth}" Classes="Caption" Text="{DynamicResource Workspace_Rvol}" TextAlignment="Right" IsVisible="{Binding ShowSessionMetrics}" TextTrimming="CharacterEllipsis"/>
+                <TextBlock Grid.Column="7" Width="{Binding NumberColumnWidth}" Classes="Caption" Text="{DynamicResource Workspace_RangePosition}" TextAlignment="Right" IsVisible="{Binding ShowSessionMetrics}" TextTrimming="CharacterEllipsis"/>
+            </Grid>
+            <TextBlock Classes="Caption" Text="{Binding WatchlistStatus}" TextWrapping="Wrap"
+                       IsVisible="{Binding WatchlistStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                       Foreground="{DynamicResource DegradedBrush}"/>
+        </StackPanel>
+        <ListBox x:Name="WorkspaceWatchRows" Grid.Row="1" ItemsSource="{Binding Rows}" SelectedItem="{Binding Selection, Mode=TwoWay}" BorderThickness="0" Background="Transparent" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                 AutomationProperties.Name="{DynamicResource QP_Watchlist}">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Grid  ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+                        <StackPanel Margin="0,0,4,0">
+                            <TextBlock Text="{Binding Symbol}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Classes="Caption" Text="{Binding Name}" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Classes="Caption" Text="{Binding ExtendedLabel}" IsVisible="{Binding HasExtended}" ToolTip.Tip="{Binding Extended}"/>
+                        </StackPanel>
+                        <Grid Grid.Column="1" Width="84" VerticalAlignment="Center" IsVisible="{Binding $parent[ListBox].DataContext.ShowSparkline}" ToolTip.Tip="{Binding SparklineTip}">
+                            <StackPanel IsVisible="{Binding HasSparkline}">
+                                <controls:QuoteSparkline Data="{Binding Sparkline}" Classes.up="{Binding SparklineUp}" Classes.down="{Binding SparklineDown}" Height="30"/>
+                                <TextBlock Classes="Caption" Text="{Binding SparklineCaption}" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Classes="Caption" Text="{Binding VwapDistanceLabel}" Foreground="{DynamicResource SparklineVwapBrush}"
+                                           TextTrimming="CharacterEllipsis" IsVisible="{Binding VwapDistanceLabel, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                            </StackPanel>
+                            <TextBlock Classes="Caption" Text="—" HorizontalAlignment="Center" IsVisible="{Binding !HasSparkline}"/>
+                        </Grid>
+                        <StackPanel Grid.Column="2" Width="{Binding $parent[ListBox].DataContext.NumberColumnWidth}" VerticalAlignment="Center">
+                            <TextBlock Classes="Num" Text="{Binding Price}" HorizontalAlignment="Right" FontWeight="SemiBold"/>
+                            <TextBlock Classes="Num" Classes.up="{Binding IsUp}" Classes.down="{Binding IsDown}" Text="{Binding Change}" HorizontalAlignment="Right" IsVisible="{Binding !$parent[ListBox].DataContext.ShowSparkline}"/>
+                            <TextBlock Classes="Caption" Text="{Binding ExtendedPrice}" HorizontalAlignment="Right" IsVisible="{Binding HasExtended}" ToolTip.Tip="{Binding Extended}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="3" Width="{Binding $parent[ListBox].DataContext.NumberColumnWidth}" VerticalAlignment="Center" IsVisible="{Binding $parent[ListBox].DataContext.ShowSparkline}">
+                            <TextBlock Classes="Num" Classes.up="{Binding IsUp}" Classes.down="{Binding IsDown}" Text="{Binding Change}" HorizontalAlignment="Right"/>
+                            <TextBlock Classes="Caption" Text="{Binding ExtendedChange}" HorizontalAlignment="Right" IsVisible="{Binding HasExtended}" ToolTip.Tip="{Binding Extended}"/>
+                        </StackPanel>
+                        <TextBlock Grid.Column="4" Width="{Binding $parent[ListBox].DataContext.NumberColumnWidth}" Classes="Num" Classes.up="{Binding IsUp}" Classes.down="{Binding IsDown}" Text="{Binding Absolute}" TextAlignment="Right" VerticalAlignment="Center" IsVisible="{Binding $parent[ListBox].DataContext.ShowAbsolute}"/>
+                        <TextBlock Grid.Column="5" Width="{Binding $parent[ListBox].DataContext.NumberColumnWidth}" Classes="Num" Classes.up="{Binding IsYearUp}" Classes.down="{Binding IsYearDown}" Text="{Binding Year}" TextAlignment="Right"
+                                   VerticalAlignment="Center" IsVisible="{Binding $parent[ListBox].DataContext.ShowYear}" ToolTip.Tip="{Binding YearTip}"/>
+                        <TextBlock Grid.Column="6" Width="{Binding $parent[ListBox].DataContext.NumberColumnWidth}" Classes="Num" Text="{Binding RelativeVolume}"
+                                   TextAlignment="Right" VerticalAlignment="Center" IsVisible="{Binding $parent[ListBox].DataContext.ShowSessionMetrics}" ToolTip.Tip="{Binding RelativeVolumeTip}"/>
+                        <StackPanel Grid.Column="7" Width="{Binding $parent[ListBox].DataContext.NumberColumnWidth}" VerticalAlignment="Center"
+                                    IsVisible="{Binding $parent[ListBox].DataContext.ShowSessionMetrics}" ToolTip.Tip="{Binding RangePositionTip}">
+                            <TextBlock Classes="Num" Text="{Binding RangePosition}" HorizontalAlignment="Right"/>
+                            <ProgressBar Value="{Binding RangePercent}" Maximum="100" Width="40" Height="4" MinWidth="0" MinHeight="0"
+                                         HorizontalAlignment="Right" IsHitTestVisible="False" IsVisible="{Binding HasRangePosition}"/>
+                        </StackPanel>
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+        <TextBlock Grid.Row="1" Classes="Caption" Margin="12,4" VerticalAlignment="Top"
+                   Text="{DynamicResource Workspace_EmptyWatchlist}" TextWrapping="Wrap" IsVisible="{Binding !HasWatchlist}"/>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="4,6" IsVisible="{Binding CanPage}">
+            <Button Classes="Icon" ToolTip.Tip="{DynamicResource QP_Previous}" AutomationProperties.Name="{DynamicResource QP_Previous}" Command="{Binding PreviousCommand}"><lucide:LucideIcon Kind="ChevronLeft" Width="16" Height="16"/></Button>
+            <TextBlock Classes="Caption" Text="{Binding PageText}" VerticalAlignment="Center" Margin="8,0"/>
+            <Button Classes="Icon" ToolTip.Tip="{DynamicResource QP_Next}" AutomationProperties.Name="{DynamicResource QP_Next}" Command="{Binding NextCommand}"><lucide:LucideIcon Kind="ChevronRight" Width="16" Height="16"/></Button>
+        </StackPanel>
+    </Grid>
+</UserControl>

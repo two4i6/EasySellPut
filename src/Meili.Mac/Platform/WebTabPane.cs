@@ -12,7 +12,7 @@ public sealed class WebTabPane : UserControl
 {
     private readonly NewsWebView _web = new();
     private readonly TextBox _address = new() { PlaceholderText = "https://", MinWidth = 80 };
-    private readonly TextBlock _status = new() { Margin = new Thickness(12, 4), FontSize = 12, IsVisible = false };
+    private readonly TextBlock _status = new TextBlock { Margin = new Thickness(12, 4), IsVisible = false }.WithFontSize(12);
     private readonly Button _back = new(), _forward = new(), _reload = new(), _external = new(), _edit = new();
     private readonly LocalizationService _loc = LocalizationService.Current;
     public event Action? EditRequested;
@@ -34,7 +34,7 @@ public sealed class WebTabPane : UserControl
         {
             toolbar.Children.Clear();toolbar.ColumnDefinitions.Clear();
             toolbar.ColumnDefinitions=new ColumnDefinitions("*,Auto,Auto,Auto");
-            _source.FontSize=12;_source.VerticalAlignment=VerticalAlignment.Center;_source.TextTrimming=Avalonia.Media.TextTrimming.CharacterEllipsis;
+            _source.WithFontSize(12);_source.VerticalAlignment=VerticalAlignment.Center;_source.TextTrimming=Avalonia.Media.TextTrimming.CharacterEllipsis;
             var items=new Control[]{_source,_reload,_external,_edit};
             for(var i=0;i<items.Length;i++){Grid.SetColumn(items[i],i);toolbar.Children.Add(items[i]);}
             _edit.Content=new Meili.Mac.Views.Controls.LucideIcon {Kind="Close"};

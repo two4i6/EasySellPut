@@ -99,6 +99,10 @@ public sealed class QuotePanelViewModel : IDisposable
     private readonly LocalizationService _loc;private readonly string _owner="quote-panel-"+Guid.NewGuid();
     private readonly Dictionary<string,PanelQuoteRow> _cache=new(StringComparer.OrdinalIgnoreCase);
     private CancellationTokenSource? _request;private bool _visible,_disposed;private int _generation;private DateTimeOffset _lastAutomatic;
+    public MarketWorkspaceViewModel? Watchlist { get; private set; }
+    public MarketWorkspaceViewModel ConnectWatchlist(SettingsStore? settings = null) =>
+        Watchlist ??= new(_context, _watch, _hub, _loc, _data, settings, pageSize: PageSize);
+
     public event EventHandler? Changed;
     public IReadOnlyList<PanelQuoteRow> Rows{get;private set;}=[];
     public PanelQuoteRow? Selected=>Rows.FirstOrDefault(r=>r.Symbol==_context.Current)??Rows.FirstOrDefault();
@@ -115,8 +119,15 @@ public sealed class QuotePanelViewModel : IDisposable
     public string Status{get;private set;}="";
     public QuotePanelViewModel(QuoteHub hub,IMarketDataService data,WatchlistStore watch,SymbolContext context,LocalizationService loc)
     {_hub=hub;_data=data;_watch=watch;_context=context;_loc=loc;hub.Updated+=OnBatch;watch.Changed+=OnWatch;context.Changed+=OnSymbol;loc.LanguageChanged+=OnLabels;Ui.Platform.ColorsChanged+=OnLabels;}
-    public async Task ActivateAsync(){if(_disposed)return;_visible=true;Build();await RefreshAsync(false);}
-    public void Deactivate(){if(_disposed)return;_visible=false;_generation++;_request?.Cancel();_hub.Unsubscribe(_owner);IsBusy=false;}
+    public async Task ActivateAsync()
+    {
+        if (_disposed) return;
+        _visible = true;
+        Watchlist?.Activate(this, watchlistVisible: true);
+        Build();
+        await RefreshAsync(false);
+    }
+    public void Deactivate(){if(_disposed)return;_visible=false;_generation++;_request?.Cancel();_hub.Unsubscribe(_owner);Watchlist?.Deactivate(this);IsBusy=false;}
     private void Notify()=>Changed?.Invoke(this,EventArgs.Empty);
     private void Build()
     {
@@ -128,7 +139,13 @@ public sealed class QuotePanelViewModel : IDisposable
     private void CancelRefresh(){_request?.Cancel();_generation++;IsBusy=false;}
     public async Task MoveAsync(int delta){CancelRefresh();Page+=delta;Build();await RefreshAsync(false);}
     public void Select(string symbol){if(Rows.Any(r=>r.Symbol==symbol))_context.Set(symbol);}
-    private void OnSymbol(object? sender,string symbol){if(!_visible)return;if(!Rows.Any(r=>r.Symbol==symbol)){CancelRefresh();Page=0;Build();_ = RefreshAsync(false);}Notify();}
+    private void OnSymbol(object? sender,string symbol){if(!_visible)return;if(!Rows.Any(r=>r.Symbol==symbol)){
+        CancelRefresh();
+        var index = _watch.AllSymbols.ToList().FindIndex(item => StringComparer.OrdinalIgnoreCase.Equals(item, symbol));
+        Page = index < 0 ? 0 : index / PageSize;
+        Build();
+        _ = RefreshAsync(false);
+    }Notify();}
     private void OnWatch(object? sender,EventArgs e){if(!_visible)return;CancelRefresh();Build();_ = RefreshAsync(false);}
     private void OnLabels(object? sender,EventArgs e)=>Ui.Platform.Run(()=>{if(_visible)Notify();});
     private void OnBatch(object? sender,QuoteBatch batch)=>Ui.Platform.Run(()=>
@@ -143,6 +160,7 @@ public sealed class QuotePanelViewModel : IDisposable
         try
         {
             try{await _hub.GetQuotesAsync(rows.Select(r=>r.Symbol).ToArray(),ct);}catch(OperationCanceledException)when(ct.IsCancellationRequested){throw;}catch(Exception ex){AppLog.Warn("quote-panel","Quote refresh failed",ex);Status=_loc["QP_Retry"];}
+            if (force && Watchlist is { } watchlist) await watchlist.RefreshAsync(force: true);
             using var gate=new SemaphoreSlim(2);
             await Task.WhenAll(rows.Select(async row=>
             {

@@ -3,34 +3,34 @@
     <!-- Text roles (same names as the Windows styles). Minimum size 12. -->
     <Style Selector="TextBlock.PageTitle">
         <Setter Property="FontFamily" Value="{DynamicResource HeadingFont}"/>
-        <Setter Property="FontSize" Value="{StaticResource DisplayFontSize}" />
+        <Setter Property="FontSize" Value="{DynamicResource DisplayFontSize}" />
         <Setter Property="FontWeight" Value="Normal" />
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
         <Setter Property="Margin" Value="0,0,0,4" />
     </Style>
     <Style Selector="TextBlock.SectionTitle">
-        <Setter Property="FontSize" Value="{StaticResource TitleFontSize}" />
+        <Setter Property="FontSize" Value="{DynamicResource TitleFontSize}" />
         <Setter Property="FontWeight" Value="Normal" />
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
         <Setter Property="Margin" Value="0,20,0,8" />
     </Style>
     <Style Selector="TextBlock.CardTitle">
-        <Setter Property="FontSize" Value="{StaticResource BodyFontSize}" />
+        <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
     </Style>
     <Style Selector="TextBlock.Body">
-        <Setter Property="FontSize" Value="{StaticResource BodyFontSize}" />
+        <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
         <Setter Property="TextWrapping" Value="Wrap" />
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
     </Style>
     <Style Selector="TextBlock.Secondary">
-        <Setter Property="FontSize" Value="{StaticResource BodyFontSize}" />
+        <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
         <Setter Property="TextWrapping" Value="Wrap" />
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
     </Style>
     <Style Selector="TextBlock.Caption">
-        <Setter Property="FontSize" Value="{StaticResource CaptionFontSize}" />
+        <Setter Property="FontSize" Value="{DynamicResource CaptionFontSize}" />
         <Setter Property="TextWrapping" Value="Wrap" />
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
     </Style>
@@ -73,7 +73,7 @@
         <Setter Property="Background" Value="{DynamicResource StaleBadgeBrush}" />
     </Style>
     <Style Selector="Border.Stale > TextBlock">
-        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontSize" Value="{DynamicResource CaptionFontSize}" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Foreground" Value="{DynamicResource BadgeTextBrush}" />
     </Style>
@@ -94,17 +94,17 @@
         <Setter Property="BorderThickness" Value="0" />
     </Style>
     <Style Selector="Button, ToggleButton, TextBox, ComboBox, CheckBox, RadioButton, NumericUpDown, DatePicker, ToggleSwitch">
-        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontSize" Value="{DynamicResource FontSize14}" />
     </Style>
     <Style Selector="DataGrid">
-        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontSize" Value="{DynamicResource FontSize13}" />
         <Setter Property="GridLinesVisibility" Value="Horizontal" />
         <Setter Property="HorizontalGridLinesBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
         <Setter Property="CanUserReorderColumns" Value="False" />
         <Setter Property="IsReadOnly" Value="True" />
     </Style>
     <Style Selector="DataGridColumnHeader">
-        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontSize" Value="{DynamicResource CaptionFontSize}" />
     </Style>
     <Style Selector="ListBox.Nav">
         <Setter Property="Background" Value="Transparent" />
@@ -113,7 +113,7 @@
         <Setter Property="Padding" Value="12,8" />
         <Setter Property="Margin" Value="6,1" />
         <Setter Property="CornerRadius" Value="{StaticResource ControlCornerRadius}" />
-        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontSize" Value="{DynamicResource FontSize14}" />
     </Style>
     <!-- Chips: watchlist groups, range pickers, template pickers. Selected = accent. -->
     <Style Selector="Button.Chip">
@@ -184,7 +184,7 @@
     <Style Selector=".ChartWorkspace Button:disabled, .ChartWorkspace ToggleButton:disabled">
         <Setter Property="Opacity" Value="0.45" />
     </Style>
-    <Style Selector=".ChartWorkspace #ChartToolbar Button, .ChartWorkspace #ChartToolbar ToggleButton"><Setter Property="Height" Value="32"/><Setter Property="MinHeight" Value="32"/><Setter Property="VerticalAlignment" Value="Center"/><Setter Property="Padding" Value="10,4"/></Style>
+    <Style Selector=".ChartWorkspace #ChartToolbar Button, .ChartWorkspace #ChartToolbar ToggleButton"><Setter Property="MinHeight" Value="32"/><Setter Property="VerticalAlignment" Value="Center"/><Setter Property="Padding" Value="10,4"/></Style>
     <Style Selector=".ChartWorkspace #ChartToolbar Button.Icon"><Setter Property="Width" Value="32"/><Setter Property="MinWidth" Value="32"/><Setter Property="Padding" Value="0"/></Style>
     <Style Selector=".ChartWorkspace Button.DrawTool, .ChartWorkspace ToggleButton.DrawTool"><Setter Property="Width" Value="{StaticResource ControlHeight}"/><Setter Property="Height" Value="{StaticResource ControlHeight}"/><Setter Property="MinWidth" Value="{StaticResource ControlHeight}"/><Setter Property="MinHeight" Value="{StaticResource ControlHeight}"/><Setter Property="Padding" Value="4"/><Setter Property="HorizontalAlignment" Value="Center"/></Style>
     <Style Selector=".ChartWorkspace Button.ChartInterval"><Setter Property="Background" Value="Transparent"/></Style>

@@ -28,8 +28,8 @@ class NavigationIconsTests(unittest.TestCase):
                     self.assertNotRegex(source,r'<lucide:LucideIcon[^>]*Style="\{StaticResource (?:Caption|Body|Secondary)\}"')
                     self.assertNotRegex(source,r'(?:Content|Text)="[↵×?↑↓↻→≈+]"')
                 for kind in re.findall(r'(?:Kind="|Kind = ")([A-Za-z]+)',source):self.assertIn(kind,importer.MAP,str(path))
-        for asset in ('index.html','workbench.html'):
-            self.assertIn('<script src="icons.js" defer></script>',(ROOT/'src/Meili.Shared/WebCharts'/asset).read_text())
+        for asset in ('web/charts/ui/index.html','src/Meili.Shared/WebCharts/workbench.html'):
+            self.assertIn('<script src="icons.js" defer></script>',(ROOT/asset).read_text())
         self.assertIn('LogicalName="WebCharts/icons.js"',(ROOT/'src/Meili.Shared/Meili.Shared.csproj').read_text())
 
     def test_pinned_svg_geometry_canvas_and_license(self):

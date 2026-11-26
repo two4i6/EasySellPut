@@ -8,13 +8,22 @@
   function setSidebarCollapsed(value){
     if(value!==sidebarCollapsed&&chart)sidebarViewport??={chart,key,range:chart.timeScale().getVisibleLogicalRange()};
     sidebarCollapsed=value;
+    document.body.classList.toggle('sidebar-collapsed',value);
     const panel=document.getElementById('event-panel');
-    if(value&&panel.contains(document.activeElement))document.querySelector('#right-tools button[aria-pressed=true]')?.focus();
+    if(value&&(panel.contains(document.activeElement)||document.getElementById('quote-panel').contains(document.activeElement)))document.querySelector('#right-tools button[aria-pressed=true]')?.focus();
     document.getElementById('timeline').classList.toggle('collapsed',value);
 
     for(const button of document.querySelectorAll('#right-tools button'))button.setAttribute('aria-expanded',String(!value&&button.getAttribute('aria-pressed')==='true'));
   }
   document.getElementById('collapse-events').addEventListener('click',()=>setSidebarCollapsed(true));
+  let liveState, replayIndex = null, replayTime = null, replayTimer = null;
+  let setupMarkers, hoveredTime, focusChart = false;
+  let readoutFields = [], paneReadouts = [];
+  let studyStripSignature = '', studyPending = false;
+  const displayMenu = document.getElementById('chart-display');
+  const styleSelect = document.getElementById('chart-style');
+  const scaleSelect = document.getElementById('chart-scale');
+  let quoteVisible = false, quote = null, quotePending = false;
   let sessionBands=[],sessionLayers=[];
   let chart, state, version = -1, signature = '', key = '', series = {}, priceLines = [], drawingSeries = [];
   let quoteVersion=-1,liveQuote=null,livePriceLine=null,livePriceOwner=null;
@@ -24,6 +33,71 @@
   const finite = Number.isFinite;
   const post = body => fetch('event', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)});
   const diagnostic = body => post({kind: 'diagnostic', ...body}).catch(() => {});
+  const sidebarSplitter = document.getElementById('sidebar-splitter');
+  const sidebarBounds = () => {
+    const viewport = window.innerWidth;
+    const maximum = Math.min(620, Math.max(0, viewport - Math.min(210, Math.floor(viewport * .48)) - 6));
+    return [Math.min(200, maximum), maximum];
+  };
+  let preferredSidebarWidth = null, sidebarDrag = null, sidebarKeyResize = false;
+  function applySidebarWidth(width = preferredSidebarWidth) {
+    const [minimum, maximum] = sidebarBounds();
+    const desired = width ?? parseFloat(getComputedStyle(document.body).getPropertyValue('--sidebar-default'));
+    const clamped = Math.round(Math.min(maximum, Math.max(minimum, desired)));
+    document.body.style.setProperty('--sidebar-width', clamped + 'px');
+    sidebarSplitter.setAttribute('aria-valuemin', minimum);
+    sidebarSplitter.setAttribute('aria-valuemax', maximum);
+    sidebarSplitter.setAttribute('aria-valuenow', clamped);
+    return clamped;
+  }
+  function saveSidebarWidth() {
+    if (preferredSidebarWidth === null) return;
+    post({kind:'resize-sidebar', width:Math.max(200, preferredSidebarWidth)}).catch(() => {});
+  }
+  sidebarSplitter.addEventListener('pointerdown', event => {
+    if (event.button !== 0 || sidebarDrag) return;
+    sidebarDrag = {pointerId:event.pointerId, x:event.clientX, width:applySidebarWidth(), previous:preferredSidebarWidth};
+    sidebarSplitter.focus({preventScroll:true});
+    sidebarSplitter.setPointerCapture(event.pointerId);
+    document.body.classList.add('resizing-sidebar');
+    event.preventDefault();
+  });
+  sidebarSplitter.addEventListener('pointermove', event => {
+    if (event.pointerId !== sidebarDrag?.pointerId || event.clientX === sidebarDrag.x && preferredSidebarWidth === sidebarDrag.previous) return;
+    preferredSidebarWidth = applySidebarWidth(sidebarDrag.width + sidebarDrag.x - event.clientX);
+  });
+  function finishSidebarDrag(event, save) {
+    if (event.pointerId !== sidebarDrag?.pointerId) return;
+    const previous = sidebarDrag.previous;
+    sidebarDrag = null;
+    document.body.classList.remove('resizing-sidebar');
+    if (!save) { preferredSidebarWidth = previous; applySidebarWidth(); }
+    else if (preferredSidebarWidth !== previous) saveSidebarWidth();
+  }
+  sidebarSplitter.addEventListener('pointerup', event => finishSidebarDrag(event, true));
+  sidebarSplitter.addEventListener('pointercancel', event => finishSidebarDrag(event, false));
+  sidebarSplitter.addEventListener('lostpointercapture', event => finishSidebarDrag(event, false));
+  const sidebarKeys = ['ArrowLeft','ArrowRight','Home','End'];
+  sidebarSplitter.addEventListener('keydown', event => {
+    if (!sidebarKeys.includes(event.key) || sidebarDrag) return;
+    event.preventDefault();
+    const [minimum, maximum] = sidebarBounds();
+    const current = applySidebarWidth();
+    const width = event.key === 'Home' ? minimum : event.key === 'End' ? maximum :
+      current + (event.key === 'ArrowLeft' ? 16 : -16);
+    preferredSidebarWidth = applySidebarWidth(width);
+    sidebarKeyResize = true;
+  });
+  function finishSidebarKeyResize() {
+    if (!sidebarKeyResize) return;
+    sidebarKeyResize = false;
+    saveSidebarWidth();
+  }
+  sidebarSplitter.addEventListener('keyup', event => {
+    if (sidebarKeys.includes(event.key)) finishSidebarKeyResize();
+  });
+  sidebarSplitter.addEventListener('blur', finishSidebarKeyResize);
+  window.addEventListener('resize', () => applySidebarWidth());
   const error = value => {
     const box = document.getElementById('error');
     box.textContent = state?.language === 'zh-CN' ? '图表加载失败，请重新打开图表页。' : 'Could not load the chart. Reopen the chart page.';
@@ -32,6 +106,56 @@
   };
   window.addEventListener('error', e => error(e.message));
   window.addEventListener('unhandledrejection', e => error(e.reason));
+  const drawingTools = {
+    HorizontalLine:['水平线','Horizontal line'],
+    TrendLine:['趋势线','Trend line'],
+    HorizontalRay:['水平射线','Horizontal ray'],
+    VerticalLine:['垂直线','Vertical line'],
+    Rectangle:['矩形','Rectangle'],
+    FibonacciRetracement:['斐波那契回撤','Fibonacci retracement'],
+    LongPosition:['多头仓位','Long position'],
+    ShortPosition:['空头仓位','Short position'],
+    PriceRange:['价格区间','Price range']
+  };
+  const positionTool = kind => kind==='LongPosition'||kind==='ShortPosition';
+  const twoAnchors = kind => ['TrendLine','Rectangle','FibonacciRetracement','PriceRange'].includes(kind) || positionTool(kind);
+  const distinctPrices = kind => ['Rectangle','FibonacciRetracement','PriceRange'].includes(kind);
+  const timed = kind => kind!=='HorizontalLine' && kind!=='PriceRange';
+  const targetSide = (kind,entry,target) => kind==='LongPosition'?target>entry:target<entry;
+  const stopSide = (kind,entry,stop) => kind==='LongPosition'?stop<entry:stop>entry;
+  let targetDraft = null;
+  const toolName = kind => drawingTools[kind]?.[state.language==='zh-CN'?0:1] ?? kind;
+  const drawingMenu = document.getElementById('draw-tools');
+  const drawingMenuLabel = document.getElementById('draw-tools-label');
+  const drawingMenuItems = document.getElementById('draw-tool-options');
+  for (const kind of Object.keys(drawingTools)) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.dataset.drawingTool = kind;
+    button.addEventListener('click', async () => {
+      drawingMenu.open = false;
+      root.focus();
+      try {
+        const response = await post({kind:'drawing-start',key:state.key,mode:kind});
+        if (!response.ok) throw new Error('Drawing tool rejected');
+      } catch (e) { error(e); }
+    });
+    drawingMenuItems.append(button);
+  }
+  function renderDrawingMenu() {
+    const label = state.language==='zh-CN' ? '画线' : 'Draw';
+    const text = document.createElement('span');
+    text.textContent = label;
+    drawingMenuLabel.replaceChildren(meiliIcons.svg('Pencil',14),text);
+    drawingMenuLabel.setAttribute('aria-label',label);
+    for (const button of drawingMenuItems.children) {
+      const kind = button.dataset.drawingTool;
+      button.textContent = toolName(kind);
+      button.disabled = !state.rows.length;
+      button.setAttribute('aria-pressed',String(state.drawingMode===kind));
+    }
+  }
+
   let selectionDown=null, drawingDown=null, drawingRequests=Promise.resolve(), finishingDrawing=false;
   function mouseDrawingPoint(event){const rect=root.getBoundingClientRect(),point={x:event.clientX-rect.left,y:event.clientY-rect.top};return drawingPoint({point,time:chart.timeScale().coordinateToTime(point.x),paneIndex:0});}
   root.addEventListener('mousedown',event=>{
@@ -54,76 +178,245 @@
     const down=drawingDown;drawingDown=null;event.preventDefault();event.stopPropagation();
     if(Math.hypot(event.clientX-down.x,event.clientY-down.y)>5 || finishingDrawing)return;
     const point=mouseDrawingPoint(event);if(!point)return;root.focus();
-    if(state.drawingMode==='TrendLine' && draft?.time===point.time){sameBarWarning=true;drawOverlay();return;}
-    finishingDrawing=state.drawingMode==='HorizontalLine'||!!draft;
-    if(state.drawingMode==='TrendLine'&&!draft)draft=point;
+    sameBarWarning = false;
+    const kind = state.drawingMode, position = positionTool(kind);
+    if (draft) {
+      if (timed(kind) && !targetDraft && draft.time===point.time) sameBarWarning='time';
+      else if (distinctPrices(kind) && draft.price===point.price) sameBarWarning='price';
+      else if (position && !targetDraft && !targetSide(kind,draft.price,point.price)) sameBarWarning='target';
+      else if (position && targetDraft && !stopSide(kind,draft.price,point.price)) sameBarWarning='stop';
+      if (sameBarWarning) { drawOverlay(); return; }
+    }
+    finishingDrawing=!twoAnchors(kind)||!!draft&&(!position||!!targetDraft);
+    if(twoAnchors(kind)&&!draft)draft=point;
+    else if(position&&!targetDraft)targetDraft=point;
     const body={kind:'drawing',key:state.key,mode:state.drawingMode,epoch:state.drawingEpoch,index:point.index,price:point.price};
     drawingRequests=drawingRequests.then(()=>post(body)).then(response=>{if(!response.ok)throw new Error('Drawing request rejected');}).catch(e=>{finishingDrawing=false;error(e);});drawOverlay();
   },true);
   window.addEventListener('mouseup',()=>{drawingDown=null;selectionDown=null;});
   const overlay = document.getElementById('drawing-overlay');
+  const svgNamespace = 'http://www.w3.org/2000/svg';
+  const storedShapes = document.createElementNS(svgNamespace,'g');
+  const activeShapes = document.createElementNS(svgNamespace,'g');
+  overlay.append(storedShapes,activeShapes);
+  let storedDrawings, storedDrawingView;
   const drawingPanel = document.getElementById('drawing-panel');
   function drawingPoint(param) {
     if (!param.point || param.paneIndex !== undefined && param.paneIndex !== 0 || param.point.y < 0 || param.point.y >= chart.panes()[0].getHeight() || param.point.x < 0 || param.point.x >= chart.timeScale().width()) return null;
     const row = byTime.get(param.time), price = series.candles.coordinateToPrice(param.point.y);
     return row && finite(price) && price >= 0 && price <= 1e12 ? {time:row.time,index:row.index,price:Number(price.toFixed(6))} : null;
   }
-  function anchors(drawing) {
-    const width=chart.timeScale().width();
-    if(drawing.kind==='HorizontalLine')return [{x:0,y:series.candles.priceToCoordinate(drawing.price1)},{x:width,y:series.candles.priceToCoordinate(drawing.price1)}];
-    return [{x:chart.timeScale().timeToCoordinate(drawing.time1),y:series.candles.priceToCoordinate(drawing.price1)},{x:chart.timeScale().timeToCoordinate(drawing.time2),y:series.candles.priceToCoordinate(drawing.price2)}];
+  function drawingGeometry(drawing, width, height) {
+    const x = time => time == null ? null : chart.timeScale().timeToCoordinate(time);
+    const y = price => finite(price) ? series.candles.priceToCoordinate(price) : null;
+    const first = {x:x(drawing.time1), y:y(drawing.price1)};
+    const second = {x:x(drawing.time2), y:y(drawing.price2)};
+    const segment = (ax,ay,bx,by) => [{x:ax,y:ay},{x:bx,y:by}];
+    switch (drawing.kind) {
+      case 'HorizontalLine': {
+        const line = segment(0,first.y,width,first.y);
+        return {segments:[line],handles:line};
+      }
+      case 'PriceRange': {
+        const bounds = [drawing.price1,drawing.price2].filter(finite).sort((a,b)=>b-a);
+        if (bounds.length !== 2) return null;
+        const zh = state.language === 'zh-CN';
+        const lines = bounds.map(price=>y(price));
+        return {
+          segments:lines.map(at=>segment(0,at,width,at)),
+          handles:lines.map(at=>({x:width/2,y:at})),
+          labels:bounds.map((price,i)=>({x:8,y:Math.max(12,lines[i]-4),text:(zh?['上沿','下沿']:['Upper','Lower'])[i]+' '+price.toFixed(2)}))
+        };
+      }
+      case 'HorizontalRay':
+        if (!finite(first.x)) return null;
+        return {segments:[segment(first.x,first.y,width,first.y)],handles:[first]};
+      case 'VerticalLine':
+        if (!finite(first.x)) return null;
+        return {segments:[segment(first.x,0,first.x,height)],handles:[{x:first.x,y:height/2}]};
+    }
+    if (![first.x,first.y,second.x,second.y].every(finite)) return null;
+    const left = Math.min(first.x,second.x), right = Math.max(first.x,second.x);
+    if (positionTool(drawing.kind)) {
+      const zh = state.language==='zh-CN';
+      const profit = state.theme.profit ?? '#4F9169', loss = state.theme.loss ?? '#B15353';
+      const stop = y(drawing.stopPrice), hasStop = finite(stop);
+      const zones = [[second.y,profit], ...(hasStop?[[stop,loss]]:[])];
+      const areas = zones.map(([at,color])=>({x:left,y:Math.min(first.y,at),width:right-left,height:Math.abs(first.y-at),color}));
+      const ratio = hasStop ? Math.abs(drawing.price2-drawing.price1)/Math.abs(drawing.stopPrice-drawing.price1) : null;
+      const labels = [[first.y,(zh?'开仓 ':'Entry ')+drawing.price1.toFixed(2)+(finite(ratio)?' · '+(zh?'盈亏比 ':'R/R ')+ratio.toFixed(2):'')],
+        [second.y,(zh?'止盈 ':'Target ')+drawing.price2.toFixed(2),profit]];
+      if (hasStop) labels.push([stop,(zh?'止损 ':'Stop ')+drawing.stopPrice.toFixed(2),loss]);
+      return {areas,segments:[segment(left,first.y,right,first.y),...zones.map(([at])=>segment(left,at,right,at)),
+          segment(left,Math.min(...labels.map(([at])=>at)),left,Math.max(...labels.map(([at])=>at))),
+          segment(right,Math.min(...labels.map(([at])=>at)),right,Math.max(...labels.map(([at])=>at)))],
+        handles:[first,second,...(hasStop?[{x:second.x,y:stop}]:[])],
+        labels:labels.map(([at,text,color])=>({x:Math.max(4,left+4),y:Math.max(12,at-4),text,color}))};
+    }
+    if (drawing.kind === 'Rectangle') {
+      const top = Math.min(first.y,second.y), bottom = Math.max(first.y,second.y);
+      return {segments:[segment(left,top,right,top),segment(right,top,right,bottom),
+          segment(right,bottom,left,bottom),segment(left,bottom,left,top)],
+        area:{x:left,y:top,width:right-left,height:bottom-top},handles:[first,second]};
+    }
+    if (drawing.kind === 'FibonacciRetracement') {
+      const levels = [0,.236,.382,.5,.618,.786,1].map(ratio => {
+        const price = drawing.price2 + (drawing.price1-drawing.price2)*ratio;
+        return {at:y(price),text:Number((100*ratio).toFixed(1))+'%  '+price.toFixed(2)};
+      }).filter(level => finite(level.at));
+      return {segments:levels.map(level=>segment(left,level.at,right,level.at)),
+        labels:levels.map(level=>({x:Math.max(4,left+4),y:Math.max(12,level.at-4),text:level.text})),
+        handles:[first,second]};
+    }
+    return {segments:[[first,second]],handles:[first,second]};
   }
   function drawOverlay() {
-    overlay.replaceChildren(); if(!chart || !state)return;
+    activeShapes.replaceChildren(); if(!chart || !state)return;
     const width=chart.timeScale().width(),height=chart.panes()[0].getHeight();
     overlay.style.width=width+'px';overlay.style.height=height+'px';
-    function shape(tag,attrs){const node=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const [key,value] of Object.entries(attrs))node.setAttribute(key,value);overlay.append(node);}
-    function segment(points,preview){
-      if(!points.every(p=>finite(p.x)&&finite(p.y)))return;
-      shape('line',{x1:points[0].x,y1:points[0].y,x2:points[1].x,y2:points[1].y,stroke:state.theme.accent,'stroke-width':2,...(preview?{'stroke-dasharray':'5 4'}:{})});
-      for(const p of points)shape('circle',{cx:p.x,cy:p.y,r:4,fill:state.theme.background,stroke:state.theme.accent,'stroke-width':2});
+    let layer = activeShapes;
+    function shape(tag,attrs,text){
+      const node=document.createElementNS(svgNamespace,tag);
+      for(const [key,value] of Object.entries(attrs))node.setAttribute(key,value);
+      if(text)node.textContent=text;
+      layer.append(node);
     }
-    const drawing=editorPreview||state.drawings[selectedDrawing];if(drawing && !state.drawingMode)segment(anchors(drawing),!!editorPreview);
-    if(state.drawingMode && drawingHover){
-      if(state.drawingMode==='HorizontalLine')segment([{x:0,y:series.candles.priceToCoordinate(drawingHover.price)},{x:width,y:series.candles.priceToCoordinate(drawingHover.price)}],true);
-      else if(draft)segment(anchors({kind:'TrendLine',time1:draft.time,price1:draft.price,time2:drawingHover.time,price2:drawingHover.price}),true);
-      else shape('circle',{cx:chart.timeScale().timeToCoordinate(drawingHover.time),cy:series.candles.priceToCoordinate(drawingHover.price),r:4,fill:state.theme.accent});
-    }else if(state.drawingMode && draft)shape('circle',{cx:chart.timeScale().timeToCoordinate(draft.time),cy:series.candles.priceToCoordinate(draft.price),r:4,fill:state.theme.accent});
+    const color = state.theme.accent;
+    function paint(drawing,preview=false,handles=false) {
+      const geometry = drawingGeometry(drawing,width,height);
+      if (!geometry) return;
+      if (geometry.area) shape('rect',{...geometry.area,fill:color,'fill-opacity':.12});
+      for (const {color:fill,...area} of geometry.areas ?? [])
+        shape('rect',{...area,fill,class:'position-zone','fill-opacity':.22});
+      for (const [a,b] of geometry.segments) {
+        if (![a.x,a.y,b.x,b.y].every(finite)) continue;
+        shape('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:color,'stroke-width':handles?2:1,...(preview?{'stroke-dasharray':'5 4'}:{})});
+      }
+      for (const label of geometry.labels ?? []) shape('text',{x:label.x,y:label.y,class:'drawing-level',fill:label.color ?? color},label.text);
+      if (handles) for (const p of geometry.handles) {
+        if(finite(p.x)&&finite(p.y))shape('circle',{cx:p.x,cy:p.y,r:4,fill:state.theme.background,stroke:color,'stroke-width':2});
+      }
+    }
+    const visible = chart.timeScale().getVisibleLogicalRange();
+    const view = JSON.stringify([width,height,visible?.from,visible?.to,scaleSelect.value,
+      series.candles.coordinateToPrice(0),series.candles.coordinateToPrice(height),selectedDrawing,state.drawingMode,color,state.theme.profit,state.theme.loss]);
+    if (storedDrawings !== state.drawings || storedDrawingView !== view) {
+      storedDrawings = state.drawings;
+      storedDrawingView = view;
+      storedShapes.replaceChildren();
+      layer = storedShapes;
+      state.drawings.forEach((drawing,index)=>{
+        if (drawing.kind==='HorizontalLine'||drawing.kind==='TrendLine') return;
+        if (index!==selectedDrawing || state.drawingMode) paint(drawing);
+      });
+      layer = activeShapes;
+    }
+    const drawing=editorPreview||state.drawings[selectedDrawing];
+    if(drawing && !state.drawingMode)paint(drawing,!!editorPreview,true);
+    if (state.drawingMode) {
+      const kind=state.drawingMode, first=draft??drawingHover;
+      if (first && (!twoAnchors(kind) || draft && drawingHover)) {
+        const second=targetDraft??drawingHover;
+        if (!positionTool(kind) || targetSide(kind,first.price,second.price))
+          paint({kind,time1:first.time,price1:first.price,time2:second?.time,price2:second?.price,
+            stopPrice:targetDraft && stopSide(kind,first.price,drawingHover?.price)?drawingHover.price:null},true,true);
+      } else if (first) {
+        const x=chart.timeScale().timeToCoordinate(first.time),y=series.candles.priceToCoordinate(first.price);
+        if (finite(x)&&finite(y)) shape('circle',{cx:x,cy:y,r:4,fill:color});
+      }
+    }
     const hint=document.getElementById('drawing-hint'),zh=state.language==='zh-CN';
     hint.hidden=!state.drawingMode;
-    hint.textContent=sameBarWarning?(zh?'请选择另一根 K 线':'Choose a different candle'):state.drawingMode==='HorizontalLine'?(zh?'点击放置水平线 · Esc 取消':'Click to place · Esc cancel'):draft?(zh?'选择终点 · Esc 取消':'Choose end · Esc cancel'):(zh?'选择起点 · Esc 取消':'Choose start · Esc cancel');
+    hint.textContent=sameBarWarning==='time'?(zh?'请选择另一根 K 线':'Choose a different candle'):
+      sameBarWarning==='price'?(zh?'请选择不同的价格':'Choose a different price'):
+      sameBarWarning==='target'?(zh?'止盈价须在开仓价的盈利一侧':'Place the target on the profitable side of entry'):
+      sameBarWarning==='stop'?(zh?'止损价须在开仓价的亏损一侧':'Place the stop on the losing side of entry'):
+      positionTool(state.drawingMode)?(targetDraft?(zh?'选择止损价 · Esc 取消':'Choose stop · Esc cancel'):
+        draft?(zh?'选择止盈价和结束时间 · Esc 取消':'Choose target and end time · Esc cancel'):
+        (zh?'选择开仓价 · Esc 取消':'Choose entry · Esc cancel')):
+      !twoAnchors(state.drawingMode)?(zh?'点击放置 · Esc 取消':'Click to place · Esc cancel'):
+      draft?(zh?'选择终点 · Esc 取消':'Choose end · Esc cancel'):(zh?'选择起点 · Esc 取消':'Choose start · Esc cancel');
+  }
+  function drawingFields(drawing, fill=false) {
+    const zh = state.language==='zh-CN', kind=drawing?.kind, position=positionTool(kind);
+    const fields=[
+      ['first',kind!=='VerticalLine',drawing?.price1,position?(zh?'开仓价':'Entry'):zh?(twoAnchors(kind)?'起点价格':'价格'):(twoAnchors(kind)?'Start price':'Price')],
+      ['second',twoAnchors(kind),drawing?.price2,position?(zh?'止盈价':'Target'):(zh?'终点价格':'End price')],
+      ['stop',position,drawing?.stopPrice,zh?'止损价':'Stop'],
+      ['time1',timed(kind),drawing?.time1,zh?(twoAnchors(kind)?'起点时间':'时间'):(twoAnchors(kind)?'Start time':'Time')],
+      ['time2',twoAnchors(kind)&&timed(kind),drawing?.time2,zh?'终点时间':'End time'],
+    ].filter(([id])=>!!drawing);
+    if (fill) for (const [id,visible,value,label] of fields) {
+      const input=document.getElementById('drawing-'+id);
+      document.getElementById('drawing-'+id+'-field').hidden=!visible;
+      document.getElementById('drawing-'+id+'-label').textContent=label;
+      if (visible && id.startsWith('time')) {
+        const times=byTime.has(value)?state.rows.map(row=>row.time):[value,...state.rows.map(row=>row.time)];
+        input.replaceChildren(...times.filter(finite).map(time=>new Option(eastern(time,true),String(time))));
+      }
+      input.value=value??'';
+    }
+    return fields.filter(([,visible])=>visible).map(([id])=>document.getElementById('drawing-'+id));
+  }
+  function editedAnchors(drawing, report=false) {
+    const inputs=drawingFields(drawing);
+    if(inputs.some(input=>input.value==='' || !(report?input.reportValidity():input.validity.valid)))return null;
+    const prices = {first:'price1',second:'price2',stop:'stopPrice',time1:'time1',time2:'time2'};
+    const values=Object.fromEntries(inputs.map(input=>[prices[input.id.slice(8)],Number(input.value)]));
+    const edited={...drawing,...values};
+    if (twoAnchors(edited.kind) && (timed(edited.kind) && edited.time1===edited.time2 || distinctPrices(edited.kind) && edited.price1===edited.price2))return null;
+    if (positionTool(edited.kind) && (!targetSide(edited.kind,edited.price1,edited.price2) ||
+        !stopSide(edited.kind,edited.price1,edited.stopPrice))) return null;
+    return edited;
   }
   function selectDrawing(index,focus=false) {
     editorPreview=null;selectedDrawing=index; drawingRevision=state.drawingRevision||'';
+    document.getElementById('drawing-error').textContent='';
     drawingPanel.hidden=index<0 || !!state.drawingMode;
     const zh=state.language==='zh-CN';
     const select=document.getElementById('drawing-select');select.replaceChildren();
     select.setAttribute('aria-label',zh?'已保存画线':'Saved drawings');
-    state.drawings.forEach((d,i)=>{const option=document.createElement('option');option.value=i;option.textContent=(zh?(d.kind==='HorizontalLine'?'水平线':'趋势线'):(d.kind==='HorizontalLine'?'Horizontal':'Trend'))+' '+(i+1);select.append(option);});
+    state.drawings.forEach((d,i)=>select.append(new Option(toolName(d.kind)+' '+(i+1),i)));
     select.value=index;
-    const drawing=state.drawings[index];
-    if(drawing){document.getElementById('drawing-first').value=drawing.price1;document.getElementById('drawing-second').value=drawing.price2;document.getElementById('drawing-second-field').hidden=drawing.kind==='HorizontalLine';}
-    document.getElementById('drawing-first-label').textContent=drawing?.kind==='TrendLine'?(zh?'起点':'Start'):(zh?'价格':'Price');document.getElementById('drawing-second-label').textContent=zh?'终点':'End';
+    const inputs=drawingFields(state.drawings[index],true);
     document.getElementById('drawing-save').textContent=zh?'保存':'Save';document.getElementById('drawing-delete').textContent=zh?'删除':'Delete';
     document.getElementById('drawing-close').setAttribute('aria-label',zh?'收起画线编辑':'Close drawing editor');
-    drawOverlay();if(focus){document.getElementById('drawing-first').focus();document.getElementById('drawing-first').select();}
+    drawOverlay();if(focus){inputs[0]?.focus();inputs[0]?.select?.();}
   }
   function drawingHit(point){
     if(!point || point.y<0 || point.y>=chart.panes()[0].getHeight())return -1;
     let hit=-1,best=7;
-    state.drawings.forEach((d,i)=>{const [a,b]=anchors(d);if(![a.x,a.y,b.x,b.y].every(finite))return;const dx=b.x-a.x,dy=b.y-a.y,t=Math.max(0,Math.min(1,((point.x-a.x)*dx+(point.y-a.y)*dy)/(dx*dx+dy*dy||1))),distance=Math.hypot(point.x-a.x-t*dx,point.y-a.y-t*dy);if(distance<best){best=distance;hit=i;}});return hit;
+    const width = chart.timeScale().width(), height = chart.panes()[0].getHeight();
+    state.drawings.forEach((drawing,index)=>{
+      for (const [a,b] of drawingGeometry(drawing,width,height)?.segments ?? []) {
+        if (![a.x,a.y,b.x,b.y].every(finite)) continue;
+        const dx=b.x-a.x,dy=b.y-a.y;
+        const t=Math.max(0,Math.min(1,((point.x-a.x)*dx+(point.y-a.y)*dy)/(dx*dx+dy*dy||1)));
+        const distance=Math.hypot(point.x-a.x-t*dx,point.y-a.y-t*dy);
+        if(distance<best){best=distance;hit=index;}
+      }
+    });
+    return hit;
   }
   async function changeDrawing(remove){
     if(selectedDrawing<0 || drawingBusy)return;
-    const first=document.getElementById('drawing-first'),second=document.getElementById('drawing-second');
-    if(!remove && (!first.reportValidity() || !second.reportValidity() || first.value==='' || second.value===''))return;
+    const drawing=state.drawings[selectedDrawing],edited=remove?drawing:editedAnchors(drawing,true);
+    if(!edited) {
+      document.getElementById('drawing-error').textContent=state.language==='zh-CN'
+        ? '请检查价位顺序及两个时间锚点。' : 'Check the price order and the time anchors.';
+      return;
+    }
     drawingBusy=true;
-    try{const response=await post({kind:remove?'drawing-delete':'drawing-edit',key:state.key,index:selectedDrawing,revision:drawingRevision,price1:Number(first.value),price2:Number(second.value)});if(!response.ok)throw new Error('Drawing request rejected');if(remove)selectDrawing(-1);}
-    catch(e){error(e);}finally{drawingBusy=false;}
+    try {
+      const response=await post({kind:remove?'drawing-delete':'drawing-edit',key:state.key,index:selectedDrawing,
+        revision:drawingRevision,price1:edited.price1,price2:edited.price2,time1:edited.time1,time2:edited.time2,stopPrice:edited.stopPrice});
+      if(!response.ok)throw new Error('Drawing request rejected');
+      if(remove)selectDrawing(-1);
+    } catch(e){error(e);}finally{drawingBusy=false;}
   }
-  for(const id of ['drawing-first','drawing-second'])document.getElementById(id).addEventListener('input',()=>{
-    const drawing=state.drawings[selectedDrawing],first=document.getElementById('drawing-first'),second=document.getElementById('drawing-second');
-    editorPreview=drawing && first.validity.valid && second.validity.valid && first.value!=='' && second.value!==''?{...drawing,price1:Number(first.value),price2:Number(second.value)}:null;drawOverlay();
+  for(const id of ['drawing-first','drawing-second','drawing-stop','drawing-time1','drawing-time2'])document.getElementById(id).addEventListener('input',()=>{
+    document.getElementById('drawing-error').textContent='';
+    editorPreview=editedAnchors(state.drawings[selectedDrawing]);drawOverlay();
   });
   drawingPanel.addEventListener('keydown',event=>{if(event.key==='Enter'&&event.target.tagName==='INPUT'){event.preventDefault();changeDrawing(false);}});
   document.getElementById('drawing-select').addEventListener('change',e=>selectDrawing(Number(e.target.value)));
@@ -142,7 +435,7 @@
   root.addEventListener('mouseleave',()=>{drawingHover=null;drawOverlay();});
   window.addEventListener('keydown',e=>{
     if(e.key==='Escape'){
-      if(state?.drawingMode){const mode=state.drawingMode;state.drawingMode=null;draft=null;drawingHover=null;root.style.cursor='';chart.applyOptions({handleScroll:{pressedMouseMove:true},handleScale:{axisPressedMouseMove:true}});drawOverlay();post({kind:'drawing-cancel',key:state.key,mode,epoch:state.drawingEpoch}).catch(error);}
+      if(state?.drawingMode){const mode=state.drawingMode;state.drawingMode=null;draft=null;targetDraft=null;drawingHover=null;root.style.cursor='';chart.applyOptions({handleScroll:{pressedMouseMove:true},handleScale:{axisPressedMouseMove:true}});drawOverlay();post({kind:'drawing-cancel',key:state.key,mode,epoch:state.drawingEpoch}).catch(error);}
       selectDrawing(-1);
     }
     if((e.key==='Delete'||e.key==='Backspace') && selectedDrawing>=0 && e.target===root){e.preventDefault();changeDrawing(true);}
@@ -164,6 +457,7 @@
     if (!series[id]) series[id] = chart.addSeries(LightweightCharts.LineSeries, {title, color, lineWidth: 1, priceLineVisible: false, lastValueVisible: false, ...options}, pane);
     series[id].applyOptions({title, color});
     series[id].setData(state.rows.map(r => point(r, field)));
+    addReadout(pane, title, row => row[field], color);
   }
   const eventNames = () => state.language === 'zh-CN'
     ? {news:'新闻',earnings:'财报',ex_dividend:'除息'}
@@ -237,7 +531,7 @@
       if(previous?.session===row.session && previous.to===index-1)previous.to=index;
       else sessionBands.push({session:row.session,from:index,to:index});
     });
-    for(const owner of [series.candles,series.volume,series.histogram,series.rsi,series.k].filter(Boolean)){
+    for(const owner of chart.panes().map((pane,index)=>index===0?series.eventAnchor:pane.getSeries()[0]).filter(Boolean)){
       if(!sessionLayers.some(layer=>layer.owner===owner)){
         const primitive=new SessionBackground();owner.attachPrimitive(primitive);sessionLayers.push({owner,primitive});
       }
@@ -255,10 +549,10 @@
   }
   function build() {
     if (chart) chart.remove();
-    series = {}; priceLines = []; drawingSeries = [];sessionLayers=[];
+    series = {}; priceLines = []; drawingSeries = [];sessionLayers=[];setupMarkers=null;paneReadouts=[];
     chart = LightweightCharts.createChart(root, {
       autoSize: true,
-      layout: {fontFamily:getComputedStyle(document.body).fontFamily,fontSize:12,background: {type: 'solid', color: state.theme.background}, textColor: state.theme.text, attributionLogo: true, panes: {enableResize: true,separatorColor:state.theme.border,separatorHoverColor:state.theme.accent}},
+      layout: {fontFamily:getComputedStyle(document.body).fontFamily,fontSize:12 * (state.theme.textScale ?? 1),background: {type: 'solid', color: state.theme.background}, textColor: state.theme.text, attributionLogo: true, panes: {enableResize: true,separatorColor:state.theme.border,separatorHoverColor:state.theme.accent}},
       rightPriceScale: {borderVisible: false, minimumWidth: 70},
       timeScale: {borderVisible: false, timeVisible: state.intraday, secondsVisible: false, rightOffset: 5, tickMarkFormatter: time => eastern(time)},
       localization: {locale: state.language, timeFormatter: time => eastern(time, true)},
@@ -273,9 +567,13 @@
       if (applying) return;
       const row = byTime.get(param.time);
       pendingHover = {kind: 'crosshair', key: state.key, index: row ? row.index : -1};
-      if (row) showLegend(row);
+      hoveredTime = row?.time;
+      updateReadouts();
       showEventTooltip(param);
-      drawingHover=drawingPoint(param);if(drawingHover && drawingHover.time!==draft?.time)sameBarWarning=false;root.style.cursor=state.drawingMode?'crosshair':(param.paneIndex===undefined||param.paneIndex===0)&&drawingHit(param.point)>=0?'pointer':'';drawOverlay();
+      drawingHover=drawingPoint(param);
+      if(sameBarWarning==='time' && drawingHover && drawingHover.time!==draft?.time)sameBarWarning=false;
+      root.style.cursor=state.drawingMode?'crosshair':(param.paneIndex===undefined||param.paneIndex===0)&&drawingHit(param.point)>=0?'pointer':'';
+      drawOverlay();
     });
     chart.subscribeClick(param => {
       if (!state.drawingMode) {
@@ -285,6 +583,7 @@
         hideEventTooltip();
         if (hits.length) {
           setSidebarCollapsed(false);
+          quoteVisible = false;
           selectedEventTime=hits[0].time;
           selectedEvent=hits.length===1?hits[0].event.id:null;
           renderEvents();
@@ -320,10 +619,84 @@
   let historyFrame=0;
   const scheduleHistory=()=>{if(!historyFrame)historyFrame=requestAnimationFrame(()=>{historyFrame=0;historyPosition();});};
   document.getElementById('event-list').addEventListener('scroll',scheduleHistory,{passive:true});
-  for(const button of document.querySelectorAll('#right-tools button')) button.addEventListener('click',()=>{
-    const same=button.getAttribute('aria-pressed')==='true';
-    if(same){setSidebarCollapsed(!sidebarCollapsed);return;}
+  const sidebarButtons = [...document.querySelectorAll('#right-tools button')];
+  const eventPanel = document.getElementById('event-panel');
+  const quotePanel = document.getElementById('quote-panel');
+  const eventView = () => filters.size===3?'all':filters.size===1&&filters.has('news')?'news':filters.size===2&&!filters.has('news')?'calendar':null;
+  function sidebarNames() {
+    return state.language === 'zh-CN'
+      ? {all:'动态',news:'新闻',calendar:'日历',quote:'行情'}
+      : {all:'Activity',news:'News',calendar:'Calendar',quote:'Quote'};
+  }
+  function showSidebar() {
+    const zh = state.language === 'zh-CN';
+    const collapse = document.getElementById('collapse-events');
+    collapse.title = zh ? '收起侧栏' : 'Collapse sidebar';
+    collapse.setAttribute('aria-label', collapse.title);
+    const names = sidebarNames(), view = quoteVisible ? 'quote' : eventView();
+    quotePanel.hidden = !quoteVisible;
+    eventPanel.hidden = quoteVisible;
+    document.getElementById('timeline').setAttribute('aria-label', zh ? '市场侧栏' : 'Market sidebar');
+    document.getElementById('right-tools').setAttribute('aria-label', zh ? '侧栏视图' : 'Sidebar views');
+    for (const button of sidebarButtons) {
+      const name = names[button.dataset.view];
+      button.setAttribute('aria-pressed', String(button.dataset.view === view));
+      button.setAttribute('aria-expanded', String(!sidebarCollapsed && button.dataset.view === view));
+      button.setAttribute('aria-label', name);
+      button.title = name;
+      button.querySelector('span').textContent = name;
+    }
+    if (quoteVisible) renderQuote();
+  }
+  function renderQuote() {
+    const zh = state.language === 'zh-CN', current = replayIndex === null && quote?.symbol === state.symbol ? quote : null;
+    document.getElementById('quote-heading').textContent = sidebarNames().quote;
+    const empty = document.getElementById('quote-empty');
+    empty.textContent = replayIndex === null ? (zh?'暂无行情':'Quote unavailable') : (zh?'回放期间隐藏实时报价':'Live quotes are hidden during replay');
+    empty.hidden = current !== null;
+    document.getElementById('quote-body').hidden = current === null;
+    if (!current) return;
+    for (const field of ['symbol', 'name', 'price', 'change', 'source', 'time', 'extended']) {
+      const node = document.getElementById('quote-' + field);
+      node.textContent = current[field === 'time' ? 'timestamp' : field] || '';
+    }
+    document.getElementById('quote-change').className = current.direction === 'up' ? 'up' : current.direction === 'down' ? 'down' : '';
+    document.getElementById('quote-extended').hidden = !current.extended;
+    const labels = zh ? ['开盘','最高','最低','昨收','成交量'] : ['Open','High','Low','Previous close','Volume'];
+    document.querySelectorAll('#quote-stats dd').forEach((item, index) => {
+      item.previousElementSibling.textContent = labels[index];
+      item.textContent = current[item.dataset.stat] || '—';
+    });
+  }
+  async function refreshQuote() {
+    if (!quoteVisible || quotePending || replayIndex !== null) return;
+    quotePending = true;
+    try {
+      const response = await fetch('quote', {cache:'no-store'});
+      const next = response.ok ? await response.json() : null;
+      if (JSON.stringify(next) !== JSON.stringify(quote)) {
+        quote = next;
+        if (quoteVisible) renderQuote();
+      }
+    } catch {
+      quote = null;
+      if (quoteVisible) renderQuote();
+    } finally {
+      quotePending = false;
+    }
+  }
+  setInterval(refreshQuote, 1000);
+  for (const button of sidebarButtons) button.addEventListener('click', () => {
+    if (!state) return;
+    if (button.dataset.view === 'quote') {
+      if (quoteVisible && !sidebarCollapsed) { setSidebarCollapsed(true); return; }
+      setSidebarCollapsed(false);
+      quoteVisible = true; showSidebar(); refreshQuote(); return;
+    }
+    const same = button.getAttribute('aria-pressed') === 'true';
+    if (same && !sidebarCollapsed) { setSidebarCollapsed(true); return; }
     setSidebarCollapsed(false);
+    quoteVisible = false;
     filters.clear();
     for(const type of button.dataset.view==='news'?['news']:button.dataset.view==='calendar'?['earnings','ex_dividend']:['news','earnings','ex_dividend'])filters.add(type);
     for(const input of document.querySelectorAll('#event-filters input'))input.checked=filters.has(input.dataset.type);
@@ -344,18 +717,9 @@
       {estimated:'Estimated',source_confirmed:'Source confirmed',unverified:'Unverified',reported_published:'Reported publication',timestamp:'Timestamp',date:'Date only',date_range:'Date range',unknown:'Time unknown',outside_chart:'Outside chart',next_bar:'Aligned to next bar',same_day:'Same day bar',period_bucket:'Period bucket',exact:'Exact',available:'Available',empty:'No recent news',not_reported:'Not reported',unavailable:'Unavailable'};
 
     const date = (e,compact=false) => e.published ? new Intl.DateTimeFormat(state.language,{timeZone:'America/New_York',dateStyle:compact?'short':'medium',timeStyle:'short'}).format(new Date(e.published))+' ET' : e.date ? e.date+(e.endDate ? ' – '+e.endDate : '') : labels.unknown;
-    const view=filters.size===3?'all':filters.size===1&&filters.has('news')?'news':filters.size===2&&!filters.has('news')?'calendar':null;
-    const viewNames=zh?{all:'动态',news:'新闻',calendar:'日历'}:{all:'Activity',news:'News',calendar:'Calendar'};
-    document.getElementById('event-heading').textContent=viewNames[view]||(zh?'筛选动态':'Filtered activity');
+    showSidebar();
+    document.getElementById('event-heading').textContent=sidebarNames()[eventView()]||(zh?'筛选动态':'Filtered activity');
     document.getElementById('event-symbol').textContent=state.symbol;
-    document.getElementById('timeline').setAttribute('aria-label',zh?'市场侧栏':'Market sidebar');
-    document.getElementById('right-tools').setAttribute('aria-label',zh?'侧栏视图':'Sidebar views');
-    for(const button of document.querySelectorAll('#right-tools button')){
-      button.setAttribute('aria-pressed',String(button.dataset.view===view));
-      button.setAttribute('aria-expanded',String(!sidebarCollapsed&&button.dataset.view===view));button.setAttribute('aria-controls','event-panel');
-      button.title=viewNames[button.dataset.view];button.setAttribute('aria-label',button.title);button.querySelector('span').textContent=button.title;
-    }
-    const collapse=document.getElementById('collapse-events');collapse.title=zh?'收起侧栏':'Collapse sidebar';collapse.setAttribute('aria-label',collapse.title);
     document.getElementById('event-heading').setAttribute('aria-label',zh?'事件与新闻':'Events and news');
     const box = document.getElementById('event-filters');
     if (box.dataset.language !== state.language) {
@@ -442,30 +806,297 @@
     if(changedDetail)meiliMotion.enter(detail);
     if(focusedDetail)detail.querySelector('#'+focusedDetail)?.focus({preventScroll:true});
   }
+  // Pane primitives draw with the chart and follow the plot bounds after a pane or sidebar resize.
+  class PaneReadout {
+    values = [];
+    attached({requestUpdate}) { this.requestUpdate = requestUpdate; }
+    detached() { this.requestUpdate = null; }
+    setValues(values) {
+      this.values = values;
+      this.requestUpdate?.();
+    }
+    paneViews() {
+      return [{zOrder:()=> 'top', renderer:()=>({draw: target => target.useMediaCoordinateSpace(({context,mediaSize}) => {
+        if (!this.values.length) return;
+        const {fontFamily,fontSize} = chart.options().layout;
+        const lineHeight = Math.ceil(fontSize * 1.45);
+        const inset = 8, padding = 4, gap = 9;
+        const width = mediaSize.width - inset * 2 - padding * 2;
+        const lines = Math.min(3, Math.floor((mediaSize.height - inset - padding * 2) / lineHeight));
+        if (width <= 0 || lines < 1) return;
+
+        context.font = fontSize + 'px ' + fontFamily;
+        context.textBaseline = 'middle';
+        let x = 0, line = 0;
+        for (const {text,color} of this.values) {
+          const length = context.measureText(text).width;
+          if (x && x + length > width) { x = 0; line++; }
+          if (line >= lines) break;
+          const left = inset + x, top = inset + line * lineHeight;
+          context.save();
+          context.fillStyle = state.theme.background;
+          context.globalAlpha = .9;
+          context.fillRect(left, top, Math.min(length, width) + padding * 2, lineHeight);
+          context.restore();
+          context.fillStyle = color;
+          context.fillText(text, left + padding, top + lineHeight / 2, width);
+          x += length + gap + padding;
+        }
+      })})}];
+    }
+  }
+  function addReadout(pane, label, value, color = state.theme.text) {
+    (readoutFields[pane] ??= []).push({label,value,color});
+  }
   function showLegend(row) {
-    const fields = [state.show.ma && ['MA', row.ma], state.show.ema && ['EMA', row.ema], state.show.macd && ['MACD', row.macd], state.show.rsi && ['RSI', row.rsi], state.show.kdj && ['K', row.k]];
-    const sessionNames=state.language==='zh-CN'?{PreMarket:'盘前',Regular:'常规',AfterHours:'盘后',Closed:'休市'}:{PreMarket:'Pre-market',Regular:'Regular',AfterHours:'After-hours',Closed:'Closed'};
-    const values=fields.filter(Boolean).map(([label,value])=>label+' '+(finite(value)?value.toFixed(2):'—'));
-    if(state.intraday&&row.session)values.unshift(sessionNames[row.session]);
     const legend=document.getElementById('legend');legend.replaceChildren();
     const names=state.language==='zh-CN'?['开','高','低','收']:['O','H','L','C'];
     const fullNames=state.language==='zh-CN'?['开盘','最高','最低','收盘']:['Open','High','Low','Close'];
     [row.open,row.high,row.low,row.close].forEach((value,i)=>{
       const item=text('span','','legend-value');item.setAttribute('aria-label',fullNames[i]+' '+(finite(value)?value.toFixed(2):'—'));item.append(text('b',names[i]),text('span',finite(value)?value.toFixed(2):'—','legend-price'));legend.append(item);
     });
-    for(const value of values)legend.append(text('span',value,'legend-value legend-study'));
     legend.title=[...legend.children].map(item=>item.getAttribute('aria-label')||item.textContent).join(' · ');
 
   }
+  function updateReadouts() {
+    const hovered = byTime.get(hoveredTime), row = hovered ?? state.rows.at(-1);
+    if (row) showLegend(row);
+    else document.getElementById('legend').replaceChildren();
+    const index = row ? state.rows.indexOf(row) : -1;
+    const zh = state.language === 'zh-CN';
+    const names = zh ? {PreMarket:'盘前',Regular:'常规',AfterHours:'盘后',Closed:'休市'}
+      : {PreMarket:'Pre-market',Regular:'Regular',AfterHours:'After-hours',Closed:'Closed'};
+    const priceLabels = zh ? ['开','高','低','收'] : ['O','H','L','C'];
+    const format = value => typeof value === 'string' ? value : finite(value) ? value.toFixed(2) : '—';
+    chart.panes().forEach((pane, paneIndex) => {
+      if (!paneReadouts[paneIndex]) {
+        const primitive = new PaneReadout();
+        pane.attachPrimitive(primitive);
+        paneReadouts[paneIndex] = primitive;
+      }
+      const values = [];
+      if (row && paneIndex === 0) {
+        if (state.intraday && names[row.session]) values.push({text:names[row.session],color:state.theme.muted});
+        ['open','high','low','close'].forEach((field,i) =>
+          values.push({text:priceLabels[i] + ' ' + format(row[field]),color:state.theme.text}));
+      }
+      if (row) for (const {label,value,color} of readoutFields[paneIndex] ?? [])
+        values.push({text:label + ' ' + format(value(row,index)),color});
+      paneReadouts[paneIndex].setValues(values);
+    });
+  }
+  function renderStudyStrip() {
+    const strip = document.getElementById('study-strip'), studies = state.studies ?? [];
+    const zh = state.language === 'zh-CN';
+    strip.hidden = !studies.length;
+    strip.setAttribute('aria-label', zh ? '图表指标' : 'Chart indicators');
+    const signature = JSON.stringify(studies.map(({id,label,enabled,available,overlay}) => [id,label,enabled,available,overlay]));
+    if (signature === studyStripSignature) return;
+    studyStripSignature = signature;
+    const active = document.activeElement?.dataset.study;
+    const groups = [true, false].map(overlay => {
+      const group = document.createElement('div');
+      group.className = 'study-group';
+      group.setAttribute('role','group');
+      group.setAttribute('aria-label', overlay ? (zh?'主图指标':'Overlays') : (zh?'副图指标':'Indicator panes'));
+      for (const study of studies.filter(item => item.overlay === overlay)) {
+        const button = document.createElement('button');
+        button.type = 'button'; button.dataset.study = study.id;
+        button.disabled = !study.available; button.textContent = study.label;
+        button.setAttribute('aria-pressed', String(study.enabled));
+        button.title = study.id === 'iv'
+          ? (zh?'日 K · 使用本地记录的 IV 历史':'Daily candles · locally recorded IV history')
+          : study.available ? study.label : (zh?'仅适用于分时周期':'Intraday intervals only');
+        button.addEventListener('click', async () => {
+          if (studyPending) return;
+          studyPending = true;
+          try { await post({kind:'toggle-study', key:state.key, id:study.id}); }
+          finally { studyPending = false; }
+        });
+        group.append(button);
+      }
+      return group;
+    });
+    strip.replaceChildren(...groups);
+    if (active) [...strip.querySelectorAll('button')].find(button => button.dataset.study === active)?.focus({preventScroll:true});
+  }
+  function renderExtraStudies(lastPane) {
+    const theme = state.theme;
+    const markerData = [];
+    for (const [studyIndex, study] of (state.studies ?? []).entries()) {
+      if (!study.enabled) continue;
+      if (!study.lines.length) {
+        if (study.id === 'iv')
+          addReadout(0, 'IV', () => state.language === 'zh-CN' ? '暂无本地样本' : 'No recorded samples', theme.muted);
+        continue;
+      }
+      const pane = study.overlay ? 0 : ++lastPane;
+      study.lines.forEach((line, index) => {
+        if (line.style === 'counts') {
+          state.rows.forEach((row, i) => {
+            const count = line.values[i];
+            if (finite(count)) markerData.push({time:row.time,position:count > 0?'aboveBar':'belowBar',
+              shape:'circle',size:0,text:String(Math.abs(count)),color:count > 0?theme.up:theme.down});
+          });
+          return;
+        }
+        const id = 'study-' + study.id + '-' + index;
+        const color = theme.colors[(studyIndex + index + 1) % theme.colors.length];
+        const histogram = line.style === 'volume';
+        const type = histogram ? LightweightCharts.HistogramSeries : LightweightCharts.LineSeries;
+        const dots = line.style === 'dots';
+        if (!series[id]) series[id] = chart.addSeries(type, {
+          priceLineVisible:false,lastValueVisible:false,lineVisible:!dots,pointMarkersVisible:dots,
+          pointMarkersRadius:2,lineWidth:1, ...(histogram ? {priceFormat:{type:'volume'}} : {})
+        },pane);
+        series[id].applyOptions({color,title:line.label});
+        addReadout(pane, line.label, (_, i) => line.values[i], color);
+        series[id].setData(state.rows.map((row, i) => finite(line.values[i]) ? {time:row.time,value:line.values[i],
+          ...(histogram ? {color:row.close >= (row.open ?? state.rows[i-1]?.close ?? row.close) ? theme.up : theme.down} : {})
+        } : {time:row.time}));
+      });
+    }
+    if (markerData.length && !setupMarkers) setupMarkers = LightweightCharts.createSeriesMarkers(series.eventAnchor, []);
+    setupMarkers?.setMarkers(markerData);
+  }
+  function applyDisplay() {
+    if (!chart) return;
+    const style = styleSelect.value;
+    series.candles.applyOptions({visible:style==='candles'});
+    series.incomplete.applyOptions({visible:style==='candles'||style==='bars'});
+    for (const [id, value] of [['closeLine','line'], ['closeArea','area'], ['ohlc','bars']])
+      series[id]?.applyOptions({visible:style===value});
+    const modes = {percent:LightweightCharts.PriceScaleMode.Percentage, log:LightweightCharts.PriceScaleMode.Logarithmic};
+    chart.priceScale('right', 0).applyOptions({mode:modes[scaleSelect.value] ?? LightweightCharts.PriceScaleMode.Normal});
+  }
+  function renderDisplay() {
+    const zh = state.language === 'zh-CN';
+    displayMenu.hidden = !state.studies;
+    document.getElementById('display-label').textContent = replayIndex !== null ? (zh?'显示 · 回放':'Display · Replay') : (zh?'显示':'Display');
+    document.getElementById('chart-style-label').textContent = zh ? '图形' : 'Chart type';
+    document.getElementById('chart-scale-label').textContent = zh ? '坐标' : 'Scale';
+    const setOptions = (select, labels) => [...select.options].forEach((option, i) => option.textContent = labels[i]);
+    setOptions(styleSelect, zh ? ['K 线','收盘线','面积图','OHLC 条形'] : ['Candles','Close line','Area','OHLC bars']);
+    setOptions(scaleSelect, zh ? ['价格','百分比','对数'] : ['Price','Percent','Logarithmic']);
+    const focus = document.getElementById('chart-focus');
+    focus.textContent = focusChart ? (zh?'显示右栏':'Show sidebar') : (zh?'专注图表':'Focus chart');
+    focus.setAttribute('aria-pressed',String(focusChart));
+    document.getElementById('chart-image').textContent = zh ? '保存图像' : 'Save image';
+    const controls = document.getElementById('replay-controls');
+    const toggle = document.getElementById('replay-toggle');
+    toggle.disabled = !liveState?.rows.length;
+    toggle.textContent = replayIndex === null ? (zh?'开始回放':'Start replay') : (zh?'退出回放':'Exit replay');
+    controls.hidden = replayIndex === null;
+    if (replayIndex !== null) {
+      const slider = document.getElementById('replay-position');
+      slider.max = liveState.rows.length - 1;
+      slider.value = replayIndex;
+      document.getElementById('replay-position-label').textContent = eastern(replayTime,true);
+      document.getElementById('replay-speed-label').textContent = zh?'速度':'Speed';
+      document.getElementById('replay-play').textContent = replayTimer ? (zh?'暂停':'Pause') : (zh?'播放':'Play');
+      document.getElementById('replay-step').textContent = zh?'下一根':'Next bar';
+    }
+  }
+  for (const select of [styleSelect, scaleSelect]) select.addEventListener('change',applyDisplay);
+  document.getElementById('chart-focus').addEventListener('click', () => {
+    focusChart = !focusChart;
+    document.body.classList.toggle('chart-focus',focusChart);
+    renderDisplay();
+  });
+  document.getElementById('chart-image').addEventListener('click', () => {
+    if (!chart || !state.rows.length) return;
+    const link = document.createElement('a');
+    link.href = chart.takeScreenshot().toDataURL('image/png');
+    link.download = state.symbol.replace(/[^a-z0-9._-]/gi,'_') + '-chart.png';
+    link.click();
+  });
+
   function render(next) {
+    if (!liveState && preferredSidebarWidth === null && Number.isInteger(next.sidebarWidth))
+      preferredSidebarWidth = next.sidebarWidth;
+    applySidebarWidth();
+    if (replayIndex !== null && (liveState.key !== next.key || next.drawingMode)) stopReplay();
+    liveState = next;
+    if (replayIndex !== null) {
+      const index = next.rows.findIndex(row => row.time >= replayTime);
+      if (index >= 0 && next.rows[index].time === replayTime) {
+        replayIndex = index;
+        renderReplay();
+        return;
+      }
+      stopReplay();
+    }
+    renderFrame(next);
+  }
+  function renderReplay() {
+    const length = replayIndex + 1;
+    const studies = (liveState.studies ?? []).map(study => ({
+      ...study, lines:study.lines.map(line => {
+        const values = line.values.slice(0,length);
+        if (line.label === 'Chikou') values.fill(null,Math.max(0,length-26));
+        return {...line,values};
+      })
+    }));
+    // Only observations that existed at the playhead can be drawn or selected.
+    renderFrame({...liveState, rows:liveState.rows.slice(0,length), studies,
+      drawingMode:null,drawingStart:null,drawingTarget:null,drawings:[],preserveView:false,
+      events:(liveState.events ?? []).filter(item => finite(item.time) && item.time <= replayTime),
+      compare:liveState.compare.filter(point => point.time <= replayTime)});
+    updateLiveQuote(null);
+  }
+  function seekReplay(index) {
+    replayIndex = index;
+    replayTime = liveState.rows[index].time;
+    renderReplay();
+  }
+  function stopReplay() {
+    clearInterval(replayTimer);
+    replayIndex = replayTime = replayTimer = null;
+  }
+  function stepReplay() {
+    if (replayIndex + 1 >= liveState.rows.length) {
+      clearInterval(replayTimer);
+      replayTimer = null;
+      renderDisplay();
+      return;
+    }
+    seekReplay(replayIndex + 1);
+  }
+  function playReplay() {
+    const playing = replayTimer !== null;
+    clearInterval(replayTimer);
+    replayTimer = playing ? null : setInterval(stepReplay,1000 / Number(document.getElementById('replay-speed').value));
+    renderDisplay();
+  }
+  document.getElementById('replay-toggle').addEventListener('click', () => {
+    if (replayIndex !== null) { stopReplay(); render(liveState); quoteVersion = -1; }
+    else if (liveState.rows.length) seekReplay(Math.max(0,liveState.rows.length-31));
+  });
+  document.getElementById('replay-position').addEventListener('input',e=>seekReplay(Number(e.target.value)));
+  document.getElementById('replay-step').addEventListener('click',stepReplay);
+  document.getElementById('replay-play').addEventListener('click',playReplay);
+  document.getElementById('replay-speed').addEventListener('change',() => {
+    if (replayTimer !== null) {
+      clearInterval(replayTimer);
+      replayTimer = null;
+      playReplay();
+    }
+  });
+
+  function renderFrame(next) {
     const previousKey = key, saved = userRange, previousMode=state?.drawingMode, previousRevision=state?.drawingRevision,previousEpoch=state?.drawingEpoch;
     state = next;
-    if(previousKey!==state.key || previousMode!==state.drawingMode || previousEpoch!==state.drawingEpoch){finishingDrawing=false;sameBarWarning=false;draft=null;drawingHover=null;selectedDrawing=-1;}
+    readoutFields = [];
+    if (previousKey !== state.key) hoveredTime = undefined;
+    if(previousKey!==state.key || previousMode!==state.drawingMode || previousEpoch!==state.drawingEpoch){finishingDrawing=false;sameBarWarning=false;draft=null;targetDraft=null;drawingHover=null;selectedDrawing=-1;}
     if(state.drawingStart)draft=state.drawingStart;
+    if(state.drawingTarget)targetDraft=state.drawingTarget;
     if(previousRevision && previousRevision!==state.drawingRevision)selectedDrawing=-1;
     byTime = new Map(state.rows.map(r => [r.time, r]));
     document.documentElement.lang = state.language;
-    const shape = JSON.stringify(state.show);
+    const textScale = state.theme.textScale ?? 1;
+    document.documentElement.style.setProperty('--text-scale', textScale);
+    const shape = JSON.stringify([state.show, (state.studies ?? []).filter(study => study.enabled).map(study => [study.id, study.lines.length])]);
     const rebuild = !chart || signature !== shape;
     applying = true;
     try {
@@ -475,10 +1106,13 @@
       const t = state.theme, c = t.colors;
       document.body.style.background = t.background; document.body.style.color = t.text;
       document.documentElement.dataset.reducedMotion=String(state.theme.reducedMotion===true);document.documentElement.style.colorScheme = t.dark ? 'dark' : 'light';
-      for (const [name,value] of Object.entries({brand:t.brand,focus:t.focus,link:t.link,input:t.input,hover:t.hover,pressed:t.pressed,danger:t.danger,background:t.background,text:t.text,muted:t.muted,control:t.control,border:t.border,accent:t.accent,'error-background':t.errorBackground,'error-text':t.errorText}))
+      for (const [name,value] of Object.entries({brand:t.brand,focus:t.focus,link:t.link,input:t.input,hover:t.hover,pressed:t.pressed,danger:t.danger,background:t.background,text:t.text,muted:t.muted,control:t.control,border:t.border,accent:t.accent,'quote-up':t.up,'quote-down':t.down,'error-background':t.errorBackground,'error-text':t.errorText}))
         if (value) document.documentElement.style.setProperty('--'+name,value);
       document.getElementById('symbol').textContent = state.symbol;
       document.getElementById('fit').title = state.language === 'zh-CN' ? '适应图表窗口' : 'Fit chart to window';
+      const resizeLabel = state.language === 'zh-CN' ? '调整右侧栏宽度' : 'Resize right sidebar';
+      sidebarSplitter.setAttribute('aria-label',resizeLabel);
+      sidebarSplitter.title = resizeLabel;
       document.getElementById('fit').setAttribute('aria-label',state.language === 'zh-CN' ? '适应图表窗口' : 'Fit chart to window');
       const attribution=document.getElementById('attribution');
       attribution.replaceChildren(meiliIcons.svg('Info',16));
@@ -486,7 +1120,7 @@
       attribution.setAttribute('aria-label',state.language==='zh-CN'?'图表组件信息':'Chart component information');
       document.getElementById('empty').textContent = state.rows.length ? '' : state.labels.empty;
       document.getElementById('error').style.display = 'none';
-      chart.applyOptions({layout: {background: {type: 'solid', color: t.background}, textColor: t.text,panes:{separatorColor:t.border,separatorHoverColor:t.accent}}, crosshair:{vertLine:{color:t.muted,labelBackgroundColor:t.accent},horzLine:{color:t.muted,labelBackgroundColor:t.accent}}, grid: {vertLines: {color: t.grid}, horzLines: {color: t.grid}}, localization: {locale: state.language}, timeScale: {timeVisible: state.intraday}});
+      chart.applyOptions({layout: {fontSize: 12 * textScale, background: {type: 'solid', color: t.background}, textColor: t.text,panes:{separatorColor:t.border,separatorHoverColor:t.accent}}, crosshair:{vertLine:{color:t.muted,labelBackgroundColor:t.accent},horzLine:{color:t.muted,labelBackgroundColor:t.accent}}, grid: {vertLines: {color: t.grid}, horzLines: {color: t.grid}}, localization: {locale: state.language}, timeScale: {timeVisible: state.intraday}});
       series.candles.applyOptions({upColor: t.up, downColor: t.down, wickUpColor: t.up, wickDownColor: t.down, borderUpColor: t.up, borderDownColor: t.down});
       clearObservedSegments();
       series.candles.setData(state.rows.map(r => !r.incomplete && [r.open,r.high,r.low,r.close].every(finite) ? {time:r.time,open:r.open,high:r.high,low:r.low,close:r.close} : {time:r.time}));
@@ -494,6 +1128,22 @@
       series.incomplete.setData(state.rows.map(r => r.incomplete ? point(r, 'close') : {time: r.time}));
       series.eventAnchor.setData(state.rows.map(r => point(r, finite(r.high) ? 'high' : 'close')));
       renderEvents();
+      renderStudyStrip();
+      renderDisplay();
+      renderDrawingMenu();
+      if (state.studies) {
+        if (!series.closeLine) series.closeLine = chart.addSeries(LightweightCharts.LineSeries, {lineWidth:2});
+        series.closeLine.applyOptions({color:c[0]});
+        const close = state.rows.map(row => point(row,'close'));
+        series.closeLine.setData(close);
+        if (!series.closeArea) series.closeArea = chart.addSeries(LightweightCharts.AreaSeries, {lineWidth:2});
+        series.closeArea.applyOptions({lineColor:c[0],topColor:c[0]+'50',bottomColor:c[0]+'08'});
+        series.closeArea.setData(close);
+        if (!series.ohlc) series.ohlc = chart.addSeries(LightweightCharts.BarSeries, {openVisible:true});
+        series.ohlc.applyOptions({upColor:t.up,downColor:t.down});
+        series.ohlc.setData(series.candles.data());
+        applyDisplay();
+      }
       if (state.show.ma) line('ma', 'ma', state.labels.ma, c[0]);
       if (state.show.ema) line('ema', 'ema', state.labels.ema, c[1]);
       if (state.show.boll) {line('bollMiddle','bollMiddle',state.labels.boll,c[2]);line('bollUpper','bollUpper','BOLL ↑',c[2]);line('bollLower','bollLower','BOLL ↓',c[2]);}
@@ -502,12 +1152,14 @@
         pane++;
         if (!series.volume) series.volume = chart.addSeries(LightweightCharts.HistogramSeries, {title: state.labels.volume, priceFormat: {type: 'volume'}, lastValueVisible: false, priceLineVisible: false}, pane);
         series.volume.applyOptions({title:state.labels.volume});
+        addReadout(pane, state.labels.volume, row => row.volume);
         series.volume.setData(state.rows.map((r,i) => point(r, 'volume', r.close >= (finite(r.open) ? r.open : state.rows[i-1]?.close ?? r.close) ? t.up : t.down)));
       }
       if (state.show.macd) {
         pane++;
         if (!series.histogram) series.histogram = chart.addSeries(LightweightCharts.HistogramSeries, {title: 'MACD H', priceLineVisible: false, lastValueVisible: false}, pane);
         series.histogram.setData(state.rows.map(r => point(r, 'histogram', r.histogram >= 0 ? t.up : t.down)));
+        addReadout(pane, 'MACD H', row => row.histogram);
         line('macd','macd',state.labels.macd,c[0],pane);line('signal','signal','Signal',c[1],pane);
       }
       if (state.show.rsi) {
@@ -515,6 +1167,7 @@
         if (rebuild) for (const price of [30,70]) series.rsi.createPriceLine({price, color:t.muted, lineWidth:1, lineStyle:2, axisLabelVisible:false});
       }
       if (state.show.kdj) {pane++;line('k','k','K',c[0],pane);line('d','d','D',c[1],pane);line('j','j',state.labels.kdj,c[2],pane);}
+      renderExtraStudies(pane);
       if (!series.compare) series.compare = chart.addSeries(LightweightCharts.LineSeries, {color:c[3], lineWidth:2, priceLineVisible:false, lastValueVisible:false});
       series.compare.applyOptions({color:c[3],title:state.compareLabel});
       series.compare.setData(state.compare.map(p => finite(p.value) ? p : {time:p.time}));
@@ -523,7 +1176,7 @@
       priceLines = [];drawingSeries = [];
       for (const d of state.drawings) {
         if (d.kind === 'HorizontalLine') priceLines.push(series.candles.createPriceLine({price:d.price1,color:c[4],lineWidth:1,lineStyle:2,axisLabelVisible:true}));
-        else if (finite(d.time1) && finite(d.time2) && d.time1 !== d.time2) {
+        else if (d.kind === 'TrendLine' && finite(d.time1) && finite(d.time2) && d.time1 !== d.time2) {
           const s = chart.addSeries(LightweightCharts.LineSeries,{color:c[4],lineWidth:2,priceLineVisible:false,lastValueVisible:false});
           s.setData([{time:d.time1,value:d.price1},{time:d.time2,value:d.price2}].sort((a,b)=>a.time-b.time));drawingSeries.push(s);
         }
@@ -539,7 +1192,7 @@
       }
       if (saved && previousKey === key && state.preserveView) {chart.timeScale().setVisibleLogicalRange(saved);userRange = saved;}
       else {chart.timeScale().fitContent();userRange = null;}
-      if (state.rows.length) showLegend(state.rows[state.rows.length - 1]);
+      updateReadouts();
       document.title = 'EasySellPut Charts · ' + state.symbol;
       diagnostic({status:'rendered',drawingPreview:!!draft,drawingHandles:overlay.querySelectorAll("circle").length,drawingSelection:selectedDrawing,sidebarPermanent:document.getElementById('timeline').tagName==='ASIDE',sidebarViews:document.querySelectorAll('#right-tools button').length,sessionBands:sessionBands.length,sessionPanes:sessionLayers.length,historyGroups:document.querySelectorAll('.event-day').length,historyStops:document.getElementById('event-history').children.length,events:(state.events||[]).length,eventMarkers:eventMarkers.markers().length,key:state.key,rows:state.rows.length,candles:series.candles.data().filter(p=>finite(p.open)).length,panes:chart.panes().length,lastMa:series.ma?.data().at(-1)?.value ?? null,background:t.background,up:series.candles.options().upColor,range:chart.timeScale().getVisibleLogicalRange()});
     } finally {applying = false;}
@@ -557,7 +1210,7 @@
   function updateLiveQuote(value) {
     if(livePriceOwner!==series.candles){livePriceLine=null;livePriceOwner=series.candles;}
     if(!state||!series.candles)return;
-    if(!value||value.symbol!==state.symbol||!finite(value.price)||value.price<=0){
+    if(replayIndex !== null || !value||value.symbol!==state.symbol||!finite(value.price)||value.price<=0){
       if(livePriceLine)series.candles.removePriceLine(livePriceLine);
       clearObservedSegments();livePriceLine=null;liveQuote=null;series.candles.applyOptions({lastValueVisible:true,priceLineVisible:true});return;
     }
@@ -605,6 +1258,6 @@
     setTimeout(poll,250);
   }
   // Read-only diagnostics for renderer tests; it grants no native capabilities.
-  window.meiliChart = {inspect:()=>({chart,series,state,eventMarkers,sessionBands,sessionLayers,liveQuote,livePriceLine}),render};
+  window.meiliChart = {inspect:()=>({chart,series,state,eventMarkers,sessionBands,sessionLayers,liveQuote,livePriceLine,paneReadouts}),render};
   poll();
 })();

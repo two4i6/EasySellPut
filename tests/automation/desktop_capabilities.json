@@ -258,6 +258,29 @@
       }
     },
     {
+      "path": "src/Meili.Shared/ViewModels/MarketWorkspaceViewModel.cs",
+      "scope": "Shared desktop layout for Charts and Option chain. Watchlist groups, chart sidebar quotes and price history use existing operations. The persisted divider width, session metrics shown in the watchlist, and indicator overlays are desktop projections of existing bars.",
+      "operations": [
+        "get_quotes",
+        "get_watchlists",
+        "get_bars"
+      ],
+      "commands": {
+        "ApplyMiniIndicators": {
+          "uiOnly": "Saves moving-average and VWAP display preferences for the shared watchlist mini charts."
+        },
+        "SubmitSymbol": {
+          "uiOnly": "Commits the selected symbol to the desktop navigation context."
+        },
+        "Previous": {
+          "uiOnly": "Moves to the previous page of visible watchlist rows."
+        },
+        "Next": {
+          "uiOnly": "Moves to the next page of visible watchlist rows."
+        }
+      }
+    },
+    {
       "path": "src/Meili.Shared/ViewModels/OptionsViewModel.Insights.cs",
       "operations": [
         "get_option_chain",

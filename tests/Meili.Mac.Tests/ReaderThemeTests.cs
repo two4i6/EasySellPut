@@ -33,7 +33,7 @@ public class ReaderThemeTests
                 reader.OpenArticle("file:///blocked", "Blocked"); MacHost.Pump();
                 Assert.True(status.IsVisible);
                 Assert.Equal(Color.FromUInt32(palette.ErrorBar), ((ISolidColorBrush)status.Background!).Color);
-                Assert.All(toolbar.Children.OfType<Button>(), button => Assert.True(button.MinHeight >= 32 && button.FontSize >= 14));
+                Assert.All(toolbar.Children.OfType<Button>(), button => Assert.True(button.MinHeight >= 32 && button.FontSize >= DesignTypography.Size(14)));
                 MacHost.Save(reader, "reader-" + mode);
             }
             loc.Apply("en-US"); MacHost.Pump();
