@@ -5,7 +5,7 @@
 | 阶段 | 触发 | 内容 | 能否公开发布 |
 | --- | --- | --- | --- |
 | CI · Test & Package | 所有 push / PR，也可手动运行 | 共享测试、全目录 CLI/MCP、组件与浏览器测试、原生安装包及升级事务验收 | 否，仅保留 artifacts |
-| Release · Auto publish | `HOST_AUTO_RELEASE=true` 时 main 的成功 CI 自动触发；也可在 main 手动指定 run ID | 校验来源，下载七份既有包，平台签名/公证，再运行最终包，签署发行索引和更新索引，创建草稿、复验并正式发布 | 是，仅新版本 |
+| Release · Auto publish | `HOST_AUTO_RELEASE=true` 时 main 的成功 CI 自动触发；也可在 main 手动指定 run ID | 校验来源，下载七份既有包，保留 CI 包原字节，再在原生平台运行最终包，签署发行索引和更新索引，创建草稿、复验并正式发布 | 是，仅新版本 |
 | Release · Publish | 在 main 手动输入稳定版本号 | 复验 tag、当前 main、成功 CI、两个签名索引和全部附件，再把草稿转正式发布 | 是 |
 
 `work`、PR、其他分支和标签上的 CI 产物均不能进入发布流程。工作流 job 条件和 Python 策略同时验证 main；成功的 aggregate 不能代替缺失的平台作业。来源必须是本仓库 `.github/workflows/ci.yml` 的成功 **push**，SHA 必须等于当前 main。拒绝 fork、PR、过期/缺失/重复产物和截断的 API 列表。
@@ -16,41 +16,25 @@ main 若在准备或发布验证期间前进，流程停止，等待新 main 完
 
 - Desktop：Windows x64、macOS Intel/Apple Silicon，共三份 zip，含 GUI、CLI/MCP 和配套 skill。
 - 独立 CLI/MCP：Linux x64、Windows x64、macOS x64/ARM64，共四份 zip/tar.gz。
-- Release 不执行 `dotnet publish`，不重新构建应用；仅对成功 CI 的原生包进行平台签名、公证和重打包。签名会改变包字节，因此重新计算校验和，并对最终包再次执行原生验证。
-- 最终验证包括含空格路径解压、CLI/MCP 真实进程、GUI、内置图表、更新替换/重启及数据保留。macOS 另验证 Developer ID、Apple notarization、stapled ticket 和 Gatekeeper。Linux 包保持原始字节，由签名发行索引验证来源。
+- Release 直接使用成功 CI 的原始包和校验文件，并在原生平台再次验证最终包。Windows 包无 Authenticode 发布者签名。macOS 包保留本地 ad-hoc 完整性签名，无 Developer ID 签名和 Apple 公证。
+- 最终验证包括含空格路径解压、CLI/MCP 真实进程、GUI、内置图表、更新替换/重启及数据保留。系统可能显示发布者警告或阻止打开。三种平台的包均由签名发行索引验证来源。
 - `EasySellPut-update.json` 包含构建仓库 `repository` 和三份桌面包，保持客户端协议；`EasySellPut-release.json` 包含七份包的大小/哈希、源码提交、CI run 和原始 artifact 身份。两个索引均使用内置公钥对应的 ECDSA P-256 私钥签名。
 - 正式发布前下载全部草稿附件，复验两个签名、七个产物目标、哈希、校验文件和附件集合。没有 `--publish` 的验证不会发布；自动发布和手动恢复入口均调用同一验证器传入它。
 
 ## 首次启用配置
 
-维护者需先在仓库 Settings → Environments 创建 **release**：Deployment branches and tags 选择 **Selected branches and tags**，只添加类型为 **Branch** 的 `main`，不允许 `work` 或 tag。将凭据放在该 Environment 的 Secrets 中，不要提交到 Git，也不要扩大到所有分支。
+仓库的 `release` Environment 必须只允许 `main`。发布渠道唯一需要的 Secret 是 `UPDATE_SIGNING_KEY`，即与源码 `update-public-key.pem` 匹配的项目密钥。主程序用它验证更新清单，独立应用用它验证签名包和目录。项目密钥由 OpenSSL 生成，无需 Apple 或 Windows 开发者账号。
 
-当前聊天凭据配置 Environment 的 GitHub API 返回 **403 Resource not accessible by integration**，因此本次没有完成服务端 Environment 策略配置。工作流和脚本的 main 限制已实现；服务端策略仍需有仓库管理权限的维护者配置后，再加入正式凭据。
+第一次配置时，按 [更新配置说明](29-检查更新与安装.md) 从维护者电脑保存私钥备份并配置 Secret。已有固定公钥和对应私钥时，继续使用原密钥。只把公钥提交到仓库。
 
-| Secret | 用途 |
-| --- | --- |
-| `UPDATE_SIGNING_KEY` | 与源码 `update-public-key.pem` 匹配的 ECDSA P-256 PEM 私钥 |
-| `APPLE_CERTIFICATE_P12_BASE64` | Developer ID Application 证书及私钥的 P12，单行 base64 |
-| `APPLE_CERTIFICATE_PASSWORD` | P12 密码 |
-| `APPLE_SIGNING_IDENTITY` | 完整的 `Developer ID Application: … (TEAMID)` 身份 |
-| `APPLE_NOTARY_KEY_P8` | Apple notarization API 私钥内容 |
-| `APPLE_NOTARY_KEY_ID` | API key ID |
-| `APPLE_NOTARY_ISSUER` | API issuer ID |
-| `WINDOWS_CERTIFICATE_PFX_BASE64` | 可用于 Windows Authenticode 的证书/私钥 PFX，单行 base64 |
-| `WINDOWS_CERTIFICATE_PASSWORD` | PFX 密码 |
-
-macOS 使用临时 keychain、hardened runtime 和 .NET JIT entitlements，Apple 返回 Accepted 后再 staple。Windows 使用证书存储及 SHA-256 签名/时间戳并验签。凭据缺失、信任失败或公证失败会停止，不退回 ad-hoc/未签名正式包。临时密钥材料在清理阶段删除，签名失败不输出含密码的命令行。
-
-当前更新公钥的首次正式初始化仍按 [29](29-检查更新与安装.md) 操作，私钥备份保存在仓库外；提交公钥并重新完成 CI 后才可发布。已有正式客户端时不能随意更换公钥。Apple/Windows 证书由维护者向各自信任体系申请，GitHub Actions 不能自动提供这些身份。
-
-仓库分支规则应要求 `CI · Required checks`（原 `CLI and MCP required`；改名迁移见 [09](09-CI与能力覆盖.md)）。不能因为签名配置尚未完成就去掉平台、忽略测试或绕过公证。CI 测试包仍可下载；它们不等于正式签名发行版。
+GitHub 分支规则要求通过 `CI · Required checks`。原生验证、哈希校验和更新签名仍是公开发布的必要条件。
 
 ## 操作
 
 1. 将改动合入 main，并设置新的三段稳定版本号。
-2. 等 main 的完整 CI 成功。自动准备工作流启动；也可在 main 手动选择 `Release · Auto publish`，输入该 CI run ID 和可选说明。
+2. 等 main 的完整 CI 成功。如果已启用 `HOST_AUTO_RELEASE`，成功的 main CI 会启动自动发布。也可在 main 手动选择 `Release · Auto publish`，输入该 CI run ID 和可选说明。
 3. 检查草稿、发行说明、签名及所有平台的最终包验证结果。tag 在草稿准备阶段创建并指向该 main SHA；不重新指向已有版本。
-4. 在 main 运行 `Release · Publish`，输入如 `0.6.0`。它会再次验证当前 main、tag、来源和附件后公开发布。
+4. 如果使用手动入口创建草稿，在 main 运行 `Release · Publish`，输入如 `0.6.0`。它会再次验证当前 main、tag、来源和附件后公开发布。
 
 所有正式发布通过 Actions 完成，不在本地执行 `gh release create/edit`，也不通过网页手工替换附件。GitHub 管理员始终具有手动修改仓库的权限；工作流约束不能替代仓库权限与 Environment 配置。
 
@@ -58,7 +42,7 @@ macOS 使用临时 keychain、hardened runtime 和 .NET JIT entitlements，Apple
 
 CI 增加 `Release · main guard` 并接入 required 聚合：检查工作流边界，测试 main/work、错误来源、缺失平台、过期产物、篡改哈希、错误附件、凭据缺失和实际 OpenSSL 签名验证。发布编排测试使用临时 fixture 和模拟 GitHub API，不创建真实发行。
 
-新增正式平台签名、公证和公开发布必须在凭据配置后，通过 main 的实际发行流程验收；普通 CI 的 ad-hoc macOS 包不能证明 Developer ID 或 Apple 服务已验证。本次仅实现并验证流程，没有运行正式发布或修改用户安装。
+正式发布以 main 工作流成功、公开附件可下载及真机从该版本更新的记录为准。开发签名的测试产物使用临时密钥。
 
 这是工程交付变更，不新增桌面业务、CLI 命令或 MCP 工具，原有业务目录/权限和覆盖场景保持不变。
 
@@ -70,12 +54,6 @@ CI 通过 GitHub Actions 环境将当前 `github.repository` 编译进每个 GUI
 
 这些检查不替代首次签名密钥配置，也不允许 `work`/PR 发布。首次初始化应先提交仓库自己的公钥，再运行 main CI 并配置对应私钥；已有客户端的密钥不得自动轮换。
 
-## 自动发布启用状态（2026-11-18）
+## 自动发布开关
 
-管理员确认 GitHub release Environment 已限制 main，Ruleset 已要求 `CI · Required checks`，默认 Actions 权限保持只读。`HOST_AUTO_RELEASE=false`、`APPS_AUTO_RELEASE=false`；九项签名 Secrets 尚未提供。以上替代早期服务端未配置的状态记录。当前实现准备自动发布，不代表生产签名及安装已验收；须先补齐凭据与匹配的固定公钥，再开启相应开关。子应用独立发布不改变主程序 Latest。
-
-## Publisher signing deferred — 2026-11-18
-
-The user explicitly authorized automatic host/app distribution before Windows Authenticode and Apple Developer ID/notarization are available. Host preparation now selects `--platform-signing none` explicitly, preserves exact tested archive/checksum bytes and still runs native GUI/CLI/MCP and updater transaction checks. macOS retains its existing ad-hoc integrity signature; no quarantine removal, Gatekeeper bypass or system policy changes are performed. Release notes disclose missing publisher signatures and possible OS warnings/blocks. This does not guarantee a frictionless first installation.
-
-`UPDATE_SIGNING_KEY` remains required for both host indexes and independently installed app packages/catalogs. Its matching public key must be committed before CI builds the first trusted host. The eight Apple/Windows secrets are deferred, not required by the current path. Both auto-release switches remain false until this one-time trust setup and native CI succeed. Future OS signing must switch preparation and assembly together to `required` and re-enable notarization/Gatekeeper validation; missing credentials must never silently trigger an unsigned fallback. Browser installation may require platform-supported user approval; never automate bypasses.
+`HOST_AUTO_RELEASE=true` 启用主程序自动发布。`APPS_AUTO_RELEASE=true` 启用独立应用的自动发布。两个渠道都要求成功的 main CI 和与源码公钥匹配的项目密钥。独立应用目录使用独立的预发布标签，主程序继续读取稳定版 Latest。

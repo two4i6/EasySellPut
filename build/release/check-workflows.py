@@ -20,8 +20,8 @@ def check(workflows):
     require(prepare['on']['workflow_run']['workflows'] == [ci['name']], 'Release must follow the required CI workflow')
     select = prepare['jobs']['source']
     require("github.ref == 'refs/heads/main'" in select['if'] and "github.event.workflow_run.head_branch == 'main'" in select['if'], 'Source selection must reject non-main runs')
-    require(prepare['jobs']['packages']['needs'] == 'source', 'Signing must depend on trusted source validation')
-    require(set(prepare['jobs']['draft']['needs']) == {'source', 'packages'}, 'Draft must wait for all signed native packages')
+    require(prepare['jobs']['packages']['needs'] == 'source', 'Package preparation must depend on trusted source validation')
+    require(set(prepare['jobs']['draft']['needs']) == {'source', 'packages'}, 'Draft must wait for all verified native packages')
     require(set(publish['on']) == {'workflow_dispatch'}, 'Publication must be explicitly dispatched')
     require(set(publish['jobs']) == {'publish'}, 'Unexpected publication jobs')
     host_publish = prepare['jobs']['publish']
@@ -81,13 +81,17 @@ def check(workflows):
             if job.get('permissions', {}).get('contents') == 'write':
                 require("github.ref == 'refs/heads/main'" in job.get('if', ''), 'Write job needs explicit main restriction')
                 require(job.get('environment') == 'release', 'Write job needs release environment')
-    require(prepare['jobs']['packages']['environment'] == 'release', 'Signing secrets need release environment')
-    require("github.ref == 'refs/heads/main'" in prepare['jobs']['packages'].get('if', ''), 'Signing must explicitly require main')
+    packages = prepare['jobs']['packages']
+    draft = prepare['jobs']['draft']
+    require('environment' not in packages and draft['environment'] == 'release', 'Only protected release jobs need publisher credentials')
+    require("github.ref == 'refs/heads/main'" in packages.get('if', ''), 'Package preparation must explicitly require main')
     commands = '\n'.join(step.get('run', '') for step in prepare['jobs']['packages']['steps'])
     require('dotnet publish' not in commands and 'pack-desktop.py' not in commands and 'pack-cli.' not in commands, 'Release cannot rebuild application packages')
-    require('--platform-signing none' in commands and prepare['jobs']['packages']['env'].get('PLATFORM_SIGNING') == 'none', 'Publisher signing is explicitly deferred, never inferred from missing secrets')
+    require('--platform-signing none' in commands, 'Publisher signing is explicitly disabled')
+    require(not any('secrets.' in str(step.get('env', {})) for step in packages['steps']), 'Native package verification must not depend on publisher credentials')
+    require(any('UPDATE_SIGNING_KEY' in step.get('env', {}) and 'openssl dgst -sha256 -verify' in step.get('run', '') for step in draft['steps']), 'Draft must use the protected signing key and pinned public key for update provenance')
     require(any('assemble.py' in step.get('run', '') and '--platform-signing none' in step['run'] for step in prepare['jobs']['draft']['steps']), 'Release provenance must disclose the selected publisher-signing policy')
-    require('check_desktop_package.py' in commands and 'cli_mcp_smoke.py' in commands and 'stapler validate' in commands, 'Final signed packages need native execution and notarization checks')
+    require('check_desktop_package.py' in commands and 'cli_mcp_smoke.py' in commands, 'Release packages need native execution and updater checks')
     require(set(ci['jobs']['required']['needs']) == {'cli', 'ui', 'desktop', 'release-policy', 'qqq-gex'}, 'All job families must remain required')
     require(ci['jobs']['required']['name'] == GATE_NAME, 'Aggregate check name differs from release policy')
     require(ci['jobs']['ui']['name'] == 'UI · Layout & Charts' and ci['jobs']['release-policy']['name'] == 'Release · main guard', 'Required job labels differ')
