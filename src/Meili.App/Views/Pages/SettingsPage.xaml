@@ -80,7 +80,7 @@
                 <ds:AppCard.Header>
                     <ux:AppFormHeader Title="{DynamicResource Set_TextSize}" HelpText="{DynamicResource Set_TextSizeDesc}"/>
                 </ds:AppCard.Header>
-                <ds:AppSelect Width="{StaticResource FormFieldWidth}" ItemsSource="{Binding TextSizeOptions}"
+                <ds:AppSelect x:Name="TextSizePicker" Width="{StaticResource FormFieldWidth}" ItemsSource="{Binding TextSizeOptions}"
                               SelectedIndex="{Binding TextSizeIndex, Mode=TwoWay}" AutomationProperties.AutomationId="SettingsTextSize"
                               AutomationProperties.Name="{DynamicResource Set_TextSize}"/>
             </ds:AppCard>

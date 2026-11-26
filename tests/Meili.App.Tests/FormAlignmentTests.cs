@@ -20,7 +20,7 @@ public sealed class FormAlignmentTests
             foreach(var language in new[]{"zh-CN","en-US"})foreach(var dark in new[]{false,true})foreach(var width in new[]{980,1440})
             {
                 ScreenRenderTests.Apply(language,dark);var page=new SettingsPage();using var host=new OffscreenHost(page,width,980);await ScreenRenderTests.Settle();
-                var headers=UiAudit.Descendants<AppFormHeader>(page).ToList();Assert.Equal(11,headers.Count);
+                var headers=UiAudit.Descendants<AppFormHeader>(page).ToList();Assert.Equal(12,headers.Count);
                 foreach(var header in headers)
                 {
                     var title=UiAudit.Descendants<TextBlock>(header).First(t=>t.Text==header.Title);var help=UiAudit.Descendants<AppHelp>(header).Single();
@@ -59,8 +59,12 @@ public sealed class FormAlignmentTests
             var page = new SettingsPage();
             using var host = new OffscreenHost(page, 980, 620, asMainWindow: true);
             await ScreenRenderTests.Settle();
-            var picker = UiAudit.Descendants<AppSelect>(page).Single(control =>
-                System.Windows.Automation.AutomationProperties.GetAutomationId(control) == "SettingsTextSize");
+            host.Layout();
+            var picker = Assert.IsType<AppSelect>(page.FindName("TextSizePicker"));
+            Assert.Equal("SettingsTextSize", System.Windows.Automation.AutomationProperties.GetAutomationId(picker));
+            picker.BringIntoView();
+            host.Layout();
+            Assert.True(picker.ActualWidth > 0 && picker.ActualHeight > 0);
             var original = picker.SelectedIndex;
             try
             {
