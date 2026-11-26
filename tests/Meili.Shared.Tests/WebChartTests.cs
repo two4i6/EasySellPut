@@ -8,6 +8,7 @@ using Meili.Core.Settings;
 using Meili.Core.Time;
 using Meili.Data.Cache;
 using Meili.Shared.ViewModels;
+using Microsoft.Data.Sqlite;
 
 namespace Meili.Shared.Tests;
 
@@ -263,5 +264,10 @@ public sealed class WebChartTests : IDisposable
         Assert.Equal(HttpStatusCode.NoContent,(await client.SendAsync(staleRequest)).StatusCode);Assert.Empty(_vm.Drawings);
 
     }
-    public void Dispose() { _vm.Deactivate(); if (Directory.Exists(_directory)) Directory.Delete(_directory, true); }
+    public void Dispose()
+    {
+        _vm.Deactivate();
+        SqliteConnection.ClearAllPools();
+        if (Directory.Exists(_directory)) Directory.Delete(_directory, true);
+    }
 }

@@ -139,7 +139,7 @@
                         <StackPanel Grid.Column="7" Width="{Binding DataContext.NumberColumnWidth, RelativeSource={RelativeSource AncestorType=ListBox}}" VerticalAlignment="Center"
                                     Visibility="{Binding DataContext.ShowSessionMetrics, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource BoolToVis}}" ToolTip="{Binding RangePositionTip}">
                             <TextBlock FontFamily="{DynamicResource NumberFont}" Text="{Binding RangePosition}" HorizontalAlignment="Right"/>
-                            <ProgressBar Value="{Binding RangePercent}" Maximum="100" Width="40" Height="4" MinWidth="0" MinHeight="0"
+                            <ProgressBar Value="{Binding RangePercent, Mode=OneWay}" Maximum="100" Width="40" Height="4" MinWidth="0" MinHeight="0"
                                          HorizontalAlignment="Right" IsHitTestVisible="False" Visibility="{Binding HasRangePosition, Converter={StaticResource BoolToVis}}"/>
                         </StackPanel>
                     </Grid>
